@@ -23,6 +23,10 @@ export const leaders = pgTable("leaders", {
   traits: jsonb("traits").$type<string[]>(),
   biography: text("biography").notNull(),
   photoUrl: text("photo_url"),
+  controversial: boolean("controversial").default(false).notNull(),
+  generationMostAffected: text("generation_most_affected"),
+  leadershipStyles: jsonb("leadership_styles").$type<string[]>(),
+  famousPhrases: jsonb("famous_phrases").$type<string[]>(),
 });
 
 export const recordings = pgTable("recordings", {

@@ -1,6 +1,7 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { db } from "./db";
 import session from "express-session";
 import MemoryStore from "memorystore";
 import { transcribeAndAnalyzeAudio } from "./openai";
@@ -8,6 +9,7 @@ import multer from "multer";
 import fs from "fs";
 import path from "path";
 import os from "os";
+import crypto from "crypto";
 import { insertUserSchema, updateUserSchema, insertRecordingSchema } from "@shared/schema";
 import { z } from "zod";
 import { ZodError } from "zod";
@@ -93,7 +95,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }),
       genid: function() {
         // Generate a completely random session ID
-        return require('crypto').randomBytes(32).toString('hex');
+        return crypto.randomUUID();
       }
     })
   );
@@ -367,6 +369,125 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching leaders:", error);
       return res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Admin route to update the database schema and seed leaders data
+  app.post("/api/admin/update-leaders", async (req, res) => {
+    try {
+      // Only allow in development
+      if (process.env.NODE_ENV !== 'development') {
+        return res.status(403).json({ message: "This endpoint is only available in development mode" });
+      }
+      
+      console.log("Running database migration to update leaders table...");
+      
+      // Execute raw SQL to add the new columns
+      await db.execute(`
+        ALTER TABLE leaders 
+        ADD COLUMN IF NOT EXISTS controversial BOOLEAN DEFAULT FALSE,
+        ADD COLUMN IF NOT EXISTS generation_most_affected TEXT,
+        ADD COLUMN IF NOT EXISTS leadership_styles JSONB,
+        ADD COLUMN IF NOT EXISTS famous_phrases JSONB;
+      `);
+      
+      console.log("Migration successful, new columns added to leaders table");
+      
+      // Return success
+      return res.status(200).json({ 
+        success: true, 
+        message: "Leaders table schema updated successfully"
+      });
+    } catch (error) {
+      console.error("Error updating leaders schema:", error);
+      return res.status(500).json({ 
+        message: "Failed to update leaders schema", 
+        error: error instanceof Error ? error.message : String(error) 
+      });
+    }
+  });
+  
+  // Admin route to import controversial leaders data from the provided JSON file
+  app.post("/api/admin/import-leaders", async (req, res) => {
+    try {
+      // Only allow in development
+      if (process.env.NODE_ENV !== 'development') {
+        return res.status(403).json({ message: "This endpoint is only available in development mode" });
+      }
+      
+      // Read the JSON file with leader data
+      const filePath = path.join(process.cwd(), 'attached_assets', 'controversial_leaders.json');
+      console.log(`Reading leaders data from ${filePath}`);
+      
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ 
+          success: false, 
+          message: "Leaders data file not found" 
+        });
+      }
+      
+      const leadersData = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+      console.log(`Found ${leadersData.length} leaders in the file`);
+      
+      // Get existing leaders from the database
+      const existingLeaders = await storage.getLeaders();
+      console.log(`Found ${existingLeaders.length} leaders in the database`);
+      
+      // Create a map of names to DB leaders
+      const leaderMap = new Map();
+      existingLeaders.forEach(leader => {
+        leaderMap.set(leader.name.toLowerCase(), leader);
+      });
+      
+      // Loop through the leaders data and update the database
+      const updatedLeaders = [];
+      
+      for (const leaderData of leadersData) {
+        const normalizedName = leaderData.name.toLowerCase();
+        const dbLeader = leaderMap.get(normalizedName);
+        
+        if (dbLeader) {
+          // Update the existing leader with the new data
+          console.log(`Updating leader: ${leaderData.name}`);
+          
+          // Execute SQL to update the leader fields
+          await db.execute(
+            `UPDATE leaders 
+             SET controversial = $1, 
+                 generation_most_affected = $2, 
+                 leadership_styles = $3, 
+                 famous_phrases = $4
+             WHERE id = $5`,
+            [
+              leaderData.controversial,
+              leaderData.generation_most_affected,
+              JSON.stringify(leaderData.leadership_styles),
+              JSON.stringify(leaderData.famous_phrases),
+              dbLeader.id
+            ]
+          );
+          
+          updatedLeaders.push({
+            id: dbLeader.id,
+            name: dbLeader.name,
+            updated: true
+          });
+        } else {
+          console.log(`Leader not found in database: ${leaderData.name}`);
+        }
+      }
+      
+      return res.status(200).json({ 
+        success: true, 
+        message: `Updated ${updatedLeaders.length} leaders`,
+        updatedLeaders 
+      });
+    } catch (error) {
+      console.error("Error importing leaders data:", error);
+      return res.status(500).json({ 
+        message: "Failed to import leaders data", 
+        error: error instanceof Error ? error.message : String(error) 
+      });
     }
   });
   
