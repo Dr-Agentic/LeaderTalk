@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useLocation, useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, ChevronLeft } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { BackButton } from "@/components/BackButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -59,7 +60,7 @@ export default function TranscriptView() {
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Recording Not Found</h1>
           <p className="mb-6">The requested recording could not be found.</p>
-          <Button onClick={() => navigate("/")}>Return to Dashboard</Button>
+          <BackButton to="/transcripts" label="Back to All Transcripts" className="mx-auto" />
         </div>
       </div>
     );
@@ -68,15 +69,11 @@ export default function TranscriptView() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="mb-6 flex items-center">
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={() => navigate("/")}
+        <BackButton 
+          to="/transcripts" 
+          label="Back to All Transcripts" 
           className="mr-2"
-        >
-          <ChevronLeft className="mr-1 h-4 w-4" />
-          Back
-        </Button>
+        />
         <h1 className="text-2xl font-bold">{recording.title} - Transcript</h1>
       </div>
       

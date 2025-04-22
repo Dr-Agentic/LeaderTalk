@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import LeaderSelection from "@/components/onboarding/LeaderSelection";
 import { Skeleton } from "@/components/ui/skeleton";
+import { BackButton } from "@/components/BackButton";
 
 export default function Settings() {
   const { userData } = useAuth();
@@ -18,7 +19,8 @@ export default function Settings() {
   
   return (
     <div className="container mx-auto py-10 px-4">
-      <h1 className="text-3xl font-bold mb-8">Settings</h1>
+      <BackButton to="/dashboard" label="Back to Dashboard" />
+      <h1 className="text-3xl font-bold my-8">Settings</h1>
       
       <Tabs defaultValue="leaders" onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-2 mb-8">
@@ -84,6 +86,7 @@ export default function Settings() {
 function SettingsSkeleton() {
   return (
     <div className="max-w-4xl mx-auto my-10 bg-white p-8 rounded-lg shadow-md">
+      <Skeleton className="h-8 w-32 mb-4" /> {/* BackButton skeleton */}
       <div className="text-center mb-6">
         <Skeleton className="h-8 w-64 mx-auto mb-4" />
         <Skeleton className="h-4 w-96 mx-auto" />
