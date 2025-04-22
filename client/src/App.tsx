@@ -61,11 +61,19 @@ function Router() {
 
   return (
     <Switch>
+      {/* Auth required routes */}
       {isAuthenticated && onboardingComplete && <Route path="/" component={Dashboard} />}
       {isAuthenticated && onboardingComplete && <Route path="/transcript/:id" component={TranscriptView} />}
       {isAuthenticated && onboardingComplete && <Route path="/transcripts" component={AllTranscripts} />}
+      
+      {/* Onboarding route */}
       {isAuthenticated && !onboardingComplete && <Route path="/" component={Onboarding} />}
+      
+      {/* Login routes - explicitly include /login path */}
       {!isAuthenticated && <Route path="/" component={DirectLogin} />}
+      {!isAuthenticated && <Route path="/login" component={DirectLogin} />}
+      
+      {/* Fallback route */}
       <Route component={NotFound} />
     </Switch>
   );

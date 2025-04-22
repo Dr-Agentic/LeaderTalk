@@ -20,10 +20,11 @@ export async function apiRequest(
       credentials: "include",
     });
     
-    // Special case for unauthorized - redirect to login page, not auto force-login
-    if (res.status === 401 && url === '/api/users/me') {
+    // Special case for unauthorized - redirect to login page
+    if (res.status === 401 && url.includes('/api/') && !url.includes('/api/auth/')) {
       console.log("Unauthorized access, redirecting to login...");
-      // No automatic redirect, just log it
+      // Redirect to login page, not force-login
+      window.location.href = '/login';
       return res; // Skip throwing error
     }
     
@@ -48,10 +49,12 @@ export const getQueryFn: <T>(options: {
 
       // Check for 401 (unauthorized) status
       if (res.status === 401) {
-        // If it's an API route, don't auto-redirect, just handle locally
+        // If it's an API route, redirect to login page unless it's the login API itself
         const url = queryKey[0] as string;
-        if (url.includes('/api/')) {
-          console.log("Unauthorized access to API, should show login page");
+        if (url.includes('/api/') && !url.includes('/api/auth/')) {
+          console.log("Unauthorized access to API, redirecting to login page");
+          // Use wouter's navigate for cleaner redirect if possible, but fallback to location
+          window.location.href = '/login';
           return null;
         }
         

@@ -88,6 +88,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // *** User routes ***
   
+  // Logout route
+  app.get("/api/auth/logout", (req, res) => {
+    // Destroy the session
+    if (req.session) {
+      req.session.destroy((err) => {
+        if (err) {
+          console.error("Error destroying session:", err);
+          return res.status(500).json({ message: "Error logging out" });
+        }
+        res.clearCookie("connect.sid");
+        return res.status(200).json({ message: "Logged out successfully" });
+      });
+    } else {
+      return res.status(200).json({ message: "Already logged out" });
+    }
+  });
+  
   // Special direct login routes for development - NO AUTHENTICATION NEEDED
   app.get("/api/auth/force-login", async (req, res) => {
     try {

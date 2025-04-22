@@ -131,7 +131,7 @@ function SidebarFooter({ user }) {
       });
       
       // Redirect to login page
-      window.location.href = '/';
+      window.location.href = '/login';
     } catch (error) {
       console.error("Error signing out:", error);
     }
