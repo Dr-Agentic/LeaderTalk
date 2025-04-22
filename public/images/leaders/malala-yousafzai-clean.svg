@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="240" height="280" viewBox="0 0 240 280" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <title>Malala Yousafzai</title>
+  <mask id="mask0" mask-type="alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="240" height="280">
+    <rect width="240" height="280" fill="#C4C4C4"/>
+  </mask>
+  <g mask="url(#mask0)">
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M120 245C153.137 245 180 218.137 180 185C180 151.863 153.137 125 120 125C86.8629 125 60 151.863 60 185C60 218.137 86.8629 245 120 245Z" fill="#FFDFC4"/>
+    <path d="M90 180C95.5228 180 100 175.523 100 170C100 164.477 95.5228 160 90 160C84.4772 160 80 164.477 80 170C80 175.523 84.4772 180 90 180Z" fill="#FFDFC4"/>
+    <path d="M150 180C155.523 180 160 175.523 160 170C160 164.477 155.523 160 150 160C144.477 160 140 164.477 140 170C140 175.523 144.477 180 150 180Z" fill="#FFDFC4"/>
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M120 195C114.477 195 110 193.209 110 191C110 188.791 114.477 187 120 187C125.523 187 130 188.791 130 191C130 193.209 125.523 195 120 195Z" fill="#FFDFC4"/>
+    <path d="M120 210C129.941 210 138 207.761 138 205C138 202.239 129.941 200 120 200C110.059 200 102 202.239 102 205C102 207.761 110.059 210 120 210Z" fill="#E5BEA6"/>
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M190 140C190 140 190 110 120 110C50 110 50 140 50 140C50 140 50 95 120 95C190 95 190 140 190 140Z" fill="#4E3106"/>
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M190 150C190 150 190 100 120 100C50 100 50 150 50 150C50 110 50 80 120 80C190 80 190 110 190 150Z" fill="#DE6684"/>
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M140 142C140 142 130 156 120 156C110 156 100 142 100 142C100 142 110 134 120 134C130 134 140 142 140 142Z" fill="#FFDFC4"/>
+  </g>
+</svg>
