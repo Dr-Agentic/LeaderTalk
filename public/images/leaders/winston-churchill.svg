@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
-  <rect width="200" height="200" fill="#e5ecf2"/>
-  <circle cx="100" cy="80" r="40" fill="#e0d0c0"/>
-  <ellipse cx="100" cy="65" rx="30" ry="25" fill="#504a4a"/>
-  <circle cx="85" cy="75" r="5" fill="#303030"/>
-  <circle cx="115" cy="75" r="5" fill="#303030"/>
-  <path d="M85,95 Q100,85 115,95" fill="none" stroke="#303030" stroke-width="2"/>
-  <ellipse cx="100" cy="110" rx="15" ry="10" fill="#303030"/>
-  <path d="M70,130 Q80,145 100,140 Q120,145 130,130" fill="#5d82a3" stroke="none"/>
-  <text x="100" y="190" text-anchor="middle" fill="#303030" font-family="Arial" font-size="12">Winston Churchill</text>
+  <rect width="200" height="200" fill="#f5f5f5"/>
+  <path d="M60,90 Q100,130 140,90" fill="#fff" stroke="#555" stroke-width="3"/>
+  <circle cx="100" cy="75" r="35" fill="#f0e0d0"/>
+  <path d="M65,70 Q100,80 135,70" fill="#f0e0d0" stroke="#777" stroke-width="3"/>
+  <circle cx="85" cy="70" r="4" fill="#444"/>
+  <circle cx="115" cy="70" r="4" fill="#444"/>
+  <path d="M70,90 L130,90" stroke="#555" stroke-width="1"/>
+  <path d="M85,90 Q100,83 115,90" fill="none" stroke="#555" stroke-width="2"/>
+  <path d="M70,110 Q100,130 130,110" fill="#555" stroke="none"/>
+  <ellipse cx="100" cy="60" rx="15" ry="5" fill="#aaa"/>
+  <circle cx="100" cy="100" r="5" fill="#fff"/>
+  <text x="100" y="190" text-anchor="middle" fill="#555" font-family="Arial" font-size="12">Winston Churchill</text>
 </svg>

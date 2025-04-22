@@ -1,10 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
-  <rect width="200" height="200" fill="#f0f0f0"/>
-  <circle cx="100" cy="80" r="40" fill="#d0d0d0"/>
-  <rect x="70" y="125" width="60" height="70" rx="5" fill="#505050"/>
-  <rect x="85" y="120" width="30" height="10" fill="#303030"/>
-  <rect x="60" y="60" width="80" height="30" fill="#303030"/>
-  <rect x="75" y="40" width="50" height="40" fill="#303030"/>
-  <text x="100" y="190" text-anchor="middle" fill="#303030" font-family="Arial" font-size="12">Abraham Lincoln</text>
+  <rect width="200" height="200" fill="#f5f5f5"/>
+  <path d="M60,90 Q100,130 140,90" fill="#fff" stroke="#333" stroke-width="3"/>
+  <circle cx="100" cy="80" r="35" fill="#e6e6e6"/>
+  <path d="M60,60 Q100,10 140,60" fill="#000" stroke="#555" stroke-width="5"/>
+  <path d="M70,90 L130,90" stroke="#333" stroke-width="1"/>
+  <rect x="85" y="50" width="30" height="15" fill="#333"/>
+  <path d="M75,55 L85,65 L85,50 Z" fill="#333"/>
+  <path d="M125,55 L115,65 L115,50 Z" fill="#333"/>
+  <circle cx="85" cy="75" r="4" fill="#333"/>
+  <circle cx="115" cy="75" r="4" fill="#333"/>
+  <path d="M85,90 Q100,95 115,90" fill="none" stroke="#333" stroke-width="1"/>
+  <path d="M70,115 Q100,140 130,115" fill="#333" stroke="none"/>
+  <text x="100" y="190" text-anchor="middle" fill="#333" font-family="Arial" font-size="12">Abraham Lincoln</text>
 </svg>

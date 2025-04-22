@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
-  <rect width="200" height="200" fill="#f9f3e5"/>
-  <circle cx="100" cy="80" r="40" fill="#e8d6c0"/>
-  <circle cx="100" cy="80" r="30" fill="none" stroke="#7d6f5d" stroke-width="3"/>
-  <circle cx="85" cy="75" r="5" fill="#555555"/>
-  <circle cx="115" cy="75" r="5" fill="#555555"/>
-  <path d="M85,100 Q100,110 115,100" fill="none" stroke="#7d6f5d" stroke-width="2"/>
-  <path d="M70,140 Q100,170 130,140" fill="#f0e6d2" stroke="#7d6f5d" stroke-width="2"/>
-  <text x="100" y="190" text-anchor="middle" fill="#7d6f5d" font-family="Arial" font-size="12">Mahatma Gandhi</text>
+  <rect width="200" height="200" fill="#f5f5f5"/>
+  <path d="M60,90 Q100,130 140,90" fill="#fff" stroke="#888" stroke-width="3"/>
+  <circle cx="100" cy="80" r="35" fill="#e4d8c8"/>
+  <path d="M80,50 Q100,40 120,50" fill="#e4d8c8" stroke="#888" stroke-width="3"/>
+  <circle cx="85" cy="75" r="4" fill="#555"/>
+  <circle cx="115" cy="75" r="4" fill="#555"/>
+  <path d="M70,90 L130,90" stroke="#888" stroke-width="1"/>
+  <path d="M90,90 Q100,95 110,90" fill="none" stroke="#888" stroke-width="1"/>
+  <circle cx="100" cy="60" r="12" fill="none" stroke="#888" stroke-width="2"/>
+  <path d="M70,110 Q100,130 130,110" fill="#888" stroke="none"/>
+  <ellipse cx="100" cy="110" rx="10" ry="5" fill="#e4d8c8"/>
+  <text x="100" y="190" text-anchor="middle" fill="#555" font-family="Arial" font-size="12">Mahatma Gandhi</text>
 </svg>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <rect width="200" height="200" fill="#f5f5f5"/>
+  <path d="M60,90 Q100,130 140,90" fill="#fff" stroke="#aac" stroke-width="3"/>
+  <circle cx="100" cy="80" r="35" fill="#f0e8e0"/>
+  <path d="M60,80 Q100,30 140,80" fill="#fff" stroke="#aac" stroke-width="5"/>
+  <path d="M70,90 L130,90" stroke="#555" stroke-width="1"/>
+  <circle cx="85" cy="75" r="4" fill="#555"/>
+  <circle cx="115" cy="75" r="4" fill="#555"/>
+  <path d="M85,90 Q100,95 115,90" fill="none" stroke="#555" stroke-width="1"/>
+  <path d="M70,110 Q100,140 130,110" fill="#aac" stroke="none"/>
+  <text x="100" y="190" text-anchor="middle" fill="#555" font-family="Arial" font-size="12">Mother Teresa</text>
+</svg>

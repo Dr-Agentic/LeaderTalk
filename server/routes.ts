@@ -72,7 +72,21 @@ const upload = multer({
   }
 });
 
+// Serve static files from public directory
+export function servePublicFiles(app: Express) {
+  app.use('/images', (req, res, next) => {
+    const filePath = path.join(process.cwd(), 'public', req.path);
+    if (fs.existsSync(filePath)) {
+      res.sendFile(filePath);
+    } else {
+      next();
+    }
+  });
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Setup static file serving
+  servePublicFiles(app);
   // Create a blacklist for logged-out sessions
   const loggedOutSessionIds = new Set<string>();
   
@@ -442,6 +456,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           catch (e) { famousPhrases = []; }
         }
         
+        // Generate photoUrl based on leader name
+        const photoName = leader.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
+        const photoUrl = `/images/leaders/${photoName}.svg`;
+        
         // Return enhanced leader object
         return {
           ...leader,
@@ -449,6 +467,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           leadershipStyles: leadershipStyles || [],
           famousPhrases: famousPhrases || [],
           controversial: !!leader.controversial, // Ensure it's a boolean
+          photoUrl: photoUrl // Add the photo URL
         };
       });
       

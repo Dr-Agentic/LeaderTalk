@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
   <rect width="200" height="200" fill="#f5f5f5"/>
-  <circle cx="100" cy="80" r="40" fill="#d9c7a7"/>
-  <path d="M60,150 Q100,190 140,150" fill="#577a91" stroke="none"/>
-  <circle cx="100" cy="80" r="45" fill="none" stroke="#577a91" stroke-width="4"/>
-  <rect x="70" y="125" width="60" height="5" rx="2" fill="#577a91"/>
-  <text x="100" y="190" text-anchor="middle" fill="#303030" font-family="Arial" font-size="12">Nelson Mandela</text>
+  <path d="M60,90 Q100,130 140,90" fill="#fff" stroke="#555" stroke-width="3"/>
+  <circle cx="100" cy="80" r="35" fill="#dfd1c5"/>
+  <path d="M67,60 Q100,40 133,60" fill="#dfd1c5" stroke="#888" stroke-width="3"/>
+  <path d="M70,90 L130,90" stroke="#555" stroke-width="1"/>
+  <circle cx="85" cy="75" r="4" fill="#444"/>
+  <circle cx="115" cy="75" r="4" fill="#444"/>
+  <path d="M85,95 Q100,105 115,95" fill="none" stroke="#555" stroke-width="2"/>
+  <path d="M70,120 Q100,140 130,120" fill="#555" stroke="none"/>
+  <path d="M75,58 Q85,45 95,55 M105,55 Q115,45 125,58" fill="none" stroke="#444" stroke-width="2"/>
+  <rect x="94" y="110" width="12" height="8" fill="#fff" stroke="#555" stroke-width="1"/>
+  <text x="100" y="190" text-anchor="middle" fill="#555" font-family="Arial" font-size="12">Nelson Mandela</text>
 </svg>

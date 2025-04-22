@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <rect width="200" height="200" fill="#f5f5f5"/>
+  <path d="M60,90 Q100,130 140,90" fill="#fff" stroke="#444" stroke-width="3"/>
+  <circle cx="100" cy="80" r="35" fill="#aa8866"/>
+  <path d="M75,60 Q100,45 125,60" fill="#aa8866" stroke="#755" stroke-width="3"/>
+  <path d="M70,90 L130,90" stroke="#444" stroke-width="1"/>
+  <circle cx="85" cy="75" r="4" fill="#333"/>
+  <circle cx="115" cy="75" r="4" fill="#333"/>
+  <path d="M85,90 Q100,100 115,90" fill="none" stroke="#444" stroke-width="2"/>
+  <path d="M70,110 Q100,135 130,110" fill="#444" stroke="none"/>
+  <rect x="95" y="50" width="10" height="8" fill="#444"/>
+  <text x="100" y="190" text-anchor="middle" fill="#444" font-family="Arial" font-size="12">Martin Luther King</text>
+</svg>
