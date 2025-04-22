@@ -174,4 +174,13 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Import the database storage implementation
+import { dbStorage } from './dbStorage';
+
+// Use the database storage instead of memory storage
+export const storage = dbStorage;
+
+// Initialize default leaders
+dbStorage.initializeDefaultLeaders().catch(err => {
+  console.error('Failed to initialize default leaders:', err);
+});
