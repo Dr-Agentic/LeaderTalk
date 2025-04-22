@@ -12,6 +12,7 @@ import os from "os";
 import crypto from "crypto";
 import { eq } from "drizzle-orm";
 import { insertUserSchema, updateUserSchema, insertRecordingSchema, leaders } from "@shared/schema";
+import { importLeadersFromFile } from "./import-leaders";
 import { z } from "zod";
 import { ZodError } from "zod";
 
@@ -76,12 +77,23 @@ const upload = multer({
 export function servePublicFiles(app: Express) {
   const publicPath = path.join(process.cwd(), 'public');
   console.log('Setting up static file serving from:', publicPath);
-  app.use('/images', express.static(publicPath));
+  app.use(express.static(publicPath));
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup static file serving
   servePublicFiles(app);
+  // Route to import leaders
+  app.post("/api/admin/import-leaders", async (req, res) => {
+    try {
+      const importResult = await importLeadersFromFile();
+      return res.json(importResult);
+    } catch (error) {
+      console.error("Error importing leaders:", error);
+      return res.status(500).json({ success: false, message: "Error importing leaders" });
+    }
+  });
+  
   // Create a blacklist for logged-out sessions
   const loggedOutSessionIds = new Set<string>();
   

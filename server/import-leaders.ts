@@ -42,7 +42,8 @@ export async function importLeadersFromFile() {
             controversial: !!leaderData.controversial,
             generationMostAffected: leaderData.generation_most_affected || null,
             leadershipStyles: JSON.stringify(leaderData.leadership_styles || []),
-            famousPhrases: JSON.stringify(leaderData.famous_phrases || [])
+            famousPhrases: JSON.stringify(leaderData.famous_phrases || []),
+            photoUrl: `/images/leaders/${leaderData.name.toLowerCase().replace(/\s+/g, '-').replace(/\./g, '')}.svg`
           })
           .where(eq(leaders.id, dbLeader.id));
         
@@ -62,7 +63,7 @@ export async function importLeadersFromFile() {
           description: `${leaderData.name}'s communication style`,
           traits: JSON.stringify(leaderData.leadership_styles || []),
           biography: `Leader information for ${leaderData.name}`,
-          photoUrl: null,
+          photoUrl: `/images/leaders/${leaderData.name.toLowerCase().replace(/\s+/g, '-').replace(/\./g, '')}.svg`,
           controversial: !!leaderData.controversial,
           generationMostAffected: leaderData.generation_most_affected || null,
           leadershipStyles: JSON.stringify(leaderData.leadership_styles || []),
