@@ -8,7 +8,8 @@ import {
   LineChart, 
   UserRound, 
   Settings,
-  X
+  X,
+  FileText
 } from "lucide-react";
 
 export default function Sidebar({ sidebarOpen, setSidebarOpen, user }) {
@@ -66,6 +67,7 @@ function SidebarContent({ location }) {
   const navItems = [
     { name: "Dashboard", href: "/", icon: Home },
     { name: "Record & Analyze", href: "#record-section", icon: Mic, scrollTo: true },
+    { name: "All Transcripts", href: "/transcripts", icon: FileText },
     { name: "My Progress", href: "/progress", icon: LineChart },
     { name: "Leadership Models", href: "/leaders", icon: UserRound },
     { name: "Settings", href: "/settings", icon: Settings },

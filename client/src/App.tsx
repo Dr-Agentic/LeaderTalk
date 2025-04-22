@@ -8,6 +8,7 @@ import Dashboard from "@/pages/Dashboard";
 import Onboarding from "@/pages/Onboarding";
 import DirectLogin from "@/pages/DirectLogin";
 import TranscriptView from "@/pages/TranscriptView";
+import AllTranscripts from "@/pages/AllTranscripts";
 import { useEffect, useState } from "react";
 import { apiRequest } from "./lib/queryClient";
 
@@ -62,6 +63,7 @@ function Router() {
     <Switch>
       {isAuthenticated && onboardingComplete && <Route path="/" component={Dashboard} />}
       {isAuthenticated && onboardingComplete && <Route path="/transcript/:id" component={TranscriptView} />}
+      {isAuthenticated && onboardingComplete && <Route path="/transcripts" component={AllTranscripts} />}
       {isAuthenticated && !onboardingComplete && <Route path="/" component={Onboarding} />}
       {!isAuthenticated && <Route path="/" component={DirectLogin} />}
       <Route component={NotFound} />

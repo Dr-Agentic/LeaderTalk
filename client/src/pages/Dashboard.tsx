@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "wouter";
 import Sidebar from "@/components/Sidebar";
 import MobileHeader from "@/components/MobileHeader";
 import QuickActions from "@/components/dashboard/QuickActions";
@@ -7,6 +8,8 @@ import RecordingSection from "@/components/RecordingSection";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ChevronRight } from "lucide-react";
+import { queryClient } from "@/lib/queryClient";
 
 export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -44,7 +47,13 @@ export default function Dashboard() {
         <main className="relative flex-1 overflow-y-auto focus:outline-none">
           <div className="py-6">
             <div id="dashboard" className="px-4 sm:px-6 md:px-8">
-              <h1 className="text-2xl font-semibold text-gray-900">Dashboard</h1>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                <h1 className="text-2xl font-semibold text-gray-900">Dashboard</h1>
+                <Link href="/transcripts" className="mt-2 sm:mt-0 inline-flex items-center text-sm font-medium text-primary hover:text-primary-dark">
+                  View all transcripts
+                  <ChevronRight className="ml-1 h-4 w-4" />
+                </Link>
+              </div>
               
               {isLoading ? (
                 <DashboardSkeleton />
