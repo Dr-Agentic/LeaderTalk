@@ -7,7 +7,7 @@ import { leaders } from "@shared/schema";
 export async function importLeadersFromFile() {
   try {
     // Read the JSON file with leaders data
-    const filePath = path.join(process.cwd(), 'attached_assets', 'controversial_leaders.json');
+    const filePath = path.join(process.cwd(), 'attached_assets', 'leaders_data.json');
     console.log(`Reading leaders data from ${filePath}`);
 
     if (!fs.existsSync(filePath)) {

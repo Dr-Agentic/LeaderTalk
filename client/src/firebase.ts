@@ -66,6 +66,15 @@ export async function signInWithGoogle() {
         console.log("User successfully registered/logged in on server");
         const userData = await response.json();
         console.log("Server response:", userData);
+        
+        // Check if user has completed onboarding
+        if (userData.dateOfBirth && userData.profession && userData.goals && userData.selectedLeaders) {
+          console.log("User already onboarded, redirecting to dashboard...");
+          window.location.href = '/dashboard';
+        } else {
+          console.log("User needs onboarding, redirecting to /onboarding...");
+          window.location.href = '/onboarding';
+        }
       } else {
         console.error("Server registration failed:", await response.text());
       }

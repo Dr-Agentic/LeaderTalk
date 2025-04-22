@@ -95,7 +95,7 @@ export default function Onboarding() {
           if (userData.dateOfBirth && userData.profession && userData.goals) {
             if (userData.selectedLeaders) {
               // User has completed all onboarding steps
-              window.location.href = '/';
+              window.location.href = '/dashboard';
             } else {
               // Has personal info but needs to select leaders
               setStep(3);
@@ -231,7 +231,7 @@ export default function Onboarding() {
                 title: "Welcome to LeaderTalk!",
                 description: "Your profile is now complete. You can start improving your communication skills.",
               });
-              window.location.href = '/';
+              window.location.href = '/dashboard';
             }}
           />
         )

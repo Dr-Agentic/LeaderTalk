@@ -504,7 +504,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Read the JSON file with leader data
-      const filePath = path.join(process.cwd(), 'attached_assets', 'controversial_leaders.json');
+      const filePath = path.join(process.cwd(), 'attached_assets', 'leaders_data.json');
       console.log(`Reading leaders data from ${filePath}`);
       
       if (!fs.existsSync(filePath)) {
