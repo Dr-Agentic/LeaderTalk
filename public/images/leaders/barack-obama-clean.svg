@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+  <title>Barack Obama</title>
+  <defs>
+    <linearGradient id="portrait-gradient-obama" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e3c72"/>
+      <stop offset="100%" stop-color="#2a5298"/>
+    </linearGradient>
+  </defs>
+  <rect width="300" height="300" fill="#f8f9fa" rx="10" ry="10"/>
+  <circle cx="150" cy="120" r="70" fill="url(#portrait-gradient-obama)"/>
+  <path d="M120,140 C120,140 130,160 150,160 C170,160 180,140 180,140" stroke="#fff" stroke-width="3" fill="none"/>
+  <circle cx="130" cy="110" r="10" fill="#fff"/>
+  <circle cx="170" cy="110" r="10" fill="#fff"/>
+  <!-- Obama's distinctive ears -->
+  <path d="M90,110 C80,110 75,120 75,130 C75,140 80,150 90,150 L95,150 L95,110 L90,110 Z" fill="#1e3c72"/>
+  <path d="M210,110 C220,110 225,120 225,130 C225,140 220,150 210,150 L205,150 L205,110 L210,110 Z" fill="#1e3c72"/>
+  <!-- Obama's short hair -->
+  <path d="M150,50 C110,50 90,80 90,120 L90,140 C90,140 100,120 110,110 C120,100 130,95 150,95 C170,95 180,100 190,110 C200,120 210,140 210,140 L210,120 C210,80 190,50 150,50 Z" fill="#222"/>
+</svg>
