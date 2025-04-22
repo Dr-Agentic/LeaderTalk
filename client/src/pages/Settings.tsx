@@ -3,24 +3,72 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import LeaderSelection from "@/components/onboarding/LeaderSelection";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BackButton } from "@/components/BackButton";
+import { updateLeaderImagesToCleanVersion } from "@/lib/updateLeaderImages";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Settings() {
   const { userData } = useAuth();
   const [activeTab, setActiveTab] = useState("leaders");
+  const [isUpdatingImages, setIsUpdatingImages] = useState(false);
+  const { toast } = useToast();
   
   // Fetch leaders data
-  const { data: leaders, isLoading: isLoadingLeaders } = useQuery({
+  const { data: leaders, isLoading: isLoadingLeaders, refetch: refetchLeaders } = useQuery({
     queryKey: ['/api/leaders'],
     enabled: activeTab === "leaders",
   });
   
+  const handleUpdateLeaderImages = async () => {
+    setIsUpdatingImages(true);
+    try {
+      const result = await updateLeaderImagesToCleanVersion();
+      
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: result.message,
+        });
+        // Refetch leaders to get the updated images
+        refetchLeaders();
+      } else {
+        toast({
+          title: "Error",
+          description: result.message,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update leader images",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdatingImages(false);
+    }
+  };
+  
   return (
     <div className="container mx-auto py-10 px-4">
       <BackButton to="/dashboard" label="Back to Dashboard" />
-      <h1 className="text-3xl font-bold my-8">Settings</h1>
+      <div className="flex items-center justify-between my-8">
+        <h1 className="text-3xl font-bold">Settings</h1>
+        {/* Admin button - only visible for admin users */}
+        {userData?.email === "demo@example.com" && (
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={handleUpdateLeaderImages}
+            disabled={isUpdatingImages}
+          >
+            {isUpdatingImages ? "Updating..." : "Update Leader Images"}
+          </Button>
+        )}
+      </div>
       
       <Tabs defaultValue="leaders" onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-2 mb-8">

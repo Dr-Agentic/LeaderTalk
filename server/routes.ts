@@ -13,6 +13,7 @@ import crypto from "crypto";
 import { eq } from "drizzle-orm";
 import { insertUserSchema, updateUserSchema, insertRecordingSchema, leaders } from "@shared/schema";
 import { importLeadersFromFile } from "./import-leaders";
+import { updateLeaderImages } from "./update-leader-images";
 import { z } from "zod";
 import { ZodError } from "zod";
 
@@ -91,6 +92,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error importing leaders:", error);
       return res.status(500).json({ success: false, message: "Error importing leaders" });
+    }
+  });
+  
+  // Route to update leader images to clean versions
+  app.post("/api/admin/update-leader-images", async (req, res) => {
+    try {
+      const updateResult = await updateLeaderImages();
+      return res.json(updateResult);
+    } catch (error) {
+      console.error("Error updating leader images:", error);
+      return res.status(500).json({ success: false, message: "Error updating leader images" });
     }
   });
   
