@@ -11,6 +11,7 @@ import {
   Filter, 
   Search
 } from "lucide-react";
+import { BackButton } from "@/components/BackButton";
 import { formatDistanceToNow } from "date-fns";
 
 import { Button } from "@/components/ui/button";
@@ -42,16 +43,14 @@ export default function AllTranscripts() {
   
   return (
     <div className="container mx-auto px-4 py-8">
+      <BackButton to="/dashboard" label="Back to Dashboard" />
+      
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold">All Transcripts</h1>
           <p className="text-muted-foreground">
             {recordings?.length || 0} recording{recordings?.length !== 1 ? 's' : ''}
           </p>
-        </div>
-        
-        <div className="mt-4 sm:mt-0">
-          <Button onClick={() => navigate("/")} variant="outline">Back to Dashboard</Button>
         </div>
       </div>
       
@@ -331,13 +330,7 @@ function EmptyState({ filter, query }: { filter?: string, query?: string }) {
         )}
       </p>
       
-      <Button 
-        variant="outline" 
-        className="mt-4"
-        onClick={() => window.location.href = "/"}
-      >
-        Back to Dashboard
-      </Button>
+      <BackButton to="/dashboard" label="Back to Dashboard" className="mt-4 mx-auto" />
     </div>
   );
 }

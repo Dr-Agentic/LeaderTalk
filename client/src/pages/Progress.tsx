@@ -7,6 +7,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
 import { Recording } from "@shared/schema";
+import { BackButton } from "@/components/BackButton";
 
 // Types for our recording analysis
 interface RecordingWithScore {
@@ -234,11 +235,14 @@ export default function Progress() {
   
   return (
     <div className="container mx-auto py-6 px-4 sm:px-6 lg:px-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Your Progress</h1>
-        <p className="text-gray-500 mt-2">
-          Track your communication improvement over time
-        </p>
+      <div className="flex flex-col">
+        <BackButton to="/dashboard" label="Back to Dashboard" />
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Your Progress</h1>
+          <p className="text-gray-500 mt-2">
+            Track your communication improvement over time
+          </p>
+        </div>
       </div>
       
       <div className="grid grid-cols-1 gap-6">
@@ -399,9 +403,12 @@ export default function Progress() {
 function ProgressSkeleton() {
   return (
     <div className="container mx-auto py-6 px-4 sm:px-6 lg:px-8">
-      <div className="mb-8">
-        <Skeleton className="h-10 w-64 mb-2" />
-        <Skeleton className="h-5 w-96" />
+      <div className="flex flex-col">
+        <Skeleton className="h-8 w-32 mb-4" /> {/* BackButton skeleton */}
+        <div className="mb-8">
+          <Skeleton className="h-10 w-64 mb-2" />
+          <Skeleton className="h-5 w-96" />
+        </div>
       </div>
       
       <div className="grid grid-cols-1 gap-6">
