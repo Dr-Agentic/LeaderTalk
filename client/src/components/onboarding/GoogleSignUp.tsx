@@ -25,10 +25,37 @@ export default function GoogleSignUp() {
         currentOrigin: window.location.origin
       });
       
-      console.log("Starting Google sign-in redirect...");
-      await signInWithGoogle();
-      // We won't reach here until after redirect
-      console.log("Sign-in redirect completed successfully");
+      console.log("Starting Google sign-in popup...");
+      
+      // Use the popup authentication (changed from redirect to fix CORS issues)
+      const user = await signInWithGoogle();
+      console.log("Google sign-in completed successfully", user);
+      
+      // Redirect to dashboard or onboarding based on user data
+      if (user) {
+        // Check if we need to show onboarding (no selected leaders, etc)
+        const userResponse = await fetch('/api/users/me', {
+          credentials: 'include'
+        });
+        
+        if (userResponse.ok) {
+          const userData = await userResponse.json();
+          
+          // If user doesn't have onboarding data, go to onboarding
+          if (!userData.selectedLeaders || !userData.dateOfBirth || !userData.profession || !userData.goals) {
+            console.log("User needs onboarding, redirecting...");
+            window.location.href = "/onboarding";
+          } else {
+            // User has completed onboarding, go to dashboard
+            console.log("User already onboarded, redirecting to dashboard...");
+            window.location.href = "/";
+          }
+        } else {
+          console.error("Failed to get user data from server:", await userResponse.text());
+          // If we can't determine, just go to dashboard
+          window.location.href = "/";
+        }
+      }
     } catch (error) {
       console.error("Google sign in error:", error);
       console.error("Error details:", {
@@ -38,10 +65,10 @@ export default function GoogleSignUp() {
       });
       setIsLoading(false);
       
-      // Show error toast
+      // Show error toast with more details
       toast({
         title: "Authentication Error",
-        description: `${error.code || 'unknown'}: ${error.message || 'Unknown error'}. You might need to add this domain to Firebase authorized domains.`,
+        description: `${error.code || 'unknown'}: ${error.message || 'Unknown error'}. Please try again or use the demo login.`,
         variant: "destructive",
       });
     }

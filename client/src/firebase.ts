@@ -1,5 +1,8 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, signInWithRedirect, GoogleAuthProvider, getRedirectResult } from "firebase/auth";
+import { getAuth, signInWithPopup, GoogleAuthProvider, getRedirectResult } from "firebase/auth";
+
+// IMPORTANT: Switch from redirect to popup authentication to avoid CORS issues
+// This should resolve the "accounts.google.com refused to connect" error
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "demo-key",
@@ -22,19 +25,55 @@ export async function signInWithGoogle() {
       authDomain: `${import.meta.env.VITE_FIREBASE_PROJECT_ID || "demo-project"}.firebaseapp.com`,
     });
     
-    console.log("Starting Google sign-in with redirect...");
-    console.log("Auth state before redirect:", auth.currentUser ? "User is signed in" : "No user");
-    console.log("Attempting redirect to Google authentication...");
+    console.log("Starting Google sign-in with popup...");
+    console.log("Auth state before popup:", auth.currentUser ? "User is signed in" : "No user");
     
     // Configure provider to return to this exact URL to prevent redirect issues
     provider.setCustomParameters({
-      prompt: 'select_account',
-      // For debugging, try to set the exact redirect URL
-      redirect_uri: window.location.origin
+      prompt: 'select_account'
     });
     
-    await signInWithRedirect(auth, provider);
-    console.log("Redirect initiated - if you see this, the browser didn't redirect");
+    // Use popup instead of redirect to avoid cross-origin issues
+    const result = await signInWithPopup(auth, provider);
+    console.log("Popup authentication completed");
+    
+    // Return the user information
+    const user = result.user;
+    console.log("User authenticated:", {
+      uid: user.uid,
+      email: user.email,
+      displayName: user.displayName
+    });
+    
+    // Now create or update the user on our server
+    try {
+      console.log("Sending user data to server...");
+      const response = await fetch('/api/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          googleId: user.uid,
+          email: user.email || `user_${user.uid}@example.com`,
+          username: user.displayName || `User ${user.uid.substring(0, 6)}`,
+          photoUrl: user.photoURL
+        }),
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        console.log("User successfully registered/logged in on server");
+        const userData = await response.json();
+        console.log("Server response:", userData);
+      } else {
+        console.error("Server registration failed:", await response.text());
+      }
+    } catch (serverError) {
+      console.error("Error communicating with server:", serverError);
+    }
+    
+    return user;
   } catch (error) {
     console.error("Error signing in with Google", error);
     console.error("Error details:", {
