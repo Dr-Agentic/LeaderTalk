@@ -467,13 +467,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
             updated: true
           });
         } else {
-          console.log(`Leader not found in database: ${leaderData.name}`);
+          console.log(`Adding new leader: ${leaderData.name}`);
+          
+          // Insert new leader
+          try {
+            const newLeaders = await db.insert(leaders)
+              .values([{
+                name: leaderData.name,
+                title: `${leaderData.name}'s Leadership`,
+                description: `${leaderData.name}'s communication style`,
+                traits: leaderData.leadership_styles || [],
+                biography: `Leader information for ${leaderData.name}`,
+                photoUrl: null,
+                controversial: !!leaderData.controversial,
+                generationMostAffected: leaderData.generation_most_affected || null,
+                leadershipStyles: leaderData.leadership_styles || [],
+                famousPhrases: leaderData.famous_phrases || []
+              }])
+              .returning();
+            
+            if (newLeaders && newLeaders.length > 0) {
+              const addedLeader = newLeaders[0];
+              updatedLeaders.push({
+                id: addedLeader.id,
+                name: addedLeader.name,
+                added: true
+              });
+            }
+          } catch (insertError) {
+            console.error(`Error inserting leader ${leaderData.name}:`, insertError);
+          }
         }
       }
       
       return res.status(200).json({ 
         success: true, 
-        message: `Updated ${updatedLeaders.length} leaders`,
+        message: `Updated/Added ${updatedLeaders.length} leaders`,
         updatedLeaders 
       });
     } catch (error) {
