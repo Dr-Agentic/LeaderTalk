@@ -74,10 +74,62 @@ export default function GoogleSignUp() {
     }
   };
 
-  const handleDemoLogin = () => {
-    setIsLoading(true);
-    // Use the direct server-side redirect login which does everything in one step
-    window.location.href = "/api/auth/force-login";
+  const handleDemoLogin = async () => {
+    try {
+      setIsLoading(true);
+      console.log("Starting demo login process...");
+      
+      // Use fetch instead of direct navigation to prevent full page reload
+      const response = await fetch("/api/auth/force-login");
+      
+      if (response.ok || response.redirected) {
+        console.log("Demo login successful, checking onboarding status...");
+        
+        try {
+          // Check if user needs to complete onboarding
+          const userResponse = await apiRequest('GET', '/api/users/me');
+          
+          if (userResponse.ok) {
+            const userData = await userResponse.json();
+            
+            // Determine where to redirect based on onboarding completion
+            if (userData.dateOfBirth && userData.profession && userData.goals && userData.selectedLeaders) {
+              // Onboarding complete, go to dashboard
+              console.log("Onboarding complete, redirecting to dashboard");
+              window.location.href = "/dashboard";
+            } else {
+              // Onboarding incomplete, go to onboarding
+              console.log("Onboarding incomplete, redirecting to onboarding");
+              window.location.href = "/onboarding";
+            }
+          } else {
+            // If we can't get user data, default to onboarding page
+            console.log("Could not fetch user data, redirecting to onboarding as fallback");
+            window.location.href = "/onboarding";
+          }
+        } catch (userError) {
+          console.error("Error checking user status:", userError);
+          // If error occurred, still try to go to dashboard as fallback
+          window.location.href = "/dashboard";
+        }
+      } else {
+        console.error("Demo login failed:", await response.text());
+        toast({
+          title: "Login Failed",
+          description: "Could not log in as demo user. Please try again.",
+          variant: "destructive"
+        });
+        setIsLoading(false);
+      }
+    } catch (error) {
+      console.error("Demo login error:", error);
+      toast({
+        title: "Login Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive"
+      });
+      setIsLoading(false);
+    }
   };
   
   return (

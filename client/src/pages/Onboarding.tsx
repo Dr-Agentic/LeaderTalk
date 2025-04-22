@@ -90,23 +90,54 @@ export default function Onboarding() {
         const res = await apiRequest('GET', '/api/users/me');
         if (res.ok) {
           const userData = await res.json();
+          console.log("User data received:", userData);
           
-          // Determine which step to show
-          if (userData.dateOfBirth && userData.profession && userData.goals) {
-            if (userData.selectedLeaders) {
-              // User has completed all onboarding steps
-              window.location.href = '/dashboard';
-            } else {
-              // Has personal info but needs to select leaders
+          // Check if it's the demo user and update UI accordingly
+          if (userData.email === "demo@example.com") {
+            console.log("Demo user detected, setting up demo experience");
+            
+            // For demo users, make sure fields are properly initialized
+            if (!userData.dateOfBirth || !userData.profession || !userData.goals) {
+              // Demo user missing profile data - set to step 2
+              setStep(2);
+            } else if (!userData.selectedLeaders || userData.selectedLeaders.length === 0) {
+              // Demo user missing leader selections - set to step 3
               setStep(3);
+            } else {
+              // Demo user fully onboarded - redirect to dashboard
+              console.log("Demo user fully onboarded, redirecting to dashboard");
+              window.location.href = '/dashboard';
             }
           } else {
-            // Needs to complete personal info
-            setStep(2);
+            // Regular user - normal flow
+            // Determine which step to show
+            if (userData.dateOfBirth && userData.profession && userData.goals) {
+              if (userData.selectedLeaders && userData.selectedLeaders.length > 0) {
+                // User has completed all onboarding steps
+                console.log("User fully onboarded, redirecting to dashboard");
+                window.location.href = '/dashboard';
+              } else {
+                // Has personal info but needs to select leaders
+                console.log("User needs to select leaders");
+                setStep(3);
+              }
+            } else {
+              // Needs to complete personal info
+              console.log("User needs to complete personal info");
+              setStep(2);
+            }
           }
+          setIsRedirecting(false);
+        } else {
+          // Not logged in, stay on step 1 (login)
+          console.log("User not logged in, showing login page");
+          setStep(1);
+          setIsRedirecting(false);
         }
       } catch (error) {
+        console.error("Error checking login status:", error);
         // User is not logged in, stay on login page
+        setStep(1);
         setIsRedirecting(false);
       }
     };

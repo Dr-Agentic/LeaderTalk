@@ -3,8 +3,12 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import GoogleSignUp from "@/components/onboarding/GoogleSignUp";
 import { Link } from "wouter";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 export default function DirectLogin() {
+  const { toast } = useToast();
+
   const handleDirectLogin = async () => {
     try {
       console.log("Starting demo login process...");
@@ -30,19 +34,47 @@ export default function DirectLogin() {
         headers: [...response.headers].map(([key, value]) => `${key}: ${value}`).join(', ')
       });
       
-      if (response.redirected) {
-        console.log(`Server redirected to ${response.url}, following redirect on client side...`);
-        // If server tried to redirect, handle it on client side instead 
-        window.location.href = "/";
-      } else if (response.ok) {
-        console.log("Login successful, redirecting to dashboard...");
-        // If login was successful but no redirect, manually go to dashboard
-        window.location.href = "/"; 
+      if (response.ok || response.redirected) {
+        console.log("Login successful, checking onboarding status...");
+        
+        try {
+          // Check if user needs to complete onboarding
+          const userResponse = await apiRequest('GET', '/api/users/me');
+          
+          if (userResponse.ok) {
+            const userData = await userResponse.json();
+            
+            // Determine where to redirect based on onboarding completion
+            if (userData.dateOfBirth && userData.profession && userData.goals && userData.selectedLeaders) {
+              // Onboarding complete, go to dashboard
+              console.log("Onboarding complete, redirecting to dashboard");
+              window.location.href = "/dashboard";
+            } else {
+              // Onboarding incomplete, go to onboarding
+              console.log("Onboarding incomplete, redirecting to onboarding");
+              window.location.href = "/onboarding";
+            }
+          } else {
+            // If we can't get user data, default to onboarding page
+            console.log("Could not fetch user data, redirecting to onboarding as fallback");
+            window.location.href = "/onboarding";
+          }
+        } catch (userError) {
+          console.error("Error checking user status:", userError);
+          // If error occurred, still try to go to dashboard as fallback
+          window.location.href = "/dashboard";
+        }
       } else {
         const responseText = await response.text();
         console.error("Login failed:", responseText);
         console.error("Status:", response.status, response.statusText);
-        alert(`Login failed (${response.status}). Please try again.`);
+        
+        toast({
+          title: "Login Failed",
+          description: `Could not log in (${response.status}). Please try again.`,
+          variant: "destructive"
+        });
+        
         // Reset button state
         if (button) {
           button.textContent = "Log in as Demo User";
@@ -56,7 +88,13 @@ export default function DirectLogin() {
         stack: error.stack,
         name: error.name
       });
-      alert("Login error. Please check console for details and try again.");
+      
+      toast({
+        title: "Login Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive"
+      });
+      
       // Reset button state
       const button = document.getElementById('demo-login-button');
       if (button) {
