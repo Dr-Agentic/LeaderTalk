@@ -88,29 +88,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // *** User routes ***
   
-  // Logout route
-  app.get("/api/auth/logout", (req, res) => {
-    // Destroy the session
+  // Enhanced logout route with guaranteed session termination
+  app.get("/api/auth/logout", (req, res, next) => {
+    console.log("Logout request received, destroying session");
+    
+    // 1. First set content type to ensure proper response format
+    res.setHeader('Content-Type', 'application/json');
+    
+    // 2. Define cookie settings matching the cookie settings used when creating the session
+    const cookieOptions = {
+      path: '/',
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax' as const,
+      maxAge: 0 // Set to zero to delete the cookie
+    };
+    
+    // 3. Explicitly clear the session cookie with zero maxAge
+    res.clearCookie('connect.sid', cookieOptions);
+    
+    // 4. Empty the session object
     if (req.session) {
+      req.session.userId = null;
+      
+      // 5. Destroy the session (force regenerate for completeness)
       req.session.destroy((err) => {
         if (err) {
           console.error("Error destroying session:", err);
-          res.status(500);
-          res.setHeader('Content-Type', 'application/json');
-          return res.end(JSON.stringify({ message: "Error logging out" }));
+          return res.status(500).json({ message: "Error logging out", success: false });
         }
-        res.clearCookie("connect.sid");
         
-        // Use explicit serialization to avoid issues
-        res.status(200);
-        res.setHeader('Content-Type', 'application/json');
-        return res.end(JSON.stringify({ message: "Logged out successfully" }));
+        // 6. Small delay to ensure the session is fully destroyed before sending response
+        setTimeout(() => {
+          return res.status(200).json({ message: "Logged out successfully", success: true });
+        }, 100);
       });
     } else {
-      // Use explicit serialization to avoid issues
-      res.status(200);
-      res.setHeader('Content-Type', 'application/json');
-      return res.end(JSON.stringify({ message: "Already logged out" }));
+      return res.status(200).json({ message: "Already logged out", success: true });
     }
   });
   

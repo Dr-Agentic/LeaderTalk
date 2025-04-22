@@ -2,6 +2,7 @@ import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { signOut } from "@/firebase";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { queryClient } from "@/lib/queryClient";
 import { 
   Home, 
   Mic, 
@@ -116,53 +117,63 @@ function SidebarContent({ location }) {
 
 function SidebarFooter({ user }) {
   const handleSignOut = async () => {
+    // Create a loading state indicator for the user
+    const logoutButton = document.querySelector('button[data-action="logout"]');
+    if (logoutButton) {
+      logoutButton.innerHTML = '<svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
+      logoutButton.setAttribute('disabled', 'true');
+    }
+    
     try {
-      // First try Firebase signout
+      // 1. First clear all client-side cache/storage to ensure clean state
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // 2. Clear all client-side query cache
+      queryClient.clear();
+      
+      // 3. Try Firebase signout
       try {
         await signOut();
+        console.log("Firebase signout successful");
       } catch (e) {
-        console.log("Firebase signout error (expected):", e);
+        console.log("Firebase signout skipped:", e);
       }
       
-      // Then do server-side logout to clear session
+      // 4. Do server-side logout to clear session with cache-busting parameter
       try {
-        const response = await fetch('/api/auth/logout', { 
+        const cacheBuster = Date.now();
+        const response = await fetch(`/api/auth/logout?_=${cacheBuster}`, { 
           method: 'GET',
           credentials: 'include',
           headers: {
-            'Accept': 'application/json'
+            'Accept': 'application/json',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
           }
         });
         
-        // Log response for debugging
         console.log("Logout response status:", response.status);
         
-        if (response.ok) {
-          try {
-            const text = await response.text();
-            console.log("Logout response text:", text);
-            
-            if (text) {
-              const data = JSON.parse(text);
-              console.log("Logout success:", data);
-            }
-          } catch (parseError) {
-            console.error("Failed to parse logout response:", parseError);
-          }
-        } else {
-          console.warn("Logout failed:", response.statusText);
-        }
+        // 5. Wait at least 500ms before redirecting to ensure the session is cleared
+        setTimeout(() => {
+          // 6. Force hard refresh by using location.replace (not just href assignment)
+          window.location.replace('/');
+        }, 500);
       } catch (e) {
         console.error("Logout fetch error:", e);
+        // Still redirect with a delay
+        setTimeout(() => {
+          window.location.replace('/');
+        }, 500);
       }
-      
-      // Always redirect to login page, even if the logout had an error
-      // Use direct login path to avoid 404
-      window.location.href = '/';
     } catch (error) {
       console.error("Error in signout function:", error);
-      // Still attempt to redirect on error
-      window.location.href = '/';
+      // Always redirect on error after delay
+      setTimeout(() => {
+        window.location.replace('/');
+      }, 500);
     }
   };
   
@@ -181,6 +192,7 @@ function SidebarFooter({ user }) {
         size="sm" 
         onClick={handleSignOut}
         className="text-xs text-gray-500 hover:text-gray-700"
+        data-action="logout"
       >
         Sign out
       </Button>
