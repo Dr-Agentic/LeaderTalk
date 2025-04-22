@@ -414,8 +414,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all leaders
   app.get("/api/leaders", async (req, res) => {
     try {
+      // Get all leaders
       const leaders = await storage.getLeaders();
-      return res.json(leaders);
+      
+      // Process the leaders data to ensure proper JSON formatting
+      const enhancedLeaders = leaders.map(leader => {
+        // Parse JSON string fields if needed
+        let traits = leader.traits;
+        let leadershipStyles = leader.leadershipStyles;
+        let famousPhrases = leader.famousPhrases;
+        
+        // Parse traits if it's a string
+        if (typeof traits === 'string') {
+          try { traits = JSON.parse(traits); } 
+          catch (e) { traits = []; }
+        }
+        
+        // Parse leadership styles if it's a string
+        if (typeof leadershipStyles === 'string') {
+          try { leadershipStyles = JSON.parse(leadershipStyles); } 
+          catch (e) { leadershipStyles = []; }
+        }
+        
+        // Parse famous phrases if it's a string
+        if (typeof famousPhrases === 'string') {
+          try { famousPhrases = JSON.parse(famousPhrases); } 
+          catch (e) { famousPhrases = []; }
+        }
+        
+        // Return enhanced leader object
+        return {
+          ...leader,
+          traits: traits || [],
+          leadershipStyles: leadershipStyles || [],
+          famousPhrases: famousPhrases || [],
+          controversial: !!leader.controversial, // Ensure it's a boolean
+        };
+      });
+      
+      console.log(`Returning ${enhancedLeaders.length} leaders, with ${enhancedLeaders.filter(l => !l.controversial).length} non-controversial`);
+      return res.json(enhancedLeaders);
     } catch (error) {
       console.error("Error fetching leaders:", error);
       return res.status(500).json({ message: "Internal server error" });
