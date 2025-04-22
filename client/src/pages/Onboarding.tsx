@@ -1,10 +1,8 @@
 import { useState, useEffect } from "react";
 import GoogleSignUp from "@/components/onboarding/GoogleSignUp";
 import AdditionalInformation from "@/components/onboarding/AdditionalInformation";
-import LeaderSelection from "@/components/onboarding/LeaderSelection";
 import { handleRedirectResult } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
-import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -14,11 +12,6 @@ export default function Onboarding() {
   const [isRedirecting, setIsRedirecting] = useState(true);
   const { toast } = useToast();
 
-  const { data: leaders, isLoading: loadingLeaders } = useQuery({
-    queryKey: ['/api/leaders'],
-    enabled: step === 3,
-  });
-
   // Handle Google redirect result
   useEffect(() => {
     const checkAuth = async () => {
@@ -27,8 +20,16 @@ export default function Onboarding() {
         if (redirectUser) {
           // Check if user exists in database
           try {
-            await apiRequest('GET', '/api/users/me');
-            setStep(2); // User exists, start onboarding
+            const userResponse = await apiRequest('GET', '/api/users/me');
+            const userData = await userResponse.json();
+            
+            // If user already has profile info complete, redirect to dashboard
+            if (userData.dateOfBirth && userData.profession && userData.goals) {
+              window.location.href = '/';
+            } else {
+              // User exists but needs to complete profile
+              setStep(2);
+            }
           } catch (error) {
             // User needs to be created
             try {
@@ -36,7 +37,8 @@ export default function Onboarding() {
                 googleId: redirectUser.uid,
                 email: redirectUser.email,
                 username: redirectUser.displayName || redirectUser.email.split('@')[0],
-                photoUrl: redirectUser.photoURL || ''
+                photoUrl: redirectUser.photoURL || '',
+                selectedLeaders: [1, 2, 3] // Pre-select some default leaders
               });
               
               if (createResponse.ok) {
@@ -72,30 +74,30 @@ export default function Onboarding() {
     checkAuth();
   }, [toast]);
 
-  // Check if onboarding is needed
+  // Check if user is already logged in
   useEffect(() => {
-    const checkOnboardingStatus = async () => {
+    const checkLoginStatus = async () => {
       try {
         const res = await apiRequest('GET', '/api/users/me');
-        const userData = await res.json();
-        
-        if (userData.dateOfBirth && userData.profession && userData.goals) {
-          setStep(3);
+        if (res.ok) {
+          const userData = await res.json();
           
-          if (userData.selectedLeaders && userData.selectedLeaders.length > 0) {
-            // Onboarding is complete, redirect to dashboard
+          // If profile is already complete, redirect to dashboard
+          if (userData.dateOfBirth && userData.profession && userData.goals) {
             window.location.href = '/';
+          } else {
+            // User needs to complete profile
+            setStep(2);
           }
         }
       } catch (error) {
-        // User needs onboarding
+        // User is not logged in, stay on login page
+        setIsRedirecting(false);
       }
     };
     
-    if (!isRedirecting && user) {
-      checkOnboardingStatus();
-    }
-  }, [isRedirecting, user]);
+    checkLoginStatus();
+  }, []);
 
   if (isRedirecting) {
     return (
@@ -115,30 +117,11 @@ export default function Onboarding() {
       
       {step === 2 && (
         <AdditionalInformation 
-          onComplete={() => setStep(3)}
+          onComplete={() => {
+            // After completing profile, redirect straight to dashboard
+            window.location.href = '/';
+          }}
         />
-      )}
-      
-      {step === 3 && (
-        loadingLeaders ? (
-          <div className="max-w-4xl mx-auto my-10 p-8">
-            <Skeleton className="h-12 w-3/4 mx-auto mb-6" />
-            <Skeleton className="h-6 w-1/2 mx-auto mb-8" />
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 mt-8">
-              {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-80 rounded-lg" />
-              ))}
-            </div>
-          </div>
-        ) : (
-          <LeaderSelection 
-            leaders={leaders || []}
-            onComplete={() => {
-              // Redirect to dashboard
-              window.location.href = '/';
-            }}
-          />
-        )
       )}
     </div>
   );
