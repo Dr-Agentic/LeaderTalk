@@ -6,38 +6,44 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/Dashboard";
 import Onboarding from "@/pages/Onboarding";
+import DirectLogin from "@/pages/DirectLogin";
 import { useEffect, useState } from "react";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { apiRequest } from "./lib/queryClient";
 
 function Router() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [onboardingComplete, setOnboardingComplete] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
-  const auth = getAuth();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        setIsAuthenticated(true);
-        try {
-          const res = await apiRequest('GET', '/api/users/me');
+    const checkAuth = async () => {
+      try {
+        // Try to fetch the current user
+        const res = await apiRequest('GET', '/api/users/me');
+        
+        if (res.ok) {
+          setIsAuthenticated(true);
           const userData = await res.json();
+          
+          // Check if onboarding is complete
           setOnboardingComplete(
             !!(userData.dateOfBirth && userData.profession && userData.goals && userData.selectedLeaders)
           );
-        } catch (error) {
+        } else {
+          setIsAuthenticated(false);
           setOnboardingComplete(false);
         }
-      } else {
+      } catch (error) {
+        console.error("Auth check error:", error);
         setIsAuthenticated(false);
         setOnboardingComplete(false);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
-    });
+    };
 
-    return () => unsubscribe();
-  }, [auth]);
+    checkAuth();
+  }, []);
 
   if (loading) {
     return (
@@ -55,7 +61,7 @@ function Router() {
     <Switch>
       {isAuthenticated && onboardingComplete && <Route path="/" component={Dashboard} />}
       {isAuthenticated && !onboardingComplete && <Route path="/" component={Onboarding} />}
-      {!isAuthenticated && <Route path="/" component={Onboarding} />}
+      {!isAuthenticated && <Route path="/" component={DirectLogin} />}
       <Route component={NotFound} />
     </Switch>
   );

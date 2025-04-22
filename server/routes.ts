@@ -44,6 +44,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // *** User routes ***
   
+  // Special direct login routes for development - NO AUTHENTICATION NEEDED
+  app.get("/api/auth/force-login", async (req, res) => {
+    try {
+      // Create demo user if it doesn't exist
+      let demoUser = await storage.getUserByEmail("demo@example.com");
+      
+      if (!demoUser) {
+        try {
+          console.log("Creating demo user...");
+          demoUser = await storage.createUser({
+            googleId: "demo-user-" + Date.now(),
+            email: "demo@example.com",
+            username: "Demo User",
+            photoUrl: null,
+            dateOfBirth: "1990-01-01",
+            profession: "Software Developer",
+            goals: "Improve communication skills",
+            selectedLeaders: [1, 2, 3] // Default selected leaders
+          });
+          console.log("Demo user created:", demoUser);
+        } catch (createError) {
+          console.error("Error creating demo user:", createError);
+        }
+      } else {
+        console.log("Found existing demo user:", demoUser);
+      }
+      
+      if (!demoUser) {
+        return res.status(500).json({ message: "Failed to create or find demo user" });
+      }
+      
+      // Set the user ID in the session
+      req.session.userId = demoUser.id;
+      return res.redirect("/");
+    } catch (error) {
+      console.error("Error in force login:", error);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
   // Login as a demo user (development only)
   app.post("/api/auth/demo-login", async (req, res) => {
     try {
@@ -55,7 +95,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const newUser = await storage.createUser({
           googleId: "demo-user-id",
           email: "demo@example.com",
-          username: "Demo User"
+          username: "Demo User",
+          photoUrl: null,
+          dateOfBirth: "1990-01-01",
+          profession: "Software Developer",
+          goals: "Improve communication skills",
+          selectedLeaders: [1, 2, 3] // Default selected leaders
         });
         
         // Set the user ID in the session
