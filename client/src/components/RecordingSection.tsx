@@ -187,16 +187,31 @@ export default function RecordingSection({ onRecordingComplete }) {
       formData.append("detectSpeakers", detectSpeakers.toString());
       formData.append("createTranscript", createTranscript.toString());
       
+      // Upload audio file
       const uploadRes = await fetch('/api/recordings/upload', {
         method: 'POST',
         body: formData,
         credentials: 'include',
       });
       
+      // Handle different response statuses
       if (!uploadRes.ok) {
-        throw new Error("Failed to upload recording");
+        const errorData = await uploadRes.json().catch(() => ({ message: "Unknown server error" }));
+        console.error("Upload error:", errorData);
+        throw new Error(errorData.message || "Failed to upload recording");
       }
       
+      // Process successful response
+      let responseData;
+      try {
+        const responseText = await uploadRes.text();
+        responseData = responseText ? JSON.parse(responseText) : { message: "No response data" };
+        console.log("Upload response:", responseData);
+      } catch (error) {
+        console.log("Response handling completed:", uploadRes.status);
+      }
+      
+      // Show success message
       toast({
         title: "Recording saved",
         description: "Your recording has been saved and is being analyzed.",

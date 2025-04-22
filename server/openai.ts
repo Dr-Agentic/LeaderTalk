@@ -11,32 +11,121 @@ export async function transcribeAndAnalyzeAudio(
   leaders: Leader[]
 ): Promise<{ transcription: string; analysis: AnalysisResult }> {
   try {
-    // Step 1: Transcribe the audio
-    const transcription = await transcribeAudio(audioPath);
+    console.log("Starting transcription and analysis of audio:", {
+      audioPath,
+      recordingId: recording.id,
+      leadersCount: leaders.length
+    });
     
-    // Step 2: Analyze the transcription
-    const analysis = await analyzeTranscription(transcription, leaders);
+    // Check if OpenAI API key is available
+    if (!process.env.OPENAI_API_KEY) {
+      console.error("Missing OPENAI_API_KEY environment variable");
+      // Return a simplified analysis result when API key is missing
+      return {
+        transcription: "Could not process audio due to missing API key.",
+        analysis: createDefaultAnalysis("API key not configured, please add OPENAI_API_KEY to your environment variables.")
+      };
+    }
     
-    return { transcription, analysis };
+    // 1. Try to transcribe the audio
+    let transcription = "";
+    try {
+      // Step 1: Transcribe the audio
+      transcription = await transcribeAudio(audioPath);
+      console.log("Successfully transcribed audio, length:", transcription.length);
+      
+      if (!transcription || transcription.trim().length < 10) {
+        console.warn("Transcription too short or empty");
+        return {
+          transcription: "No speech detected in audio",
+          analysis: createDefaultAnalysis("No speech detected in the recording. Please ensure your microphone is working properly.")
+        };
+      }
+    } catch (transcriptError) {
+      console.error("Error transcribing audio:", transcriptError);
+      return {
+        transcription: "Failed to transcribe audio",
+        analysis: createDefaultAnalysis("We had trouble processing your audio. Please ensure it's a clear recording.")
+      };
+    }
+    
+    try {
+      // Step 2: Analyze the transcription
+      const analysis = await analyzeTranscription(transcription, leaders);
+      return { transcription, analysis };
+    } catch (analysisError) {
+      console.error("Error analyzing transcription:", analysisError);
+      return {
+        transcription,
+        analysis: createDefaultAnalysis("Successfully transcribed audio but encountered an error during analysis.")
+      };
+    }
   } catch (error) {
     console.error("Error in transcription and analysis:", error);
-    throw error;
+    return {
+      transcription: "Processing error",
+      analysis: createDefaultAnalysis("An unexpected error occurred while processing your recording.")
+    };
   }
+}
+
+// Helper function to create a default analysis result when errors occur
+function createDefaultAnalysis(reason: string): AnalysisResult {
+  return {
+    overview: {
+      rating: "Needs improvement overall",
+      score: 5,
+      summary: reason
+    },
+    timeline: [
+      {
+        timestamp: 0,
+        value: 0,
+        type: "neutral",
+      },
+    ],
+    positiveInstances: [],
+    negativeInstances: [],
+    passiveInstances: [],
+    leadershipInsights: [],
+  };
 }
 
 async function transcribeAudio(audioPath: string): Promise<string> {
   try {
+    // Check file exists and get its stats
+    const stats = fs.statSync(audioPath);
+    console.log(`Audio file size: ${stats.size} bytes`);
+    
+    if (stats.size === 0) {
+      throw new Error("Audio file is empty (0 bytes)");
+    }
+    
+    if (stats.size < 1024) { // Less than 1KB
+      console.warn("Audio file is very small, might be corrupted");
+    }
+    
+    // Create readable stream
     const audioReadStream = fs.createReadStream(audioPath);
     
+    // Log file info before sending to OpenAI
+    console.log(`Sending audio file ${audioPath} to OpenAI for transcription`);
+    
+    // Send to OpenAI
     const transcription = await openai.audio.transcriptions.create({
       file: audioReadStream,
       model: "whisper-1",
       response_format: "text",
     });
     
-    return transcription.text;
+    // Return the transcription text
+    return transcription;
   } catch (error) {
     console.error("Error in audio transcription:", error);
+    // If OpenAI API fails due to format issues, return this message
+    if (error instanceof Error && error.message.includes("format")) {
+      console.error("Audio format error detected - unsupported audio format");
+    }
     throw error;
   }
 }
