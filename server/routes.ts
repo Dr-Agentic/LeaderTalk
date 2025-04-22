@@ -23,7 +23,7 @@ const requireAuth = (req: Request, res: Response, next: Function) => {
 };
 
 // Set up temp file storage for uploads
-const storage = multer.diskStorage({
+const multerStorage = multer.diskStorage({
   destination: (_req, _file, cb) => {
     cb(null, os.tmpdir());
   },
@@ -51,7 +51,7 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ 
-  storage,
+  storage: multerStorage,
   // Validate supported audio MIME types for OpenAI
   fileFilter: (_req, file, cb) => {
     const validMimes = [
