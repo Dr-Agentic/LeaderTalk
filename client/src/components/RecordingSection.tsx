@@ -132,9 +132,22 @@ export default function RecordingSection({ onRecordingComplete }) {
       
       const recording = await createRes.json();
       
+      if (!recordingBlob) {
+        throw new Error("No recording data available");
+      }
+      
       // Upload the audio file for analysis
       const formData = new FormData();
-      formData.append("audio", recordingBlob, "recording.webm");
+      
+      // Check for supported formats (OpenAI API requires specific formats)
+      const mimeType = recordingBlob.type;
+      const fileExtension = mimeType === 'audio/mp3' ? 'mp3' : 
+                           mimeType === 'audio/wav' ? 'wav' : 
+                           mimeType === 'audio/mpeg' ? 'mp3' : 'webm';
+                           
+      console.log(`Uploading audio file with MIME type: ${mimeType} and extension: ${fileExtension}`);
+      
+      formData.append("audio", recordingBlob, `recording.${fileExtension}`);
       formData.append("recordingId", recording.id.toString());
       formData.append("detectSpeakers", detectSpeakers.toString());
       formData.append("createTranscript", createTranscript.toString());
@@ -248,7 +261,7 @@ export default function RecordingSection({ onRecordingComplete }) {
                     className="w-24"
                   >
                     <OctagonMinus className="mr-2 h-4 w-4" />
-                    OctagonMinus
+                    Stop
                   </Button>
                 </div>
                 

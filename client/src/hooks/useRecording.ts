@@ -14,10 +14,28 @@ export function useRecording() {
     audioChunksRef.current = [];
     
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        } 
+      });
       streamRef.current = stream;
       
-      const mediaRecorder = new MediaRecorder(stream);
+      // Try to use a supported format
+      const mimeType = MediaRecorder.isTypeSupported('audio/mp3') 
+        ? 'audio/mp3' 
+        : MediaRecorder.isTypeSupported('audio/wav') 
+          ? 'audio/wav' 
+          : 'audio/webm';
+      
+      console.log("Using MIME type for recording:", mimeType);
+      
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: mimeType,
+        audioBitsPerSecond: 128000 // 128 kbps
+      });
       mediaRecorderRef.current = mediaRecorder;
       
       mediaRecorder.addEventListener("dataavailable", event => {
@@ -27,7 +45,8 @@ export function useRecording() {
       });
       
       mediaRecorder.addEventListener("stop", () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        // Use mp3 format which is supported by OpenAI
+        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/mp3" });
         setRecordingBlob(audioBlob);
         
         // Stop all tracks

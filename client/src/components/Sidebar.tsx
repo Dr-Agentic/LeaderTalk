@@ -92,21 +92,18 @@ function SidebarContent({ location }) {
             <Link
               key={item.name}
               href={item.href}
+              className={`flex items-center px-4 py-3 text-sm font-medium ${
+                location === item.href
+                  ? "text-primary bg-blue-50"
+                  : "text-gray-600 hover:bg-gray-50"
+              } rounded-md group`}
             >
-              <a
-                className={`flex items-center px-4 py-3 text-sm font-medium ${
-                  location === item.href
-                    ? "text-primary bg-blue-50"
-                    : "text-gray-600 hover:bg-gray-50"
-                } rounded-md group`}
-              >
-                <item.icon className={`mr-3 h-5 w-5 ${
-                  location === item.href
-                    ? "text-primary"
-                    : "text-gray-400 group-hover:text-primary"
-                }`} />
-                {item.name}
-              </a>
+              <item.icon className={`mr-3 h-5 w-5 ${
+                location === item.href
+                  ? "text-primary"
+                  : "text-gray-400 group-hover:text-primary"
+              }`} />
+              {item.name}
             </Link>
           )
         ))}
