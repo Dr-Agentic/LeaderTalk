@@ -3,7 +3,7 @@ import { signInWithGoogle } from "@/firebase";
 import { useState } from "react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { getAuth } from "firebase/auth";
 
 export default function GoogleSignUp() {
   const [isLoading, setIsLoading] = useState(false);
@@ -32,62 +32,46 @@ export default function GoogleSignUp() {
     try {
       setIsLoading(true);
       
-      // Create a demo user in Firebase (for development only)
-      const userCredential = await signInWithEmailAndPassword(auth, "demo@example.com", "password123");
-      const user = userCredential.user;
+      // Create a demo user directly in our database, bypassing Firebase
+      const demoUserData = {
+        googleId: "demo-user-" + Date.now(), // Generate a unique ID
+        email: "demo@example.com",
+        username: "Demo User",
+        photoUrl: ""
+      };
       
-      // Check if user exists in our database
-      try {
-        await apiRequest('GET', '/api/users/me');
-      } catch (error) {
-        // User doesn't exist, create it
-        await apiRequest('POST', '/api/users', {
-          googleId: user.uid,
-          email: user.email,
-          username: "Demo User",
-          photoUrl: ""
+      // Create the user in our backend
+      const response = await apiRequest('POST', '/api/users', demoUserData);
+      
+      if (response.ok) {
+        toast({
+          title: "Demo Login Successful",
+          description: "You are now logged in as a demo user.",
         });
         
-        toast({
-          title: "Demo Account Created",
-          description: "A demo account has been created for development purposes.",
-        });
+        // Simulate authentication state by forcing a page reload
+        // The session cookie should be set by the backend
+        window.location.href = '/';
+      } else {
+        const errorData = await response.json();
+        
+        // If user with this email already exists, it's fine - just log in
+        if (errorData.message === "User with this email already exists") {
+          // Just do a page reload to get the session cookie
+          window.location.href = '/';
+          return;
+        }
+        
+        throw new Error(errorData.message || "Failed to create demo user");
       }
-      
-      window.location.href = '/';
     } catch (error) {
       console.error("Demo login error:", error);
       
-      // If user doesn't exist, create it in Firebase first
-      if (error.code === 'auth/user-not-found') {
-        toast({
-          title: "Development Mode",
-          description: "Creating demo user in Firebase for development...",
-        });
-        
-        try {
-          // Create user in Firebase (this would normally be done through registration)
-          await fetch('/api/create-demo-user', {
-            method: 'POST'
-          });
-          
-          // Try login again
-          handleDemoLogin();
-        } catch (createError) {
-          toast({
-            title: "Error Creating Demo User",
-            description: "Could not create demo user. See console for details.",
-            variant: "destructive",
-          });
-          console.error("Create demo user error:", createError);
-        }
-      } else {
-        toast({
-          title: "Authentication Error",
-          description: error.message,
-          variant: "destructive",
-        });
-      }
+      toast({
+        title: "Authentication Error",
+        description: error.message || "Could not create demo user",
+        variant: "destructive",
+      });
       
       setIsLoading(false);
     }
