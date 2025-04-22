@@ -7,6 +7,8 @@ import { Link } from "wouter";
 export default function DirectLogin() {
   const handleDirectLogin = async () => {
     try {
+      console.log("Starting demo login process...");
+      
       // Show loading state
       const button = document.getElementById('demo-login-button');
       if (button) {
@@ -14,17 +16,33 @@ export default function DirectLogin() {
         button.setAttribute('disabled', 'true');
       }
       
+      console.log("Sending force-login request to server...");
       // Use fetch instead of direct navigation to prevent full page reload
       const response = await fetch("/api/auth/force-login");
+      
+      console.log("Force login response received:", {
+        status: response.status,
+        statusText: response.statusText,
+        redirected: response.redirected,
+        redirectUrl: response.redirected ? response.url : 'none',
+        ok: response.ok,
+        type: response.type,
+        headers: [...response.headers].map(([key, value]) => `${key}: ${value}`).join(', ')
+      });
+      
       if (response.redirected) {
+        console.log(`Server redirected to ${response.url}, following redirect on client side...`);
         // If server tried to redirect, handle it on client side instead 
         window.location.href = "/";
       } else if (response.ok) {
+        console.log("Login successful, redirecting to dashboard...");
         // If login was successful but no redirect, manually go to dashboard
         window.location.href = "/"; 
       } else {
-        console.error("Login failed:", await response.text());
-        alert("Login failed. Please try again.");
+        const responseText = await response.text();
+        console.error("Login failed:", responseText);
+        console.error("Status:", response.status, response.statusText);
+        alert(`Login failed (${response.status}). Please try again.`);
         // Reset button state
         if (button) {
           button.textContent = "Log in as Demo User";
@@ -33,7 +51,12 @@ export default function DirectLogin() {
       }
     } catch (error) {
       console.error("Login error:", error);
-      alert("Login error. Please try again.");
+      console.error("Error details:", {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
+      alert("Login error. Please check console for details and try again.");
       // Reset button state
       const button = document.getElementById('demo-login-button');
       if (button) {

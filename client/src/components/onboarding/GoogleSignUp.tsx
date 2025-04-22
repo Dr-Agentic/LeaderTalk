@@ -14,15 +14,34 @@ export default function GoogleSignUp() {
   const handleSignIn = async () => {
     try {
       setIsLoading(true);
+      
+      // Log Firebase configuration for debugging
+      console.log("Firebase config being used:", {
+        apiKey: import.meta.env.VITE_FIREBASE_API_KEY ? "Present (hidden)" : "Missing",
+        projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+        appId: import.meta.env.VITE_FIREBASE_APP_ID ? "Present (hidden)" : "Missing",
+        authDomain: `${import.meta.env.VITE_FIREBASE_PROJECT_ID || "demo-project"}.firebaseapp.com`,
+        currentUrl: window.location.href,
+        currentOrigin: window.location.origin
+      });
+      
+      console.log("Starting Google sign-in redirect...");
       await signInWithGoogle();
+      // We won't reach here until after redirect
+      console.log("Sign-in redirect completed successfully");
     } catch (error) {
       console.error("Google sign in error:", error);
+      console.error("Error details:", {
+        code: error.code,
+        message: error.message,
+        stack: error.stack
+      });
       setIsLoading(false);
       
       // Show error toast
       toast({
         title: "Authentication Error",
-        description: `${error.code}: ${error.message}. You might need to add this domain to Firebase authorized domains.`,
+        description: `${error.code || 'unknown'}: ${error.message || 'Unknown error'}. You might need to add this domain to Firebase authorized domains.`,
         variant: "destructive",
       });
     }

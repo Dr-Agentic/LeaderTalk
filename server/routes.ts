@@ -200,6 +200,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Special direct login routes for development - NO AUTHENTICATION NEEDED
   app.get("/api/auth/force-login", async (req, res) => {
     try {
+      console.log("===== FORCE LOGIN REQUEST =====");
+      console.log("Session ID:", req.session.id);
+      console.log("Session before login:", req.session);
+      console.log("Cookies received:", req.headers.cookie);
+      
       // Create demo user if it doesn't exist
       let demoUser = await storage.getUserByEmail("demo@example.com");
       
@@ -241,15 +246,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       if (!demoUser) {
+        console.error("Failed to create or find demo user");
         return res.status(500).json({ message: "Failed to create or find demo user" });
       }
       
       // Set the user ID in the session
+      console.log("Setting user ID in session:", demoUser.id);
       req.session.userId = demoUser.id;
-      return res.redirect("/");
+      
+      // Force session save before redirecting
+      req.session.save((err) => {
+        if (err) {
+          console.error("Error saving session:", err);
+          return res.status(500).json({ message: "Session save error" });
+        }
+        
+        console.log("Session saved successfully");
+        console.log("Session after login:", req.session);
+        console.log("Redirecting to /");
+        console.log("===== END FORCE LOGIN REQUEST =====");
+        
+        return res.redirect("/");
+      });
     } catch (error) {
       console.error("Error in force login:", error);
-      return res.status(500).json({ message: "Internal server error" });
+      console.error("Error details:", {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
+      return res.status(500).json({ message: "Internal server error", details: error.message });
     }
   });
   
@@ -287,18 +313,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Get current user
-  app.get("/api/users/me", requireAuth, async (req, res) => {
+  app.get("/api/users/me", async (req, res, next) => {
+    // Log session info for debugging
+    console.log("===== USER ME REQUEST =====");
+    console.log("Session ID:", req.session.id);
+    console.log("User ID in session:", req.session.userId || "null");
+    console.log("Session cookie:", req.headers.cookie);
+    console.log("Full session data:", req.session);
+    
+    if (!req.session.userId) {
+      console.log("No userId in session - unauthorized access");
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    
     try {
-      const user = await storage.getUser(req.session.userId!);
+      console.log("Looking up user ID:", req.session.userId);
+      const user = await storage.getUser(req.session.userId);
+      
       if (!user) {
+        console.log("User not found in database:", req.session.userId);
         return res.status(404).json({ message: "User not found" });
       }
       
+      console.log("User found:", user.id, user.username);
       // Don't send the password in the response
       const { password, ...userWithoutPassword } = user;
+      console.log("===== END USER ME REQUEST =====");
       return res.json(userWithoutPassword);
     } catch (error) {
       console.error("Error fetching user:", error);
+      console.error("Error details:", {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
+      console.log("===== END USER ME REQUEST (ERROR) =====");
       return res.status(500).json({ message: "Internal server error" });
     }
   });
