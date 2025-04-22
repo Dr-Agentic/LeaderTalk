@@ -77,8 +77,9 @@ function Router() {
       {isAuthenticated && onboardingComplete && <Route path="/transcripts" component={AllTranscripts} />}
       {isAuthenticated && onboardingComplete && <Route path="/settings" component={Settings} />}
       
-      {/* Onboarding route */}
+      {/* Onboarding routes */}
       {isAuthenticated && !onboardingComplete && <Route path="/" component={Onboarding} />}
+      {isAuthenticated && <Route path="/onboarding" component={Onboarding} />}
       
       {/* Login routes - ensure both root and /login path work */}
       {!isAuthenticated && <Route path="/" component={DirectLogin} />}

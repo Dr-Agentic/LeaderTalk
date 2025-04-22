@@ -43,7 +43,7 @@ export default function GoogleSignUp() {
           
           // If user doesn't have onboarding data, go to onboarding
           if (!userData.selectedLeaders || !userData.dateOfBirth || !userData.profession || !userData.goals) {
-            console.log("User needs onboarding, redirecting...");
+            console.log("User needs onboarding, redirecting to /onboarding...");
             window.location.href = "/onboarding";
           } else {
             // User has completed onboarding, go to dashboard
