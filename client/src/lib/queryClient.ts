@@ -20,10 +20,10 @@ export async function apiRequest(
       credentials: "include",
     });
     
-    // Special case for unauthorized - redirect to force login
+    // Special case for unauthorized - redirect to login page, not auto force-login
     if (res.status === 401 && url === '/api/users/me') {
       console.log("Unauthorized access, redirecting to login...");
-      window.location.href = "/api/auth/force-login";
+      // No automatic redirect, just log it
       return res; // Skip throwing error
     }
     
@@ -48,11 +48,10 @@ export const getQueryFn: <T>(options: {
 
       // Check for 401 (unauthorized) status
       if (res.status === 401) {
-        // If it's an API route, consider redirecting to force login
+        // If it's an API route, don't auto-redirect, just handle locally
         const url = queryKey[0] as string;
         if (url.includes('/api/')) {
-          console.log("Unauthorized access to API, redirecting to login...");
-          window.location.href = "/api/auth/force-login";
+          console.log("Unauthorized access to API, should show login page");
           return null;
         }
         

@@ -117,7 +117,20 @@ function SidebarContent({ location }) {
 function SidebarFooter({ user }) {
   const handleSignOut = async () => {
     try {
-      await signOut();
+      // First try Firebase signout
+      try {
+        await signOut();
+      } catch (e) {
+        console.log("Firebase signout error (expected):", e);
+      }
+      
+      // Then do server-side logout to clear session
+      await fetch('/api/auth/logout', { 
+        method: 'GET',
+        credentials: 'include'
+      });
+      
+      // Redirect to login page
       window.location.href = '/';
     } catch (error) {
       console.error("Error signing out:", error);
