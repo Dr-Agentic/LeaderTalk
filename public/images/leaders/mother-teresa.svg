@@ -1,13 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
-  <rect width="200" height="200" fill="#f5f5f5"/>
-  <path d="M60,90 Q100,130 140,90" fill="#fff" stroke="#aac" stroke-width="3"/>
-  <circle cx="100" cy="80" r="35" fill="#f0e8e0"/>
-  <path d="M60,80 Q100,30 140,80" fill="#fff" stroke="#aac" stroke-width="5"/>
-  <path d="M70,90 L130,90" stroke="#555" stroke-width="1"/>
-  <circle cx="85" cy="75" r="4" fill="#555"/>
-  <circle cx="115" cy="75" r="4" fill="#555"/>
-  <path d="M85,90 Q100,95 115,90" fill="none" stroke="#555" stroke-width="1"/>
-  <path d="M70,110 Q100,140 130,110" fill="#aac" stroke="none"/>
-  <text x="100" y="190" text-anchor="middle" fill="#555" font-family="Arial" font-size="12">Mother Teresa</text>
+<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+  <title>Mother Teresa</title>
+  <defs>
+    <linearGradient id="portrait-gradient-teresa" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#74ebd5"/>
+      <stop offset="100%" stop-color="#ACB6E5"/>
+    </linearGradient>
+  </defs>
+  <rect width="300" height="300" fill="#f8f9fa" rx="10" ry="10"/>
+  <circle cx="150" cy="120" r="70" fill="url(#portrait-gradient-teresa)"/>
+  <path d="M120,140 C120,140 130,160 150,160 C170,160 180,140 180,140" stroke="#fff" stroke-width="3" fill="none"/>
+  <circle cx="130" cy="110" r="10" fill="#fff"/>
+  <circle cx="170" cy="110" r="10" fill="#fff"/>
+  <!-- Mother Teresa's iconic habit -->
+  <path d="M90,120 C90,80 110,60 150,60 C190,60 210,80 210,120 L200,120 Q190,70 150,70 Q110,70 100,120 Z" fill="#fff"/>
+  <path d="M90,120 L100,120 L95,190 L85,190 Z" fill="#fff"/>
+  <path d="M210,120 L200,120 L205,190 L215,190 Z" fill="#fff"/>
+  <path d="M95,190 L205,190 L200,210 L100,210 Z" fill="#fff"/>
+  <text x="150" y="230" text-anchor="middle" font-family="Arial, sans-serif" font-weight="bold" font-size="24" fill="#333">Mother Teresa</text>
+  <text x="150" y="260" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#666">Humanitarian Leader</text>
 </svg>

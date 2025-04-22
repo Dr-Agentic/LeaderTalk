@@ -1,15 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
-  <rect width="200" height="200" fill="#f5f5f5"/>
-  <path d="M60,90 Q100,130 140,90" fill="#fff" stroke="#888" stroke-width="3"/>
-  <circle cx="100" cy="80" r="35" fill="#e4d8c8"/>
-  <path d="M80,50 Q100,40 120,50" fill="#e4d8c8" stroke="#888" stroke-width="3"/>
-  <circle cx="85" cy="75" r="4" fill="#555"/>
-  <circle cx="115" cy="75" r="4" fill="#555"/>
-  <path d="M70,90 L130,90" stroke="#888" stroke-width="1"/>
-  <path d="M90,90 Q100,95 110,90" fill="none" stroke="#888" stroke-width="1"/>
-  <circle cx="100" cy="60" r="12" fill="none" stroke="#888" stroke-width="2"/>
-  <path d="M70,110 Q100,130 130,110" fill="#888" stroke="none"/>
-  <ellipse cx="100" cy="110" rx="10" ry="5" fill="#e4d8c8"/>
-  <text x="100" y="190" text-anchor="middle" fill="#555" font-family="Arial" font-size="12">Mahatma Gandhi</text>
+<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+  <title>Mahatma Gandhi</title>
+  <defs>
+    <linearGradient id="portrait-gradient-gandhi" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF8C42"/>
+      <stop offset="100%" stop-color="#FFC2A1"/>
+    </linearGradient>
+  </defs>
+  <rect width="300" height="300" fill="#f8f9fa" rx="10" ry="10"/>
+  <circle cx="150" cy="120" r="70" fill="url(#portrait-gradient-gandhi)"/>
+  <path d="M120,140 C120,140 130,160 150,160 C170,160 180,140 180,140" stroke="#fff" stroke-width="3" fill="none"/>
+  <circle cx="130" cy="110" r="10" fill="#fff"/>
+  <circle cx="170" cy="110" r="10" fill="#fff"/>
+  <path d="M120,90 C120,90 140,75 150,75 C160,75 180,90 180,90" stroke="#fff" stroke-width="3" fill="none"/>
+  <text x="150" y="230" text-anchor="middle" font-family="Arial, sans-serif" font-weight="bold" font-size="24" fill="#333">Mahatma Gandhi</text>
+  <text x="150" y="260" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#666">Indian Independence Leader</text>
 </svg>

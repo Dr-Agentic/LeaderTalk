@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+  <title>Barack Obama</title>
+  <defs>
+    <linearGradient id="portrait-gradient-obama" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4158D0"/>
+      <stop offset="50%" stop-color="#C850C0"/>
+      <stop offset="100%" stop-color="#FFCC70"/>
+    </linearGradient>
+  </defs>
+  <rect width="300" height="300" fill="#f8f9fa" rx="10" ry="10"/>
+  <circle cx="150" cy="120" r="70" fill="url(#portrait-gradient-obama)"/>
+  <path d="M120,140 C120,140 130,170 150,170 C170,170 180,140 180,140" stroke="#fff" stroke-width="3" fill="none"/>
+  <circle cx="130" cy="110" r="10" fill="#fff"/>
+  <circle cx="170" cy="110" r="10" fill="#fff"/>
+  <text x="150" y="230" text-anchor="middle" font-family="Arial, sans-serif" font-weight="bold" font-size="24" fill="#333">Barack Obama</text>
+  <text x="150" y="260" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#666">44th U.S. President</text>
+</svg>
