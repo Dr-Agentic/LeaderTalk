@@ -1,4 +1,4 @@
-import type { Express, Request, Response } from "express";
+import express, { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { db } from "./db";
@@ -74,14 +74,9 @@ const upload = multer({
 
 // Serve static files from public directory
 export function servePublicFiles(app: Express) {
-  app.use('/images', (req, res, next) => {
-    const filePath = path.join(process.cwd(), 'public', req.path);
-    if (fs.existsSync(filePath)) {
-      res.sendFile(filePath);
-    } else {
-      next();
-    }
-  });
+  const publicPath = path.join(process.cwd(), 'public');
+  console.log('Setting up static file serving from:', publicPath);
+  app.use('/images', express.static(publicPath));
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
