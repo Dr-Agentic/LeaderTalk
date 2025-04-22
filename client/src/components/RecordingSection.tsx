@@ -209,8 +209,7 @@ export default function RecordingSection({ onRecordingComplete }) {
                     : "border-red-700"
                   : "border-red-200"
               } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500`}
-              onClick={isRecording ? undefined : handleStartRecording}
-              disabled={isRecording}
+              onClick={!isRecording ? handleStartRecording : () => {}}
             >
               <Mic className="h-12 w-12" />
             </button>
