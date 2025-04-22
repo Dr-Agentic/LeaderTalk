@@ -73,6 +73,7 @@ function Router() {
     <Switch>
       {/* Auth required routes */}
       {isAuthenticated && onboardingComplete && <Route path="/" component={Dashboard} />}
+      {isAuthenticated && onboardingComplete && <Route path="/dashboard" component={Dashboard} />}
       {isAuthenticated && onboardingComplete && <Route path="/transcript/:id" component={TranscriptView} />}
       {isAuthenticated && onboardingComplete && <Route path="/transcripts" component={AllTranscripts} />}
       {isAuthenticated && onboardingComplete && <Route path="/settings" component={Settings} />}
@@ -86,6 +87,7 @@ function Router() {
       {!isAuthenticated && <Route path="/login" component={DirectLogin} />}
       
       {/* Force redirect auth-required paths to login when not authenticated */}
+      {!isAuthenticated && <Route path="/dashboard" component={DirectLogin} />}
       {!isAuthenticated && <Route path="/transcript/:id" component={DirectLogin} />}
       {!isAuthenticated && <Route path="/transcripts" component={DirectLogin} />}
       
