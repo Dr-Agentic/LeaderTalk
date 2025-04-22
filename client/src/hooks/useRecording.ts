@@ -45,8 +45,11 @@ export function useRecording() {
       });
       
       mediaRecorder.addEventListener("stop", () => {
-        // Use mp3 format which is supported by OpenAI
-        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/mp3" });
+        // Try to use a format supported by OpenAI
+        // Note: We keep the original MIME type from the recorder to maintain compatibility
+        const audioBlob = new Blob(audioChunksRef.current, { 
+          type: mediaRecorder.mimeType || "audio/webm" 
+        });
         setRecordingBlob(audioBlob);
         
         // Stop all tracks

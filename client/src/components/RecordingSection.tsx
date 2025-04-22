@@ -66,15 +66,34 @@ export default function RecordingSection({ onRecordingComplete }) {
   
   // Handle start recording
   const handleStartRecording = async () => {
+    if (isRecording) {
+      return; // Already recording, do nothing
+    }
+    
     try {
+      // First, check for microphone permissions
+      const permissionStatus = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+      
+      if (permissionStatus.state === 'denied') {
+        toast({
+          title: "Microphone access denied",
+          description: "Please allow microphone access in your browser settings and try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       await startRecording();
       setIsRecording(true);
       setIsPaused(false);
+      setRecordingTime(0);
+      setRecordingProgress(0);
       toast({
         title: "Recording started",
         description: "Your conversation is now being recorded.",
       });
     } catch (error) {
+      console.error("Error starting recording:", error);
       toast({
         title: "Error starting recording",
         description: "Please ensure your microphone is connected and permissions are granted.",
@@ -141,10 +160,26 @@ export default function RecordingSection({ onRecordingComplete }) {
       
       // Check for supported formats (OpenAI API requires specific formats)
       const mimeType = recordingBlob.type;
-      const fileExtension = mimeType === 'audio/mp3' ? 'mp3' : 
-                           mimeType === 'audio/wav' ? 'wav' : 
-                           mimeType === 'audio/mpeg' ? 'mp3' : 'webm';
-                           
+      // Map MIME types to appropriate file extensions for OpenAI
+      const fileExtensionMap = {
+        'audio/mp3': 'mp3',
+        'audio/mpeg': 'mp3',
+        'audio/wav': 'wav',
+        'audio/x-wav': 'wav',
+        'audio/webm': 'webm',
+        'audio/ogg': 'ogg',
+        'audio/oga': 'ogg',
+        'audio/m4a': 'm4a',
+        'audio/mp4': 'm4a',
+        'audio/x-m4a': 'm4a',
+        'audio/aac': 'm4a'
+      };
+      
+      // Use the mapped extension or default to 'mp3' if unknown
+      const fileExtension = Object.prototype.hasOwnProperty.call(fileExtensionMap, mimeType) 
+        ? fileExtensionMap[mimeType as keyof typeof fileExtensionMap] 
+        : 'mp3';
+      
       console.log(`Uploading audio file with MIME type: ${mimeType} and extension: ${fileExtension}`);
       
       formData.append("audio", recordingBlob, `recording.${fileExtension}`);

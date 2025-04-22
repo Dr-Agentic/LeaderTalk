@@ -346,8 +346,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/recordings/upload", requireAuth, upload.single("audio"), async (req, res) => {
     try {
       if (!req.file) {
+        console.error("No file was uploaded or file was rejected by multer");
         return res.status(400).json({ message: "No audio file provided" });
       }
+      
+      console.log("Received audio file:", {
+        filename: req.file.filename,
+        mimetype: req.file.mimetype,
+        size: req.file.size,
+        path: req.file.path
+      });
       
       const recordingId = parseInt(req.body.recordingId);
       if (isNaN(recordingId)) {
@@ -364,8 +372,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Unauthorized access to recording" });
       }
       
-      // Update recording status
-      await storage.updateRecording(recordingId, { status: "processing" });
+      // Update recording status and add title/duration if not already set
+      await storage.updateRecording(recordingId, { 
+        status: "processing",
+        title: recording.title || `Recording #${recordingId}`,
+        duration: recording.duration || 0
+      });
       
       // Get selected leaders for this user
       const user = await storage.getUser(req.session.userId!);
@@ -387,6 +399,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Start the transcription and analysis process
       transcribeAndAnalyzeAudio(audioPath, recording, leaders)
         .then(async ({ transcription, analysis }) => {
+          console.log("Audio successfully processed:", {
+            recordingId,
+            transcriptionLength: transcription?.length || 0,
+            analysisReceived: !!analysis
+          });
+          
           // Update the recording with transcription and analysis
           await storage.updateRecordingAnalysis(recordingId, transcription, analysis);
           
@@ -397,7 +415,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })
         .catch((error) => {
           console.error("Error processing recording:", error);
-          storage.updateRecording(recordingId, { status: "failed" });
+          
+          // Update recording with error status
+          storage.updateRecording(recordingId, { 
+            status: "failed",
+            title: recording.title || `Recording #${recordingId}`,
+            duration: recording.duration || 0
+          });
           
           // Delete the temporary file
           fs.unlink(audioPath, (err) => {
