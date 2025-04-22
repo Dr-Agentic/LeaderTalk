@@ -260,7 +260,7 @@ export default function LeaderSelection({
                     <img 
                       src={currentLeader.photoUrl} 
                       alt={currentLeader.name} 
-                      className="w-full rounded-md object-cover" 
+                      className="w-full rounded-md object-contain" 
                     />
                   ) : (
                     <div className="w-full h-48 bg-gray-200 rounded-md flex items-center justify-center">
