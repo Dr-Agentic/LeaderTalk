@@ -10,7 +10,8 @@ import fs from "fs";
 import path from "path";
 import os from "os";
 import crypto from "crypto";
-import { insertUserSchema, updateUserSchema, insertRecordingSchema } from "@shared/schema";
+import { eq } from "drizzle-orm";
+import { insertUserSchema, updateUserSchema, insertRecordingSchema, leaders } from "@shared/schema";
 import { z } from "zod";
 import { ZodError } from "zod";
 
@@ -450,22 +451,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Update the existing leader with the new data
           console.log(`Updating leader: ${leaderData.name}`);
           
-          // Execute SQL to update the leader fields
-          await db.execute(
-            `UPDATE leaders 
-             SET controversial = $1, 
-                 generation_most_affected = $2, 
-                 leadership_styles = $3, 
-                 famous_phrases = $4
-             WHERE id = $5`,
-            [
-              leaderData.controversial,
-              leaderData.generation_most_affected,
-              JSON.stringify(leaderData.leadership_styles),
-              JSON.stringify(leaderData.famous_phrases),
-              dbLeader.id
-            ]
-          );
+          // Use drizzle's API to update the leader
+          await db.update(leaders)
+            .set({
+              controversial: !!leaderData.controversial,
+              generationMostAffected: leaderData.generation_most_affected || null,
+              leadershipStyles: JSON.stringify(leaderData.leadership_styles || []),
+              famousPhrases: JSON.stringify(leaderData.famous_phrases || [])
+            })
+            .where(eq(leaders.id, dbLeader.id));
           
           updatedLeaders.push({
             id: dbLeader.id,
