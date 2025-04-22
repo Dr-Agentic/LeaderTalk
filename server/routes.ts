@@ -70,61 +70,127 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Set up session middleware
+  // Create a blacklist for logged-out sessions
+  const loggedOutSessionIds = new Set<string>();
+  
+  // Set up session middleware with enhanced security
   app.use(
     session({
+      name: 'leadertalk.sid', // Custom session name for easier identification
       secret: process.env.SESSION_SECRET || "leadertalk-session-secret",
       resave: false,
       saveUninitialized: false,
+      rolling: true, // Force cookie to be set on every response
       cookie: {
+        httpOnly: true, // Prevent client-side JS from reading cookie
         secure: process.env.NODE_ENV === "production",
         maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
+        sameSite: 'lax', // Provides CSRF protection
+        path: '/' // Ensure cookie is sent for all paths
       },
       store: new MemoryStoreFactory({
         checkPeriod: 86400000, // 24 hours
       }),
+      genid: function() {
+        // Generate a completely random session ID
+        return require('crypto').randomBytes(32).toString('hex');
+      }
     })
   );
+  
+  // Add additional middleware to check for blacklisted sessions
+  app.use((req, res, next) => {
+    const sessionId = req.session.id;
+    
+    // If this is a logged-out session, destroy it and clear cookie
+    if (sessionId && loggedOutSessionIds.has(sessionId)) {
+      console.log(`Blocked blacklisted session: ${sessionId}`);
+      req.session.destroy((err) => {
+        if (err) console.error("Error destroying blacklisted session:", err);
+        // Use the same cookie settings to ensure it gets cleared
+        res.clearCookie('leadertalk.sid', {
+          path: '/',
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: 'lax',
+          maxAge: 0
+        });
+        return res.status(401).json({ message: "Session expired, please log in again" });
+      });
+      return;
+    }
+    next();
+  });
 
   // *** User routes ***
   
   // Enhanced logout route with guaranteed session termination
   app.get("/api/auth/logout", (req, res, next) => {
-    console.log("Logout request received, destroying session");
+    console.log("Logout request received, preparing to destroy session");
     
-    // 1. First set content type to ensure proper response format
+    // 1. First ensure we use JSON content type
     res.setHeader('Content-Type', 'application/json');
     
-    // 2. Define cookie settings matching the cookie settings used when creating the session
+    // 2. Add this session to the blacklist to prevent reuse
+    if (req.session && req.session.id) {
+      console.log(`Adding session ${req.session.id} to blacklist`);
+      loggedOutSessionIds.add(req.session.id);
+      
+      // Clean up old sessions from blacklist (keep it from growing too large)
+      if (loggedOutSessionIds.size > 1000) {
+        // If too many sessions, just clear half of them (the oldest ones will be first in iteration)
+        const toRemove = Math.floor(loggedOutSessionIds.size / 2);
+        let count = 0;
+        for (const id of loggedOutSessionIds) {
+          if (count >= toRemove) break;
+          loggedOutSessionIds.delete(id);
+          count++;
+        }
+      }
+    }
+    
+    // 3. Define cookie settings matching exactly what was used when creating it
     const cookieOptions = {
       path: '/',
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax' as const,
-      maxAge: 0 // Set to zero to delete the cookie
+      maxAge: 0
     };
     
-    // 3. Explicitly clear the session cookie with zero maxAge
-    res.clearCookie('connect.sid', cookieOptions);
+    // 4. Clear both potential cookie names (we changed from connect.sid to leadertalk.sid)
+    res.clearCookie('leadertalk.sid', cookieOptions);
+    res.clearCookie('connect.sid', cookieOptions); 
     
-    // 4. Empty the session object
+    // 5. Empty sensitive data from the session
     if (req.session) {
+      // Remove user ID
       req.session.userId = null;
       
-      // 5. Destroy the session (force regenerate for completeness)
+      // Destroy the session completely
       req.session.destroy((err) => {
         if (err) {
-          console.error("Error destroying session:", err);
-          return res.status(500).json({ message: "Error logging out", success: false });
+          console.error("Error destroying session during logout:", err);
+          return res.status(500).json({ message: "Error during logout", success: false });
         }
         
-        // 6. Small delay to ensure the session is fully destroyed before sending response
+        // Small delay to ensure full session destruction
         setTimeout(() => {
-          return res.status(200).json({ message: "Logged out successfully", success: true });
+          // Return successful logout
+          return res.status(200).json({ 
+            message: "Successfully logged out", 
+            success: true,
+            timestamp: Date.now() // Add timestamp to prevent caching
+          });
         }, 100);
       });
     } else {
-      return res.status(200).json({ message: "Already logged out", success: true });
+      // No active session
+      return res.status(200).json({ 
+        message: "No active session to log out", 
+        success: true,
+        timestamp: Date.now()
+      });
     }
   });
   
