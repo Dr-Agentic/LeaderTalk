@@ -21,6 +21,14 @@ function Router() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        if (window.location.pathname === "/login" || window.location.pathname === "/") {
+          // Skip auth check if we're already on login page to prevent redirect loops
+          if (!isAuthenticated) {
+            setLoading(false);
+            return;
+          }
+        }
+        
         // Try to fetch the current user
         const res = await apiRequest('GET', '/api/users/me');
         
@@ -33,6 +41,7 @@ function Router() {
             !!(userData.dateOfBirth && userData.profession && userData.goals && userData.selectedLeaders)
           );
         } else {
+          console.log("Unauthorized access, redirecting to login...");
           setIsAuthenticated(false);
           setOnboardingComplete(false);
         }
@@ -46,7 +55,7 @@ function Router() {
     };
 
     checkAuth();
-  }, []);
+  }, [isAuthenticated]);
 
   if (loading) {
     return (

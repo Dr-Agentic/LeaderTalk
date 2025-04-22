@@ -5,9 +5,42 @@ import GoogleSignUp from "@/components/onboarding/GoogleSignUp";
 import { Link } from "wouter";
 
 export default function DirectLogin() {
-  const handleDirectLogin = () => {
-    // This is a direct server-side redirect, no client-side checks or errors
-    window.location.href = "/api/auth/force-login";
+  const handleDirectLogin = async () => {
+    try {
+      // Show loading state
+      const button = document.getElementById('demo-login-button');
+      if (button) {
+        button.textContent = "Logging in...";
+        button.setAttribute('disabled', 'true');
+      }
+      
+      // Use fetch instead of direct navigation to prevent full page reload
+      const response = await fetch("/api/auth/force-login");
+      if (response.redirected) {
+        // If server tried to redirect, handle it on client side instead 
+        window.location.href = "/";
+      } else if (response.ok) {
+        // If login was successful but no redirect, manually go to dashboard
+        window.location.href = "/"; 
+      } else {
+        console.error("Login failed:", await response.text());
+        alert("Login failed. Please try again.");
+        // Reset button state
+        if (button) {
+          button.textContent = "Log in as Demo User";
+          button.removeAttribute('disabled');
+        }
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      alert("Login error. Please try again.");
+      // Reset button state
+      const button = document.getElementById('demo-login-button');
+      if (button) {
+        button.textContent = "Log in as Demo User";
+        button.removeAttribute('disabled');
+      }
+    }
   };
 
   return (
@@ -32,6 +65,7 @@ export default function DirectLogin() {
             </div>
             
             <Button 
+              id="demo-login-button"
               size="lg"
               className="w-full"
               onClick={handleDirectLogin}
