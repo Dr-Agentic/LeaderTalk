@@ -28,37 +28,10 @@ export default function GoogleSignUp() {
     }
   };
 
-  const handleDemoLogin = async () => {
-    try {
-      setIsLoading(true);
-      
-      // Use the dedicated demo login endpoint
-      const response = await apiRequest('POST', '/api/auth/demo-login');
-      
-      if (response.ok) {
-        toast({
-          title: "Demo Login Successful",
-          description: "You are now logged in as a demo user.",
-        });
-        
-        // Simulate authentication state by forcing a page reload
-        // The session cookie should be set by the backend
-        window.location.href = '/';
-      } else {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to login as demo user");
-      }
-    } catch (error: any) {
-      console.error("Demo login error:", error);
-      
-      toast({
-        title: "Authentication Error",
-        description: error.message || "Could not login as demo user",
-        variant: "destructive",
-      });
-      
-      setIsLoading(false);
-    }
+  const handleDemoLogin = () => {
+    setIsLoading(true);
+    // Use the direct server-side redirect login which does everything in one step
+    window.location.href = "/api/auth/force-login";
   };
   
   return (

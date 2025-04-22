@@ -69,6 +69,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       } else {
         console.log("Found existing demo user:", demoUser);
+        
+        // Update the demo user with onboarding info if missing
+        if (!demoUser.dateOfBirth || !demoUser.profession || !demoUser.goals || !demoUser.selectedLeaders) {
+          try {
+            console.log("Updating demo user with onboarding information...");
+            demoUser = await storage.updateUser(demoUser.id, {
+              dateOfBirth: "1990-01-01",
+              profession: "Software Developer",
+              goals: "Improve communication skills",
+              selectedLeaders: [1, 2, 3]
+            });
+            console.log("Demo user updated:", demoUser);
+          } catch (updateError) {
+            console.error("Error updating demo user:", updateError);
+          }
+        }
       }
       
       if (!demoUser) {
