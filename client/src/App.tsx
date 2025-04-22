@@ -69,9 +69,13 @@ function Router() {
       {/* Onboarding route */}
       {isAuthenticated && !onboardingComplete && <Route path="/" component={Onboarding} />}
       
-      {/* Login routes - explicitly include /login path */}
+      {/* Login routes - ensure both root and /login path work */}
       {!isAuthenticated && <Route path="/" component={DirectLogin} />}
       {!isAuthenticated && <Route path="/login" component={DirectLogin} />}
+      
+      {/* Force redirect auth-required paths to login when not authenticated */}
+      {!isAuthenticated && <Route path="/transcript/:id" component={DirectLogin} />}
+      {!isAuthenticated && <Route path="/transcripts" component={DirectLogin} />}
       
       {/* Fallback route */}
       <Route component={NotFound} />

@@ -95,18 +95,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       req.session.destroy((err) => {
         if (err) {
           console.error("Error destroying session:", err);
-          return res.status(500).json({ message: "Error logging out" });
+          res.status(500);
+          res.setHeader('Content-Type', 'application/json');
+          return res.end(JSON.stringify({ message: "Error logging out" }));
         }
         res.clearCookie("connect.sid");
         
-        // Need to set Content-Type for proper JSON response and avoid serving HTML
+        // Use explicit serialization to avoid issues
+        res.status(200);
         res.setHeader('Content-Type', 'application/json');
-        return res.status(200).json({ message: "Logged out successfully" });
+        return res.end(JSON.stringify({ message: "Logged out successfully" }));
       });
     } else {
-      // Need to set Content-Type for proper JSON response
+      // Use explicit serialization to avoid issues
+      res.status(200);
       res.setHeader('Content-Type', 'application/json');
-      return res.status(200).json({ message: "Already logged out" });
+      return res.end(JSON.stringify({ message: "Already logged out" }));
     }
   });
   

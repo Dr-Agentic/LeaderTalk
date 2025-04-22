@@ -138,8 +138,17 @@ function SidebarFooter({ user }) {
         console.log("Logout response status:", response.status);
         
         if (response.ok) {
-          const data = await response.json();
-          console.log("Logout success:", data);
+          try {
+            const text = await response.text();
+            console.log("Logout response text:", text);
+            
+            if (text) {
+              const data = JSON.parse(text);
+              console.log("Logout success:", data);
+            }
+          } catch (parseError) {
+            console.error("Failed to parse logout response:", parseError);
+          }
         } else {
           console.warn("Logout failed:", response.statusText);
         }
@@ -148,11 +157,12 @@ function SidebarFooter({ user }) {
       }
       
       // Always redirect to login page, even if the logout had an error
-      window.location.href = '/login';
+      // Use direct login path to avoid 404
+      window.location.href = '/';
     } catch (error) {
       console.error("Error in signout function:", error);
       // Still attempt to redirect on error
-      window.location.href = '/login';
+      window.location.href = '/';
     }
   };
   
