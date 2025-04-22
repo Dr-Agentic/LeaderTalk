@@ -227,10 +227,25 @@ export default function RecordingSection({ onRecordingComplete }) {
         onRecordingComplete(recording);
       }
     } catch (error) {
+      console.error("Recording error:", error);
+      let errorMessage = "There was an issue saving your recording.";
+      
+      // Add more detailed error message if available
+      if (error instanceof Error) {
+        errorMessage = error.message || errorMessage;
+      }
+      
       toast({
         title: "Error saving recording",
-        description: "There was an issue saving your recording.",
+        description: errorMessage,
         variant: "destructive",
+      });
+      
+      // Show additional toast with troubleshooting help
+      toast({
+        title: "Troubleshooting",
+        description: "Please check your microphone permissions and try again with a shorter recording.",
+        variant: "default",
       });
     } finally {
       setIsProcessing(false);

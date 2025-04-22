@@ -23,12 +23,20 @@ export function useRecording() {
       });
       streamRef.current = stream;
       
-      // Try to use a supported format
-      const mimeType = MediaRecorder.isTypeSupported('audio/mp3') 
-        ? 'audio/mp3' 
-        : MediaRecorder.isTypeSupported('audio/wav') 
-          ? 'audio/wav' 
-          : 'audio/webm';
+      // Try to use a format supported by OpenAI's Whisper API
+      // https://platform.openai.com/docs/guides/speech-to-text/supported-formats
+      // OpenAI supports: m4a, mp3, mp4, mpeg, mpga, wav, webm
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+        ? 'audio/webm;codecs=opus'  // Best for Chrome and Firefox
+        : MediaRecorder.isTypeSupported('audio/webm')
+          ? 'audio/webm'
+          : MediaRecorder.isTypeSupported('audio/mp4')
+            ? 'audio/mp4'  
+            : MediaRecorder.isTypeSupported('audio/mp3')
+              ? 'audio/mp3'
+              : MediaRecorder.isTypeSupported('audio/wav')
+                ? 'audio/wav'
+                : 'audio/webm';
       
       console.log("Using MIME type for recording:", mimeType);
       
@@ -45,16 +53,44 @@ export function useRecording() {
       });
       
       mediaRecorder.addEventListener("stop", () => {
-        // Try to use a format supported by OpenAI
-        // Note: We keep the original MIME type from the recorder to maintain compatibility
-        const audioBlob = new Blob(audioChunksRef.current, { 
-          type: mediaRecorder.mimeType || "audio/webm" 
-        });
-        setRecordingBlob(audioBlob);
+        // Ensure we have valid recorded data
+        if (audioChunksRef.current.length === 0) {
+          console.error("No audio chunks recorded");
+          setRecordingBlob(null);
+          
+          // Clean up stream
+          if (streamRef.current) {
+            streamRef.current.getTracks().forEach(track => track.stop());
+          }
+          return;
+        }
         
-        // Stop all tracks
-        if (streamRef.current) {
-          streamRef.current.getTracks().forEach(track => track.stop());
+        try {
+          // Get recorder's MIME type or use a default compatible with OpenAI
+          // OpenAI's Whisper API supports: m4a, mp3, mp4, mpeg, mpga, wav, webm
+          const mimeType = mediaRecorder.mimeType || "audio/webm";
+          
+          // Log the MIME type we're using for the blob
+          console.log("Uploading audio file with MIME type:", mimeType, "and extension: mp3");
+          
+          // Create blob with the recorder's MIME type
+          const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
+          
+          // Verify the blob has content
+          if (audioBlob.size > 0) {
+            setRecordingBlob(audioBlob);
+          } else {
+            console.error("Created empty audio blob");
+            setRecordingBlob(null);
+          }
+        } catch (error) {
+          console.error("Error creating audio blob:", error);
+          setRecordingBlob(null);
+        } finally {
+          // Always stop tracks to release microphone
+          if (streamRef.current) {
+            streamRef.current.getTracks().forEach(track => track.stop());
+          }
         }
       });
       

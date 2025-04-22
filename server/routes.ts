@@ -357,6 +357,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         path: req.file.path
       });
       
+      // Verify audio file is valid
+      if (req.file.size === 0) {
+        console.error("Empty audio file received");
+        return res.status(400).json({ message: "Empty audio file received" });
+      }
+      
+      // Very small files are likely corrupted or empty
+      if (req.file.size < 1000) { // Less than 1KB
+        console.warn("Very small audio file received, might be corrupted");
+      }
+      
       const recordingId = parseInt(req.body.recordingId);
       if (isNaN(recordingId)) {
         return res.status(400).json({ message: "Invalid recording ID" });
