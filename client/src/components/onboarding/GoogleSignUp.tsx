@@ -69,11 +69,7 @@ export default function GoogleSignUp() {
       <Button
         variant="outline"
         className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 mt-4"
-        onClick={() => toast({
-          title: "Google Authentication Disabled",
-          description: "Google Authentication is disabled in this development environment. Please use the Demo Login option.",
-          variant: "destructive",
-        })}
+        onClick={handleSignIn}
         disabled={isLoading}
       >
         <svg 
@@ -88,7 +84,7 @@ export default function GoogleSignUp() {
           <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z" />
           <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z" />
         </svg>
-        Sign in with Google (Disabled)
+        Sign in with Google
       </Button>
       
       <p className="text-xs text-center text-gray-500 mt-4">
