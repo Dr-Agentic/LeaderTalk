@@ -98,9 +98,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(500).json({ message: "Error logging out" });
         }
         res.clearCookie("connect.sid");
+        
+        // Need to set Content-Type for proper JSON response and avoid serving HTML
+        res.setHeader('Content-Type', 'application/json');
         return res.status(200).json({ message: "Logged out successfully" });
       });
     } else {
+      // Need to set Content-Type for proper JSON response
+      res.setHeader('Content-Type', 'application/json');
       return res.status(200).json({ message: "Already logged out" });
     }
   });

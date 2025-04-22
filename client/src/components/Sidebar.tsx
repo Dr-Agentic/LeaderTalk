@@ -125,15 +125,34 @@ function SidebarFooter({ user }) {
       }
       
       // Then do server-side logout to clear session
-      await fetch('/api/auth/logout', { 
-        method: 'GET',
-        credentials: 'include'
-      });
+      try {
+        const response = await fetch('/api/auth/logout', { 
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Accept': 'application/json'
+          }
+        });
+        
+        // Log response for debugging
+        console.log("Logout response status:", response.status);
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log("Logout success:", data);
+        } else {
+          console.warn("Logout failed:", response.statusText);
+        }
+      } catch (e) {
+        console.error("Logout fetch error:", e);
+      }
       
-      // Redirect to login page
+      // Always redirect to login page, even if the logout had an error
       window.location.href = '/login';
     } catch (error) {
-      console.error("Error signing out:", error);
+      console.error("Error in signout function:", error);
+      // Still attempt to redirect on error
+      window.location.href = '/login';
     }
   };
   
