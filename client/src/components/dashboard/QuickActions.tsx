@@ -48,7 +48,7 @@ export default function QuickActions({ recordingsCount, weeklyImprovement }) {
         </CardContent>
         <CardFooter className="bg-gray-50 px-5 py-3">
           <div className="text-sm">
-            <Link href="/recordings" className="font-medium text-primary hover:text-blue-900">
+            <Link href="/transcripts" className="font-medium text-primary hover:text-blue-900">
               View all analyses &rarr;
             </Link>
           </div>
