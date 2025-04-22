@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <rect width="200" height="200" fill="#f5f5f5"/>
+  <circle cx="100" cy="80" r="40" fill="#d9c7a7"/>
+  <path d="M60,150 Q100,190 140,150" fill="#577a91" stroke="none"/>
+  <circle cx="100" cy="80" r="45" fill="none" stroke="#577a91" stroke-width="4"/>
+  <rect x="70" y="125" width="60" height="5" rx="2" fill="#577a91"/>
+  <text x="100" y="190" text-anchor="middle" fill="#303030" font-family="Arial" font-size="12">Nelson Mandela</text>
+</svg>

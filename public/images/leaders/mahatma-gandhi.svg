@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <rect width="200" height="200" fill="#f9f3e5"/>
+  <circle cx="100" cy="80" r="40" fill="#e8d6c0"/>
+  <circle cx="100" cy="80" r="30" fill="none" stroke="#7d6f5d" stroke-width="3"/>
+  <circle cx="85" cy="75" r="5" fill="#555555"/>
+  <circle cx="115" cy="75" r="5" fill="#555555"/>
+  <path d="M85,100 Q100,110 115,100" fill="none" stroke="#7d6f5d" stroke-width="2"/>
+  <path d="M70,140 Q100,170 130,140" fill="#f0e6d2" stroke="#7d6f5d" stroke-width="2"/>
+  <text x="100" y="190" text-anchor="middle" fill="#7d6f5d" font-family="Arial" font-size="12">Mahatma Gandhi</text>
+</svg>
