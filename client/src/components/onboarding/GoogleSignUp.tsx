@@ -32,16 +32,8 @@ export default function GoogleSignUp() {
     try {
       setIsLoading(true);
       
-      // Create a demo user directly in our database, bypassing Firebase
-      const demoUserData = {
-        googleId: "demo-user-" + Date.now(), // Generate a unique ID
-        email: "demo@example.com",
-        username: "Demo User",
-        photoUrl: ""
-      };
-      
-      // Create the user in our backend
-      const response = await apiRequest('POST', '/api/users', demoUserData);
+      // Use the dedicated demo login endpoint
+      const response = await apiRequest('POST', '/api/auth/demo-login');
       
       if (response.ok) {
         toast({
@@ -54,22 +46,14 @@ export default function GoogleSignUp() {
         window.location.href = '/';
       } else {
         const errorData = await response.json();
-        
-        // If user with this email already exists, it's fine - just log in
-        if (errorData.message === "User with this email already exists") {
-          // Just do a page reload to get the session cookie
-          window.location.href = '/';
-          return;
-        }
-        
-        throw new Error(errorData.message || "Failed to create demo user");
+        throw new Error(errorData.message || "Failed to login as demo user");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Demo login error:", error);
       
       toast({
         title: "Authentication Error",
-        description: error.message || "Could not create demo user",
+        description: error.message || "Could not login as demo user",
         variant: "destructive",
       });
       
@@ -84,73 +68,55 @@ export default function GoogleSignUp() {
         <p className="text-gray-600 mb-8">Analyze and improve your communication like a leader</p>
       </div>
       
-      {!isDeveloperMode ? (
-        <>
-          <Button
-            variant="outline"
-            className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 mb-4"
-            onClick={handleSignIn}
-            disabled={isLoading}
-          >
-            <svg 
-              className="h-5 w-5 mr-2" 
-              xmlns="http://www.w3.org/2000/svg" 
-              viewBox="0 0 48 48" 
-              width="48px" 
-              height="48px"
-            >
-              <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z" />
-              <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z" />
-              <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z" />
-              <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z" />
-            </svg>
-            {isLoading ? "Signing in..." : "Sign in with Google"}
-          </Button>
-          
-          <div className="mt-4 flex items-center">
-            <div className="flex-grow h-px bg-gray-200"></div>
-            <span className="px-3 text-sm text-gray-500">or</span>
-            <div className="flex-grow h-px bg-gray-200"></div>
+      <div className="bg-amber-50 border-l-4 border-amber-400 p-4 mb-6">
+        <div className="flex">
+          <div className="ml-3">
+            <p className="text-sm text-amber-700">
+              This is a development environment. Use the Demo Login option below to test the application.
+            </p>
           </div>
-          
-          <Button
-            variant="ghost"
-            className="w-full mt-4"
-            onClick={() => setIsDeveloperMode(true)}
-          >
-            Development Login
-          </Button>
-        </>
-      ) : (
-        <>
-          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
-            <div className="flex">
-              <div className="ml-3">
-                <p className="text-sm text-yellow-700">
-                  Development mode is for testing only. This bypasses the normal Google authentication flow.
-                </p>
-              </div>
-            </div>
-          </div>
-          
-          <Button
-            variant="default"
-            className="w-full mb-4"
-            onClick={handleDemoLogin}
-            disabled={isLoading}
-          >
-            {isLoading ? "Signing in..." : "Login as Demo User"}
-          </Button>
-          
-          <Button
-            variant="ghost"
-            className="w-full"
-            onClick={() => setIsDeveloperMode(false)}
-          >
-            Back to Normal Login
-          </Button>
-        </>
-      )}
+        </div>
+      </div>
+      
+      <Button
+        variant="default"
+        className="w-full mb-4"
+        onClick={handleDemoLogin}
+        disabled={isLoading}
+      >
+        {isLoading ? "Signing in..." : "Login as Demo User"}
+      </Button>
+      
+      <div className="mt-4 flex items-center">
+        <div className="flex-grow h-px bg-gray-200"></div>
+        <span className="px-3 text-sm text-gray-500">or</span>
+        <div className="flex-grow h-px bg-gray-200"></div>
+      </div>
+      
+      <Button
+        variant="outline"
+        className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 mt-4"
+        onClick={() => toast({
+          title: "Google Authentication Disabled",
+          description: "Google Authentication is disabled in this development environment. Please use the Demo Login option.",
+          variant: "destructive",
+        })}
+        disabled={isLoading}
+      >
+        <svg 
+          className="h-5 w-5 mr-2" 
+          xmlns="http://www.w3.org/2000/svg" 
+          viewBox="0 0 48 48" 
+          width="48px" 
+          height="48px"
+        >
+          <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z" />
+          <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z" />
+          <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z" />
+          <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z" />
+        </svg>
+        Sign in with Google (Disabled)
+      </Button>
       
       <p className="text-xs text-center text-gray-500 mt-4">
         By signing up, you agree to our <a href="#" className="text-primary">Terms</a> and <a href="#" className="text-primary">Privacy Policy</a>

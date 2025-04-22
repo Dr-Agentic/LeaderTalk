@@ -44,6 +44,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // *** User routes ***
   
+  // Login as a demo user (development only)
+  app.post("/api/auth/demo-login", async (req, res) => {
+    try {
+      // Find the demo user by email
+      const demoUser = await storage.getUserByEmail("demo@example.com");
+      
+      if (!demoUser) {
+        // Create a demo user if it doesn't exist
+        const newUser = await storage.createUser({
+          googleId: "demo-user-id",
+          email: "demo@example.com",
+          username: "Demo User"
+        });
+        
+        // Set the user ID in the session
+        req.session.userId = newUser.id;
+        return res.status(200).json({ success: true, user: newUser });
+      }
+      
+      // Set the user ID in the session
+      req.session.userId = demoUser.id;
+      return res.status(200).json({ success: true, user: demoUser });
+    } catch (error) {
+      console.error("Error in demo login:", error);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
   // Get current user
   app.get("/api/users/me", requireAuth, async (req, res) => {
     try {
