@@ -3,10 +3,8 @@ import { Pool, neonConfig } from '@neondatabase/serverless';
 import * as schema from '@shared/schema';
 import ws from 'ws';
 
-// Required for Neon connection on Replit
-if (process.env.DATABASE_URL?.includes('pooler')) {
-  neonConfig.webSocketConstructor = ws;
-}
+// Required for Neon database connections in Node.js environments
+neonConfig.webSocketConstructor = ws;
 
 // Ensure database URL is available
 if (!process.env.DATABASE_URL) {
