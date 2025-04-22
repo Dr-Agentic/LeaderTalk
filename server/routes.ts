@@ -23,7 +23,51 @@ const requireAuth = (req: Request, res: Response, next: Function) => {
 };
 
 // Set up temp file storage for uploads
-const upload = multer({ dest: os.tmpdir() });
+const storage = multer.diskStorage({
+  destination: (_req, _file, cb) => {
+    cb(null, os.tmpdir());
+  },
+  filename: (_req, file, cb) => {
+    // Extract the correct file extension from the MIME type
+    let ext = '';
+    if (file.mimetype === 'audio/mp3' || file.mimetype === 'audio/mpeg') {
+      ext = '.mp3';
+    } else if (file.mimetype === 'audio/wav') {
+      ext = '.wav';
+    } else if (file.mimetype === 'audio/ogg' || file.mimetype === 'audio/oga') {
+      ext = '.ogg';
+    } else if (file.mimetype === 'audio/webm') {
+      ext = '.webm';
+    } else if (file.mimetype === 'audio/m4a') {
+      ext = '.m4a';
+    } else {
+      // Default to mp3 if unknown
+      ext = '.mp3';
+    }
+    
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + ext);
+  }
+});
+
+const upload = multer({ 
+  storage,
+  // Validate supported audio MIME types for OpenAI
+  fileFilter: (_req, file, cb) => {
+    const validMimes = [
+      'audio/mp3', 'audio/mpeg', 'audio/wav', 
+      'audio/webm', 'audio/ogg', 'audio/oga', 
+      'audio/m4a', 'audio/flac'
+    ];
+    
+    if (validMimes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      console.warn(`Rejected file upload with mimetype: ${file.mimetype}`);
+      cb(null, false);
+    }
+  }
+});
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up session middleware
