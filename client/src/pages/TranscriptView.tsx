@@ -31,7 +31,16 @@ export default function TranscriptView() {
         }
         throw new Error("Network response was not ok");
       }
-      return response.json();
+      
+      // Get the recording data
+      const data = await response.json();
+      
+      // Transform the data to match our component needs
+      // Map analysisResult to analysis for easier use in our component
+      return {
+        ...data,
+        analysis: data.analysisResult
+      };
     },
     enabled: !isNaN(recordingId),
   });

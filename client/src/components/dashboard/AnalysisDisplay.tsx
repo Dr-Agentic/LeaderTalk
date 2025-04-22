@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "wouter";
 import CommunicationChart from "@/components/CommunicationChart";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -151,12 +152,17 @@ export default function AnalysisDisplay({ recording, leaders }) {
         </CardContent>
         
         <CardFooter className="px-4 py-4 sm:px-6 bg-gray-50 flex justify-between">
-          <a href={`/recordings/${recording.id}`} className="text-sm font-medium text-primary hover:text-blue-900">
-            View detailed analysis
-          </a>
-          <a href={`/practice/${recording.id}`} className="text-sm font-medium text-gray-500 hover:text-gray-700">
-            Practice exercises
-          </a>
+          <Link href={`/transcript/${recording.id}`} className="text-sm font-medium text-primary hover:text-blue-900">
+            View transcript
+          </Link>
+          <div className="flex space-x-4">
+            <Link href={`/transcript/${recording.id}`} className="text-sm font-medium text-gray-500 hover:text-gray-700">
+              Detailed analysis
+            </Link>
+            <span className="text-sm font-medium text-gray-400">
+              Practice exercises (Coming soon)
+            </span>
+          </div>
         </CardFooter>
       </Card>
     </div>
