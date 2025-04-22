@@ -3,16 +3,23 @@
   <title>Mahatma Gandhi</title>
   <defs>
     <linearGradient id="portrait-gradient-gandhi" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FF8C42"/>
-      <stop offset="100%" stop-color="#FFC2A1"/>
+      <stop offset="0%" stop-color="#F09819"/>
+      <stop offset="100%" stop-color="#EDDE5D"/>
     </linearGradient>
   </defs>
   <rect width="300" height="300" fill="#f8f9fa" rx="10" ry="10"/>
   <circle cx="150" cy="120" r="70" fill="url(#portrait-gradient-gandhi)"/>
-  <path d="M120,140 C120,140 130,160 150,160 C170,160 180,140 180,140" stroke="#fff" stroke-width="3" fill="none"/>
+  <path d="M120,135 C120,135 130,155 150,155 C170,155 180,135 180,135" stroke="#fff" stroke-width="3" fill="none"/>
   <circle cx="130" cy="110" r="10" fill="#fff"/>
   <circle cx="170" cy="110" r="10" fill="#fff"/>
-  <path d="M120,90 C120,90 140,75 150,75 C160,75 180,90 180,90" stroke="#fff" stroke-width="3" fill="none"/>
+  <!-- Gandhi's glasses -->
+  <circle cx="130" cy="110" r="15" stroke="#333" stroke-width="2" fill="none"/>
+  <circle cx="170" cy="110" r="15" stroke="#333" stroke-width="2" fill="none"/>
+  <line x1="145" y1="110" x2="155" y2="110" stroke="#333" stroke-width="2"/>
+  <line x1="115" y1="110" x2="105" y2="105" stroke="#333" stroke-width="2"/>
+  <line x1="185" y1="110" x2="195" y2="105" stroke="#333" stroke-width="2"/>
+  <!-- Gandhi's minimal hair -->
+  <path d="M150,50 C120,50 100,70 95,90 C130,85 170,85 205,90 C200,70 180,50 150,50 Z" fill="#eee"/>
   <text x="150" y="230" text-anchor="middle" font-family="Arial, sans-serif" font-weight="bold" font-size="24" fill="#333">Mahatma Gandhi</text>
-  <text x="150" y="260" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#666">Indian Independence Leader</text>
+  <text x="150" y="260" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#666">Non-Violence Advocate</text>
 </svg>

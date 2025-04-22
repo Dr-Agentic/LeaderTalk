@@ -3,8 +3,8 @@
   <title>Mother Teresa</title>
   <defs>
     <linearGradient id="portrait-gradient-teresa" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#74ebd5"/>
-      <stop offset="100%" stop-color="#ACB6E5"/>
+      <stop offset="0%" stop-color="#A8BFFF"/>
+      <stop offset="100%" stop-color="#EFCEFF"/>
     </linearGradient>
   </defs>
   <rect width="300" height="300" fill="#f8f9fa" rx="10" ry="10"/>
@@ -12,11 +12,14 @@
   <path d="M120,140 C120,140 130,160 150,160 C170,160 180,140 180,140" stroke="#fff" stroke-width="3" fill="none"/>
   <circle cx="130" cy="110" r="10" fill="#fff"/>
   <circle cx="170" cy="110" r="10" fill="#fff"/>
-  <!-- Mother Teresa's iconic habit -->
-  <path d="M90,120 C90,80 110,60 150,60 C190,60 210,80 210,120 L200,120 Q190,70 150,70 Q110,70 100,120 Z" fill="#fff"/>
-  <path d="M90,120 L100,120 L95,190 L85,190 Z" fill="#fff"/>
-  <path d="M210,120 L200,120 L205,190 L215,190 Z" fill="#fff"/>
-  <path d="M95,190 L205,190 L200,210 L100,210 Z" fill="#fff"/>
+  <!-- Mother Teresa's Habit -->
+  <path d="M95,120 Q150,180 205,120 L205,180 Q150,230 95,180 Z" fill="#fff"/>
+  <path d="M95,90 C120,70 180,70 205,90 L205,120 Q150,180 95,120 Z" fill="#fff"/>
+  <!-- Blue border on habit -->
+  <path d="M95,90 C120,70 180,70 205,90 L205,120 Q150,180 95,120 Z" fill="none" stroke="#26C6DA" stroke-width="2"/>
+  <path d="M95,120 Q150,180 205,120 L205,180 Q150,230 95,180 Z" fill="none" stroke="#26C6DA" stroke-width="2"/>
+  <!-- Face outline -->
+  <path d="M120,100 C120,80 180,80 180,100 L180,140 C180,160 120,160 120,140 Z" fill="#F5E3CE"/>
   <text x="150" y="230" text-anchor="middle" font-family="Arial, sans-serif" font-weight="bold" font-size="24" fill="#333">Mother Teresa</text>
-  <text x="150" y="260" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#666">Humanitarian Leader</text>
+  <text x="150" y="260" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#666">Compassionate Healer</text>
 </svg>

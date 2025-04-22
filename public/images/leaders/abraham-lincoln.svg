@@ -3,8 +3,8 @@
   <title>Abraham Lincoln</title>
   <defs>
     <linearGradient id="portrait-gradient-lincoln" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#2C3E50"/>
-      <stop offset="100%" stop-color="#4CA1AF"/>
+      <stop offset="0%" stop-color="#3494E6"/>
+      <stop offset="100%" stop-color="#EC6EAD"/>
     </linearGradient>
   </defs>
   <rect width="300" height="300" fill="#f8f9fa" rx="10" ry="10"/>
@@ -12,9 +12,11 @@
   <path d="M120,140 C120,140 130,160 150,160 C170,160 180,140 180,140" stroke="#fff" stroke-width="3" fill="none"/>
   <circle cx="130" cy="110" r="10" fill="#fff"/>
   <circle cx="170" cy="110" r="10" fill="#fff"/>
-  <!-- Lincoln's iconic beard and hat -->
-  <path d="M110,120 C110,120 120,180 150,180 C180,180 190,120 190,120" stroke="#333" stroke-width="5" fill="none"/>
-  <path d="M100,90 L200,90 L190,70 L110,70 Z" fill="#333"/>
+  <!-- Lincoln's beard -->
+  <path d="M120,140 C120,140 140,180 150,180 C160,180 180,140 180,140 L180,190 C180,190 160,200 150,200 C140,200 120,190 120,190 Z" fill="#333"/>
+  <!-- Lincoln's top hat -->
+  <rect x="110" y="30" width="80" height="30" fill="#222"/>
+  <rect x="125" y="15" width="50" height="20" fill="#222"/>
   <text x="150" y="230" text-anchor="middle" font-family="Arial, sans-serif" font-weight="bold" font-size="24" fill="#333">Abraham Lincoln</text>
-  <text x="150" y="260" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#666">16th U.S. President</text>
+  <text x="150" y="260" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#666">Unifying President</text>
 </svg>
