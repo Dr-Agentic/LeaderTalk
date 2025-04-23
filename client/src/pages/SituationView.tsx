@@ -95,7 +95,10 @@ export default function SituationView() {
       // Check for moduleId in query params for legacy route
       const moduleIdParam = searchParams.get('moduleId');
       setModuleId(moduleIdParam ? parseInt(moduleIdParam) : null);
-      setChapterId(null);
+      
+      // Look for chapter ID in query params too
+      const chapterIdParam = searchParams.get('fromChapter');
+      setChapterId(chapterIdParam ? parseInt(chapterIdParam) : null);
     }
   }, [matchesNew, newParams, matchesLegacy, legacyParams, searchParams]);
   
@@ -449,6 +452,8 @@ export default function SituationView() {
                   onClick={() => {
                     if (chapterId && moduleId) {
                       navigate(`/training/chapter/${chapterId}/module/${moduleId}/next-situation`);
+                    } else if (moduleId && chapterId) {
+                      navigate(`/training/next-situation?moduleId=${moduleId}&fromChapter=${chapterId}`);
                     } else if (moduleId) {
                       navigate(`/training/next-situation?moduleId=${moduleId}`);
                     } else {
