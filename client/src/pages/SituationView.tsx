@@ -103,7 +103,7 @@ export default function SituationView() {
   }, [preferredStyle, leadershipStyle]);
 
   // Fetch the situation directly from JSON files
-  const { data: situation, isLoading: isSituationLoading } = useQuery({
+  const { data: situation, isLoading: isSituationLoading, isError: isSituationError } = useQuery({
     queryKey: [`/api/training/situations-direct/${situationId}`],
     queryFn: getQueryFn({ on401: "throw" }),
     enabled: !!situationId && isAuthenticated,
@@ -112,6 +112,18 @@ export default function SituationView() {
       if (data && data.redirect) {
         console.log(`Redirecting to: ${data.redirectUrl}`);
         navigate(data.redirectUrl);
+      }
+    },
+    onError: (error: any) => {
+      // Check if the error contains a redirection message (302 response)
+      try {
+        const errorData = JSON.parse(error.message.split(': ')[1]);
+        if (errorData.redirect && errorData.redirectUrl) {
+          console.log(`Error with redirect data: ${errorData.message}`);
+          navigate(errorData.redirectUrl);
+        }
+      } catch (e) {
+        console.error("Failed to parse error data:", e);
       }
     }
   });

@@ -1,6 +1,21 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
 async function throwIfResNotOk(res: Response) {
+  // Consider 302 to be "ok" if it contains redirection information
+  if (res.status === 302) {
+    const text = await res.text();
+    try {
+      const data = JSON.parse(text);
+      if (data.redirect && data.redirectUrl) {
+        console.log(`Redirecting from API to: ${data.redirectUrl}`);
+        window.location.href = data.redirectUrl;
+        return; // Stop processing, redirection will happen
+      }
+    } catch (e) {
+      // Not JSON or doesn't have redirect info, treat as error
+    }
+  }
+  
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
     throw new Error(`${res.status}: ${text}`);
