@@ -49,6 +49,28 @@ interface SubmitResponseParams {
   leadershipStyle: string;
 }
 
+interface AttemptEvaluation {
+  styleMatchScore: number;
+  clarity: number;
+  empathy: number;
+  persuasiveness: number;
+  strengths: string[];
+  weaknesses: string[];
+  improvement: string;
+}
+
+interface Attempt {
+  id: number;
+  userId: number;
+  situationId: number;
+  response: string;
+  leadershipStyle: string;
+  score: number;
+  feedback: string;
+  evaluation: AttemptEvaluation;
+  createdAt: string;
+}
+
 export default function SituationView() {
   const [, params] = useRoute<{ id: string }>("/training/situation/:id");
   const situationId = params ? parseInt(params.id) : 0;

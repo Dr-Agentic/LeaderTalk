@@ -10,12 +10,13 @@ import fs from "fs";
 import path from "path";
 import os from "os";
 import crypto from "crypto";
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { 
   insertUserSchema, updateUserSchema, insertRecordingSchema, 
-  leaders, chapters, modules, situations, userProgress,
+  leaders, chapters, modules, situations, userProgress, situationAttempts,
   insertChapterSchema, insertModuleSchema, insertSituationSchema,
-  insertUserProgressSchema, updateUserProgressSchema
+  insertUserProgressSchema, updateUserProgressSchema,
+  insertSituationAttemptSchema, AttemptEvaluation
 } from "@shared/schema";
 import { importLeadersFromFile } from "./import-leaders";
 import { updateLeaderImages } from "./update-leader-images";
@@ -1046,6 +1047,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .returning();
       }
       
+      // Create an evaluation for the attempt
+      const evaluation: AttemptEvaluation = {
+        styleMatchScore: score,
+        clarity: Math.floor(Math.random() * 40) + 60, // Random score between 60-100 for demonstration
+        empathy: leadershipStyle === "empathetic" ? score : Math.floor(Math.random() * 50) + 50,
+        persuasiveness: leadershipStyle === "inspirational" ? score : Math.floor(Math.random() * 50) + 50,
+        strengths: [],
+        weaknesses: [],
+        improvement: feedback
+      };
+      
+      // Add some strengths and weaknesses based on the score
+      if (score > 70) {
+        evaluation.strengths.push("Good understanding of the chosen leadership style");
+        evaluation.strengths.push("Clear communication of key points");
+      } else {
+        evaluation.weaknesses.push("Limited alignment with chosen leadership style");
+        evaluation.weaknesses.push("Missing key elements of effective communication");
+      }
+      
+      if (leadershipStyle === "empathetic" && score > 60) {
+        evaluation.strengths.push("Shows good empathy and emotional intelligence");
+      } else if (leadershipStyle === "inspirational" && score > 60) {
+        evaluation.strengths.push("Effectively motivates and inspires action");
+      } else if (leadershipStyle === "commanding" && score > 60) {
+        evaluation.strengths.push("Provides clear direction and structure");
+      }
+      
+      // Create a record of this attempt
+      await db.insert(situationAttempts)
+        .values({
+          userId: req.session.userId,
+          situationId,
+          response,
+          leadershipStyle,
+          score,
+          feedback,
+          evaluation
+        });
+      
       return res.json({
         success: true,
         progress: userProgressRecord
@@ -1199,6 +1240,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Get situation attempts for a specific situation
+  app.get("/api/training/situations/:situationId/attempts", requireAuth, async (req, res) => {
+    try {
+      const situationId = Number(req.params.situationId);
+      
+      if (isNaN(situationId)) {
+        return res.status(400).json({ message: "Invalid situation ID" });
+      }
+      
+      // Get all attempts for this situation by the current user
+      const attempts = await db.select()
+        .from(situationAttempts)
+        .where(eq(situationAttempts.situationId, situationId))
+        .where(eq(situationAttempts.userId, req.session.userId))
+        .orderBy(desc(situationAttempts.createdAt));
+      
+      return res.json({
+        attempts
+      });
+    } catch (error) {
+      console.error("Error retrieving situation attempts:", error);
+      return res.status(500).json({ message: "Failed to retrieve attempts" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
