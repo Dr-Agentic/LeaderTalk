@@ -73,11 +73,11 @@ interface Attempt {
 
 export default function SituationView() {
   const [, params] = useRoute<{ id: string }>("/training/situation/:id");
+  const [location] = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const moduleId = searchParams.get('moduleId');
   
-  // If ID is greater than 10000, it's been offset to avoid conflicts with module IDs
-  // We need to convert it back to the original ID for API requests
-  const rawId = params ? parseInt(params.id) : 0;
-  const situationId = rawId >= 10000 ? rawId - 10000 : rawId;
+  const situationId = params ? parseInt(params.id) : 0;
   
   const { isAuthenticated, isLoading: authLoading, userData } = useAuth();
   const [, navigate] = useLocation();
@@ -249,7 +249,10 @@ export default function SituationView() {
   if (!situation) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <BackButton to="/training" label="Back to Training" />
+        <BackButton 
+          to={moduleId ? `/training/module/${moduleId}` : "/training"} 
+          label={moduleId ? "Back to Module" : "Back to Training"} 
+        />
         <Alert variant="destructive" className="mt-4">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Situation not found</AlertTitle>
@@ -263,7 +266,10 @@ export default function SituationView() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <BackButton to="/training" label="Back to Training" />
+      <BackButton 
+        to={moduleId ? `/training/module/${moduleId}` : "/training"} 
+        label={moduleId ? "Back to Module" : "Back to Training"} 
+      />
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
         <Card className="lg:col-span-2">
@@ -396,7 +402,7 @@ export default function SituationView() {
                 <Button
                   variant="outline"
                   className="w-full"
-                  onClick={() => navigate("/training/next-situation")}
+                  onClick={() => navigate(`/training/next-situation${moduleId ? `?moduleId=${moduleId}` : ''}`)}
                 >
                   Continue to Next Exercise
                 </Button>
@@ -516,9 +522,16 @@ export default function SituationView() {
 }
 
 function SituationViewSkeleton() {
+  const [location] = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const moduleId = searchParams.get('moduleId');
+  
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="h-6 w-40 bg-muted rounded animate-pulse"></div>
+      <BackButton 
+        to={moduleId ? `/training/module/${moduleId}` : "/training"} 
+        label={moduleId ? "Back to Module" : "Back to Training"} 
+      />
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
         <div className="lg:col-span-2 border rounded-lg p-6 animate-pulse">
