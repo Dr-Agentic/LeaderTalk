@@ -130,6 +130,8 @@
       ]
     },
     {
+      "id": 9,
+      "order": 4,
       "module_title": "Building Psychological Safety",
       "leadership_trait": "Trust Environment",
       "situation_type": "Team Dynamics",
@@ -170,6 +172,8 @@
       ]
     },
     {
+      "id": 10,
+      "order": 5,
       "module_title": "Transparency in Communication",
       "leadership_trait": "Openness",
       "situation_type": "Information Sharing",

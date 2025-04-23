@@ -1,7 +1,11 @@
 {
+  "id": 3,
+  "order": 3,
   "chapter_title": "Chapter 3: Effective Listening and Feedback",
   "modules": [
     {
+      "id": 11,
+      "order": 1,
       "module_title": "Active Listening Techniques",
       "leadership_trait": "Receptive Communication",
       "situation_type": "Team Feedback Session",
@@ -42,6 +46,8 @@
       ]
     },
     {
+      "id": 12,
+      "order": 2,
       "module_title": "Providing Constructive Feedback",
       "leadership_trait": "Developmental Communication",
       "situation_type": "Performance Improvement",
@@ -82,6 +88,8 @@
       ]
     },
     {
+      "id": 13,
+      "order": 3,
       "module_title": "Receiving Feedback Gracefully",
       "leadership_trait": "Growth Mindset",
       "situation_type": "Personal Development",
@@ -122,6 +130,8 @@
       ]
     },
     {
+      "id": 14,
+      "order": 4,
       "module_title": "Creating Feedback Loops",
       "leadership_trait": "Continuous Improvement",
       "situation_type": "Team Development",
@@ -162,6 +172,8 @@
       ]
     },
     {
+      "id": 15,
+      "order": 5,
       "module_title": "Non-verbal Listening Skills",
       "leadership_trait": "Presence",
       "situation_type": "Attentive Communication",
