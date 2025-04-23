@@ -30,9 +30,9 @@ export default function NextSituation() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [, navigate] = useLocation();
 
-  // Fetch the next incomplete situation
+  // Fetch the next incomplete situation directly from JSON files
   const { data, isLoading: isDataLoading } = useQuery({
-    queryKey: ["/api/training/next-situation"],
+    queryKey: ["/api/training/next-situation-direct"],
     queryFn: getQueryFn({ on401: "throw" }),
     enabled: isAuthenticated,
   });
