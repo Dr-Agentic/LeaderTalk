@@ -111,7 +111,7 @@ export default function Training() {
           <Button 
             size="lg" 
             className="gap-2"
-            onClick={() => navigate(`/training/situation/${nextSituation.nextSituation.id}`)}
+            onClick={() => navigate(`/training/chapter/${nextSituation.nextSituation.chapter.id}/module/${nextSituation.nextSituation.module.id}/situation/${nextSituation.nextSituation.id}`)}
           >
             Continue Training <ArrowRight size={18} />
           </Button>
@@ -151,7 +151,7 @@ export default function Training() {
                       {chapter.modules.map((module: any) => (
                         <Link 
                           key={module.id} 
-                          href={`/training/module/${module.id}`}
+                          href={`/training/chapter/${chapter.id}/module/${module.id}`}
                         >
                           <div className="flex justify-between items-center p-3 rounded-md border hover:bg-muted cursor-pointer">
                             <div className="flex gap-3 items-center">
@@ -322,7 +322,7 @@ function ChaptersList({ chapters }: { chapters: ChapterProgress[] }) {
               {chapter.modules.map((module) => (
                 <Link 
                   key={module.id} 
-                  href={`/training/module/${module.id}`}
+                  href={`/training/chapter/${chapter.id}/module/${module.id}`}
                 >
                   <div className="flex justify-between items-center p-3 rounded-md border hover:bg-muted cursor-pointer">
                     <div className="flex gap-3 items-center">

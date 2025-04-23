@@ -86,9 +86,14 @@ function Router() {
       
       {/* Training module routes */}
       {isAuthenticated && onboardingComplete && <Route path="/training" component={Training} />}
+      {/* Legacy routes for backward compatibility */}
       {isAuthenticated && onboardingComplete && <Route path="/training/module/:id" component={ModuleView} />}
       {isAuthenticated && onboardingComplete && <Route path="/training/situation/:id" component={SituationView} />}
       {isAuthenticated && onboardingComplete && <Route path="/training/next-situation" component={NextSituation} />}
+      {/* New hierarchical routes */}
+      {isAuthenticated && onboardingComplete && <Route path="/training/chapter/:chapterId/module/:moduleId" component={ModuleView} />}
+      {isAuthenticated && onboardingComplete && <Route path="/training/chapter/:chapterId/module/:moduleId/situation/:id" component={SituationView} />}
+      {isAuthenticated && onboardingComplete && <Route path="/training/chapter/:chapterId/next-situation" component={NextSituation} />}
       
       {/* Onboarding routes */}
       {isAuthenticated && !onboardingComplete && <Route path="/" component={Onboarding} />}
