@@ -874,21 +874,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       ];
       
       const chapters = [];
+      const projectRoot = process.cwd();
       
       for (const chapterFile of chapterFiles) {
-        const filePath = path.join(__dirname, '..', 'attached_assets', chapterFile);
+        const filePath = path.join(projectRoot, 'attached_assets', chapterFile);
         
         if (fs.existsSync(filePath)) {
           const rawData = fs.readFileSync(filePath, 'utf-8');
           const chapterData = JSON.parse(rawData);
           chapters.push(chapterData);
         } else {
-          console.warn(`Chapter file not found: ${chapterFile}`);
+          console.warn(`Chapter file not found: ${filePath}`);
         }
       }
       
       // Sort chapters by their order property
-      chapters.sort((a, b) => a.order - b.order);
+      chapters.sort((a, b) => {
+        const orderA = a.order || a.id;
+        const orderB = b.order || b.id;
+        return orderA - orderB;
+      });
       
       return res.json(chapters);
     } catch (error) {
@@ -940,7 +945,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Find the corresponding chapter file
       const chapterFile = `chapter${chapterId}_expanded.json`;
-      const filePath = path.join(__dirname, '..', 'attached_assets', chapterFile);
+      const projectRoot = process.cwd();
+      const filePath = path.join(projectRoot, 'attached_assets', chapterFile);
       
       if (!fs.existsSync(filePath)) {
         return res.status(404).json({ message: "Chapter file not found" });
@@ -1028,8 +1034,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let chapterId = null;
       
       // Find the module in the chapters
+      const projectRoot = process.cwd();
       for (const chapterFile of chapterFiles) {
-        const filePath = path.join(__dirname, '..', 'attached_assets', chapterFile);
+        const filePath = path.join(projectRoot, 'attached_assets', chapterFile);
         
         if (fs.existsSync(filePath)) {
           const rawData = fs.readFileSync(filePath, 'utf-8');
@@ -1133,8 +1140,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let chapterId = null;
       
       // Search through all chapters and modules to find the situation
+      const projectRoot = process.cwd();
       for (const chapterFile of chapterFiles) {
-        const filePath = path.join(__dirname, '..', 'attached_assets', chapterFile);
+        const filePath = path.join(projectRoot, 'attached_assets', chapterFile);
         
         if (fs.existsSync(filePath)) {
           const rawData = fs.readFileSync(filePath, 'utf-8');
@@ -1233,8 +1241,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         let foundSituation = null;
         
         // Find the situation in the JSON files
+        const projectRoot = process.cwd();
         for (const chapterFile of chapterFiles) {
-          const filePath = path.join(__dirname, '..', 'attached_assets', chapterFile);
+          const filePath = path.join(projectRoot, 'attached_assets', chapterFile);
           
           if (fs.existsSync(filePath)) {
             const rawData = fs.readFileSync(filePath, 'utf-8');
