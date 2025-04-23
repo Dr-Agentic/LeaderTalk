@@ -1,7 +1,11 @@
 {
+  "id": 4,
+  "order": 4,
   "chapter_title": "Chapter 4: Conflict Resolution and Negotiation",
   "modules": [
     {
+      "id": 16,
+      "order": 1,
       "module_title": "Mediating Team Disputes",
       "leadership_trait": "Conflict Management",
       "situation_type": "Cross-functional Disagreement",
@@ -42,6 +46,8 @@
       ]
     },
     {
+      "id": 17,
+      "order": 2,
       "module_title": "Navigating Difficult Conversations",
       "leadership_trait": "Courageous Communication",
       "situation_type": "Performance Issues",
@@ -82,6 +88,8 @@
       ]
     },
     {
+      "id": 18,
+      "order": 3,
       "module_title": "Win-Win Negotiation Strategies",
       "leadership_trait": "Collaborative Problem-Solving",
       "situation_type": "Resource Allocation",
@@ -122,6 +130,8 @@
       ]
     },
     {
+      "id": 19,
+      "order": 4,
       "module_title": "De-escalation Techniques",
       "leadership_trait": "Emotional Regulation",
       "situation_type": "Heated Conflicts",
@@ -162,6 +172,8 @@
       ]
     },
     {
+      "id": 20,
+      "order": 5,
       "module_title": "Building Consensus",
       "leadership_trait": "Alignment Creation",
       "situation_type": "Decision Making",

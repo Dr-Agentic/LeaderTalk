@@ -1,7 +1,11 @@
 {
+  "id": 5,
+  "order": 5,
   "chapter_title": "Chapter 5: Communicating Vision and Purpose",
   "modules": [
     {
+      "id": 21,
+      "order": 1,
       "module_title": "Inspiring Through Clear Direction",
       "leadership_trait": "Visionary Communication",
       "situation_type": "Strategic Pivot",
@@ -42,6 +46,8 @@
       ]
     },
     {
+      "id": 22,
+      "order": 2,
       "module_title": "Connecting Daily Work to Larger Purpose",
       "leadership_trait": "Meaning Creation",
       "situation_type": "Team Motivation",
@@ -82,6 +88,8 @@
       ]
     },
     {
+      "id": 23,
+      "order": 3,
       "module_title": "Storytelling for Impact",
       "leadership_trait": "Narrative Leadership",
       "situation_type": "Change Management",
@@ -122,6 +130,8 @@
       ]
     },
     {
+      "id": 24,
+      "order": 4,
       "module_title": "Communicating with Authenticity",
       "leadership_trait": "Genuine Leadership",
       "situation_type": "Trust Building",
