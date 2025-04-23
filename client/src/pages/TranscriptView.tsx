@@ -1,14 +1,15 @@
 import { useState, useEffect } from "react";
 import { useLocation, useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, MessageSquareQuote } from "lucide-react";
+import { Loader2, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BackButton } from "@/components/BackButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { AnalysisInstance, Recording, AnalysisResult } from "../../../shared/schema";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "../hooks/useAuth";
+import { getQueryFn } from "../lib/queryClient";
 
 // Type for query data from API
 interface RecordingWithAnalysis extends Omit<Recording, 'analysisResult'> {
@@ -20,9 +21,10 @@ export default function TranscriptView() {
   const [, navigate] = useLocation();
   const params = useParams<{ id: string }>();
   const recordingId = parseInt(params.id);
+  const { userData } = useAuth();
   
   // Query for recording details including transcription and analysis
-  const { data: recording, isLoading } = useQuery<RecordingWithAnalysis>({
+  const { data: recording, isLoading: recordingLoading } = useQuery<RecordingWithAnalysis>({
     queryKey: ['/api/recordings', recordingId],
     queryFn: async ({ queryKey }) => {
       const [url, id] = queryKey;
@@ -46,6 +48,19 @@ export default function TranscriptView() {
     },
     enabled: !isNaN(recordingId),
   });
+  
+  // Fetch all leaders data
+  const { data: leaders, isLoading: leadersLoading } = useQuery({
+    queryKey: ['/api/leaders'],
+    enabled: !!userData?.selectedLeaders,
+  });
+  
+  // Filter leaders to only include those selected by the user
+  const selectedLeaders = leaders?.filter(
+    leader => userData?.selectedLeaders?.includes(leader.id)
+  ) || [];
+  
+  const isLoading = recordingLoading || leadersLoading;
   
   if (isLoading) {
     return (
@@ -128,6 +143,7 @@ export default function TranscriptView() {
               instances={recording.analysis?.negativeInstances || []}
               emptyMessage="No negative communication moments identified."
               type="negative"
+              selectedLeaders={selectedLeaders}
             />
           </CardContent>
         </Card>
@@ -228,9 +244,50 @@ interface AnalysisInstancesListProps {
   instances: AnalysisInstance[];
   emptyMessage: string;
   type: 'positive' | 'negative' | 'passive';
+  selectedLeaders?: any[]; // Type will be improved
 }
 
-function AnalysisInstancesList({ instances, emptyMessage, type }: AnalysisInstancesListProps) {
+function AnalysisInstancesList({ 
+  instances, 
+  emptyMessage, 
+  type,
+  selectedLeaders = []
+}: AnalysisInstancesListProps) {
+  const [activeInstance, setActiveInstance] = useState<number | null>(null);
+  const [activeLeader, setActiveLeader] = useState<number | null>(null);
+  
+  // Helper function to generate leader suggestions for negative moments
+  const generateLeaderSuggestion = (instance: AnalysisInstance, leaderId: number, leaderName: string) => {
+    // Get leader's communication style
+    const leader = selectedLeaders.find(l => l.id === leaderId);
+    const traits = leader?.traits || [];
+    const styles = leader?.leadershipStyles || [];
+    
+    // Choose a style for the leader
+    let style = "";
+    if (styles.includes("Empathetic")) {
+      style = "an empathetic";
+    } else if (styles.includes("Inspirational")) {
+      style = "an inspirational";
+    } else if (styles.includes("Commanding")) {
+      style = "a commanding";
+    } else {
+      style = "a diplomatic";
+    }
+    
+    // Get key traits if available
+    const traitPhrase = traits.length > 0 
+      ? ` with a focus on ${traits.slice(0, 2).join(" and ")}` 
+      : "";
+    
+    // Return the personalized suggestion
+    return `If I were ${leaderName}, I would use ${style} approach${traitPhrase}:
+    
+"${instance.text.replace(/^\w/, c => c.toUpperCase())}" could be rephrased as:
+    
+"I understand the concerns here. Let me address this more effectively by focusing on the key objectives and ensuring everyone feels valued in this process."`;
+  };
+  
   if (!instances.length) {
     return <p className="text-gray-500 italic">{emptyMessage}</p>;
   }
@@ -261,6 +318,54 @@ function AnalysisInstancesList({ instances, emptyMessage, type }: AnalysisInstan
               <strong>Suggestion:</strong> {instance.improvement}
             </p>
           )}
+          
+          {/* Show leader suggestions for negative moments */}
+          {type === 'negative' && selectedLeaders && selectedLeaders.length > 0 && (
+            <div className="mt-3 ml-2">
+              <p className="text-xs text-gray-500 mb-2">
+                How would your selected leaders express this?
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {selectedLeaders.map(leader => (
+                  <Button
+                    key={leader.id}
+                    size="sm"
+                    variant={activeLeader === leader.id && activeInstance === index ? "default" : "outline"}
+                    className="flex items-center gap-1"
+                    onClick={() => {
+                      if (activeLeader === leader.id && activeInstance === index) {
+                        setActiveLeader(null);
+                        setActiveInstance(null);
+                      } else {
+                        setActiveLeader(leader.id);
+                        setActiveInstance(index);
+                      }
+                    }}
+                  >
+                    <MessageSquareQuote className="h-3.5 w-3.5" />
+                    {leader.name}
+                  </Button>
+                ))}
+              </div>
+              
+              {/* Display the selected leader's suggestion */}
+              {activeLeader && activeInstance === index && (
+                <div className="mt-3 bg-blue-50 border border-blue-100 p-3 rounded-md">
+                  <p className="text-xs text-blue-700 mb-2">
+                    {selectedLeaders.find(l => l.id === activeLeader)?.name}'s Approach:
+                  </p>
+                  <p className="text-sm whitespace-pre-line text-blue-900">
+                    {generateLeaderSuggestion(
+                      instance, 
+                      activeLeader, 
+                      selectedLeaders.find(l => l.id === activeLeader)?.name || "Leader"
+                    )}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+          
           {index < instances.length - 1 && <Separator className="mt-3" />}
         </div>
       ))}
