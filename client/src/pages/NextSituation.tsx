@@ -81,7 +81,7 @@ export default function NextSituation() {
               </p>
             </CardContent>
             <CardFooter className="flex justify-center space-x-4">
-              <Button onClick={() => navigate("/training")}>
+              <Button onClick={() => navigate(moduleId ? `/training/module/${moduleId}` : "/training")}>
                 View Progress
               </Button>
               <Button variant="outline" onClick={() => navigate("/")}>
@@ -150,7 +150,7 @@ export default function NextSituation() {
               <Button 
                 size="lg" 
                 className="gap-2"
-                onClick={() => navigate(`/training/situation/${nextSituation.id}`)}
+                onClick={() => navigate(`/training/situation/${nextSituation.id}${moduleId ? `?moduleId=${moduleId}` : ''}`)}
               >
                 Start Exercise <ArrowRight size={18} />
               </Button>
@@ -170,7 +170,7 @@ export default function NextSituation() {
       />
       <div className="text-center mt-10">
         <p>Could not find the next training situation.</p>
-        <Button onClick={() => navigate("/training")} className="mt-4">
+        <Button onClick={() => navigate(moduleId ? `/training/module/${moduleId}` : "/training")} className="mt-4">
           Return to Training
         </Button>
       </div>
