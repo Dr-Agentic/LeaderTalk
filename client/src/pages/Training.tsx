@@ -62,14 +62,23 @@ export default function Training() {
   const [activeTab, setActiveTab] = useState("progress");
   const [, navigate] = useLocation();
 
+  // Get all chapters from JSON files directly
+  const { data: chaptersData, isLoading: isChaptersLoading } = useQuery({
+    queryKey: ["/api/training/chapters-direct"],
+    queryFn: getQueryFn({ on401: "throw" }),
+    enabled: isAuthenticated,
+  });
+  
+  // Get user progress - this is still from the database since it's user-specific
   const { data: progress, isLoading: isProgressLoading } = useQuery({
     queryKey: ["/api/training/progress"],
     queryFn: getQueryFn({ on401: "throw" }),
     enabled: isAuthenticated,
   });
 
+  // Use direct JSON endpoint for next situation
   const { data: nextSituation, isLoading: isNextSituationLoading } = useQuery({
-    queryKey: ["/api/training/next-situation"],
+    queryKey: ["/api/training/next-situation-direct"],
     queryFn: getQueryFn({ on401: "throw" }),
     enabled: isAuthenticated,
   });
@@ -81,7 +90,7 @@ export default function Training() {
     }
   }, [authLoading, isAuthenticated, navigate]);
 
-  const isLoading = authLoading || isProgressLoading || isNextSituationLoading;
+  const isLoading = authLoading || isProgressLoading || isNextSituationLoading || isChaptersLoading;
 
   if (isLoading) {
     return <TrainingSkeleton />;
@@ -125,7 +134,47 @@ export default function Training() {
         </TabsContent>
 
         <TabsContent value="chapters" className="space-y-6">
-          {progress && <ChaptersList chapters={progress.chapters} />}
+          {chaptersData && Array.isArray(chaptersData) && (
+            <div className="space-y-6">
+              {chaptersData.map((chapter: any) => (
+                <Card key={chapter.id}>
+                  <CardHeader className="pb-3">
+                    <div className="flex justify-between items-center">
+                      <CardTitle>{chapter.chapter_title}</CardTitle>
+                    </div>
+                    <CardDescription>
+                      Chapter {chapter.id}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {chapter.modules.map((module: any) => (
+                        <Link 
+                          key={module.id} 
+                          href={`/training/module/${module.id}`}
+                        >
+                          <div className="flex justify-between items-center p-3 rounded-md border hover:bg-muted cursor-pointer">
+                            <div className="flex gap-3 items-center">
+                              <BookOpen className="h-5 w-5 text-primary" />
+                              <div>
+                                <p className="font-medium">{module.module_title}</p>
+                                <p className="text-sm text-muted-foreground">
+                                  {module.scenarios.length} situations
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                            </div>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </TabsContent>
       </Tabs>
     </div>

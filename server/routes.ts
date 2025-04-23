@@ -11,6 +11,11 @@ import path from "path";
 import os from "os";
 import crypto from "crypto";
 import { eq, desc, inArray } from "drizzle-orm";
+import { fileURLToPath } from "url";
+
+// Get the directory path for our project
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 import { 
   insertUserSchema, updateUserSchema, insertRecordingSchema, 
   leaders, chapters, modules, situations, userProgress, situationAttempts,
@@ -969,7 +974,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Get a specific module with its situations
+  // Get a specific module with its situations - from database
   app.get("/api/training/modules/:moduleId", requireAuth, async (req, res) => {
     try {
       const moduleId = Number(req.params.moduleId);
@@ -1001,7 +1006,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Get a specific situation
+  // Get a specific module directly from JSON files - bypasses the database
+  app.get("/api/training/modules-direct/:moduleId", requireAuth, async (req, res) => {
+    try {
+      const moduleId = Number(req.params.moduleId);
+      
+      if (isNaN(moduleId)) {
+        return res.status(400).json({ message: "Invalid module ID" });
+      }
+      
+      // Search all chapter files for the requested module
+      const chapterFiles = [
+        'chapter1_expanded.json',
+        'chapter2_expanded.json',
+        'chapter3_expanded.json',
+        'chapter4_expanded.json',
+        'chapter5_expanded.json'
+      ];
+      
+      let foundModule = null;
+      let chapterId = null;
+      
+      // Find the module in the chapters
+      for (const chapterFile of chapterFiles) {
+        const filePath = path.join(__dirname, '..', 'attached_assets', chapterFile);
+        
+        if (fs.existsSync(filePath)) {
+          const rawData = fs.readFileSync(filePath, 'utf-8');
+          const chapterData = JSON.parse(rawData);
+          
+          // Find the module in this chapter
+          const module = chapterData.modules.find(m => m.id === moduleId);
+          
+          if (module) {
+            foundModule = module;
+            chapterId = chapterData.id;
+            break;
+          }
+        }
+      }
+      
+      if (!foundModule) {
+        return res.status(404).json({ message: "Module not found" });
+      }
+      
+      // Get the user's progress for situations in this module
+      const situationIds = foundModule.scenarios.map(s => s.id);
+      
+      const userProgressRecords = await db.select()
+        .from(userProgress)
+        .where(eq(userProgress.userId, req.session.userId))
+        .where(inArray(userProgress.situationId, situationIds));
+      
+      // Add user progress to each scenario
+      for (const scenario of foundModule.scenarios) {
+        const progress = userProgressRecords.find(r => r.situationId === scenario.id);
+        scenario.userProgress = progress || null;
+      }
+      
+      return res.json({
+        ...foundModule,
+        chapterId,
+        // Rename scenarios to situations to match database terminology
+        situations: foundModule.scenarios,
+        scenarios: undefined
+      });
+    } catch (error) {
+      console.error("Error fetching module from JSON:", error);
+      return res.status(500).json({ message: "Failed to fetch module" });
+    }
+  });
+  
+  // Get a specific situation - from database
   app.get("/api/training/situations/:situationId", requireAuth, async (req, res) => {
     try {
       const situationId = Number(req.params.situationId);
@@ -1034,11 +1110,104 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Get a specific situation directly from JSON files - bypasses the database
+  app.get("/api/training/situations-direct/:situationId", requireAuth, async (req, res) => {
+    try {
+      const situationId = Number(req.params.situationId);
+      
+      if (isNaN(situationId)) {
+        return res.status(400).json({ message: "Invalid situation ID" });
+      }
+      
+      // Search all chapter files for the requested situation
+      const chapterFiles = [
+        'chapter1_expanded.json',
+        'chapter2_expanded.json',
+        'chapter3_expanded.json',
+        'chapter4_expanded.json',
+        'chapter5_expanded.json'
+      ];
+      
+      let foundSituation = null;
+      let foundModule = null;
+      let chapterId = null;
+      
+      // Search through all chapters and modules to find the situation
+      for (const chapterFile of chapterFiles) {
+        const filePath = path.join(__dirname, '..', 'attached_assets', chapterFile);
+        
+        if (fs.existsSync(filePath)) {
+          const rawData = fs.readFileSync(filePath, 'utf-8');
+          const chapterData = JSON.parse(rawData);
+          
+          // Loop through modules in this chapter
+          for (const module of chapterData.modules) {
+            // Look for the situation in this module
+            const situation = module.scenarios.find(s => s.id === situationId);
+            if (situation) {
+              foundSituation = situation;
+              foundModule = module;
+              chapterId = chapterData.id;
+              break;
+            }
+          }
+          
+          if (foundSituation) break;
+        }
+      }
+      
+      if (!foundSituation) {
+        return res.status(404).json({ message: "Situation not found" });
+      }
+      
+      // Check if the user has already completed this situation
+      const [userProgress] = await db.select()
+        .from(userProgress)
+        .where(eq(userProgress.situationId, situationId))
+        .where(eq(userProgress.userId, req.session.userId));
+      
+      // Also get any attempt history for this situation
+      const attempts = await db.select()
+        .from(situationAttempts)
+        .where(eq(situationAttempts.situationId, situationId))
+        .where(eq(situationAttempts.userId, req.session.userId))
+        .orderBy(desc(situationAttempts.createdAt));
+      
+      return res.json({
+        // Map the situation structure to match what the frontend expects
+        id: foundSituation.id,
+        moduleId: foundModule.id,
+        description: foundSituation.description,
+        userPrompt: foundSituation.user_prompt,
+        styleResponses: foundSituation.style_responses,
+        order: foundSituation.order || 1,
+        context: foundSituation.context || null,
+        // Add module and chapter context
+        module: {
+          id: foundModule.id,
+          title: foundModule.module_title,
+          leadershipTrait: foundModule.leadership_trait,
+          situationType: foundModule.situation_type
+        },
+        chapter: {
+          id: chapterId,
+          title: `Chapter ${chapterId}`
+        },
+        // Add user progress
+        userProgress: userProgress || null,
+        attempts: attempts || []
+      });
+    } catch (error) {
+      console.error("Error fetching situation from JSON:", error);
+      return res.status(500).json({ message: "Failed to fetch situation" });
+    }
+  });
+  
   // Submit a response to a situation
   app.post("/api/training/situations/:situationId/respond", requireAuth, async (req, res) => {
     try {
       const situationId = Number(req.params.situationId);
-      const { response, leadershipStyle } = req.body;
+      const { response, leadershipStyle, fromJsonFile = false } = req.body;
       
       if (isNaN(situationId)) {
         return res.status(400).json({ message: "Invalid situation ID" });
@@ -1048,19 +1217,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Response is required" });
       }
       
-      // Get the situation to evaluate the response
-      const [situation] = await db.select()
-        .from(situations)
-        .where(eq(situations.id, situationId));
+      // Get style responses either from database or from JSON files
+      let styleResponses;
       
-      if (!situation) {
-        return res.status(404).json({ message: "Situation not found" });
+      if (fromJsonFile) {
+        // Search all chapter files for the requested situation
+        const chapterFiles = [
+          'chapter1_expanded.json',
+          'chapter2_expanded.json',
+          'chapter3_expanded.json',
+          'chapter4_expanded.json',
+          'chapter5_expanded.json'
+        ];
+        
+        let foundSituation = null;
+        
+        // Find the situation in the JSON files
+        for (const chapterFile of chapterFiles) {
+          const filePath = path.join(__dirname, '..', 'attached_assets', chapterFile);
+          
+          if (fs.existsSync(filePath)) {
+            const rawData = fs.readFileSync(filePath, 'utf-8');
+            const chapterData = JSON.parse(rawData);
+            
+            // Loop through modules in this chapter
+            for (const module of chapterData.modules) {
+              // Look for the situation in this module
+              const situation = module.scenarios.find(s => s.id === situationId);
+              if (situation) {
+                foundSituation = situation;
+                break;
+              }
+            }
+            
+            if (foundSituation) break;
+          }
+        }
+        
+        if (!foundSituation) {
+          return res.status(404).json({ message: "Situation not found in JSON files" });
+        }
+        
+        styleResponses = foundSituation.style_responses;
+      } else {
+        // Get from database
+        const [situation] = await db.select()
+          .from(situations)
+          .where(eq(situations.id, situationId));
+        
+        if (!situation) {
+          return res.status(404).json({ message: "Situation not found in database" });
+        }
+        
+        styleResponses = situation.styleResponses;
       }
       
       // Calculate a score based on the response and the leadership style
       // This would typically use AI to evaluate the response
       // For now, we'll use a simple scoring method
-      const styleResponses = situation.styleResponses;
       let score = 0;
       let feedback = "";
       let passed = false;
@@ -1318,6 +1532,114 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error finding next situation:", error);
       return res.status(500).json({ message: "Failed to find next situation" });
+    }
+  });
+  
+  // Get the next incomplete situation for the user - directly from JSON files
+  app.get("/api/training/next-situation-direct", requireAuth, async (req, res) => {
+    try {
+      // Get all user progress records
+      const userProgressRecords = await db.select()
+        .from(userProgress)
+        .where(eq(userProgress.userId, req.session.userId));
+      
+      // Get all completed situation IDs
+      const completedSituationIds = userProgressRecords.map(r => r.situationId);
+      
+      // Read all chapter files to build a complete list of situations
+      const chapterFiles = [
+        'chapter1_expanded.json',
+        'chapter2_expanded.json',
+        'chapter3_expanded.json',
+        'chapter4_expanded.json',
+        'chapter5_expanded.json'
+      ];
+      
+      let allSituations = [];
+      let chapterMap = {};
+      let moduleMap = {};
+      
+      // Build complete catalog of situations from the files
+      for (const chapterFile of chapterFiles) {
+        const filePath = path.join(__dirname, '..', 'attached_assets', chapterFile);
+        
+        if (fs.existsSync(filePath)) {
+          const rawData = fs.readFileSync(filePath, 'utf-8');
+          const chapterData = JSON.parse(rawData);
+          
+          // Store chapter info
+          chapterMap[chapterData.id] = {
+            id: chapterData.id,
+            title: chapterData.chapter_title
+          };
+          
+          // Loop through modules
+          for (const module of chapterData.modules) {
+            // Store module info
+            moduleMap[module.id] = {
+              id: module.id,
+              title: module.module_title,
+              chapterId: chapterData.id
+            };
+            
+            // Add situations from this module
+            for (const scenario of module.scenarios) {
+              allSituations.push({
+                id: scenario.id,
+                moduleId: module.id,
+                description: scenario.description,
+                userPrompt: scenario.user_prompt,
+                styleResponses: scenario.style_responses,
+                order: scenario.order || scenario.id % 100, // Use ID mod 100 as fallback order
+                context: scenario.context || null
+              });
+            }
+          }
+        }
+      }
+      
+      // Sort situations by module ID and order
+      allSituations.sort((a, b) => {
+        if (a.moduleId === b.moduleId) {
+          return a.order - b.order;
+        }
+        return a.moduleId - b.moduleId;
+      });
+      
+      // Find the first incomplete situation
+      const nextSituation = allSituations.find(s => !completedSituationIds.includes(s.id));
+      
+      if (!nextSituation) {
+        return res.json({ 
+          completed: true,
+          message: "All situations completed",
+          nextSituation: null
+        });
+      }
+      
+      // Get the module for context
+      const module = moduleMap[nextSituation.moduleId];
+      
+      // Get the chapter for context
+      const chapter = chapterMap[module.chapterId];
+      
+      return res.json({
+        completed: false,
+        nextSituation: {
+          ...nextSituation,
+          module: {
+            id: module.id,
+            title: module.title
+          },
+          chapter: {
+            id: chapter.id,
+            title: chapter.title
+          }
+        }
+      });
+    } catch (error) {
+      console.error("Error fetching next situation from JSON:", error);
+      return res.status(500).json({ message: "Failed to fetch next situation" });
     }
   });
   
