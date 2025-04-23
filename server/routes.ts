@@ -10,7 +10,7 @@ import fs from "fs";
 import path from "path";
 import os from "os";
 import crypto from "crypto";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, inArray } from "drizzle-orm";
 import { 
   insertUserSchema, updateUserSchema, insertRecordingSchema, 
   leaders, chapters, modules, situations, userProgress, situationAttempts,
@@ -842,7 +842,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // *** Training Module Routes ***
   
-  // Get all chapters
+  // Get all chapters - from database
   app.get("/api/training/chapters", requireAuth, async (req, res) => {
     try {
       const allChapters = await db.select()
@@ -856,7 +856,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Get a specific chapter with its modules
+  // Get chapter JSON files directly - bypasses the database
+  app.get("/api/training/chapters-direct", requireAuth, async (req, res) => {
+    try {
+      // Load each chapter file
+      const chapterFiles = [
+        'chapter1_expanded.json',
+        'chapter2_expanded.json',
+        'chapter3_expanded.json',
+        'chapter4_expanded.json',
+        'chapter5_expanded.json'
+      ];
+      
+      const chapters = [];
+      
+      for (const chapterFile of chapterFiles) {
+        const filePath = path.join(__dirname, '..', 'attached_assets', chapterFile);
+        
+        if (fs.existsSync(filePath)) {
+          const rawData = fs.readFileSync(filePath, 'utf-8');
+          const chapterData = JSON.parse(rawData);
+          chapters.push(chapterData);
+        } else {
+          console.warn(`Chapter file not found: ${chapterFile}`);
+        }
+      }
+      
+      // Sort chapters by their order property
+      chapters.sort((a, b) => a.order - b.order);
+      
+      return res.json(chapters);
+    } catch (error) {
+      console.error("Error fetching chapter files:", error);
+      return res.status(500).json({ message: "Failed to fetch chapters" });
+    }
+  });
+  
+  // Get a specific chapter with its modules - from database
   app.get("/api/training/chapters/:chapterId", requireAuth, async (req, res) => {
     try {
       const chapterId = Number(req.params.chapterId);
@@ -884,6 +920,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Error fetching chapter:", error);
+      return res.status(500).json({ message: "Failed to fetch chapter" });
+    }
+  });
+  
+  // Get a specific chapter directly from the JSON file - bypasses the database
+  app.get("/api/training/chapters-direct/:chapterId", requireAuth, async (req, res) => {
+    try {
+      const chapterId = Number(req.params.chapterId);
+      
+      if (isNaN(chapterId)) {
+        return res.status(400).json({ message: "Invalid chapter ID" });
+      }
+      
+      // Find the corresponding chapter file
+      const chapterFile = `chapter${chapterId}_expanded.json`;
+      const filePath = path.join(__dirname, '..', 'attached_assets', chapterFile);
+      
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ message: "Chapter file not found" });
+      }
+      
+      const rawData = fs.readFileSync(filePath, 'utf-8');
+      const chapterData = JSON.parse(rawData);
+      
+      // Get the user's progress for situations in this chapter
+      const moduleSituationIds = chapterData.modules.flatMap(module => 
+        module.scenarios.map(scenario => scenario.id)
+      );
+      
+      const userProgressRecords = await db.select()
+        .from(userProgress)
+        .where(eq(userProgress.userId, req.session.userId))
+        .where(inArray(userProgress.situationId, moduleSituationIds));
+      
+      // Add user progress to each scenario
+      for (const module of chapterData.modules) {
+        for (const scenario of module.scenarios) {
+          const progress = userProgressRecords.find(r => r.situationId === scenario.id);
+          scenario.userProgress = progress || null;
+        }
+      }
+      
+      return res.json(chapterData);
+    } catch (error) {
+      console.error("Error fetching chapter file:", error);
       return res.status(500).json({ message: "Failed to fetch chapter" });
     }
   });
