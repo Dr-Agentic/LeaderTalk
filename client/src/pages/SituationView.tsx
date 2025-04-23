@@ -169,11 +169,11 @@ export default function SituationView() {
   // Mutation for submitting a response
   const submitResponse = useMutation({
     mutationFn: async ({ situationId, response, leadershipStyle }: SubmitResponseParams) => {
-      return apiRequest(`/api/training/situations/${situationId}/respond`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ response, leadershipStyle, fromJsonFile: true }),
-      });
+      return apiRequest(
+        "POST",
+        `/api/training/situations/${situationId}/respond`, 
+        { response, leadershipStyle, fromJsonFile: true }
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/training/situations/${situationId}`] });
