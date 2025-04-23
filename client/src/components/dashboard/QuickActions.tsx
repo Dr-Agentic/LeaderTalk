@@ -1,10 +1,10 @@
 import { Link } from "wouter";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Mic, BarChart, TrendingUp } from "lucide-react";
+import { Mic, BarChart, TrendingUp, GraduationCap } from "lucide-react";
 
 export default function QuickActions({ recordingsCount, weeklyImprovement }) {
   return (
-    <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
       {/* Record New Conversation */}
       <Card>
         <CardContent className="p-5">
@@ -87,6 +87,32 @@ export default function QuickActions({ recordingsCount, weeklyImprovement }) {
           <div className="text-sm">
             <Link href="/progress" className="font-medium text-primary hover:text-blue-900">
               View progress &rarr;
+            </Link>
+          </div>
+        </CardFooter>
+      </Card>
+      
+      {/* Training Module */}
+      <Card>
+        <CardContent className="p-5">
+          <div className="flex items-center">
+            <div className="flex-shrink-0 bg-amber-500 rounded-md p-3">
+              <GraduationCap className="h-5 w-5 text-white" />
+            </div>
+            <div className="ml-5 w-0 flex-1">
+              <dl>
+                <dt className="text-sm font-medium text-gray-500 truncate">Training Module</dt>
+                <dd className="text-lg font-semibold text-gray-900">
+                  Improve your skills
+                </dd>
+              </dl>
+            </div>
+          </div>
+        </CardContent>
+        <CardFooter className="bg-gray-50 px-5 py-3">
+          <div className="text-sm">
+            <Link href="/training" className="font-medium text-primary hover:text-blue-900">
+              Start training &rarr;
             </Link>
           </div>
         </CardFooter>

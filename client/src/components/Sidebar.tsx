@@ -10,7 +10,8 @@ import {
   UserRound, 
   Settings,
   X,
-  FileText
+  FileText,
+  GraduationCap
 } from "lucide-react";
 
 export default function Sidebar({ sidebarOpen, setSidebarOpen, user }) {
@@ -70,6 +71,7 @@ function SidebarContent({ location }) {
     { name: "Record & Analyze", href: "#record-section", icon: Mic, scrollTo: true },
     { name: "All Transcripts", href: "/transcripts", icon: FileText },
     { name: "My Progress", href: "/progress", icon: LineChart },
+    { name: "Training Module", href: "/training", icon: GraduationCap },
     { name: "Leadership Models", href: "/leaders", icon: UserRound },
     { name: "Settings", href: "/settings", icon: Settings },
   ];

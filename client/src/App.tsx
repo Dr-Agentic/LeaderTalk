@@ -11,6 +11,10 @@ import TranscriptView from "@/pages/TranscriptView";
 import AllTranscripts from "@/pages/AllTranscripts";
 import Settings from "@/pages/Settings";
 import Progress from "@/pages/Progress";
+import Training from "@/pages/Training";
+import ModuleView from "@/pages/ModuleView";
+import SituationView from "@/pages/SituationView";
+import NextSituation from "@/pages/NextSituation";
 import { useEffect, useState } from "react";
 import { apiRequest } from "./lib/queryClient";
 
@@ -79,6 +83,12 @@ function Router() {
       {isAuthenticated && onboardingComplete && <Route path="/transcripts" component={AllTranscripts} />}
       {isAuthenticated && onboardingComplete && <Route path="/progress" component={Progress} />}
       {isAuthenticated && onboardingComplete && <Route path="/settings" component={Settings} />}
+      
+      {/* Training module routes */}
+      {isAuthenticated && onboardingComplete && <Route path="/training" component={Training} />}
+      {isAuthenticated && onboardingComplete && <Route path="/training/module/:id" component={ModuleView} />}
+      {isAuthenticated && onboardingComplete && <Route path="/training/situation/:id" component={SituationView} />}
+      {isAuthenticated && onboardingComplete && <Route path="/training/next-situation" component={NextSituation} />}
       
       {/* Onboarding routes */}
       {isAuthenticated && !onboardingComplete && <Route path="/" component={Onboarding} />}
