@@ -1198,6 +1198,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('Situation attempts table not found, skipping attempts fetch');
       }
       
+      // IMPORTANT: ONLY get user progress for THIS specific situation ID
+      // Don't include any user progress unless it's specifically for this situation
+      let userProgressForThisSituation = null;
+      if (userProgressRecord && userProgressRecord.situationId === situationId) {
+        userProgressForThisSituation = userProgressRecord;
+      }
+      
       return res.json({
         // Map the situation structure to match what the frontend expects
         id: foundSituation.id,
@@ -1207,6 +1214,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         styleResponses: foundSituation.style_responses,
         order: foundSituation.order || 1,
         context: foundSituation.context || null,
+        // Only include user progress if it matches this situation ID
+        userProgress: userProgressForThisSituation,
         // Add module and chapter context
         module: {
           id: foundModule.id,
