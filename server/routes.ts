@@ -11,9 +11,15 @@ import path from "path";
 import os from "os";
 import crypto from "crypto";
 import { eq } from "drizzle-orm";
-import { insertUserSchema, updateUserSchema, insertRecordingSchema, leaders } from "@shared/schema";
+import { 
+  insertUserSchema, updateUserSchema, insertRecordingSchema, 
+  leaders, chapters, modules, situations, userProgress,
+  insertChapterSchema, insertModuleSchema, insertSituationSchema,
+  insertUserProgressSchema, updateUserProgressSchema
+} from "@shared/schema";
 import { importLeadersFromFile } from "./import-leaders";
 import { updateLeaderImages } from "./update-leader-images";
+import { importTrainingData } from "./import-training-data";
 import { z } from "zod";
 import { ZodError } from "zod";
 
@@ -103,6 +109,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating leader images:", error);
       return res.status(500).json({ success: false, message: "Error updating leader images" });
+    }
+  });
+  
+  // Route to import training data
+  app.post("/api/admin/import-training-data", async (req, res) => {
+    try {
+      await importTrainingData();
+      return res.json({ success: true, message: "Training data imported successfully" });
+    } catch (error) {
+      console.error("Error importing training data:", error);
+      return res.status(500).json({ success: false, message: "Error importing training data" });
     }
   });
   
