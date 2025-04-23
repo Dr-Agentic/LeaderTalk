@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import { useLocation, useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
+import { Loader2, MessageSquareQuote } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BackButton } from "@/components/BackButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { AnalysisInstance, Recording, AnalysisResult } from "../../../shared/schema";
+import { useAuth } from "@/hooks/useAuth";
 
 // Type for query data from API
 interface RecordingWithAnalysis extends Omit<Recording, 'analysisResult'> {
