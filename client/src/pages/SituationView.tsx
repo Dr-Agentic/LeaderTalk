@@ -117,10 +117,16 @@ export default function SituationView() {
   });
   
   // Fetch attempts for this situation
-  const { data: attemptsData, isLoading: isAttemptsLoading } = useQuery({
+  const { data: attemptsData, isLoading: isAttemptsLoading, isError: isAttemptsError } = useQuery({
     queryKey: [`/api/training/situations/${situationId}/attempts`],
     queryFn: getQueryFn({ on401: "throw" }),
     enabled: !!situationId && isAuthenticated,
+    // Handle error gracefully
+    onError: (error) => {
+      console.log('Error fetching attempts, returning empty array', error);
+    },
+    // Provide default data if table doesn't exist yet or other errors
+    placeholderData: { attempts: [] }
   });
 
   // Mutation for submitting a response
@@ -390,40 +396,46 @@ export default function SituationView() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {attemptsData.attempts.slice(0, 3).map((attempt: Attempt) => (
-                  <div key={attempt.id} className="border rounded-md p-4 space-y-2">
+                {attemptsData.attempts.slice(0, 3).map((attempt: any) => (
+                  <div key={attempt.id || Math.random()} className="border rounded-md p-4 space-y-2">
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium capitalize">{attempt.leadershipStyle} Style</span>
+                        <span className="font-medium capitalize">{attempt.leadershipStyle || 'Unknown'} Style</span>
                         <span className="text-sm text-muted-foreground">
-                          {new Date(attempt.createdAt).toLocaleString()}
+                          {attempt.createdAt ? new Date(attempt.createdAt).toLocaleString() : 'Unknown date'}
                         </span>
                       </div>
-                      <span className="font-semibold">Score: {attempt.score}/100</span>
+                      <span className="font-semibold">Score: {attempt.score || 0}/100</span>
                     </div>
                     
                     <div className="text-sm">
-                      <p className="line-clamp-2">{attempt.response}</p>
+                      <p className="line-clamp-2">{attempt.response || 'No response text available'}</p>
                     </div>
 
-                    <div className="grid grid-cols-4 gap-2 text-xs">
-                      <div className="flex flex-col items-center p-1 bg-muted rounded">
-                        <span>Style</span>
-                        <span className="font-semibold">{attempt.evaluation.styleMatchScore}%</span>
+                    {attempt.evaluation ? (
+                      <div className="grid grid-cols-4 gap-2 text-xs">
+                        <div className="flex flex-col items-center p-1 bg-muted rounded">
+                          <span>Style</span>
+                          <span className="font-semibold">{attempt.evaluation.styleMatchScore || 0}%</span>
+                        </div>
+                        <div className="flex flex-col items-center p-1 bg-muted rounded">
+                          <span>Clarity</span>
+                          <span className="font-semibold">{attempt.evaluation.clarity || 0}%</span>
+                        </div>
+                        <div className="flex flex-col items-center p-1 bg-muted rounded">
+                          <span>Empathy</span>
+                          <span className="font-semibold">{attempt.evaluation.empathy || 0}%</span>
+                        </div>
+                        <div className="flex flex-col items-center p-1 bg-muted rounded">
+                          <span>Persuasion</span>
+                          <span className="font-semibold">{attempt.evaluation.persuasiveness || 0}%</span>
+                        </div>
                       </div>
-                      <div className="flex flex-col items-center p-1 bg-muted rounded">
-                        <span>Clarity</span>
-                        <span className="font-semibold">{attempt.evaluation.clarity}%</span>
+                    ) : (
+                      <div className="text-xs text-muted-foreground">
+                        Detailed evaluation data not available for this attempt
                       </div>
-                      <div className="flex flex-col items-center p-1 bg-muted rounded">
-                        <span>Empathy</span>
-                        <span className="font-semibold">{attempt.evaluation.empathy}%</span>
-                      </div>
-                      <div className="flex flex-col items-center p-1 bg-muted rounded">
-                        <span>Persuasion</span>
-                        <span className="font-semibold">{attempt.evaluation.persuasiveness}%</span>
-                      </div>
-                    </div>
+                    )}
                   </div>
                 ))}
                 
