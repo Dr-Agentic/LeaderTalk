@@ -200,7 +200,7 @@ export default function ModuleView() {
                 <CardContent>
                   <p className="mb-4">{situation.description}</p>
                   
-                  <Link href={`/training/situation/${situation.id}`}>
+                  <Link href={`/training/situation/${Math.max(10000, situation.id + 10000)}`}>
                     <Button className="w-full flex items-center justify-center gap-2">
                       {situationProgress?.status !== "not-started"
                         ? "Review Response" 

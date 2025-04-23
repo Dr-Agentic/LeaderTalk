@@ -73,7 +73,12 @@ interface Attempt {
 
 export default function SituationView() {
   const [, params] = useRoute<{ id: string }>("/training/situation/:id");
-  const situationId = params ? parseInt(params.id) : 0;
+  
+  // If ID is greater than 10000, it's been offset to avoid conflicts with module IDs
+  // We need to convert it back to the original ID for API requests
+  const rawId = params ? parseInt(params.id) : 0;
+  const situationId = rawId >= 10000 ? rawId - 10000 : rawId;
+  
   const { isAuthenticated, isLoading: authLoading, userData } = useAuth();
   const [, navigate] = useLocation();
   const { toast } = useToast();
