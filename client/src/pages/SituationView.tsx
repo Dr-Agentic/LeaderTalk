@@ -102,9 +102,9 @@ export default function SituationView() {
     }
   }, [preferredStyle, leadershipStyle]);
 
-  // Fetch the situation
+  // Fetch the situation directly from JSON files
   const { data: situation, isLoading: isSituationLoading } = useQuery({
-    queryKey: [`/api/training/situations/${situationId}`],
+    queryKey: [`/api/training/situations-direct/${situationId}`],
     queryFn: getQueryFn({ on401: "throw" }),
     enabled: !!situationId && isAuthenticated,
   });
@@ -122,7 +122,7 @@ export default function SituationView() {
       return apiRequest(`/api/training/situations/${situationId}/respond`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ response, leadershipStyle }),
+        body: JSON.stringify({ response, leadershipStyle, fromJsonFile: true }),
       });
     },
     onSuccess: () => {

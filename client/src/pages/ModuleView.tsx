@@ -46,9 +46,9 @@ export default function ModuleView() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [, navigate] = useLocation();
 
-  // Fetch the module with its situations
+  // Fetch the module with its situations directly from JSON files
   const { data: module, isLoading: isModuleLoading } = useQuery({
-    queryKey: [`/api/training/modules/${moduleId}`],
+    queryKey: [`/api/training/modules-direct/${moduleId}`],
     queryFn: getQueryFn({ on401: "throw" }),
     enabled: !!moduleId && isAuthenticated,
   });
