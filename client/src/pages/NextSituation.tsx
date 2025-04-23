@@ -33,6 +33,7 @@ export default function NextSituation() {
   // Extract params from both URL patterns - hierarchical and query params
   const searchParams = new URLSearchParams(location.search);
   const queryModuleId = searchParams.get('moduleId');
+  const queryChapterId = searchParams.get('fromChapter');
   
   // Extract chapter and module IDs from path: /training/chapter/[chapterId]/module/[moduleId]/next-situation
   let extractedChapterId = null;
@@ -52,9 +53,10 @@ export default function NextSituation() {
     }
   }
   
-  const chapterId = extractedChapterId;
+  // Use chapter ID from URL path first, then from query params
+  const chapterId = extractedChapterId || (queryChapterId ? parseInt(queryChapterId) : null);
   // Use the module ID from path if available, otherwise from query params
-  const effectiveModuleId = extractedModuleId || queryModuleId;
+  const effectiveModuleId = extractedModuleId || (queryModuleId ? parseInt(queryModuleId) : null);
 
   // Fetch the next incomplete situation directly from JSON files
   const { data, isLoading: isDataLoading } = useQuery({
@@ -218,9 +220,19 @@ export default function NextSituation() {
                   if (chapterId) {
                     navigate(`/training/chapter/${chapterId}/module/${nextSituation.module.id}/situation/${nextSituation.id}`);
                   } else if (effectiveModuleId) {
-                    navigate(`/training/module/${effectiveModuleId}/situation/${nextSituation.id}`);
+                    // If we have chapter context from the situation data, include it
+                    if (nextSituation.chapter && nextSituation.chapter.id) {
+                      navigate(`/training/situation/${nextSituation.id}?moduleId=${effectiveModuleId}&fromChapter=${nextSituation.chapter.id}`);
+                    } else {
+                      navigate(`/training/module/${effectiveModuleId}/situation/${nextSituation.id}`);
+                    }
                   } else {
-                    navigate(`/training/situation/${nextSituation.id}`);
+                    // Even if we don't have module context, we might have chapter context
+                    if (nextSituation.chapter && nextSituation.chapter.id) {
+                      navigate(`/training/situation/${nextSituation.id}?fromChapter=${nextSituation.chapter.id}`);
+                    } else {
+                      navigate(`/training/situation/${nextSituation.id}`);
+                    }
                   }
                 }}
               >

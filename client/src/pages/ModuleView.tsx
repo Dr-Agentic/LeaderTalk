@@ -56,7 +56,10 @@ export default function ModuleView() {
       setChapterId(parseInt(newParams.chapterId));
     } else if (matchesLegacy && legacyParams) {
       setModuleId(parseInt(legacyParams.id));
-      setChapterId(0); // Chapter ID not available in legacy URL
+      // Try to get chapter ID from query params
+      const searchParams = new URLSearchParams(window.location.search);
+      const fromChapter = searchParams.get('fromChapter');
+      setChapterId(fromChapter ? parseInt(fromChapter) : 0);
     }
   }, [matchesNew, newParams, matchesLegacy, legacyParams]);
   
@@ -83,6 +86,13 @@ export default function ModuleView() {
       navigate("/");
     }
   }, [authLoading, isAuthenticated, navigate]);
+  
+  // Update chapter ID from module data if needed and it's not already set
+  useEffect(() => {
+    if (module && module.chapterId && !chapterId) {
+      setChapterId(module.chapterId);
+    }
+  }, [module, chapterId]);
 
   const isLoading = authLoading || isModuleLoading || isProgressLoading;
 
