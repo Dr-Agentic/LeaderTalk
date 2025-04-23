@@ -448,7 +448,7 @@ export default function SituationView() {
                   className="w-full"
                   onClick={() => {
                     if (chapterId && moduleId) {
-                      navigate(`/training/chapter/${chapterId}/next-situation`);
+                      navigate(`/training/chapter/${chapterId}/module/${moduleId}/next-situation`);
                     } else if (moduleId) {
                       navigate(`/training/next-situation?moduleId=${moduleId}`);
                     } else {

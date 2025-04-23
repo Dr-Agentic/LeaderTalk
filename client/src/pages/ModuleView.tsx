@@ -231,7 +231,10 @@ export default function ModuleView() {
                       </Button>
                     </Link>
                   ) : (
-                    <Link href={`/training/situation/${situation.id}?moduleId=${module.id}`}>
+                    <Link href={chapterId 
+                      ? `/training/chapter/${chapterId}/module/${module.id}/situation/${situation.id}`
+                      : `/training/situation/${situation.id}?moduleId=${module.id}`
+                    }>
                       <Button className="w-full flex items-center justify-center gap-2">
                         {situationProgress?.status !== "not-started"
                           ? "Review Response" 

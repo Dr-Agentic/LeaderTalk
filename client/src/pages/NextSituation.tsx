@@ -34,10 +34,27 @@ export default function NextSituation() {
   const searchParams = new URLSearchParams(location.search);
   const moduleId = searchParams.get('moduleId');
   
-  // Extract chapter ID from path: /training/chapter/[chapterId]/next-situation
-  const chapterId = location.includes('/chapter/') ? 
-    parseInt(location.split('/chapter/')[1].split('/')[0]) : 
-    null;
+  // Extract chapter and module IDs from path: /training/chapter/[chapterId]/module/[moduleId]/next-situation
+  let extractedChapterId = null;
+  let extractedModuleId = null;
+  
+  if (location.includes('/chapter/')) {
+    const pathParts = location.split('/');
+    const chapterIndex = pathParts.indexOf('chapter');
+    if (chapterIndex !== -1 && pathParts.length > chapterIndex + 1) {
+      extractedChapterId = parseInt(pathParts[chapterIndex + 1]);
+      
+      // Also check for module ID in the path if it exists
+      const moduleIndex = pathParts.indexOf('module');
+      if (moduleIndex !== -1 && pathParts.length > moduleIndex + 1) {
+        extractedModuleId = parseInt(pathParts[moduleIndex + 1]);
+      }
+    }
+  }
+  
+  const chapterId = extractedChapterId;
+  // Use the module ID from path if available, otherwise from query params
+  const effectiveModuleId = extractedModuleId || moduleId;
 
   // Fetch the next incomplete situation directly from JSON files
   const { data, isLoading: isDataLoading } = useQuery({
