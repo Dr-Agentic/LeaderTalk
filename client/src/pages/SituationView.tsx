@@ -107,6 +107,13 @@ export default function SituationView() {
     queryKey: [`/api/training/situations-direct/${situationId}`],
     queryFn: getQueryFn({ on401: "throw" }),
     enabled: !!situationId && isAuthenticated,
+    onSuccess: (data) => {
+      // Handle redirection if the ID belongs to a module
+      if (data && data.redirect) {
+        console.log(`Redirecting to: ${data.redirectUrl}`);
+        navigate(data.redirectUrl);
+      }
+    }
   });
   
   // Fetch attempts for this situation

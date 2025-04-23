@@ -1150,6 +1150,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // Loop through modules in this chapter
           for (const module of chapterData.modules) {
+            // Check if this is for a module with ID that matches situationId
+            if (module.id === situationId) {
+              console.log(`Found module with ID ${situationId} instead of situation`);
+              // This is a module with the same ID as the requested situation
+              // Return a redirect to the module view
+              return res.status(302).json({ 
+                redirect: true, 
+                redirectUrl: `/training/module/${situationId}`,
+                message: `ID ${situationId} is a module, not a situation` 
+              });
+            }
+            
             // Look for the situation in this module
             const situation = module.scenarios.find(s => s.id === situationId);
             if (situation) {
