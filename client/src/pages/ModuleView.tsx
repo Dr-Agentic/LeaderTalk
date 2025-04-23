@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation, useRoute, Link } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -41,8 +41,25 @@ interface UserProgress {
 }
 
 export default function ModuleView() {
-  const [, params] = useRoute<{ id: string }>("/training/module/:id");
-  const moduleId = params ? parseInt(params.id) : 0;
+  // Support both URL patterns: legacy /training/module/:id and new /training/chapter/:chapterId/module/:moduleId
+  const [matchesLegacy, legacyParams] = useRoute<{ id: string }>("/training/module/:id");
+  const [matchesNew, newParams] = useRoute<{ chapterId: string, moduleId: string }>("/training/chapter/:chapterId/module/:moduleId");
+  
+  // Determine which route pattern matched and extract parameters
+  const [moduleId, setModuleId] = useState<number>(0);
+  const [chapterId, setChapterId] = useState<number>(0);
+  
+  // Update IDs when route changes
+  useEffect(() => {
+    if (matchesNew && newParams) {
+      setModuleId(parseInt(newParams.moduleId));
+      setChapterId(parseInt(newParams.chapterId));
+    } else if (matchesLegacy && legacyParams) {
+      setModuleId(parseInt(legacyParams.id));
+      setChapterId(0); // Chapter ID not available in legacy URL
+    }
+  }, [matchesNew, newParams, matchesLegacy, legacyParams]);
+  
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [, navigate] = useLocation();
 
@@ -133,7 +150,11 @@ export default function ModuleView() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <BackButton to="/training" label="Back to Training" />
+      {chapterId ? (
+        <BackButton to={`/training`} label="Back to Training" />
+      ) : (
+        <BackButton to="/training" label="Back to Training" />
+      )}
       
       <div className="mt-6">
         <div className="flex justify-between items-center mb-4">
@@ -200,14 +221,25 @@ export default function ModuleView() {
                 <CardContent>
                   <p className="mb-4">{situation.description}</p>
                   
-                  <Link href={`/training/situation/${situation.id}?moduleId=${module.id}`}>
-                    <Button className="w-full flex items-center justify-center gap-2">
-                      {situationProgress?.status !== "not-started"
-                        ? "Review Response" 
-                        : "Respond to Situation"}
-                      <ArrowRight size={16} />
-                    </Button>
-                  </Link>
+                  {chapterId ? (
+                    <Link href={`/training/chapter/${chapterId}/module/${moduleId}/situation/${situation.id}`}>
+                      <Button className="w-full flex items-center justify-center gap-2">
+                        {situationProgress?.status !== "not-started"
+                          ? "Review Response" 
+                          : "Respond to Situation"}
+                        <ArrowRight size={16} />
+                      </Button>
+                    </Link>
+                  ) : (
+                    <Link href={`/training/situation/${situation.id}?moduleId=${module.id}`}>
+                      <Button className="w-full flex items-center justify-center gap-2">
+                        {situationProgress?.status !== "not-started"
+                          ? "Review Response" 
+                          : "Respond to Situation"}
+                        <ArrowRight size={16} />
+                      </Button>
+                    </Link>
+                  )}
                 </CardContent>
               </Card>
             );

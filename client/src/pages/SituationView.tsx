@@ -72,12 +72,32 @@ interface Attempt {
 }
 
 export default function SituationView() {
-  const [, params] = useRoute<{ id: string }>("/training/situation/:id");
+  // Support both URL patterns: legacy /training/situation/:id and new /training/chapter/:chapterId/module/:moduleId/situation/:id
+  const [matchesLegacy, legacyParams] = useRoute<{ id: string }>("/training/situation/:id");
+  const [matchesNew, newParams] = useRoute<{ chapterId: string, moduleId: string, id: string }>("/training/chapter/:chapterId/module/:moduleId/situation/:id");
+  
   const [location] = useLocation();
   const searchParams = new URLSearchParams(location.search);
-  const moduleId = searchParams.get('moduleId');
   
-  const situationId = params ? parseInt(params.id) : 0;
+  // Determine which route pattern matched and extract parameters
+  const [situationId, setFunctionId] = useState<number>(0);
+  const [moduleId, setModuleId] = useState<number | null>(null);
+  const [chapterId, setChapterId] = useState<number | null>(null);
+  
+  // Update IDs when route changes
+  useEffect(() => {
+    if (matchesNew && newParams) {
+      setFunctionId(parseInt(newParams.id));
+      setModuleId(parseInt(newParams.moduleId));
+      setChapterId(parseInt(newParams.chapterId));
+    } else if (matchesLegacy && legacyParams) {
+      setFunctionId(parseInt(legacyParams.id));
+      // Check for moduleId in query params for legacy route
+      const moduleIdParam = searchParams.get('moduleId');
+      setModuleId(moduleIdParam ? parseInt(moduleIdParam) : null);
+      setChapterId(null);
+    }
+  }, [matchesNew, newParams, matchesLegacy, legacyParams, searchParams]);
   
   const { isAuthenticated, isLoading: authLoading, userData } = useAuth();
   const [, navigate] = useLocation();
