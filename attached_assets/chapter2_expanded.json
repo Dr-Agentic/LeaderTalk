@@ -1,0 +1,213 @@
+{
+  "id": 2,
+  "order": 2,
+  "chapter_title": "Chapter 2: Building Trust and Rapport",
+  "modules": [
+    {
+      "id": 6,
+      "order": 1,
+      "module_title": "Establishing Credibility",
+      "leadership_trait": "Trust Building",
+      "situation_type": "New Team Formation",
+      "scenarios": [
+        {
+          "id": 16,
+          "description": "You're leading a newly formed team with members who have never worked together before.",
+          "context": "First Team Meeting",
+          "style_responses": {
+            "empathetic": "I'm excited to learn about each of your unique strengths and perspectives. Let's start by sharing what brings us to this work and what support you need from me as your leader.",
+            "inspirational": "Together, we're going to accomplish extraordinary things. Our diverse backgrounds are our greatest asset. Let's define what success looks like for all of us.",
+            "commanding": "Welcome everyone. Here's our mission, our timeline, and my expectations. I have an open-door policy, but I expect ownership and accountability from day one."
+          },
+          "user_prompt": "How would you introduce yourself to establish trust with this new team? Share your approach."
+        },
+        {
+          "id": 17,
+          "description": "You're a new leader taking over a team that had a negative experience with previous management.",
+          "context": "Leadership Transition",
+          "style_responses": {
+            "empathetic": "I understand there's been some history here that may have created trust concerns. I'd like to hear about your experiences and what you need from leadership going forward.",
+            "inspirational": "Every new beginning is an opportunity to redefine what's possible. I'm committed to building a culture where you can do your best work and feel valued for your contributions.",
+            "commanding": "I'm aware of past challenges. My leadership will be different. I expect open communication, and in return, you'll get clear direction, decisive action, and fair recognition."
+          },
+          "user_prompt": "How would you address the team's past negative experiences? Record your message."
+        },
+        {
+          "id": 18,
+          "description": "You need to rebuild trust with a client after your company missed several deliverables.",
+          "context": "Client Relationship Recovery",
+          "style_responses": {
+            "empathetic": "I want to acknowledge the impact these missed deliverables have had on your business. I'm here to listen to your concerns and understand what we need to do to rebuild your confidence in us.",
+            "inspirational": "Great partnerships are tested through challenges. I believe we can transform this moment into the foundation for an even stronger relationship moving forward.",
+            "commanding": "I've conducted a full review of what went wrong. Here's what happened, here's what we've changed, and here's my personal commitment to you for how we'll perform moving forward."
+          },
+          "user_prompt": "How would you approach this trust rebuilding conversation? Share your strategy."
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "order": 2,
+      "module_title": "Demonstrating Authenticity",
+      "leadership_trait": "Genuine Connection",
+      "situation_type": "Personal Disclosure",
+      "scenarios": [
+        {
+          "id": 19,
+          "description": "Your team is struggling with burnout, and you want to share your own experience with work-life boundaries.",
+          "context": "Team Check-in",
+          "style_responses": {
+            "empathetic": "I notice signs of burnout in our team, and I've been there myself. Three years ago, I hit a wall when trying to manage everything perfectly. Let me share what I learned about sustainable performance.",
+            "inspirational": "The strength of our team comes from caring for ourselves and each other. I've learned this lesson personally. Let me share my journey with finding balance so we can build resilience together.",
+            "commanding": "Burnout affects performance, and I won't let that happen to this team. I've implemented specific practices after my own experience with burnout. Here's what worked for me and what I expect from all of us."
+          },
+          "user_prompt": "How would you share your personal experience to help your team? Record your message."
+        },
+        {
+          "id": 20,
+          "description": "You made a significant decision error that will impact quarterly results, and need to address it with your manager.",
+          "context": "One-on-One with Superior",
+          "style_responses": {
+            "empathetic": "I need to discuss a serious error in judgment I made regarding the Thompson project. I understand this impacts our quarterly targets, and I want to be transparent about what happened.",
+            "inspirational": "I've always believed that how we handle our mistakes defines our character. I made a significant error with the Thompson project, and I want to share both what happened and my plan to address it.",
+            "commanding": "I need to report a critical error I made on the Thompson project that will impact our quarterly numbers by approximately 15%. Here's what happened, here's my corrective action plan, and the steps I've already taken."
+          },
+          "user_prompt": "How would you take ownership of this error with your manager? Share your approach."
+        },
+        {
+          "id": 21,
+          "description": "A direct report asks for your perspective on a controversial company policy during a casual lunch.",
+          "context": "Informal Conversation",
+          "style_responses": {
+            "empathetic": "That's a thoughtful question. I understand there are different perspectives on this policy. I have my own views while also appreciating the complexity of the decision. What aspects are you most concerned about?",
+            "inspirational": "Questions like yours show you're thinking deeply about our values in action. While I have my perspective, what matters most is how we engage with policies that challenge us and work to improve them.",
+            "commanding": "I appreciate direct questions. Here's my position on the policy, the business rationale I see behind it, and how I think we should work within it while also providing constructive feedback through proper channels."
+          },
+          "user_prompt": "How would you respond authentically while maintaining leadership boundaries? Share your response."
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "order": 3,
+      "module_title": "Following Through on Commitments",
+      "leadership_trait": "Reliability",
+      "situation_type": "Accountability",
+      "scenarios": [
+        {
+          "id": 22,
+          "description": "You promised your team resources that have now been delayed by budget constraints.",
+          "context": "Resource Allocation Update",
+          "style_responses": {
+            "empathetic": "I know I committed to these resources, and I understand the impact this delay has on your work. I want to be transparent about what's happened and discuss how we can adapt together.",
+            "inspirational": "While circumstances have changed with our resources, my commitment to your success hasn't. Let's focus on how we can creatively overcome these constraints and still achieve our goals.",
+            "commanding": "Our resource timeline has shifted due to budget constraints. Here's what we know, here's what I'm doing to mitigate the impact, and here's what I need from each of you in the interim."
+          },
+          "user_prompt": "How would you address this situation where you can't fulfill a promise? Record your message."
+        },
+        {
+          "id": 23,
+          "description": "You need to follow up with a senior executive who hasn't provided information you need, despite agreeing to do so.",
+          "context": "Upward Management",
+          "style_responses": {
+            "empathetic": "I understand how busy your schedule is. The information we discussed last week would be tremendously helpful for our project timeline. Is there a convenient time to revisit this or perhaps another way I could gather what we need?",
+            "inspirational": "The analysis you agreed to share will help us deliver the exceptional results I know we both want to see. I'm reaching out to see how we can make this exchange happen in a way that respects your priorities.",
+            "commanding": "Following up on the data you agreed to provide last Tuesday. Our team has a decision point this Friday that requires this input. What's the status, and when can we expect to receive it?"
+          },
+          "user_prompt": "How would you follow up with this senior executive? Share your approach."
+        },
+        {
+          "id": 24,
+          "description": "A cross-functional team member consistently misses deadlines that impact your team's deliverables.",
+          "context": "Peer Accountability",
+          "style_responses": {
+            "empathetic": "I've noticed a pattern with missed deadlines that's affecting our team's ability to deliver. I'd like to understand what challenges you're facing and how we might work together to address them.",
+            "inspirational": "Our success is interconnected, and I believe in your commitment to our shared goals. Let's discuss how we can align our workflows to ensure everyone can deliver their best work on time.",
+            "commanding": "We need to address the consistent delays from your team that are impacting our deliverables. Here are the specific instances, their impact, and what needs to change immediately to meet our commitments."
+          },
+          "user_prompt": "How would you address this accountability issue with your peer? Share your message."
+        }
+      ]
+    },
+    {
+      "module_title": "Building Psychological Safety",
+      "leadership_trait": "Trust Environment",
+      "situation_type": "Team Dynamics",
+      "scenarios": [
+        {
+          "id": 25,
+          "description": "A team member makes a significant mistake that impacts a client, but proactively brings it to your attention.",
+          "context": "Error Management",
+          "style_responses": {
+            "empathetic": "Thank you for bringing this to me quickly. That took courage. Let's understand what happened and how we can address it, then discuss what we can learn from this experience.",
+            "inspirational": "The mark of a great team isn't avoiding all mistakes—it's how we respond to them with integrity. I appreciate your transparency, and I'm confident we'll emerge stronger from this.",
+            "commanding": "I appreciate your prompt disclosure. Let's contain the impact immediately. Walk me through exactly what happened, then we'll notify the client with both the issue and our solution."
+          },
+          "user_prompt": "How would you respond to reinforce psychological safety? Share your approach."
+        },
+        {
+          "id": 26,
+          "description": "During a brainstorming session, team members seem hesitant to share ideas that challenge the status quo.",
+          "context": "Innovation Meeting",
+          "style_responses": {
+            "empathetic": "I notice we might be staying in comfortable territory. I value each of your perspectives, especially those that might challenge our current thinking. What possibilities haven't we considered yet?",
+            "inspirational": "The most transformative ideas often feel uncomfortable at first. I invite each of you to share one idea today that might seem too bold or different—that's where breakthrough thinking begins.",
+            "commanding": "We're not generating enough innovative options. I want each person to contribute at least one idea that challenges our current approach. We'll evaluate all ideas on merit, not on how familiar they feel."
+          },
+          "user_prompt": "How would you encourage more risk-taking in idea sharing? Record your facilitation."
+        },
+        {
+          "id": 27,
+          "description": "You observe a senior team member dismissing a junior colleague's input during a meeting.",
+          "context": "Team Interaction",
+          "style_responses": {
+            "empathetic": "I'd like to circle back to the point Maya was making earlier, as I think there was something valuable there that we should explore further. Maya, could you elaborate on your perspective?",
+            "inspirational": "One of our team's greatest strengths is the diversity of thought that comes from different experience levels. Maya, your perspective offers a fresh angle that could help us innovate. Please continue.",
+            "commanding": "Let's pause here. Maya raised a point that deserves consideration. Our team protocol is that all ideas receive respectful attention. Maya, please restate your point, and then we'll discuss it fully."
+          },
+          "user_prompt": "How would you intervene to maintain psychological safety? Share your response."
+        }
+      ]
+    },
+    {
+      "module_title": "Transparency in Communication",
+      "leadership_trait": "Openness",
+      "situation_type": "Information Sharing",
+      "scenarios": [
+        {
+          "id": 28,
+          "description": "Your team asks about rumors of organizational restructuring that you have limited information about.",
+          "context": "Team Questions",
+          "style_responses": {
+            "empathetic": "I understand these rumors create uncertainty. Here's what I know for certain, what I'm still seeking clarity on, and my commitment to share updates as soon as I have verified information.",
+            "inspirational": "Times of change test our culture of transparency and trust. I'll share what I know today, and as we navigate this together, our open communication will be our greatest strength.",
+            "commanding": "I've heard the same rumors. Here are the facts I've confirmed, the timeline for official announcements, and how we'll manage any transitions. I'll update you weekly, even if there's no new information."
+          },
+          "user_prompt": "How would you address these rumors with transparency? Share your message."
+        },
+        {
+          "id": 29,
+          "description": "You need to communicate a strategic pivot that will require significant changes to team priorities and workflows.",
+          "context": "Strategic Direction Change",
+          "style_responses": {
+            "empathetic": "I want to share an important strategic shift that will affect our work. I know change can be disruptive, so I want to walk through the reasoning, the impact, and address your questions and concerns.",
+            "inspirational": "Today we begin an exciting new chapter in our journey. This strategic pivot leverages our strengths in new ways and opens opportunities for growth. Let me share the vision and how each of you will help shape it.",
+            "commanding": "Our market position requires a strategic pivot effective immediately. I'll outline the new direction, specific changes to our priorities, and revised expectations. We'll then discuss implementation timelines."
+          },
+          "user_prompt": "How would you announce this strategic pivot? Record your message."
+        },
+        {
+          "id": 30,
+          "description": "Performance metrics indicate your department is significantly behind targets, and you need to address this with your team.",
+          "context": "Performance Review",
+          "style_responses": {
+            "empathetic": "I want to have an open conversation about our current performance metrics. We're behind where we need to be, and I'd like us to understand the challenges together and develop a path forward.",
+            "inspirational": "Every great team faces moments that test their resolve. Our metrics show we're behind, but I believe in our ability to turn this around if we're honest about where we are and united in where we're going.",
+            "commanding": "Our Q2 metrics show we're 30% behind targets in three key areas. This is unacceptable. I'll present the data, identify the primary gaps, and outline the corrective actions we'll implement immediately."
+          },
+          "user_prompt": "How would you transparently address underperformance? Share your approach."
+        }
+      ]
+    }
+  ]
+}
