@@ -269,10 +269,22 @@ export default function SituationView() {
   if (!situation) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <BackButton 
-          to={moduleId ? `/training/module/${moduleId}` : "/training"} 
-          label={moduleId ? "Back to Module" : "Back to Training"} 
-        />
+        {chapterId && moduleId ? (
+          <BackButton 
+            to={`/training/chapter/${chapterId}/module/${moduleId}`} 
+            label="Back to Module" 
+          />
+        ) : moduleId ? (
+          <BackButton 
+            to={`/training/module/${moduleId}`} 
+            label="Back to Module" 
+          />
+        ) : (
+          <BackButton 
+            to="/training" 
+            label="Back to Training" 
+          />
+        )}
         <Alert variant="destructive" className="mt-4">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Situation not found</AlertTitle>
@@ -422,7 +434,15 @@ export default function SituationView() {
                 <Button
                   variant="outline"
                   className="w-full"
-                  onClick={() => navigate(`/training/next-situation${moduleId ? `?moduleId=${moduleId}` : ''}`)}
+                  onClick={() => {
+                    if (chapterId && moduleId) {
+                      navigate(`/training/chapter/${chapterId}/next-situation`);
+                    } else if (moduleId) {
+                      navigate(`/training/next-situation?moduleId=${moduleId}`);
+                    } else {
+                      navigate(`/training/next-situation`);
+                    }
+                  }}
                 >
                   Continue to Next Exercise
                 </Button>
@@ -542,15 +562,12 @@ export default function SituationView() {
 }
 
 function SituationViewSkeleton() {
-  const [location] = useLocation();
-  const searchParams = new URLSearchParams(location.search);
-  const moduleId = searchParams.get('moduleId');
-  
+  // For skeleton we'll just show a back button to training since parameters may not be ready
   return (
     <div className="container mx-auto px-4 py-8">
       <BackButton 
-        to={moduleId ? `/training/module/${moduleId}` : "/training"} 
-        label={moduleId ? "Back to Module" : "Back to Training"} 
+        to="/training"
+        label="Back to Training"
       />
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
