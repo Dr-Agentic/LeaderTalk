@@ -332,6 +332,11 @@ export default function SituationView() {
               <p>{situation.description}</p>
             </div>
 
+            <div className="bg-primary-foreground border border-primary/20 p-4 rounded-md">
+              <p className="font-medium text-lg mb-2">Your Task:</p>
+              <p>{situation.userPrompt}</p>
+            </div>
+
             <div>
               <p className="font-medium text-lg mb-2">Your Response:</p>
               {situation.userProgress ? (
@@ -592,12 +597,20 @@ function SituationViewSkeleton() {
           <div className="h-7 w-52 bg-muted rounded mb-2"></div>
           <div className="h-5 w-72 bg-muted rounded mb-8"></div>
           
-          <div className="bg-muted p-4 rounded-md mb-6">
+          <div className="bg-muted p-4 rounded-md mb-4">
             <div className="h-6 w-28 bg-gray-200 rounded mb-2"></div>
             <div className="space-y-2">
               <div className="h-4 w-full bg-gray-200 rounded"></div>
               <div className="h-4 w-full bg-gray-200 rounded"></div>
               <div className="h-4 w-2/3 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+          
+          <div className="bg-primary-foreground border border-primary/20 p-4 rounded-md mb-4">
+            <div className="h-6 w-28 bg-gray-200 rounded mb-2"></div>
+            <div className="space-y-2">
+              <div className="h-4 w-full bg-gray-200 rounded"></div>
+              <div className="h-4 w-3/4 bg-gray-200 rounded"></div>
             </div>
           </div>
 
