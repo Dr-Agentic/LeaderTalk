@@ -1,0 +1,458 @@
+import { useState, useEffect, useRef } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLocation, useRoute } from "wouter";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { AlertCircle, Check, Mic, MicOff } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { BackButton } from "../components/BackButton";
+import { useToast } from "../hooks/use-toast";
+import { useAuth } from "../hooks/useAuth";
+import { useRecording } from "../hooks/useRecording";
+import { getQueryFn, apiRequest } from "../lib/queryClient";
+
+interface StyleResponse {
+  empathetic: string;
+  inspirational: string;
+  commanding: string;
+}
+
+interface Situation {
+  id: number;
+  moduleId: number;
+  description: string;
+  userPrompt: string;
+  styleResponses: StyleResponse;
+  order: number;
+  createdAt: string;
+  userProgress: UserProgress | null;
+}
+
+interface UserProgress {
+  id: number;
+  userId: number;
+  situationId: number;
+  response: string;
+  score: number;
+  feedback: string;
+  passed: boolean;
+  completedAt: string | null;
+  createdAt: string;
+}
+
+interface SubmitResponseParams {
+  situationId: number;
+  response: string;
+  leadershipStyle: string;
+}
+
+export default function SituationView() {
+  const [, params] = useRoute<{ id: string }>("/training/situation/:id");
+  const situationId = params ? parseInt(params.id) : 0;
+  const { isAuthenticated, isLoading: authLoading, userData } = useAuth();
+  const [, navigate] = useLocation();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
+  const [response, setResponse] = useState("");
+  const [leadershipStyle, setLeadershipStyle] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showExampleResponses, setShowExampleResponses] = useState(false);
+  
+  // Recording functionality for voice responses
+  const { 
+    isRecording, 
+    startRecording, 
+    stopRecording, 
+    recordingBlob, 
+    recordingDuration,
+    resetRecording
+  } = useRecording();
+
+  const preferredStyle = userData?.preferredLeadershipStyle || "";
+  
+  useEffect(() => {
+    if (preferredStyle && !leadershipStyle) {
+      setLeadershipStyle(preferredStyle);
+    }
+  }, [preferredStyle, leadershipStyle]);
+
+  // Fetch the situation
+  const { data: situation, isLoading: isSituationLoading } = useQuery({
+    queryKey: [`/api/training/situations/${situationId}`],
+    queryFn: getQueryFn({ on401: "throw" }),
+    enabled: !!situationId && isAuthenticated,
+  });
+
+  // Mutation for submitting a response
+  const submitResponse = useMutation({
+    mutationFn: async ({ situationId, response, leadershipStyle }: SubmitResponseParams) => {
+      return apiRequest(`/api/training/situations/${situationId}/respond`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ response, leadershipStyle }),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/training/situations/${situationId}`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/training/progress"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/training/next-situation"] });
+      
+      toast({
+        title: "Response submitted",
+        description: "Your response has been evaluated.",
+      });
+      
+      setIsSubmitting(false);
+    },
+    onError: (error) => {
+      console.error("Error submitting response:", error);
+      toast({
+        variant: "destructive",
+        title: "Submission failed",
+        description: "There was an error submitting your response. Please try again.",
+      });
+      setIsSubmitting(false);
+    },
+  });
+
+  // Handle the audio recording when it's completed
+  useEffect(() => {
+    if (recordingBlob) {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        if (e.target?.result) {
+          // Convert audio to text using server API (simplified for now)
+          try {
+            // For simplicity, we're just using the recorded audio duration as a mock
+            // In a real implementation, you would send the audio to a speech-to-text service
+            const mockTranscription = `This is a simulated transcription of ${recordingDuration.toFixed(1)} seconds of audio.`;
+            setResponse(mockTranscription);
+          } catch (error) {
+            console.error("Error transcribing audio:", error);
+            toast({
+              variant: "destructive",
+              title: "Transcription failed",
+              description: "There was an error processing your recording.",
+            });
+          }
+        }
+      };
+      reader.readAsDataURL(recordingBlob);
+    }
+  }, [recordingBlob, recordingDuration, toast]);
+
+  // If user is not authenticated, redirect to login
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      navigate("/");
+    }
+  }, [authLoading, isAuthenticated, navigate]);
+
+  const handleSubmit = () => {
+    if (!response.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Response required",
+        description: "Please provide a response before submitting.",
+      });
+      return;
+    }
+
+    if (!leadershipStyle) {
+      toast({
+        variant: "destructive",
+        title: "Leadership style required",
+        description: "Please select a leadership style for your response.",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    submitResponse.mutate({ situationId, response, leadershipStyle });
+  };
+
+  const toggleExampleResponses = () => {
+    setShowExampleResponses(!showExampleResponses);
+  };
+
+  // Handling loading states
+  const isLoading = authLoading || isSituationLoading;
+
+  if (isLoading) {
+    return <SituationViewSkeleton />;
+  }
+
+  if (!situation) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <BackButton to="/training" label="Back to Training" />
+        <Alert variant="destructive" className="mt-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Situation not found</AlertTitle>
+          <AlertDescription>
+            The situation you're looking for doesn't exist or has been removed.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <BackButton to="/training" label="Back to Training" />
+      
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle>Leadership Situation</CardTitle>
+            <CardDescription>
+              Respond to this scenario using your preferred leadership style
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="bg-muted p-4 rounded-md">
+              <p className="font-medium text-lg mb-2">Scenario:</p>
+              <p>{situation.description}</p>
+            </div>
+
+            <div>
+              <p className="font-medium text-lg mb-2">Your Response:</p>
+              {situation.userProgress ? (
+                <div className="p-4 border rounded-md">
+                  <p>{situation.userProgress.response}</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Textarea
+                    placeholder="Type your response here..."
+                    className="min-h-32"
+                    value={response}
+                    onChange={(e) => setResponse(e.target.value)}
+                    disabled={isSubmitting}
+                  />
+                  
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant={isRecording ? "destructive" : "outline"}
+                      size="sm"
+                      onClick={isRecording ? stopRecording : startRecording}
+                      disabled={isSubmitting}
+                    >
+                      {isRecording ? (
+                        <>
+                          <MicOff className="h-4 w-4 mr-2" /> Stop Recording ({recordingDuration.toFixed(1)}s)
+                        </>
+                      ) : (
+                        <>
+                          <Mic className="h-4 w-4 mr-2" /> Record Response
+                        </>
+                      )}
+                    </Button>
+                    
+                    {recordingBlob && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={resetRecording}
+                        disabled={isSubmitting || isRecording}
+                      >
+                        Clear Recording
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div>
+              <p className="font-medium text-lg mb-2">Leadership Style:</p>
+              {situation.userProgress ? (
+                <div className="p-4 border rounded-md capitalize">
+                  {situation.userProgress.leadershipStyle || "Not specified"}
+                </div>
+              ) : (
+                <RadioGroup
+                  value={leadershipStyle}
+                  onValueChange={setLeadershipStyle}
+                  className="flex flex-col space-y-2"
+                  disabled={isSubmitting}
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="empathetic" id="empathetic" />
+                    <Label htmlFor="empathetic" className="font-medium">Empathetic</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="inspirational" id="inspirational" />
+                    <Label htmlFor="inspirational" className="font-medium">Inspirational</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="commanding" id="commanding" />
+                    <Label htmlFor="commanding" className="font-medium">Commanding</Label>
+                  </div>
+                </RadioGroup>
+              )}
+            </div>
+            
+            {!situation.userProgress && (
+              <CardFooter className="px-0">
+                <Button
+                  onClick={handleSubmit}
+                  disabled={isSubmitting}
+                  className="w-full"
+                >
+                  {isSubmitting ? "Submitting..." : "Submit Response"}
+                </Button>
+              </CardFooter>
+            )}
+          </CardContent>
+        </Card>
+
+        <div className="space-y-6">
+          {situation.userProgress && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  {situation.userProgress.passed ? (
+                    <Check className="h-5 w-5 text-green-500" />
+                  ) : (
+                    <AlertCircle className="h-5 w-5 text-yellow-500" />
+                  )}
+                  Feedback
+                </CardTitle>
+                <CardDescription>
+                  Score: {situation.userProgress.score}/100
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p>{situation.userProgress.feedback}</p>
+              </CardContent>
+              <CardFooter>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => navigate("/training/next-situation")}
+                >
+                  Continue to Next Exercise
+                </Button>
+              </CardFooter>
+            </Card>
+          )}
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Example Responses</CardTitle>
+              <CardDescription>
+                See how different leadership styles would approach this situation
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button
+                variant="outline"
+                onClick={toggleExampleResponses}
+                className="w-full mb-4"
+              >
+                {showExampleResponses ? "Hide Examples" : "Show Examples"}
+              </Button>
+
+              {showExampleResponses && (
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-medium mb-2">Empathetic Style</h4>
+                    <p className="text-sm bg-muted p-3 rounded-md">
+                      {situation.styleResponses.empathetic}
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-medium mb-2">Inspirational Style</h4>
+                    <p className="text-sm bg-muted p-3 rounded-md">
+                      {situation.styleResponses.inspirational}
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-medium mb-2">Commanding Style</h4>
+                    <p className="text-sm bg-muted p-3 rounded-md">
+                      {situation.styleResponses.commanding}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SituationViewSkeleton() {
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="h-6 w-40 bg-muted rounded animate-pulse"></div>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+        <div className="lg:col-span-2 border rounded-lg p-6 animate-pulse">
+          <div className="h-7 w-52 bg-muted rounded mb-2"></div>
+          <div className="h-5 w-72 bg-muted rounded mb-8"></div>
+          
+          <div className="bg-muted p-4 rounded-md mb-6">
+            <div className="h-6 w-28 bg-gray-200 rounded mb-2"></div>
+            <div className="space-y-2">
+              <div className="h-4 w-full bg-gray-200 rounded"></div>
+              <div className="h-4 w-full bg-gray-200 rounded"></div>
+              <div className="h-4 w-2/3 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+
+          <div className="mb-6">
+            <div className="h-6 w-36 bg-muted rounded mb-2"></div>
+            <div className="h-32 w-full bg-muted rounded mb-2"></div>
+            <div className="flex gap-2">
+              <div className="h-8 w-32 bg-muted rounded"></div>
+              <div className="h-8 w-32 bg-muted rounded"></div>
+            </div>
+          </div>
+
+          <div>
+            <div className="h-6 w-40 bg-muted rounded mb-2"></div>
+            <div className="space-y-2">
+              <div className="h-6 w-32 bg-muted rounded"></div>
+              <div className="h-6 w-32 bg-muted rounded"></div>
+              <div className="h-6 w-32 bg-muted rounded"></div>
+            </div>
+          </div>
+        </div>
+
+        <div className="border rounded-lg p-6 animate-pulse">
+          <div className="h-7 w-40 bg-muted rounded mb-2"></div>
+          <div className="h-5 w-60 bg-muted rounded mb-6"></div>
+          <div className="h-10 w-full bg-muted rounded mb-6"></div>
+          
+          <div className="space-y-4">
+            <div>
+              <div className="h-6 w-40 bg-muted rounded mb-2"></div>
+              <div className="h-24 w-full bg-muted rounded"></div>
+            </div>
+            
+            <div>
+              <div className="h-6 w-40 bg-muted rounded mb-2"></div>
+              <div className="h-24 w-full bg-muted rounded"></div>
+            </div>
+            
+            <div>
+              <div className="h-6 w-40 bg-muted rounded mb-2"></div>
+              <div className="h-24 w-full bg-muted rounded"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

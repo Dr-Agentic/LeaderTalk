@@ -839,6 +839,366 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // *** Training Module Routes ***
+  
+  // Get all chapters
+  app.get("/api/training/chapters", requireAuth, async (req, res) => {
+    try {
+      const allChapters = await db.select()
+        .from(chapters)
+        .orderBy(chapters.order);
+      
+      return res.json(allChapters);
+    } catch (error) {
+      console.error("Error fetching chapters:", error);
+      return res.status(500).json({ message: "Failed to fetch chapters" });
+    }
+  });
+  
+  // Get a specific chapter with its modules
+  app.get("/api/training/chapters/:chapterId", requireAuth, async (req, res) => {
+    try {
+      const chapterId = Number(req.params.chapterId);
+      
+      if (isNaN(chapterId)) {
+        return res.status(400).json({ message: "Invalid chapter ID" });
+      }
+      
+      const [chapter] = await db.select()
+        .from(chapters)
+        .where(eq(chapters.id, chapterId));
+      
+      if (!chapter) {
+        return res.status(404).json({ message: "Chapter not found" });
+      }
+      
+      const modulesList = await db.select()
+        .from(modules)
+        .where(eq(modules.chapterId, chapterId))
+        .orderBy(modules.order);
+      
+      return res.json({
+        ...chapter,
+        modules: modulesList
+      });
+    } catch (error) {
+      console.error("Error fetching chapter:", error);
+      return res.status(500).json({ message: "Failed to fetch chapter" });
+    }
+  });
+  
+  // Get a specific module with its situations
+  app.get("/api/training/modules/:moduleId", requireAuth, async (req, res) => {
+    try {
+      const moduleId = Number(req.params.moduleId);
+      
+      if (isNaN(moduleId)) {
+        return res.status(400).json({ message: "Invalid module ID" });
+      }
+      
+      const [module] = await db.select()
+        .from(modules)
+        .where(eq(modules.id, moduleId));
+      
+      if (!module) {
+        return res.status(404).json({ message: "Module not found" });
+      }
+      
+      const situationsList = await db.select()
+        .from(situations)
+        .where(eq(situations.moduleId, moduleId))
+        .orderBy(situations.order);
+      
+      return res.json({
+        ...module,
+        situations: situationsList
+      });
+    } catch (error) {
+      console.error("Error fetching module:", error);
+      return res.status(500).json({ message: "Failed to fetch module" });
+    }
+  });
+  
+  // Get a specific situation
+  app.get("/api/training/situations/:situationId", requireAuth, async (req, res) => {
+    try {
+      const situationId = Number(req.params.situationId);
+      
+      if (isNaN(situationId)) {
+        return res.status(400).json({ message: "Invalid situation ID" });
+      }
+      
+      const [situation] = await db.select()
+        .from(situations)
+        .where(eq(situations.id, situationId));
+      
+      if (!situation) {
+        return res.status(404).json({ message: "Situation not found" });
+      }
+      
+      // Check if the user has already completed this situation
+      const [userProgress] = await db.select()
+        .from(userProgress)
+        .where(eq(userProgress.situationId, situationId))
+        .where(eq(userProgress.userId, req.session.userId));
+      
+      return res.json({
+        ...situation,
+        userProgress: userProgress || null
+      });
+    } catch (error) {
+      console.error("Error fetching situation:", error);
+      return res.status(500).json({ message: "Failed to fetch situation" });
+    }
+  });
+  
+  // Submit a response to a situation
+  app.post("/api/training/situations/:situationId/respond", requireAuth, async (req, res) => {
+    try {
+      const situationId = Number(req.params.situationId);
+      const { response, leadershipStyle } = req.body;
+      
+      if (isNaN(situationId)) {
+        return res.status(400).json({ message: "Invalid situation ID" });
+      }
+      
+      if (!response) {
+        return res.status(400).json({ message: "Response is required" });
+      }
+      
+      // Get the situation to evaluate the response
+      const [situation] = await db.select()
+        .from(situations)
+        .where(eq(situations.id, situationId));
+      
+      if (!situation) {
+        return res.status(404).json({ message: "Situation not found" });
+      }
+      
+      // Calculate a score based on the response and the leadership style
+      // This would typically use AI to evaluate the response
+      // For now, we'll use a simple scoring method
+      const styleResponses = situation.styleResponses;
+      let score = 0;
+      let feedback = "";
+      let passed = false;
+      
+      if (leadershipStyle && styleResponses[leadershipStyle]) {
+        // Simple scoring based on word overlap
+        const styleWords = styleResponses[leadershipStyle].toLowerCase().split(/\W+/);
+        const responseWords = response.toLowerCase().split(/\W+/);
+        
+        const commonWords = styleWords.filter(word => 
+          word.length > 3 && responseWords.includes(word)
+        ).length;
+        
+        score = Math.min(100, Math.floor((commonWords / styleWords.length) * 100));
+        passed = score >= 70;
+        
+        if (passed) {
+          feedback = "Great job! Your response demonstrates a good understanding of the " + 
+            leadershipStyle + " leadership style in this situation.";
+        } else {
+          feedback = "Your response could better reflect the " + leadershipStyle + 
+            " leadership style. Consider focusing more on " + 
+            (leadershipStyle === "empathetic" ? "understanding emotions and building trust." : 
+             leadershipStyle === "inspirational" ? "motivation and the bigger picture." : 
+             "clarity and direct action.");
+        }
+      } else {
+        // No leadership style specified or invalid style
+        feedback = "Please select a valid leadership style for better feedback.";
+        score = 50; // Default middle score
+      }
+      
+      // Check if user has already responded to this situation
+      const [existingProgress] = await db.select()
+        .from(userProgress)
+        .where(eq(userProgress.situationId, situationId))
+        .where(eq(userProgress.userId, req.session.userId));
+      
+      let userProgressRecord;
+      
+      if (existingProgress) {
+        // Update existing progress
+        [userProgressRecord] = await db.update(userProgress)
+          .set({
+            response,
+            score,
+            feedback,
+            passed,
+            completedAt: new Date()
+          })
+          .where(eq(userProgress.id, existingProgress.id))
+          .returning();
+      } else {
+        // Create new progress record
+        [userProgressRecord] = await db.insert(userProgress)
+          .values({
+            userId: req.session.userId,
+            situationId,
+            response,
+            score,
+            feedback,
+            passed,
+            completedAt: new Date()
+          })
+          .returning();
+      }
+      
+      return res.json({
+        success: true,
+        progress: userProgressRecord
+      });
+    } catch (error) {
+      console.error("Error processing situation response:", error);
+      return res.status(500).json({ message: "Failed to process response" });
+    }
+  });
+  
+  // Get user progress summary
+  app.get("/api/training/progress", requireAuth, async (req, res) => {
+    try {
+      // Get all user progress records
+      const userProgressRecords = await db.select()
+        .from(userProgress)
+        .where(eq(userProgress.userId, req.session.userId));
+      
+      // Get all chapters
+      const allChapters = await db.select().from(chapters).orderBy(chapters.order);
+      
+      // Get all modules
+      const allModules = await db.select().from(modules).orderBy(modules.order);
+      
+      // Get all situations
+      const allSituations = await db.select().from(situations).orderBy(situations.order);
+      
+      // Calculate progress statistics
+      const totalSituations = allSituations.length;
+      const completedSituations = userProgressRecords.length;
+      const passedSituations = userProgressRecords.filter(r => r.passed).length;
+      
+      // Calculate average score
+      const averageScore = completedSituations > 0
+        ? userProgressRecords.reduce((sum, record) => sum + (record.score || 0), 0) / completedSituations
+        : 0;
+      
+      // Map progress by chapter and module
+      const progressByChapter = allChapters.map(chapter => {
+        const chapterModules = allModules.filter(m => m.chapterId === chapter.id);
+        
+        const modulesProgress = chapterModules.map(module => {
+          const moduleSituations = allSituations.filter(s => s.moduleId === module.id);
+          const moduleProgressRecords = userProgressRecords.filter(r => 
+            moduleSituations.some(s => s.id === r.situationId)
+          );
+          
+          const totalModuleSituations = moduleSituations.length;
+          const completedModuleSituations = moduleProgressRecords.length;
+          
+          return {
+            id: module.id,
+            title: module.title,
+            order: module.order,
+            totalSituations: totalModuleSituations,
+            completedSituations: completedModuleSituations,
+            progress: totalModuleSituations > 0 
+              ? Math.floor((completedModuleSituations / totalModuleSituations) * 100) 
+              : 0
+          };
+        });
+        
+        const totalChapterSituations = modulesProgress.reduce(
+          (sum, module) => sum + module.totalSituations, 0
+        );
+        const completedChapterSituations = modulesProgress.reduce(
+          (sum, module) => sum + module.completedSituations, 0
+        );
+        
+        return {
+          id: chapter.id,
+          title: chapter.title,
+          order: chapter.order,
+          modules: modulesProgress,
+          totalSituations: totalChapterSituations,
+          completedSituations: completedChapterSituations,
+          progress: totalChapterSituations > 0 
+            ? Math.floor((completedChapterSituations / totalChapterSituations) * 100) 
+            : 0
+        };
+      });
+      
+      return res.json({
+        totalSituations,
+        completedSituations,
+        passedSituations,
+        averageScore,
+        progress: totalSituations > 0 ? Math.floor((completedSituations / totalSituations) * 100) : 0,
+        chapters: progressByChapter
+      });
+    } catch (error) {
+      console.error("Error fetching user progress:", error);
+      return res.status(500).json({ message: "Failed to fetch progress" });
+    }
+  });
+  
+  // Get the next incomplete situation for the user
+  app.get("/api/training/next-situation", requireAuth, async (req, res) => {
+    try {
+      // Get all user progress records
+      const userProgressRecords = await db.select()
+        .from(userProgress)
+        .where(eq(userProgress.userId, req.session.userId));
+      
+      // Get all completed situation IDs
+      const completedSituationIds = userProgressRecords.map(r => r.situationId);
+      
+      // Get the first situation that hasn't been completed
+      const allSituations = await db.select()
+        .from(situations)
+        .orderBy(situations.moduleId)
+        .orderBy(situations.order);
+      
+      const nextSituation = allSituations.find(s => !completedSituationIds.includes(s.id));
+      
+      if (!nextSituation) {
+        return res.json({ 
+          completed: true,
+          message: "All situations completed",
+          nextSituation: null
+        });
+      }
+      
+      // Get the module for context
+      const [module] = await db.select()
+        .from(modules)
+        .where(eq(modules.id, nextSituation.moduleId));
+      
+      // Get the chapter for context
+      const [chapter] = await db.select()
+        .from(chapters)
+        .where(eq(chapters.id, module.chapterId));
+      
+      return res.json({
+        completed: false,
+        nextSituation: {
+          ...nextSituation,
+          module: {
+            id: module.id,
+            title: module.title
+          },
+          chapter: {
+            id: chapter.id,
+            title: chapter.title
+          }
+        }
+      });
+    } catch (error) {
+      console.error("Error finding next situation:", error);
+      return res.status(500).json({ message: "Failed to find next situation" });
+    }
+  });
+  
   const httpServer = createServer(app);
   return httpServer;
 }
