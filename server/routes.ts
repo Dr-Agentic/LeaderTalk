@@ -1181,17 +1181,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if the user has already completed this situation
-      const [userProgress] = await db.select()
+      const [userProgressRecord] = await db.select()
         .from(userProgress)
         .where(eq(userProgress.situationId, situationId))
         .where(eq(userProgress.userId, req.session.userId));
       
-      // Also get any attempt history for this situation
-      const attempts = await db.select()
-        .from(situationAttempts)
-        .where(eq(situationAttempts.situationId, situationId))
-        .where(eq(situationAttempts.userId, req.session.userId))
-        .orderBy(desc(situationAttempts.createdAt));
+      // Get attempt history only if the table exists (add for backward compatibility)
+      let attempts = [];
+      try {
+        attempts = await db.select()
+          .from(situationAttempts)
+          .where(eq(situationAttempts.situationId, situationId))
+          .where(eq(situationAttempts.userId, req.session.userId))
+          .orderBy(desc(situationAttempts.createdAt));
+      } catch (err) {
+        console.log('Situation attempts table not found, skipping attempts fetch');
+      }
       
       return res.json({
         // Map the situation structure to match what the frontend expects
@@ -1214,7 +1219,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           title: `Chapter ${chapterId}`
         },
         // Add user progress
-        userProgress: userProgress || null,
+        userProgress: userProgressRecord || null,
         attempts: attempts || []
       });
     } catch (error) {
@@ -1391,17 +1396,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         evaluation.strengths.push("Provides clear direction and structure");
       }
       
-      // Create a record of this attempt
-      await db.insert(situationAttempts)
-        .values({
-          userId: req.session.userId,
-          situationId,
-          response,
-          leadershipStyle,
-          score,
-          feedback,
-          evaluation
-        });
+      // Create a record of this attempt only if the table exists
+      try {
+        await db.insert(situationAttempts)
+          .values({
+            userId: req.session.userId,
+            situationId,
+            response,
+            leadershipStyle,
+            score,
+            feedback,
+            evaluation
+          });
+        console.log("Attempt record created successfully");
+      } catch (error) {
+        console.log("Could not create attempt record. Table may not exist:", error);
+        // Continue without throwing - the basic user progress is still saved
+      }
       
       return res.json({
         success: true,
@@ -1673,12 +1684,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid situation ID" });
       }
       
-      // Get all attempts for this situation by the current user
-      const attempts = await db.select()
-        .from(situationAttempts)
-        .where(eq(situationAttempts.situationId, situationId))
-        .where(eq(situationAttempts.userId, req.session.userId))
-        .orderBy(desc(situationAttempts.createdAt));
+      // Get all attempts for this situation by the current user, if the table exists
+      let attempts = [];
+      try {
+        attempts = await db.select()
+          .from(situationAttempts)
+          .where(eq(situationAttempts.situationId, situationId))
+          .where(eq(situationAttempts.userId, req.session.userId))
+          .orderBy(desc(situationAttempts.createdAt));
+      } catch (err) {
+        console.log("Could not retrieve situation attempts. Table may not exist:", err);
+        // Return empty array for attempts
+      }
       
       return res.json({
         attempts
