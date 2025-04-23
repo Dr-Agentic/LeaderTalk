@@ -32,7 +32,7 @@ export default function NextSituation() {
   
   // Extract params from both URL patterns - hierarchical and query params
   const searchParams = new URLSearchParams(location.search);
-  const moduleId = searchParams.get('moduleId');
+  const queryModuleId = searchParams.get('moduleId');
   
   // Extract chapter and module IDs from path: /training/chapter/[chapterId]/module/[moduleId]/next-situation
   let extractedChapterId = null;
@@ -54,7 +54,7 @@ export default function NextSituation() {
   
   const chapterId = extractedChapterId;
   // Use the module ID from path if available, otherwise from query params
-  const effectiveModuleId = extractedModuleId || moduleId;
+  const effectiveModuleId = extractedModuleId || queryModuleId;
 
   // Fetch the next incomplete situation directly from JSON files
   const { data, isLoading: isDataLoading } = useQuery({
@@ -82,12 +82,14 @@ export default function NextSituation() {
       <div className="container mx-auto px-4 py-8">
         {chapterId ? (
           <BackButton 
-            to={`/training/chapter/${chapterId}`} 
-            label="Back to Chapter" 
+            to={effectiveModuleId 
+              ? `/training/chapter/${chapterId}/module/${effectiveModuleId}` 
+              : `/training/chapter/${chapterId}`} 
+            label={effectiveModuleId ? "Back to Module" : "Back to Chapter"} 
           />
-        ) : moduleId ? (
+        ) : effectiveModuleId ? (
           <BackButton 
-            to={`/training/module/${moduleId}`} 
+            to={`/training/module/${effectiveModuleId}`} 
             label="Back to Module" 
           />
         ) : (
@@ -118,12 +120,14 @@ export default function NextSituation() {
             </CardContent>
             <CardFooter className="flex justify-center space-x-4">
               {chapterId ? (
-                <Button onClick={() => navigate(`/training/chapter/${chapterId}`)}>
-                  View Chapter Progress
+                <Button onClick={() => navigate(effectiveModuleId 
+                  ? `/training/chapter/${chapterId}/module/${effectiveModuleId}` 
+                  : `/training/chapter/${chapterId}`)}>
+                  {effectiveModuleId ? "Return to Module" : "View Chapter Progress"}
                 </Button>
-              ) : moduleId ? (
-                <Button onClick={() => navigate(`/training/module/${moduleId}`)}>
-                  View Module Progress
+              ) : effectiveModuleId ? (
+                <Button onClick={() => navigate(`/training/module/${effectiveModuleId}`)}>
+                  Return to Module
                 </Button>
               ) : (
                 <Button onClick={() => navigate("/training")}>
@@ -148,12 +152,14 @@ export default function NextSituation() {
       <div className="container mx-auto px-4 py-8">
         {chapterId ? (
           <BackButton 
-            to={`/training/chapter/${chapterId}`} 
-            label="Back to Chapter" 
+            to={effectiveModuleId 
+              ? `/training/chapter/${chapterId}/module/${effectiveModuleId}` 
+              : `/training/chapter/${chapterId}`} 
+            label={effectiveModuleId ? "Back to Module" : "Back to Chapter"} 
           />
-        ) : moduleId ? (
+        ) : effectiveModuleId ? (
           <BackButton 
-            to={`/training/module/${moduleId}`} 
+            to={`/training/module/${effectiveModuleId}`} 
             label="Back to Module" 
           />
         ) : (
@@ -211,8 +217,8 @@ export default function NextSituation() {
                 onClick={() => {
                   if (chapterId) {
                     navigate(`/training/chapter/${chapterId}/module/${nextSituation.module.id}/situation/${nextSituation.id}`);
-                  } else if (moduleId) {
-                    navigate(`/training/module/${moduleId}/situation/${nextSituation.id}`);
+                  } else if (effectiveModuleId) {
+                    navigate(`/training/module/${effectiveModuleId}/situation/${nextSituation.id}`);
                   } else {
                     navigate(`/training/situation/${nextSituation.id}`);
                   }
@@ -232,12 +238,14 @@ export default function NextSituation() {
     <div className="container mx-auto px-4 py-8">
       {chapterId ? (
         <BackButton 
-          to={`/training/chapter/${chapterId}`} 
-          label="Back to Chapter" 
+          to={effectiveModuleId 
+            ? `/training/chapter/${chapterId}/module/${effectiveModuleId}` 
+            : `/training/chapter/${chapterId}`} 
+          label={effectiveModuleId ? "Back to Module" : "Back to Chapter"} 
         />
-      ) : moduleId ? (
+      ) : effectiveModuleId ? (
         <BackButton 
-          to={`/training/module/${moduleId}`} 
+          to={`/training/module/${effectiveModuleId}`} 
           label="Back to Module" 
         />
       ) : (
@@ -249,11 +257,13 @@ export default function NextSituation() {
       <div className="text-center mt-10">
         <p>Could not find the next training situation.</p>
         {chapterId ? (
-          <Button onClick={() => navigate(`/training/chapter/${chapterId}`)} className="mt-4">
-            Return to Chapter
+          <Button onClick={() => navigate(effectiveModuleId 
+            ? `/training/chapter/${chapterId}/module/${effectiveModuleId}` 
+            : `/training/chapter/${chapterId}`)} className="mt-4">
+            {effectiveModuleId ? "Return to Module" : "Return to Chapter"}
           </Button>
-        ) : moduleId ? (
-          <Button onClick={() => navigate(`/training/module/${moduleId}`)} className="mt-4">
+        ) : effectiveModuleId ? (
+          <Button onClick={() => navigate(`/training/module/${effectiveModuleId}`)} className="mt-4">
             Return to Module
           </Button>
         ) : (
