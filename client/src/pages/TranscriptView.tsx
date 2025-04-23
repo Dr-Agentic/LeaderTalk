@@ -52,6 +52,7 @@ export default function TranscriptView() {
   // Fetch all leaders data
   const { data: leaders, isLoading: leadersLoading } = useQuery({
     queryKey: ['/api/leaders'],
+    queryFn: getQueryFn({ on401: "throw" }),
     enabled: !!userData?.selectedLeaders,
   });
   
@@ -342,7 +343,7 @@ function AnalysisInstancesList({
                       }
                     }}
                   >
-                    <MessageSquareQuote className="h-3.5 w-3.5" />
+                    <MessageSquare className="h-3.5 w-3.5" />
                     {leader.name}
                   </Button>
                 ))}
