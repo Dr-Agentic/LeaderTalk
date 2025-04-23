@@ -1102,14 +1102,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if the user has already completed this situation
-      const [userProgress] = await db.select()
+      const [userProgressRecord] = await db.select()
         .from(userProgress)
         .where(eq(userProgress.situationId, situationId))
         .where(eq(userProgress.userId, req.session.userId));
       
       return res.json({
         ...situation,
-        userProgress: userProgress || null
+        userProgress: userProgressRecord || null
       });
     } catch (error) {
       console.error("Error fetching situation:", error);
