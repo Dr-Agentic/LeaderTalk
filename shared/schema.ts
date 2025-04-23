@@ -83,6 +83,18 @@ export const userProgress = pgTable("user_progress", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const situationAttempts = pgTable("situation_attempts", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  situationId: integer("situation_id").notNull(),
+  response: text("response").notNull(),
+  leadershipStyle: text("leadership_style"),
+  score: integer("score"),
+  feedback: text("feedback"),
+  evaluation: jsonb("evaluation").$type<AttemptEvaluation>(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Types for training module
 export type StyleResponses = {
   empathetic: string;
@@ -120,6 +132,16 @@ export type LeadershipInsight = {
   leaderId: number;
   leaderName: string;
   advice: string;
+};
+
+export type AttemptEvaluation = {
+  styleMatchScore: number;
+  clarity: number;
+  empathy: number;
+  persuasiveness: number;
+  strengths: string[];
+  weaknesses: string[];
+  improvement: string;
 };
 
 export const insertUserSchema = createInsertSchema(users).omit({
@@ -182,6 +204,18 @@ export const updateUserProgressSchema = createInsertSchema(userProgress).omit({
   createdAt: true,
 });
 
+export const insertSituationAttemptSchema = createInsertSchema(situationAttempts).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const updateSituationAttemptSchema = createInsertSchema(situationAttempts).omit({
+  id: true,
+  userId: true,
+  situationId: true,
+  createdAt: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type UpdateUser = z.infer<typeof updateUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -199,3 +233,6 @@ export type InsertModule = z.infer<typeof insertModuleSchema>;
 export type InsertSituation = z.infer<typeof insertSituationSchema>;
 export type InsertUserProgress = z.infer<typeof insertUserProgressSchema>;
 export type UpdateUserProgress = z.infer<typeof updateUserProgressSchema>;
+export type SituationAttempt = typeof situationAttempts.$inferSelect;
+export type InsertSituationAttempt = z.infer<typeof insertSituationAttemptSchema>;
+export type UpdateSituationAttempt = z.infer<typeof updateSituationAttemptSchema>;
