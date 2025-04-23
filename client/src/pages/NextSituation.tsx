@@ -28,7 +28,9 @@ interface NextSituation {
 
 export default function NextSituation() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const moduleId = searchParams.get('moduleId');
 
   // Fetch the next incomplete situation directly from JSON files
   const { data, isLoading: isDataLoading } = useQuery({
@@ -54,7 +56,10 @@ export default function NextSituation() {
   if (data?.completed) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <BackButton to="/training" label="Back to Training" />
+        <BackButton 
+          to={moduleId ? `/training/module/${moduleId}` : "/training"} 
+          label={moduleId ? "Back to Module" : "Back to Training"} 
+        />
         
         <div className="max-w-2xl mx-auto mt-10">
           <Card>
@@ -95,7 +100,10 @@ export default function NextSituation() {
     
     return (
       <div className="container mx-auto px-4 py-8">
-        <BackButton to="/training" label="Back to Training" />
+        <BackButton 
+          to={moduleId ? `/training/module/${moduleId}` : "/training"} 
+          label={moduleId ? "Back to Module" : "Back to Training"} 
+        />
         
         <div className="max-w-2xl mx-auto mt-10">
           <Card>
@@ -156,7 +164,10 @@ export default function NextSituation() {
   // Fallback if we have no data (should not happen)
   return (
     <div className="container mx-auto px-4 py-8">
-      <BackButton to="/training" label="Back to Training" />
+      <BackButton 
+        to={moduleId ? `/training/module/${moduleId}` : "/training"} 
+        label={moduleId ? "Back to Module" : "Back to Training"} 
+      />
       <div className="text-center mt-10">
         <p>Could not find the next training situation.</p>
         <Button onClick={() => navigate("/training")} className="mt-4">
