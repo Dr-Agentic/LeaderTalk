@@ -108,6 +108,13 @@ export default function SituationView() {
     queryFn: getQueryFn({ on401: "throw" }),
     enabled: !!situationId && isAuthenticated,
   });
+  
+  // Fetch attempts for this situation
+  const { data: attemptsData, isLoading: isAttemptsLoading } = useQuery({
+    queryKey: [`/api/training/situations/${situationId}/attempts`],
+    queryFn: getQueryFn({ on401: "throw" }),
+    enabled: !!situationId && isAuthenticated,
+  });
 
   // Mutation for submitting a response
   const submitResponse = useMutation({
@@ -120,6 +127,7 @@ export default function SituationView() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/training/situations/${situationId}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/training/situations/${situationId}/attempts`] });
       queryClient.invalidateQueries({ queryKey: ["/api/training/progress"] });
       queryClient.invalidateQueries({ queryKey: ["/api/training/next-situation"] });
       
@@ -202,7 +210,7 @@ export default function SituationView() {
   };
 
   // Handling loading states
-  const isLoading = authLoading || isSituationLoading;
+  const isLoading = authLoading || isSituationLoading || isAttemptsLoading;
 
   if (isLoading) {
     return <SituationViewSkeleton />;
@@ -366,6 +374,63 @@ export default function SituationView() {
             </Card>
           )}
 
+          {situation.userProgress && attemptsData?.attempts?.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Previous Attempts</CardTitle>
+                <CardDescription>
+                  Your history of attempts for this situation
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {attemptsData.attempts.slice(0, 3).map((attempt: Attempt) => (
+                  <div key={attempt.id} className="border rounded-md p-4 space-y-2">
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium capitalize">{attempt.leadershipStyle} Style</span>
+                        <span className="text-sm text-muted-foreground">
+                          {new Date(attempt.createdAt).toLocaleString()}
+                        </span>
+                      </div>
+                      <span className="font-semibold">Score: {attempt.score}/100</span>
+                    </div>
+                    
+                    <div className="text-sm">
+                      <p className="line-clamp-2">{attempt.response}</p>
+                    </div>
+
+                    <div className="grid grid-cols-4 gap-2 text-xs">
+                      <div className="flex flex-col items-center p-1 bg-muted rounded">
+                        <span>Style</span>
+                        <span className="font-semibold">{attempt.evaluation.styleMatchScore}%</span>
+                      </div>
+                      <div className="flex flex-col items-center p-1 bg-muted rounded">
+                        <span>Clarity</span>
+                        <span className="font-semibold">{attempt.evaluation.clarity}%</span>
+                      </div>
+                      <div className="flex flex-col items-center p-1 bg-muted rounded">
+                        <span>Empathy</span>
+                        <span className="font-semibold">{attempt.evaluation.empathy}%</span>
+                      </div>
+                      <div className="flex flex-col items-center p-1 bg-muted rounded">
+                        <span>Persuasion</span>
+                        <span className="font-semibold">{attempt.evaluation.persuasiveness}%</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                
+                {attemptsData.attempts.length > 3 && (
+                  <div className="text-center">
+                    <Button variant="link" size="sm">
+                      View all {attemptsData.attempts.length} attempts
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
           <Card>
             <CardHeader>
               <CardTitle>Example Responses</CardTitle>
@@ -452,26 +517,56 @@ function SituationViewSkeleton() {
           </div>
         </div>
 
-        <div className="border rounded-lg p-6 animate-pulse">
-          <div className="h-7 w-40 bg-muted rounded mb-2"></div>
-          <div className="h-5 w-60 bg-muted rounded mb-6"></div>
-          <div className="h-10 w-full bg-muted rounded mb-6"></div>
+        <div className="space-y-6">
+          <div className="border rounded-lg p-6 animate-pulse">
+            <div className="h-7 w-40 bg-muted rounded mb-2"></div>
+            <div className="h-5 w-60 bg-muted rounded mb-6"></div>
+            <div className="h-24 w-full bg-muted rounded mb-4"></div>
+          </div>
           
-          <div className="space-y-4">
-            <div>
-              <div className="h-6 w-40 bg-muted rounded mb-2"></div>
-              <div className="h-24 w-full bg-muted rounded"></div>
-            </div>
+          {/* Previous attempts skeleton */}
+          <div className="border rounded-lg p-6 animate-pulse">
+            <div className="h-7 w-48 bg-muted rounded mb-2"></div>
+            <div className="h-5 w-64 bg-muted rounded mb-6"></div>
             
-            <div>
-              <div className="h-6 w-40 bg-muted rounded mb-2"></div>
-              <div className="h-24 w-full bg-muted rounded"></div>
+            <div className="space-y-4">
+              {/* Attempt 1 */}
+              <div className="border rounded-md p-4 space-y-2">
+                <div className="flex justify-between">
+                  <div className="h-5 w-40 bg-muted rounded"></div>
+                  <div className="h-5 w-24 bg-muted rounded"></div>
+                </div>
+                <div className="h-4 w-full bg-muted rounded"></div>
+                <div className="grid grid-cols-4 gap-2">
+                  <div className="h-10 bg-muted rounded"></div>
+                  <div className="h-10 bg-muted rounded"></div>
+                  <div className="h-10 bg-muted rounded"></div>
+                  <div className="h-10 bg-muted rounded"></div>
+                </div>
+              </div>
+              
+              {/* Attempt 2 */}
+              <div className="border rounded-md p-4 space-y-2">
+                <div className="flex justify-between">
+                  <div className="h-5 w-40 bg-muted rounded"></div>
+                  <div className="h-5 w-24 bg-muted rounded"></div>
+                </div>
+                <div className="h-4 w-full bg-muted rounded"></div>
+                <div className="grid grid-cols-4 gap-2">
+                  <div className="h-10 bg-muted rounded"></div>
+                  <div className="h-10 bg-muted rounded"></div>
+                  <div className="h-10 bg-muted rounded"></div>
+                  <div className="h-10 bg-muted rounded"></div>
+                </div>
+              </div>
             </div>
-            
-            <div>
-              <div className="h-6 w-40 bg-muted rounded mb-2"></div>
-              <div className="h-24 w-full bg-muted rounded"></div>
-            </div>
+          </div>
+          
+          {/* Example responses skeleton */}
+          <div className="border rounded-lg p-6 animate-pulse">
+            <div className="h-7 w-40 bg-muted rounded mb-2"></div>
+            <div className="h-5 w-60 bg-muted rounded mb-6"></div>
+            <div className="h-10 w-full bg-muted rounded mb-6"></div>
           </div>
         </div>
       </div>
