@@ -1215,7 +1215,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         order: foundSituation.order || 1,
         context: foundSituation.context || null,
         // Only include user progress if it matches this situation ID
-        userProgress: userProgressForThisSituation,
+        userProgress: userProgressForThisSituation, 
         // Add module and chapter context
         module: {
           id: foundModule.id,
@@ -1227,8 +1227,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: chapterId,
           title: `Chapter ${chapterId}`
         },
-        // Add user progress
-        userProgress: userProgressRecord || null,
         attempts: attempts || []
       });
     } catch (error) {
