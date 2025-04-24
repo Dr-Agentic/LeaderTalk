@@ -185,15 +185,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Debug endpoint to check session status
   app.get("/api/debug/session", (req, res) => {
-    // Don't expose the full session contents in production
+    const sessionId = req.session?.id || "";
+    const userId = req.session?.userId || null;
+    const isLoggedIn = !!req.session?.userId;
+    const sessionExists = !!req.session?.id;
+    
+    // Enhanced session debug info (without exposing sensitive data)
     const debug = {
-      sessionExists: !!req.session,
-      sessionId: req.session?.id || null,
-      isLoggedIn: !!req.session?.userId,
-      userId: req.session?.userId || null,
+      sessionExists,
+      sessionId: sessionId ? sessionId.substring(0, 7) + "…" : null,
+      userId,
+      isLoggedIn,
+      cookiePresent: !!req.headers.cookie?.includes('leadertalk.sid'),
+      sessionAge: req.session?.cookie?.maxAge || null,
       cookieExists: !!req.headers.cookie,
-      cookieHeader: req.headers.cookie || null
+      cookieHeader: req.headers.cookie ? 
+        req.headers.cookie.substring(0, 20) + "…" : null // Only show part of cookie header
     };
+    
+    // Log on server side for debugging
+    console.log("Session check:", {
+      ...debug,
+      fullSessionId: req.session?.id,
+      sessionData: req.session
+    });
     
     return res.json(debug);
   });
