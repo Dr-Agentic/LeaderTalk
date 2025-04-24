@@ -1769,6 +1769,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Endpoint to get user's word usage statistics for billing
+  app.get("/api/usage/words", requireAuth, async (req, res) => {
+    try {
+      // Get current month's usage
+      const currentUsage = await storage.getCurrentMonthWordUsage(req.session.userId!);
+      
+      // Get all historical usage data
+      const usageHistory = await storage.getUserWordUsage(req.session.userId!);
+      
+      return res.json({
+        currentMonthUsage: currentUsage,
+        history: usageHistory
+      });
+    } catch (error) {
+      console.error("Error fetching word usage statistics:", error);
+      return res.status(500).json({ message: "Failed to retrieve word usage data" });
+    }
+  });
+  
   const httpServer = createServer(app);
   return httpServer;
 }
