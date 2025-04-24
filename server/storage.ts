@@ -242,6 +242,7 @@ export class MemStorage implements IStorage {
     const newUsage: UserWordUsage = {
       ...usage,
       id,
+      wordCount: usage.wordCount || 0, // Ensure wordCount is not undefined
       createdAt: now,
       updatedAt: now
     };
@@ -253,7 +254,11 @@ export class MemStorage implements IStorage {
     const usage = this.wordUsages.get(id);
     if (!usage) return undefined;
     
-    const updatedUsage: UserWordUsage = { ...usage, ...data };
+    const updatedUsage: UserWordUsage = { 
+      ...usage, 
+      ...data,
+      updatedAt: new Date() 
+    };
     this.wordUsages.set(id, updatedUsage);
     return updatedUsage;
   }
