@@ -183,6 +183,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // *** User routes ***
   
+  // Debug endpoint to check session status
+  app.get("/api/debug/session", (req, res) => {
+    // Don't expose the full session contents in production
+    const debug = {
+      sessionExists: !!req.session,
+      sessionId: req.session?.id || null,
+      isLoggedIn: !!req.session?.userId,
+      userId: req.session?.userId || null,
+      cookieExists: !!req.headers.cookie,
+      cookieHeader: req.headers.cookie || null
+    };
+    
+    return res.json(debug);
+  });
+  
   // Enhanced logout route with guaranteed session termination
   app.get("/api/auth/logout", (req, res, next) => {
     console.log("Logout request received, preparing to destroy session");
