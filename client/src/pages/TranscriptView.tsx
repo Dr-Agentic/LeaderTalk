@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { AnalysisInstance, Recording, AnalysisResult } from "../../../shared/schema";
 import { useAuth } from "../hooks/useAuth";
+import { useToast } from "../hooks/use-toast";
 import { getQueryFn } from "../lib/queryClient";
 
 // Type for query data from API
