@@ -1713,6 +1713,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint to get a leader's alternative text for a negative communication moment
+  app.post("/api/leader-alternative", requireAuth, async (req, res) => {
+    try {
+      // Validate request body
+      const schema = z.object({
+        leaderId: z.number(),
+        originalText: z.string().min(1).max(1000)
+      });
+      
+      const validation = schema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({ 
+          message: "Invalid request body", 
+          errors: validation.error.flatten().fieldErrors 
+        });
+      }
+      
+      const { leaderId, originalText } = validation.data;
+      
+      // Check if the leader exists
+      const leader = await storage.getLeader(leaderId);
+      if (!leader) {
+        return res.status(404).json({ message: "Leader not found" });
+      }
+      
+      // First check if we already have a cached alternative for this leader and text
+      let alternative = await storage.getLeaderAlternative(leaderId, originalText);
+      
+      // If not found, generate a new one
+      if (!alternative) {
+        try {
+          const alternativeText = await generateLeaderAlternative(leaderId, originalText, leader);
+          alternative = await storage.createLeaderAlternative({
+            leaderId,
+            originalText,
+            alternativeText
+          });
+        } catch (genError) {
+          console.error("Error generating leader alternative:", genError);
+          return res.status(500).json({ 
+            message: "Failed to generate leader alternative",
+            error: genError instanceof Error ? genError.message : "Unknown error"
+          });
+        }
+      }
+      
+      return res.json({
+        success: true,
+        alternative
+      });
+    } catch (error) {
+      console.error("Error in leader alternative endpoint:", error);
+      return res.status(500).json({ message: "Server error processing request" });
+    }
+  });
+  
   const httpServer = createServer(app);
   return httpServer;
 }

@@ -256,37 +256,71 @@ function AnalysisInstancesList({
 }: AnalysisInstancesListProps) {
   const [activeInstance, setActiveInstance] = useState<number | null>(null);
   const [activeLeader, setActiveLeader] = useState<number | null>(null);
+  const [leaderAlternatives, setLeaderAlternatives] = useState<{[key: string]: string}>({});
+  const [loading, setLoading] = useState<{[key: string]: boolean}>({});
+  const { toast } = useToast();
   
-  // Helper function to generate leader suggestions for negative moments
-  const generateLeaderSuggestion = (instance: AnalysisInstance, leaderId: number, leaderName: string) => {
-    // Get leader's communication style
-    const leader = selectedLeaders.find(l => l.id === leaderId);
-    const traits = leader?.traits || [];
-    const styles = leader?.leadershipStyles || [];
+  // Function to fetch the leader's alternative text from the API
+  const fetchLeaderAlternative = async (instance: AnalysisInstance, leaderId: number) => {
+    const cacheKey = `${leaderId}:${instance.text}`;
     
-    // Choose a style for the leader
-    let style = "";
-    if (styles.includes("Empathetic")) {
-      style = "an empathetic";
-    } else if (styles.includes("Inspirational")) {
-      style = "an inspirational";
-    } else if (styles.includes("Commanding")) {
-      style = "a commanding";
-    } else {
-      style = "a diplomatic";
+    // If we already have this alternative or are loading it, don't fetch again
+    if (leaderAlternatives[cacheKey] || loading[cacheKey]) {
+      return;
     }
     
-    // Get key traits if available
-    const traitPhrase = traits.length > 0 
-      ? ` with a focus on ${traits.slice(0, 2).join(" and ")}` 
-      : "";
+    try {
+      // Mark this combination as loading
+      setLoading(prev => ({ ...prev, [cacheKey]: true }));
+      
+      // Make the API request
+      const response = await fetch('/api/leader-alternative', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          leaderId,
+          originalText: instance.text
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch alternative: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      
+      // Save the alternative text
+      setLeaderAlternatives(prev => ({ 
+        ...prev, 
+        [cacheKey]: data.alternative.alternativeText 
+      }));
+    } catch (error) {
+      console.error('Error fetching leader alternative:', error);
+      toast({
+        title: "Error",
+        description: `Could not load alternative text: ${error instanceof Error ? error.message : "Unknown error"}`,
+        variant: "destructive"
+      });
+    } finally {
+      // Mark as no longer loading
+      setLoading(prev => ({ ...prev, [cacheKey]: false }));
+    }
+  };
+  
+  // Function to get the alternative text (either cached or placeholder)
+  const getLeaderAlternative = (instance: AnalysisInstance, leaderId: number) => {
+    const cacheKey = `${leaderId}:${instance.text}`;
     
-    // Return the personalized suggestion
-    return `If I were ${leaderName}, I would use ${style} approach${traitPhrase}:
+    // If we have the alternative text cached, return it
+    if (leaderAlternatives[cacheKey]) {
+      return leaderAlternatives[cacheKey];
+    }
     
-"${instance.text.replace(/^\w/, c => c.toUpperCase())}" could be rephrased as:
-    
-"I understand the concerns here. Let me address this more effectively by focusing on the key objectives and ensuring everyone feels valued in this process."`;
+    // Otherwise, load it and return a placeholder
+    fetchLeaderAlternative(instance, leaderId);
+    return loading[cacheKey] ? "Loading alternative response..." : "Click to load alternative response";
   };
   
   if (!instances.length) {
@@ -356,11 +390,7 @@ function AnalysisInstancesList({
                     {selectedLeaders.find(l => l.id === activeLeader)?.name}'s Approach:
                   </p>
                   <p className="text-sm whitespace-pre-line text-blue-900">
-                    {generateLeaderSuggestion(
-                      instance, 
-                      activeLeader, 
-                      selectedLeaders.find(l => l.id === activeLeader)?.name || "Leader"
-                    )}
+                    {getLeaderAlternative(instance, activeLeader)}
                   </p>
                 </div>
               )}
