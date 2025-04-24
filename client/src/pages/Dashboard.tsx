@@ -4,6 +4,7 @@ import Sidebar from "@/components/Sidebar";
 import MobileHeader from "@/components/MobileHeader";
 import QuickActions from "@/components/dashboard/QuickActions";
 import AnalysisDisplay from "@/components/dashboard/AnalysisDisplay";
+import WordUsageStats from "@/components/dashboard/WordUsageStats";
 import RecordingSection from "@/components/RecordingSection";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -64,6 +65,9 @@ export default function Dashboard() {
                     weeklyImprovement={calculateWeeklyImprovement(recordingsData)}
                   />
                   
+                  {/* Word usage stats for billing */}
+                  <WordUsageStats />
+                  
                   {lastRecording && lastRecording.analysisResult && (
                     <AnalysisDisplay 
                       recording={lastRecording}
@@ -78,8 +82,9 @@ export default function Dashboard() {
                         description: `Your recording "${recording.title}" is being analyzed.`,
                       });
                       
-                      // Force a refetch of recordings
+                      // Force a refetch of recordings and word usage data
                       queryClient.invalidateQueries({ queryKey: ['/api/recordings'] });
+                      queryClient.invalidateQueries({ queryKey: ['/api/usage/words'] });
                     }}
                   />
                 </>
@@ -101,8 +106,13 @@ function DashboardSkeleton() {
         ))}
       </div>
       
+      {/* Word usage skeleton */}
+      <Skeleton className="h-60 rounded-lg" />
+      
+      {/* Analysis display skeleton */}
       <Skeleton className="h-96 rounded-lg" />
       
+      {/* Recording section skeleton */}
       <Skeleton className="h-72 rounded-lg" />
     </div>
   );
