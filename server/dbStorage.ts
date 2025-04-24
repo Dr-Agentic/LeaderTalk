@@ -3,6 +3,7 @@ import {
   users, User, InsertUser, UpdateUser,
   leaders, Leader, InsertLeader,
   recordings, Recording, InsertRecording, UpdateRecording,
+  leaderAlternatives, LeaderAlternative, InsertLeaderAlternative,
   AnalysisResult
 } from '@shared/schema';
 import { eq, and, desc } from 'drizzle-orm';
@@ -98,6 +99,32 @@ export class DatabaseStorage implements IStorage {
       .returning();
     
     return result[0];
+  }
+
+  // Leader alternatives operations
+  async getLeaderAlternative(leaderId: number, originalText: string): Promise<LeaderAlternative | undefined> {
+    const result = await db.select()
+      .from(leaderAlternatives)
+      .where(
+        and(
+          eq(leaderAlternatives.leaderId, leaderId),
+          eq(leaderAlternatives.originalText, originalText)
+        )
+      );
+    return result[0];
+  }
+
+  async createLeaderAlternative(alternative: InsertLeaderAlternative): Promise<LeaderAlternative> {
+    const result = await db.insert(leaderAlternatives)
+      .values(alternative)
+      .returning();
+    return result[0];
+  }
+
+  async getLeaderAlternatives(leaderId: number): Promise<LeaderAlternative[]> {
+    return db.select()
+      .from(leaderAlternatives)
+      .where(eq(leaderAlternatives.leaderId, leaderId));
   }
 
   // Initialize default leaders if none exist

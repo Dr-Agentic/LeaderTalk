@@ -1,8 +1,9 @@
 import { 
-  users, leaders, recordings, 
+  users, leaders, recordings, leaderAlternatives,
   type User, type InsertUser, type UpdateUser,
   type Leader, type InsertLeader,
   type Recording, type InsertRecording, type UpdateRecording,
+  type LeaderAlternative, type InsertLeaderAlternative,
   type AnalysisResult
 } from "@shared/schema";
 
@@ -25,6 +26,11 @@ export interface IStorage {
   createRecording(recording: InsertRecording): Promise<Recording>;
   updateRecording(id: number, data: UpdateRecording): Promise<Recording | undefined>;
   updateRecordingAnalysis(id: number, transcription: string, analysisResult: AnalysisResult): Promise<Recording | undefined>;
+  
+  // Leader alternatives operations
+  getLeaderAlternative(leaderId: number, originalText: string): Promise<LeaderAlternative | undefined>;
+  createLeaderAlternative(alternative: InsertLeaderAlternative): Promise<LeaderAlternative>;
+  getLeaderAlternatives(leaderId: number): Promise<LeaderAlternative[]>;
 }
 
 export class MemStorage implements IStorage {

@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, jsonb, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, jsonb, timestamp, primaryKey } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -92,6 +92,15 @@ export const situationAttempts = pgTable("situation_attempts", {
   score: integer("score"),
   feedback: text("feedback"),
   evaluation: jsonb("evaluation").$type<AttemptEvaluation>(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Table to store leader-specific alternative responses for negative moments
+export const leaderAlternatives = pgTable("leader_alternatives", {
+  id: serial("id").primaryKey(),
+  leaderId: integer("leader_id").notNull(),
+  originalText: text("original_text").notNull(),
+  alternativeText: text("alternative_text").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -216,6 +225,11 @@ export const updateSituationAttemptSchema = createInsertSchema(situationAttempts
   createdAt: true,
 });
 
+export const insertLeaderAlternativeSchema = createInsertSchema(leaderAlternatives).omit({
+  id: true,
+  createdAt: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type UpdateUser = z.infer<typeof updateUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -236,3 +250,5 @@ export type UpdateUserProgress = z.infer<typeof updateUserProgressSchema>;
 export type SituationAttempt = typeof situationAttempts.$inferSelect;
 export type InsertSituationAttempt = z.infer<typeof insertSituationAttemptSchema>;
 export type UpdateSituationAttempt = z.infer<typeof updateSituationAttemptSchema>;
+export type LeaderAlternative = typeof leaderAlternatives.$inferSelect;
+export type InsertLeaderAlternative = z.infer<typeof insertLeaderAlternativeSchema>;
