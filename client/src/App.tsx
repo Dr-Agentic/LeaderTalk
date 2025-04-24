@@ -1,5 +1,5 @@
 import { Switch, Route } from "wouter";
-import { queryClient } from "./lib/queryClient";
+import { queryClient, checkSession } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -26,27 +26,48 @@ function Router() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        // First check session status through our debug endpoint
+        const isLoggedIn = await checkSession();
+
         if (window.location.pathname === "/login" || window.location.pathname === "/") {
-          // Skip auth check if we're already on login page to prevent redirect loops
-          if (!isAuthenticated) {
+          // Skip further checks if we're already on login page to prevent redirect loops
+          if (!isLoggedIn) {
+            console.log("On login page, session check shows not logged in");
+            setIsAuthenticated(false);
             setLoading(false);
             return;
           }
         }
+
+        if (!isLoggedIn) {
+          console.log("Session check shows not logged in");
+          setIsAuthenticated(false);
+          setOnboardingComplete(false);
+          setLoading(false);
+          return;
+        }
         
-        // Try to fetch the current user
-        const res = await apiRequest('GET', '/api/users/me');
-        
-        if (res.ok) {
-          setIsAuthenticated(true);
-          const userData = await res.json();
+        // Session looks good, get user details
+        console.log("Session check successful, fetching user details");
+        try {
+          // Try to fetch the current user
+          const res = await apiRequest('GET', '/api/users/me');
           
-          // Check if onboarding is complete
-          setOnboardingComplete(
-            !!(userData.dateOfBirth && userData.profession && userData.goals && userData.selectedLeaders)
-          );
-        } else {
-          console.log("Unauthorized access, redirecting to login...");
+          if (res.ok) {
+            setIsAuthenticated(true);
+            const userData = await res.json();
+            
+            // Check if onboarding is complete
+            setOnboardingComplete(
+              !!(userData.dateOfBirth && userData.profession && userData.goals && userData.selectedLeaders)
+            );
+          } else {
+            console.log("User fetch failed despite active session");
+            setIsAuthenticated(false);
+            setOnboardingComplete(false);
+          }
+        } catch (userError) {
+          console.error("User fetch error:", userError);
           setIsAuthenticated(false);
           setOnboardingComplete(false);
         }

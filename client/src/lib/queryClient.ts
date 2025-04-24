@@ -1,5 +1,26 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
+// Session state to track auth state
+let sessionChecked = false;
+let currentSessionId = '';
+let currentUserId: number | null = null;
+
+export async function checkSession(): Promise<boolean> {
+  try {
+    const response = await fetch('/api/debug/session');
+    const data = await response.json();
+    
+    sessionChecked = true;
+    currentSessionId = data.sessionId || '';
+    currentUserId = data.userId;
+    
+    return data.isLoggedIn;
+  } catch (error) {
+    console.error("Auth check error:", error);
+    return false;
+  }
+}
+
 async function throwIfResNotOk(res: Response) {
   // Consider 302 to be "ok" if it contains redirection information
   if (res.status === 302) {
@@ -58,19 +79,39 @@ export const getQueryFn: <T>(options: {
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
     try {
+      // If we're accessing authenticated resources, check session first
+      const url = queryKey[0] as string;
+      if (url.includes('/api/') && !url.includes('/api/auth/') && !sessionChecked) {
+        console.log("Checking session before API call...");
+        const isLoggedIn = await checkSession();
+        
+        if (!isLoggedIn) {
+          console.log("Not logged in, redirecting to login page");
+          window.location.href = '/login';
+          return null;
+        }
+        console.log("Session check successful, proceeding with API call");
+      }
+      
       const res = await fetch(queryKey[0] as string, {
         credentials: "include",
       });
 
       // Check for 401 (unauthorized) status
       if (res.status === 401) {
-        // If it's an API route, redirect to login page unless it's the login API itself
-        const url = queryKey[0] as string;
+        // If it's an API route, check session again and redirect to login if needed
         if (url.includes('/api/') && !url.includes('/api/auth/')) {
-          console.log("Unauthorized access to API, redirecting to login page");
-          // Use wouter's navigate for cleaner redirect if possible, but fallback to location
-          window.location.href = '/login';
-          return null;
+          console.log("Received 401, checking session again...");
+          const isLoggedIn = await checkSession();
+          
+          if (!isLoggedIn) {
+            console.log("Session expired, redirecting to login page");
+            window.location.href = '/login';
+            return null;
+          } else {
+            console.log("Session valid but got 401 - session mismatch or server error");
+            throw new Error("Session error - please try refreshing the page");
+          }
         }
         
         // Handle based on behavior option
