@@ -35,6 +35,7 @@ export const recordings = pgTable("recordings", {
   userId: integer("user_id").notNull(),
   title: text("title").notNull(),
   duration: integer("duration").notNull(),
+  wordCount: integer("word_count").default(0),
   recordedAt: timestamp("recorded_at").defaultNow().notNull(),
   status: text("status").notNull().default("processing"),
   transcription: text("transcription"),
@@ -102,6 +103,17 @@ export const leaderAlternatives = pgTable("leader_alternatives", {
   originalText: text("original_text").notNull(),
   alternativeText: text("alternative_text").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Table to track monthly word usage for billing purposes
+export const userWordUsage = pgTable("user_word_usage", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  year: integer("year").notNull(),
+  month: integer("month").notNull(), // 1-12
+  wordCount: integer("word_count").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 // Types for training module
@@ -230,6 +242,21 @@ export const insertLeaderAlternativeSchema = createInsertSchema(leaderAlternativ
   createdAt: true,
 });
 
+export const insertUserWordUsageSchema = createInsertSchema(userWordUsage).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateUserWordUsageSchema = createInsertSchema(userWordUsage).omit({
+  id: true,
+  userId: true,
+  year: true,
+  month: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type UpdateUser = z.infer<typeof updateUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -252,3 +279,6 @@ export type InsertSituationAttempt = z.infer<typeof insertSituationAttemptSchema
 export type UpdateSituationAttempt = z.infer<typeof updateSituationAttemptSchema>;
 export type LeaderAlternative = typeof leaderAlternatives.$inferSelect;
 export type InsertLeaderAlternative = z.infer<typeof insertLeaderAlternativeSchema>;
+export type UserWordUsage = typeof userWordUsage.$inferSelect;
+export type InsertUserWordUsage = z.infer<typeof insertUserWordUsageSchema>;
+export type UpdateUserWordUsage = z.infer<typeof updateUserWordUsageSchema>;
