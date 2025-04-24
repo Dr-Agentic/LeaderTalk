@@ -4,7 +4,6 @@ import Sidebar from "@/components/Sidebar";
 import MobileHeader from "@/components/MobileHeader";
 import QuickActions from "@/components/dashboard/QuickActions";
 import AnalysisDisplay from "@/components/dashboard/AnalysisDisplay";
-import WordUsageStats from "@/components/dashboard/WordUsageStats";
 import RecordingSection from "@/components/RecordingSection";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -65,9 +64,6 @@ export default function Dashboard() {
                     weeklyImprovement={calculateWeeklyImprovement(recordingsData)}
                   />
                   
-                  {/* Word usage stats for billing */}
-                  <WordUsageStats />
-                  
                   {lastRecording && lastRecording.analysisResult && (
                     <AnalysisDisplay 
                       recording={lastRecording}
@@ -105,9 +101,6 @@ function DashboardSkeleton() {
           <Skeleton key={i} className="h-48 rounded-lg" />
         ))}
       </div>
-      
-      {/* Word usage skeleton */}
-      <Skeleton className="h-60 rounded-lg" />
       
       {/* Analysis display skeleton */}
       <Skeleton className="h-96 rounded-lg" />

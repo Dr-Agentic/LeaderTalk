@@ -8,6 +8,7 @@ import LeaderSelection from "@/components/onboarding/LeaderSelection";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BackButton } from "@/components/BackButton";
 import { useToast } from "@/hooks/use-toast";
+import WordUsageStats from "@/components/dashboard/WordUsageStats";
 
 export default function Settings() {
   const { userData } = useAuth();
@@ -46,42 +47,47 @@ export default function Settings() {
         </TabsContent>
         
         <TabsContent value="account">
-          <Card>
-            <CardHeader>
-              <CardTitle>Account Information</CardTitle>
-              <CardDescription>Manage your account details and preferences</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500">NAME</h3>
-                    <p className="mt-1 text-sm text-gray-900">{userData?.username || 'Not set'}</p>
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Account Information</CardTitle>
+                <CardDescription>Manage your account details and preferences</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">NAME</h3>
+                      <p className="mt-1 text-sm text-gray-900">{userData?.username || 'Not set'}</p>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">EMAIL</h3>
+                      <p className="mt-1 text-sm text-gray-900">{userData?.email || 'Not set'}</p>
+                    </div>
                   </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">DATE OF BIRTH</h3>
+                      <p className="mt-1 text-sm text-gray-900">{userData?.dateOfBirth || 'Not set'}</p>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">PROFESSION</h3>
+                      <p className="mt-1 text-sm text-gray-900">{userData?.profession || 'Not set'}</p>
+                    </div>
+                  </div>
+                  
                   <div>
-                    <h3 className="text-sm font-medium text-gray-500">EMAIL</h3>
-                    <p className="mt-1 text-sm text-gray-900">{userData?.email || 'Not set'}</p>
+                    <h3 className="text-sm font-medium text-gray-500">GOALS</h3>
+                    <p className="mt-1 text-sm text-gray-900">{userData?.goals || 'Not set'}</p>
                   </div>
                 </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500">DATE OF BIRTH</h3>
-                    <p className="mt-1 text-sm text-gray-900">{userData?.dateOfBirth || 'Not set'}</p>
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500">PROFESSION</h3>
-                    <p className="mt-1 text-sm text-gray-900">{userData?.profession || 'Not set'}</p>
-                  </div>
-                </div>
-                
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">GOALS</h3>
-                  <p className="mt-1 text-sm text-gray-900">{userData?.goals || 'Not set'}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+            
+            {/* Word usage stats for billing */}
+            <WordUsageStats />
+          </div>
         </TabsContent>
       </Tabs>
     </div>
