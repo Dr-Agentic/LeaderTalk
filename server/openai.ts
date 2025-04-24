@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import fs from "fs";
 import { Leader, Recording, AnalysisResult } from "@shared/schema";
+import { storage } from "./storage";
 
 // The newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -89,6 +90,101 @@ function createDefaultAnalysis(reason: string): AnalysisResult {
     passiveInstances: [],
     leadershipInsights: [],
   };
+}
+
+/**
+ * Generates an alternative phrase for a negative communication moment based on a leader's style
+ * and caches the result for future use.
+ * 
+ * @param leaderId The ID of the leader to emulate
+ * @param originalText The negative communication text to transform
+ * @param leaderInfo Optional leader details to avoid extra database lookups
+ * @returns The alternative text in the leader's style
+ */
+export async function generateLeaderAlternative(
+  leaderId: number,
+  originalText: string,
+  leaderInfo?: Leader
+): Promise<string> {
+  try {
+    // Check if we already have a cached version
+    const existingAlternative = await storage.getLeaderAlternative(leaderId, originalText);
+    if (existingAlternative) {
+      console.log(`Found cached leader alternative for leader ${leaderId} and text "${originalText.substring(0, 20)}..."`);
+      return existingAlternative.alternativeText;
+    }
+    
+    // If not cached, we need to generate a new one
+    console.log(`Generating new leader alternative for leader ${leaderId} and text "${originalText.substring(0, 20)}..."`);
+    
+    // Get leader info if not provided
+    const leader = leaderInfo || await storage.getLeader(leaderId);
+    if (!leader) {
+      throw new Error(`Leader with ID ${leaderId} not found`);
+    }
+    
+    // Check if OpenAI API key is available
+    if (!process.env.OPENAI_API_KEY) {
+      console.error("Missing OPENAI_API_KEY environment variable");
+      return `[Alternative response could not be generated - API key missing]`;
+    }
+    
+    // Build a prompt for the leader's style
+    let leadershipStyles = "";
+    if (leader.leadershipStyles && leader.leadershipStyles.length > 0) {
+      leadershipStyles = leader.leadershipStyles.join(", ");
+    }
+    
+    let leaderTraits = "";
+    if (leader.traits && leader.traits.length > 0) {
+      leaderTraits = leader.traits.join(", ");
+    }
+    
+    // Create a prompt that asks OpenAI to generate an alternative
+    const prompt = `
+      You are ${leader.name}, a leader known for ${leader.description}.
+      
+      Your leadership style is characterized as: ${leadershipStyles || "balanced and effective"}
+      Your key traits are: ${leaderTraits || "effective communication, empathy, and clarity"}
+      
+      You need to rephrase the following negative communication in your authentic voice and style:
+      
+      "${originalText}"
+      
+      Rewrite this text to reflect how you would express the same core message but in a more effective, 
+      leadership-oriented way. Keep your response brief (25-50 words), focused, and in your characteristic style.
+      Don't introduce yourself or explain - just provide the rephrased text as you would say it.
+    `;
+    
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: `You are emulating the communication style of ${leader.name}. Respond as if you are this person, staying true to their known communication patterns, vocabulary, and tone.`,
+        },
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+      max_tokens: 150, // Keep it concise
+    });
+    
+    const alternativeText = response.choices[0].message.content.trim();
+    
+    // Store in database for future use
+    await storage.createLeaderAlternative({
+      leaderId,
+      originalText,
+      alternativeText
+    });
+    
+    return alternativeText;
+  } catch (error) {
+    console.error("Error generating leader alternative:", error);
+    return `[Error generating alternative - ${error instanceof Error ? error.message : "unknown error"}]`;
+  }
 }
 
 async function transcribeAudio(audioPath: string): Promise<string> {

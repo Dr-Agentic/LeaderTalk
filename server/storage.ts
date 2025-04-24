@@ -37,19 +37,23 @@ export class MemStorage implements IStorage {
   private users: Map<number, User>;
   private leaders: Map<number, Leader>;
   private recordings: Map<number, Recording>;
+  private leaderAlternatives: Map<string, LeaderAlternative>;
   
   private userIdCounter: number;
   private leaderIdCounter: number;
   private recordingIdCounter: number;
+  private leaderAlternativeIdCounter: number;
 
   constructor() {
     this.users = new Map();
     this.leaders = new Map();
     this.recordings = new Map();
+    this.leaderAlternatives = new Map();
     
     this.userIdCounter = 1;
     this.leaderIdCounter = 1;
     this.recordingIdCounter = 1;
+    this.leaderAlternativeIdCounter = 1;
     
     // Initialize with some default leaders
     this.initDefaultLeaders();
@@ -177,6 +181,29 @@ export class MemStorage implements IStorage {
     };
     this.recordings.set(id, updatedRecording);
     return updatedRecording;
+  }
+  
+  // Leader alternatives operations
+  async getLeaderAlternative(leaderId: number, originalText: string): Promise<LeaderAlternative | undefined> {
+    const key = `${leaderId}:${originalText}`;
+    return this.leaderAlternatives.get(key);
+  }
+  
+  async createLeaderAlternative(alternative: InsertLeaderAlternative): Promise<LeaderAlternative> {
+    const id = this.leaderAlternativeIdCounter++;
+    const key = `${alternative.leaderId}:${alternative.originalText}`;
+    const newAlternative: LeaderAlternative = { 
+      ...alternative, 
+      id, 
+      createdAt: new Date() 
+    };
+    this.leaderAlternatives.set(key, newAlternative);
+    return newAlternative;
+  }
+  
+  async getLeaderAlternatives(leaderId: number): Promise<LeaderAlternative[]> {
+    return Array.from(this.leaderAlternatives.values())
+      .filter(alt => alt.leaderId === leaderId);
   }
 }
 

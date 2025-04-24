@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import { db } from "./db";
 import session from "express-session";
 import MemoryStore from "memorystore";
-import { transcribeAndAnalyzeAudio } from "./openai";
+import { transcribeAndAnalyzeAudio, generateLeaderAlternative } from "./openai";
 import multer from "multer";
 import fs from "fs";
 import path from "path";
