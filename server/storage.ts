@@ -1,9 +1,10 @@
 import { 
-  users, leaders, recordings, leaderAlternatives,
+  users, leaders, recordings, leaderAlternatives, userWordUsage,
   type User, type InsertUser, type UpdateUser,
   type Leader, type InsertLeader,
   type Recording, type InsertRecording, type UpdateRecording,
   type LeaderAlternative, type InsertLeaderAlternative,
+  type UserWordUsage, type InsertUserWordUsage, type UpdateUserWordUsage,
   type AnalysisResult
 } from "@shared/schema";
 
@@ -31,6 +32,13 @@ export interface IStorage {
   getLeaderAlternative(leaderId: number, originalText: string): Promise<LeaderAlternative | undefined>;
   createLeaderAlternative(alternative: InsertLeaderAlternative): Promise<LeaderAlternative>;
   getLeaderAlternatives(leaderId: number): Promise<LeaderAlternative[]>;
+  
+  // Word usage tracking operations
+  getUserWordUsage(userId: number): Promise<UserWordUsage[]>;
+  getUserWordUsageForMonth(userId: number, year: number, month: number): Promise<UserWordUsage | undefined>;
+  createUserWordUsage(usage: InsertUserWordUsage): Promise<UserWordUsage>;
+  updateUserWordUsage(id: number, data: UpdateUserWordUsage): Promise<UserWordUsage | undefined>;
+  getCurrentMonthWordUsage(userId: number): Promise<number>;
 }
 
 export class MemStorage implements IStorage {

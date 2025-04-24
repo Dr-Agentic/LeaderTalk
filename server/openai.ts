@@ -42,6 +42,17 @@ export async function transcribeAndAnalyzeAudio(
           analysis: createDefaultAnalysis("No speech detected in the recording. Please ensure your microphone is working properly.")
         };
       }
+      
+      // Count words in the transcription
+      const wordCount = countWords(transcription);
+      console.log(`Word count in transcription: ${wordCount}`);
+      
+      // Update the recording with the word count
+      await storage.updateRecording(recording.id, { wordCount });
+      
+      // Update the monthly usage for the user
+      await updateUserWordUsage(recording.userId, wordCount);
+      
     } catch (transcriptError) {
       console.error("Error transcribing audio:", transcriptError);
       return {
@@ -67,6 +78,47 @@ export async function transcribeAndAnalyzeAudio(
       transcription: "Processing error",
       analysis: createDefaultAnalysis("An unexpected error occurred while processing your recording.")
     };
+  }
+}
+
+// Function to count words in a text string
+function countWords(text: string): number {
+  if (!text || typeof text !== 'string') return 0;
+  
+  // Remove extra whitespace and split by spaces
+  const words = text.trim().split(/\s+/);
+  return words.filter(word => word.length > 0).length;
+}
+
+// Function to update the user's monthly word usage
+async function updateUserWordUsage(userId: number, wordCount: number): Promise<void> {
+  try {
+    // Get the current date in UTC
+    const now = new Date();
+    const year = now.getUTCFullYear();
+    const month = now.getUTCMonth() + 1; // JavaScript months are 0-indexed
+    
+    // Try to find an existing record for this user, year, and month
+    const existingRecord = await storage.getUserWordUsageForMonth(userId, year, month);
+    
+    if (existingRecord) {
+      // Update existing record
+      const newWordCount = existingRecord.wordCount + wordCount;
+      await storage.updateUserWordUsage(existingRecord.id, { wordCount: newWordCount });
+      console.log(`Updated word usage for user ${userId}: ${existingRecord.wordCount} -> ${newWordCount}`);
+    } else {
+      // Create new record
+      await storage.createUserWordUsage({
+        userId,
+        year,
+        month,
+        wordCount
+      });
+      console.log(`Created new word usage record for user ${userId}, month ${month}/${year}: ${wordCount} words`);
+    }
+  } catch (error) {
+    console.error("Error updating user word usage:", error);
+    // Don't throw - we don't want to break the transcription process
   }
 }
 
