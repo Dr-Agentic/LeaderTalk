@@ -10,7 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { AnalysisInstance, Recording, AnalysisResult } from "../../../shared/schema";
 import { useAuth } from "../hooks/useAuth";
 import { useToast } from "../hooks/use-toast";
-import { getQueryFn } from "../lib/queryClient";
+import { getQueryFn, checkSession } from "../lib/queryClient";
 
 // Type for query data from API
 interface RecordingWithAnalysis extends Omit<Recording, 'analysisResult'> {
@@ -24,17 +24,60 @@ export default function TranscriptView() {
   const recordingId = parseInt(params.id);
   const { userData } = useAuth();
   
+  const [sessionError, setSessionError] = useState<string | null>(null);
+  
+  // Check session before loading data
+  useEffect(() => {
+    const verifySession = async () => {
+      try {
+        const isLoggedIn = await checkSession();
+        if (!isLoggedIn) {
+          console.log("Session check failed, redirecting to login");
+          navigate('/login');
+        }
+      } catch (error) {
+        console.error("Session verification error:", error);
+        setSessionError("Session verification failed. Please try logging in again.");
+      }
+    };
+    
+    verifySession();
+  }, [navigate]);
+  
   // Query for recording details including transcription and analysis
   const { data: recording, isLoading: recordingLoading } = useQuery<RecordingWithAnalysis>({
     queryKey: ['/api/recordings', recordingId],
     queryFn: async ({ queryKey }) => {
       const [url, id] = queryKey;
-      const response = await fetch(`${url}/${id}`);
+      
+      // Check session before making the request
+      try {
+        const isLoggedIn = await checkSession();
+        if (!isLoggedIn) {
+          console.error("Session invalid before recording fetch");
+          navigate('/login');
+          throw new Error("Unauthorized - session invalid");
+        }
+      } catch (error) {
+        console.error("Session check error:", error);
+        throw error;
+      }
+      
+      const response = await fetch(`${url}/${id}`, {
+        credentials: 'include', // Important! Ensure cookies are sent
+      });
+      
       if (!response.ok) {
         if (response.status === 401) {
+          console.error("Unauthorized response from recording fetch");
+          // Try to check session again
+          const isLoggedIn = await checkSession();
+          if (!isLoggedIn) {
+            navigate('/login');
+          }
           throw new Error("Unauthorized");
         }
-        throw new Error("Network response was not ok");
+        throw new Error(`Network response was not ok: ${response.status} ${response.statusText}`);
       }
       
       // Get the recording data
@@ -47,14 +90,37 @@ export default function TranscriptView() {
         analysis: data.analysisResult
       };
     },
-    enabled: !isNaN(recordingId),
+    enabled: !isNaN(recordingId) && !sessionError,
   });
   
   // Fetch all leaders data
   const { data: leaders, isLoading: leadersLoading } = useQuery({
     queryKey: ['/api/leaders'],
-    queryFn: getQueryFn({ on401: "throw" }),
-    enabled: !!userData?.selectedLeaders,
+    queryFn: async ({ queryKey }) => {
+      // Verify session first
+      const isLoggedIn = await checkSession();
+      if (!isLoggedIn) {
+        console.error("Session check failed before leaders fetch");
+        navigate('/login');
+        throw new Error("Session invalid");
+      }
+      
+      const response = await fetch(queryKey[0] as string, {
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          console.error("Unauthorized response from leaders fetch");
+          navigate('/login');
+          throw new Error("Unauthorized");
+        }
+        throw new Error(`Network response was not ok: ${response.status}`);
+      }
+      
+      return await response.json();
+    },
+    enabled: !!userData?.selectedLeaders && !sessionError,
   });
   
   // Filter leaders to only include those selected by the user
@@ -274,12 +340,19 @@ function AnalysisInstancesList({
       // Mark this combination as loading
       setLoading(prev => ({ ...prev, [cacheKey]: true }));
       
+      // Check session before API call
+      const isLoggedIn = await checkSession();
+      if (!isLoggedIn) {
+        throw new Error("Session expired - please login again");
+      }
+      
       // Make the API request
       const response = await fetch('/api/leader-alternative', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // Important to include cookies
         body: JSON.stringify({
           leaderId,
           originalText: instance.text
