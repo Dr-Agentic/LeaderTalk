@@ -47,8 +47,12 @@ export async function transcribeAndAnalyzeAudio(
       const wordCount = countWords(transcription);
       console.log(`Word count in transcription: ${wordCount}`);
       
-      // Update the recording with the word count
-      await storage.updateRecording(recording.id, { wordCount });
+      // Update the recording with the word count (use existing title and duration)
+      await storage.updateRecording(recording.id, { 
+        wordCount,
+        title: recording.title,
+        duration: recording.duration
+      });
       
       // Update the monthly usage for the user
       await updateUserWordUsage(recording.userId, wordCount);

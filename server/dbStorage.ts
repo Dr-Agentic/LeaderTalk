@@ -4,9 +4,10 @@ import {
   leaders, Leader, InsertLeader,
   recordings, Recording, InsertRecording, UpdateRecording,
   leaderAlternatives, LeaderAlternative, InsertLeaderAlternative,
+  userWordUsage, UserWordUsage, InsertUserWordUsage, UpdateUserWordUsage,
   AnalysisResult
 } from '@shared/schema';
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, and, desc, sql } from 'drizzle-orm';
 import { IStorage } from './storage';
 
 export class DatabaseStorage implements IStorage {
@@ -125,6 +126,51 @@ export class DatabaseStorage implements IStorage {
     return db.select()
       .from(leaderAlternatives)
       .where(eq(leaderAlternatives.leaderId, leaderId));
+  }
+  
+  // Word usage tracking operations
+  async getUserWordUsage(userId: number): Promise<UserWordUsage[]> {
+    return db.select()
+      .from(userWordUsage)
+      .where(eq(userWordUsage.userId, userId))
+      .orderBy(desc(userWordUsage.year), desc(userWordUsage.month));
+  }
+  
+  async getUserWordUsageForMonth(userId: number, year: number, month: number): Promise<UserWordUsage | undefined> {
+    const result = await db.select()
+      .from(userWordUsage)
+      .where(
+        and(
+          eq(userWordUsage.userId, userId),
+          eq(userWordUsage.year, year),
+          eq(userWordUsage.month, month)
+        )
+      );
+    return result[0];
+  }
+  
+  async createUserWordUsage(usage: InsertUserWordUsage): Promise<UserWordUsage> {
+    const result = await db.insert(userWordUsage)
+      .values(usage)
+      .returning();
+    return result[0];
+  }
+  
+  async updateUserWordUsage(id: number, data: UpdateUserWordUsage): Promise<UserWordUsage | undefined> {
+    const result = await db.update(userWordUsage)
+      .set(data)
+      .where(eq(userWordUsage.id, id))
+      .returning();
+    return result[0];
+  }
+  
+  async getCurrentMonthWordUsage(userId: number): Promise<number> {
+    const now = new Date();
+    const year = now.getUTCFullYear();
+    const month = now.getUTCMonth() + 1;
+    
+    const result = await this.getUserWordUsageForMonth(userId, year, month);
+    return result ? result.wordCount : 0;
   }
 
   // Initialize default leaders if none exist

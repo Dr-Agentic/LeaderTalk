@@ -46,22 +46,26 @@ export class MemStorage implements IStorage {
   private leaders: Map<number, Leader>;
   private recordings: Map<number, Recording>;
   private leaderAlternatives: Map<string, LeaderAlternative>;
+  private wordUsages: Map<number, UserWordUsage>;
   
   private userIdCounter: number;
   private leaderIdCounter: number;
   private recordingIdCounter: number;
   private leaderAlternativeIdCounter: number;
+  private wordUsageIdCounter: number;
 
   constructor() {
     this.users = new Map();
     this.leaders = new Map();
     this.recordings = new Map();
     this.leaderAlternatives = new Map();
+    this.wordUsages = new Map();
     
     this.userIdCounter = 1;
     this.leaderIdCounter = 1;
     this.recordingIdCounter = 1;
     this.leaderAlternativeIdCounter = 1;
+    this.wordUsageIdCounter = 1;
     
     // Initialize with some default leaders
     this.initDefaultLeaders();
@@ -212,6 +216,55 @@ export class MemStorage implements IStorage {
   async getLeaderAlternatives(leaderId: number): Promise<LeaderAlternative[]> {
     return Array.from(this.leaderAlternatives.values())
       .filter(alt => alt.leaderId === leaderId);
+  }
+  
+  // Word usage tracking operations
+  async getUserWordUsage(userId: number): Promise<UserWordUsage[]> {
+    return Array.from(this.wordUsages.values())
+      .filter(usage => usage.userId === userId)
+      .sort((a, b) => {
+        // Sort by year (descending)
+        if (a.year !== b.year) return b.year - a.year;
+        // Then by month (descending)
+        return b.month - a.month;
+      });
+  }
+  
+  async getUserWordUsageForMonth(userId: number, year: number, month: number): Promise<UserWordUsage | undefined> {
+    return Array.from(this.wordUsages.values()).find(
+      usage => usage.userId === userId && usage.year === year && usage.month === month
+    );
+  }
+  
+  async createUserWordUsage(usage: InsertUserWordUsage): Promise<UserWordUsage> {
+    const id = this.wordUsageIdCounter++;
+    const now = new Date();
+    const newUsage: UserWordUsage = {
+      ...usage,
+      id,
+      createdAt: now,
+      updatedAt: now
+    };
+    this.wordUsages.set(id, newUsage);
+    return newUsage;
+  }
+  
+  async updateUserWordUsage(id: number, data: UpdateUserWordUsage): Promise<UserWordUsage | undefined> {
+    const usage = this.wordUsages.get(id);
+    if (!usage) return undefined;
+    
+    const updatedUsage: UserWordUsage = { ...usage, ...data };
+    this.wordUsages.set(id, updatedUsage);
+    return updatedUsage;
+  }
+  
+  async getCurrentMonthWordUsage(userId: number): Promise<number> {
+    const now = new Date();
+    const year = now.getUTCFullYear();
+    const month = now.getUTCMonth() + 1;
+    
+    const usage = await this.getUserWordUsageForMonth(userId, year, month);
+    return usage ? usage.wordCount : 0;
   }
 }
 
