@@ -35,10 +35,11 @@ export interface IStorage {
   
   // Word usage tracking operations
   getUserWordUsage(userId: number): Promise<UserWordUsage[]>;
-  getUserWordUsageForMonth(userId: number, year: number, month: number): Promise<UserWordUsage | undefined>;
+  getCurrentBillingCycle(userId: number): Promise<UserWordUsage | undefined>;
   createUserWordUsage(usage: InsertUserWordUsage): Promise<UserWordUsage>;
   updateUserWordUsage(id: number, data: UpdateUserWordUsage): Promise<UserWordUsage | undefined>;
-  getCurrentMonthWordUsage(userId: number): Promise<number>;
+  getCurrentWordUsage(userId: number): Promise<number>;
+  getOrCreateCurrentBillingCycle(userId: number): Promise<UserWordUsage>;
 }
 
 export class MemStorage implements IStorage {

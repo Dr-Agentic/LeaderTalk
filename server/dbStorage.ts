@@ -10,6 +10,47 @@ import {
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { IStorage } from './storage';
 
+// Helper functions for billing cycle management
+function calculateCycleStartDate(registrationDate: Date, currentDate: Date, billingCycleDay?: number): Date {
+  const now = new Date(currentDate);
+  const nowDay = now.getUTCDate();
+  const nowMonth = now.getUTCMonth();
+  const nowYear = now.getUTCFullYear();
+  
+  // Use the registration date or a specified billing cycle day
+  let cycleDay: number;
+  
+  if (billingCycleDay) {
+    // The user has a specific billing cycle day
+    cycleDay = Math.min(billingCycleDay, getDaysInMonth(nowYear, nowMonth + 1));
+  } else {
+    // Use the day from the registration date
+    cycleDay = registrationDate.getUTCDate();
+  }
+  
+  // If today is before the cycle day, we're in the current month's cycle
+  if (nowDay < cycleDay) {
+    return new Date(Date.UTC(nowYear, nowMonth, cycleDay, 0, 0, 0, 0));
+  }
+  
+  // Otherwise, we're in this month's cycle that started on the cycle day
+  return new Date(Date.UTC(nowYear, nowMonth, cycleDay, 0, 0, 0, 0));
+}
+
+function calculateCycleEndDate(startDate: Date): Date {
+  const cycleEnd = new Date(startDate);
+  // Add one month
+  cycleEnd.setUTCMonth(cycleEnd.getUTCMonth() + 1);
+  // Subtract 1 millisecond to end at 23:59:59.999 of the previous day
+  cycleEnd.setUTCMilliseconds(-1);
+  return cycleEnd;
+}
+
+function getDaysInMonth(year: number, month: number): number {
+  // month is 1-indexed (1 = January, 12 = December)
+  return new Date(year, month, 0).getDate();
+}
+
 export class DatabaseStorage implements IStorage {
   // User operations
   async getUser(id: number): Promise<User | undefined> {
@@ -133,19 +174,22 @@ export class DatabaseStorage implements IStorage {
     return db.select()
       .from(userWordUsage)
       .where(eq(userWordUsage.userId, userId))
-      .orderBy(desc(userWordUsage.year), desc(userWordUsage.month));
+      .orderBy(desc(userWordUsage.cycleNumber));
   }
   
-  async getUserWordUsageForMonth(userId: number, year: number, month: number): Promise<UserWordUsage | undefined> {
+  async getCurrentBillingCycle(userId: number): Promise<UserWordUsage | undefined> {
+    const now = new Date();
+    
     const result = await db.select()
       .from(userWordUsage)
       .where(
         and(
           eq(userWordUsage.userId, userId),
-          eq(userWordUsage.year, year),
-          eq(userWordUsage.month, month)
+          sql`${userWordUsage.cycleStartDate} <= ${now}`,
+          sql`${userWordUsage.cycleEndDate} >= ${now}`
         )
       );
+    
     return result[0];
   }
   
@@ -164,15 +208,53 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
   
-  async getCurrentMonthWordUsage(userId: number): Promise<number> {
-    const now = new Date();
-    const year = now.getUTCFullYear();
-    const month = now.getUTCMonth() + 1;
-    
-    const result = await this.getUserWordUsageForMonth(userId, year, month);
-    return result ? result.wordCount : 0;
+  async getCurrentWordUsage(userId: number): Promise<number> {
+    const currentCycle = await this.getCurrentBillingCycle(userId);
+    return currentCycle ? currentCycle.wordCount : 0;
   }
-
+  
+  async getOrCreateCurrentBillingCycle(userId: number): Promise<UserWordUsage> {
+    // First, try to get the current cycle
+    const currentCycle = await this.getCurrentBillingCycle(userId);
+    if (currentCycle) {
+      return currentCycle;
+    }
+    
+    // If no current cycle exists, we need to create one
+    const user = await this.getUser(userId);
+    if (!user) {
+      throw new Error(`User with ID ${userId} not found`);
+    }
+    
+    // Get user creation date to use as reference for billing cycles
+    const userCreatedAt = user.createdAt;
+    const now = new Date();
+    
+    // Find the most recent cycle to determine the next cycle number
+    const previousCycles = await db.select()
+      .from(userWordUsage)
+      .where(eq(userWordUsage.userId, userId))
+      .orderBy(desc(userWordUsage.cycleNumber))
+      .limit(1);
+    
+    const lastCycleNumber = previousCycles.length > 0 ? previousCycles[0].cycleNumber : 0;
+    const newCycleNumber = lastCycleNumber + 1;
+    
+    // Calculate the billing cycle dates
+    const cycleStartDate = calculateCycleStartDate(userCreatedAt, now, user.billingCycleDay);
+    const cycleEndDate = calculateCycleEndDate(cycleStartDate);
+    
+    // Create the new billing cycle record
+    const newCycle = await this.createUserWordUsage({
+      userId,
+      cycleStartDate,
+      cycleEndDate,
+      wordCount: 0,
+      cycleNumber: newCycleNumber
+    });
+    
+    return newCycle;
+  }
   // Initialize default leaders if none exist
   async initializeDefaultLeaders(): Promise<void> {
     const existingLeaders = await this.getLeaders();

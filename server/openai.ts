@@ -94,31 +94,25 @@ function countWords(text: string): number {
   return words.filter(word => word.length > 0).length;
 }
 
-// Function to update the user's monthly word usage
+// Function to update the user's word usage for the current billing cycle
 async function updateUserWordUsage(userId: number, wordCount: number): Promise<void> {
   try {
-    // Get the current date in UTC
-    const now = new Date();
-    const year = now.getUTCFullYear();
-    const month = now.getUTCMonth() + 1; // JavaScript months are 0-indexed
+    // Get or create the billing cycle for this user
+    const currentCycle = await storage.getOrCreateCurrentBillingCycle(userId);
     
-    // Try to find an existing record for this user, year, and month
-    const existingRecord = await storage.getUserWordUsageForMonth(userId, year, month);
-    
-    if (existingRecord) {
-      // Update existing record
-      const newWordCount = existingRecord.wordCount + wordCount;
-      await storage.updateUserWordUsage(existingRecord.id, { wordCount: newWordCount });
-      console.log(`Updated word usage for user ${userId}: ${existingRecord.wordCount} -> ${newWordCount}`);
+    if (currentCycle) {
+      // Update existing cycle record
+      const newWordCount = currentCycle.wordCount + wordCount;
+      await storage.updateUserWordUsage(currentCycle.id, { wordCount: newWordCount });
+      console.log(`Updated word usage for user ${userId} (cycle #${currentCycle.cycleNumber}): ${currentCycle.wordCount} -> ${newWordCount}`);
+      
+      // Log billing cycle information for debugging
+      const cycleStart = new Date(currentCycle.cycleStartDate).toISOString().split('T')[0];
+      const cycleEnd = new Date(currentCycle.cycleEndDate).toISOString().split('T')[0];
+      console.log(`Current billing cycle: ${cycleStart} to ${cycleEnd}`);
     } else {
-      // Create new record
-      await storage.createUserWordUsage({
-        userId,
-        year,
-        month,
-        wordCount
-      });
-      console.log(`Created new word usage record for user ${userId}, month ${month}/${year}: ${wordCount} words`);
+      // This should not happen as getOrCreateCurrentBillingCycle should always return a cycle
+      console.error(`Failed to get or create billing cycle for user ${userId}`);
     }
   } catch (error) {
     console.error("Error updating user word usage:", error);

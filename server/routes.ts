@@ -1802,15 +1802,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Endpoint to get user's word usage statistics for billing
   app.get("/api/usage/words", requireAuth, async (req, res) => {
     try {
-      // Get current month's usage
-      const currentUsage = await storage.getCurrentMonthWordUsage(req.session.userId!);
+      // Get user details to check when billing cycle resets
+      const user = await storage.getUser(req.session.userId!);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Get current billing cycle usage
+      const currentUsage = await storage.getCurrentWordUsage(req.session.userId!);
+      
+      // Get the current billing cycle for additional information
+      const currentCycle = await storage.getCurrentBillingCycle(req.session.userId!);
+      
+      // Calculate days remaining in current cycle
+      let daysRemaining = 0;
+      let cycleStartDate = '';
+      let cycleEndDate = '';
+      
+      if (currentCycle) {
+        const now = new Date();
+        const endDate = new Date(currentCycle.cycleEndDate);
+        daysRemaining = Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        
+        // Format dates for frontend display
+        cycleStartDate = new Date(currentCycle.cycleStartDate).toISOString().split('T')[0];
+        cycleEndDate = new Date(currentCycle.cycleEndDate).toISOString().split('T')[0];
+      }
       
       // Get all historical usage data
       const usageHistory = await storage.getUserWordUsage(req.session.userId!);
       
+      // Convert historical data for backward compatibility with frontend
+      const formattedHistory = usageHistory.map(cycle => {
+        // Get the month and year from the cycle start date for display
+        const cycleDate = new Date(cycle.cycleStartDate);
+        return {
+          ...cycle,
+          // Add these fields for backward compatibility with existing frontend
+          year: cycleDate.getUTCFullYear(),
+          month: cycleDate.getUTCMonth() + 1,
+          // Keep a display name for the cycle
+          displayName: `${cycleDate.toLocaleString('default', { month: 'long' })} ${cycleDate.getUTCFullYear()}`
+        };
+      });
+      
       return res.json({
         currentMonthUsage: currentUsage,
-        history: usageHistory
+        history: formattedHistory,
+        billingCycle: {
+          startDate: cycleStartDate,
+          endDate: cycleEndDate,
+          daysRemaining,
+          cycleNumber: currentCycle?.cycleNumber || 1
+        }
       });
     } catch (error) {
       console.error("Error fetching word usage statistics:", error);
