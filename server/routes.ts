@@ -12,6 +12,7 @@ import os from "os";
 import crypto from "crypto";
 import { eq, desc, inArray } from "drizzle-orm";
 import { fileURLToPath } from "url";
+import cors from "cors";
 
 // Get the directory path for our project
 const __filename = fileURLToPath(import.meta.url);
@@ -94,6 +95,25 @@ export function servePublicFiles(app: Express) {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Setup CORS to allow requests from the deployed domain
+  const corsOptions = {
+    origin: [
+      // Local development URLs
+      'http://localhost:5000', 
+      'http://localhost:3000',
+      // Deployed domain
+      'https://app.leadertalkcoach.com',
+      // Allow Replit domains
+      /\.replit\.app$/,
+      /\.repl\.co$/
+    ],
+    credentials: true, // Allow cookies to be sent with requests
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+  };
+
+  app.use(cors(corsOptions));
+  
   // Setup static file serving
   servePublicFiles(app);
   // Route to import leaders
@@ -142,10 +162,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       rolling: true, // Force cookie to be set on every response
       cookie: {
         httpOnly: true, // Prevent client-side JS from reading cookie
-        secure: process.env.NODE_ENV === "production",
+        secure: process.env.NODE_ENV === "production", // Must be true in production
         maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
-        sameSite: 'lax', // Provides CSRF protection
-        path: '/' // Ensure cookie is sent for all paths
+        sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax', // Use 'none' in production for cross-site cookies
+        path: '/', // Ensure cookie is sent for all paths
+        domain: process.env.NODE_ENV === "production" && process.env.COOKIE_DOMAIN ? 
+          process.env.COOKIE_DOMAIN : undefined // Set domain in production if specified
       },
       store: new MemoryStoreFactory({
         checkPeriod: 86400000, // 24 hours
@@ -153,7 +175,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       genid: function() {
         // Generate a completely random session ID
         return crypto.randomUUID();
-      }
+      },
+      proxy: process.env.NODE_ENV === "production" // Trust the proxy in production
     })
   );
   
@@ -171,8 +194,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           path: '/',
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
-          sameSite: 'lax',
-          maxAge: 0
+          sameSite: process.env.NODE_ENV === 'production' ? 'none' as const : 'lax' as const,
+          maxAge: 0,
+          domain: process.env.NODE_ENV === "production" && process.env.COOKIE_DOMAIN ? 
+            process.env.COOKIE_DOMAIN : undefined
         });
         return res.status(401).json({ message: "Session expired, please log in again" });
       });
@@ -243,8 +268,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       path: '/',
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax' as const,
-      maxAge: 0
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' as const : 'lax' as const,
+      maxAge: 0,
+      domain: process.env.NODE_ENV === "production" && process.env.COOKIE_DOMAIN ? 
+        process.env.COOKIE_DOMAIN : undefined
     };
     
     // 4. Clear both potential cookie names (we changed from connect.sid to leadertalk.sid)

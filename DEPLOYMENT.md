@@ -135,7 +135,14 @@ Our AWS deployment uses the following services:
    # AWS
    AWS_S3_BUCKET=leadertalk-audio-files
    AWS_REGION=your-aws-region
+   
+   # Session configuration (CRITICAL for authentication to work correctly)
+   NODE_ENV=production
+   SESSION_SECRET=your-strong-random-secret-key
+   COOKIE_DOMAIN=app.leadertalkcoach.com
    ```
+   
+   > **IMPORTANT**: The `COOKIE_DOMAIN` value must match your actual domain name. For example, if your domain is `app.leadertalkcoach.com`, set that value exactly. This is required for cross-domain cookies to work properly with Firebase authentication.
 
 2. **Update code for S3 integration**:
 
@@ -281,7 +288,30 @@ For improved performance and reduced costs:
    
    b. Navigate to Authentication → Settings → Authorized domains
    
-   c. Add your production domain to the list
+   c. Add your production domain to the list (e.g., `app.leadertalkcoach.com`)
+   
+   > **IMPORTANT**: Make sure ALL domains where users will authenticate are in this list. This includes:
+   > - Your custom domain (e.g., `app.leadertalkcoach.com`)
+   > - Your Elastic Beanstalk domain (e.g., `yourapp.elasticbeanstalk.com`)
+   > - Your CloudFront domain if using CloudFront
+   > - Your development domains (e.g., `localhost`, `.replit.app` domains)
+   
+2. **Authentication troubleshooting**:
+
+   If users can authenticate with Firebase but sessions don't persist (they get logged out when refreshing the page):
+   
+   a. Verify the `COOKIE_DOMAIN` environment variable matches your actual domain exactly
+   
+   b. Ensure your server is running with `NODE_ENV=production` in production environments
+   
+   c. Check that your SSL certificate is properly configured (cookies with `sameSite=None` require HTTPS)
+   
+   d. Test authentication flow using browser developer tools:
+      - Check Network tab for cookie headers in responses
+      - Look for `leadertalk.sid` cookie being set in the Cookies tab
+      - Verify that the cookie is being sent with subsequent requests
+   
+   e. If using a load balancer, ensure it forwards cookie headers correctly
 
 ## Step 9: Monitoring and Maintenance
 
