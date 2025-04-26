@@ -297,6 +297,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!demoUser) {
         try {
           console.log("Creating demo user...");
+          // Get current date for registration date and billing cycle day
+          const now = new Date();
+          const registrationDay = now.getUTCDate();
+          
           demoUser = await storage.createUser({
             googleId: "demo-user-" + Date.now(),
             email: "demo@example.com",
@@ -305,7 +309,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             dateOfBirth: "1990-01-01",
             profession: "Software Developer",
             goals: "Improve communication skills",
-            selectedLeaders: [1, 2, 3] // Default selected leaders
+            selectedLeaders: [1, 2, 3], // Default selected leaders
+            billingCycleDay: registrationDay, // Set billing cycle to today's date
+            subscriptionPlan: "free"
           });
           console.log("Demo user created:", demoUser);
         } catch (createError) {
@@ -373,6 +379,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!demoUser) {
         // Create a demo user if it doesn't exist
+        // Get current date for registration date and billing cycle day
+        const now = new Date();
+        const registrationDay = now.getUTCDate();
+        
         const newUser = await storage.createUser({
           googleId: "demo-user-id",
           email: "demo@example.com",
@@ -381,7 +391,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           dateOfBirth: "1990-01-01",
           profession: "Software Developer",
           goals: "Improve communication skills",
-          selectedLeaders: [1, 2, 3] // Default selected leaders
+          selectedLeaders: [1, 2, 3], // Default selected leaders
+          billingCycleDay: registrationDay,
+          subscriptionPlan: "free"
         });
         
         // Set the user ID in the session
@@ -456,7 +468,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "User with this email already exists" });
       }
       
-      const newUser = await storage.createUser(userData);
+      // Set up billing cycle day to today's date for anniversary-based billing
+      const now = new Date();
+      const registrationDay = now.getUTCDate();
+      
+      // Add billing cycle information to user data
+      const enhancedUserData = {
+        ...userData,
+        billingCycleDay: registrationDay,
+        subscriptionPlan: "free"
+      };
+      
+      const newUser = await storage.createUser(enhancedUserData);
       req.session.userId = newUser.id;
       
       // Don't send the password in the response

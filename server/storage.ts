@@ -224,16 +224,18 @@ export class MemStorage implements IStorage {
     return Array.from(this.wordUsages.values())
       .filter(usage => usage.userId === userId)
       .sort((a, b) => {
-        // Sort by year (descending)
-        if (a.year !== b.year) return b.year - a.year;
-        // Then by month (descending)
-        return b.month - a.month;
+        // Sort by cycle number (descending)
+        return b.cycleNumber - a.cycleNumber;
       });
   }
   
-  async getUserWordUsageForMonth(userId: number, year: number, month: number): Promise<UserWordUsage | undefined> {
+  async getCurrentBillingCycle(userId: number): Promise<UserWordUsage | undefined> {
+    const now = new Date();
+    
     return Array.from(this.wordUsages.values()).find(
-      usage => usage.userId === userId && usage.year === year && usage.month === month
+      usage => usage.userId === userId && 
+               new Date(usage.cycleStartDate) <= now && 
+               new Date(usage.cycleEndDate) >= now
     );
   }
   
@@ -264,13 +266,82 @@ export class MemStorage implements IStorage {
     return updatedUsage;
   }
   
-  async getCurrentMonthWordUsage(userId: number): Promise<number> {
-    const now = new Date();
-    const year = now.getUTCFullYear();
-    const month = now.getUTCMonth() + 1;
+  async getCurrentWordUsage(userId: number): Promise<number> {
+    const currentCycle = await this.getCurrentBillingCycle(userId);
+    return currentCycle ? currentCycle.wordCount : 0;
+  }
+  
+  async getOrCreateCurrentBillingCycle(userId: number): Promise<UserWordUsage> {
+    // First, try to get the current cycle
+    const currentCycle = await this.getCurrentBillingCycle(userId);
+    if (currentCycle) {
+      return currentCycle;
+    }
     
-    const usage = await this.getUserWordUsageForMonth(userId, year, month);
-    return usage ? usage.wordCount : 0;
+    // If no current cycle exists, we need to create one
+    const user = await this.getUser(userId);
+    if (!user) {
+      throw new Error(`User with ID ${userId} not found`);
+    }
+    
+    // Get all previous cycles to determine next cycle number
+    const previousCycles = Array.from(this.wordUsages.values())
+      .filter(usage => usage.userId === userId)
+      .sort((a, b) => b.cycleNumber - a.cycleNumber);
+    
+    const lastCycleNumber = previousCycles.length > 0 ? previousCycles[0].cycleNumber : 0;
+    const newCycleNumber = lastCycleNumber + 1;
+    
+    // Calculate the cycle dates based on user's registration date
+    const now = new Date();
+    const userCreatedAt = user.createdAt;
+    
+    // Function to calculate start date (similar to the one in dbStorage.ts)
+    const calculateCycleStartDate = (registrationDate: Date, currentDate: Date, billingCycleDay?: number): Date => {
+      const now = new Date(currentDate);
+      const nowDay = now.getUTCDate();
+      const nowMonth = now.getUTCMonth();
+      const nowYear = now.getUTCFullYear();
+      
+      // Use the registration date or a specified billing cycle day
+      let cycleDay = billingCycleDay || registrationDate.getUTCDate();
+      
+      // Adjust for months with fewer days
+      const daysInCurrentMonth = new Date(nowYear, nowMonth + 1, 0).getDate();
+      cycleDay = Math.min(cycleDay, daysInCurrentMonth);
+      
+      // If today is before the cycle day, we're in the current month's cycle
+      if (nowDay < cycleDay) {
+        return new Date(Date.UTC(nowYear, nowMonth, cycleDay, 0, 0, 0, 0));
+      }
+      
+      // Otherwise, we're in this month's cycle that started on the cycle day
+      return new Date(Date.UTC(nowYear, nowMonth, cycleDay, 0, 0, 0, 0));
+    };
+    
+    // Function to calculate end date (similar to the one in dbStorage.ts)
+    const calculateCycleEndDate = (startDate: Date): Date => {
+      const cycleEnd = new Date(startDate);
+      // Add one month
+      cycleEnd.setUTCMonth(cycleEnd.getUTCMonth() + 1);
+      // Subtract 1 millisecond to end at 23:59:59.999 of the previous day
+      cycleEnd.setUTCMilliseconds(-1);
+      return cycleEnd;
+    };
+    
+    const cycleStartDate = calculateCycleStartDate(userCreatedAt, now, user.billingCycleDay);
+    const cycleEndDate = calculateCycleEndDate(cycleStartDate);
+    
+    // Create new cycle record
+    const newCycle = await this.createUserWordUsage({
+      userId,
+      cycleStartDate,
+      cycleEndDate,
+      wordCount: 0,
+      cycleNumber: newCycleNumber
+    });
+    
+    return newCycle;
   }
 }
 
