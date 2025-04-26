@@ -110,42 +110,71 @@ export default function GoogleSignUp() {
     try {
       setIsLoading(true);
       console.log("Starting demo login process...");
+      logInfo("Demo login process initiated");
       
       // Use fetch instead of direct navigation to prevent full page reload
+      logDebug("Sending demo login request to /api/auth/force-login");
       const response = await fetch("/api/auth/force-login");
       
       if (response.ok || response.redirected) {
         console.log("Demo login successful, checking onboarding status...");
+        logInfo("Demo login successful, checking onboarding status");
         
         try {
           // Check if user needs to complete onboarding
+          logDebug("Checking user profile for onboarding status");
           const userResponse = await apiRequest('GET', '/api/users/me');
           
           if (userResponse.ok) {
             const userData = await userResponse.json();
+            logDebug("User profile data received", { 
+              hasSelectedLeaders: !!userData.selectedLeaders,
+              hasDateOfBirth: !!userData.dateOfBirth,
+              hasProfession: !!userData.profession,
+              hasGoals: !!userData.goals
+            });
             
             // Determine where to redirect based on onboarding completion
             if (userData.dateOfBirth && userData.profession && userData.goals && userData.selectedLeaders) {
               // Onboarding complete, go to dashboard
               console.log("Onboarding complete, redirecting to dashboard");
+              logInfo("Demo user onboarding complete, redirecting to dashboard");
               window.location.href = "/dashboard";
             } else {
               // Onboarding incomplete, go to onboarding
               console.log("Onboarding incomplete, redirecting to onboarding");
+              logInfo("Demo user needs onboarding, redirecting to onboarding page");
               window.location.href = "/onboarding";
             }
           } else {
             // If we can't get user data, default to onboarding page
             console.log("Could not fetch user data, redirecting to onboarding as fallback");
+            logWarn("Could not fetch demo user data, redirecting to onboarding as fallback", {
+              status: userResponse.status,
+              statusText: userResponse.statusText
+            });
             window.location.href = "/onboarding";
           }
-        } catch (userError) {
+        } catch (userError: any) {
           console.error("Error checking user status:", userError);
+          logError("Error checking demo user status", {
+            message: userError?.message || "Unknown error",
+            stack: userError?.stack || "No stack trace"
+          });
+          
           // If error occurred, still try to go to dashboard as fallback
+          logWarn("Error occurred during demo user check, redirecting to dashboard as fallback");
           window.location.href = "/dashboard";
         }
       } else {
-        console.error("Demo login failed:", await response.text());
+        const responseText = await response.text();
+        console.error("Demo login failed:", responseText);
+        logError("Demo login failed", {
+          status: response.status,
+          statusText: response.statusText,
+          responseText
+        });
+        
         toast({
           title: "Login Failed",
           description: "Could not log in as demo user. Please try again.",
@@ -153,8 +182,13 @@ export default function GoogleSignUp() {
         });
         setIsLoading(false);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Demo login error:", error);
+      logError("Demo login unexpected error", {
+        message: error?.message || "Unknown error",
+        stack: error?.stack || "No stack trace"
+      });
+      
       toast({
         title: "Login Error",
         description: "An unexpected error occurred. Please try again.",
