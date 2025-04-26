@@ -1,17 +1,21 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import GoogleSignUp from "@/components/onboarding/GoogleSignUp";
 import { Link } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
+import { signInWithGoogle } from "@/firebase";
+import { logDebug, logError, logInfo, logWarn } from "@/lib/debugLogger";
 
 export default function DirectLogin() {
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleDirectLogin = async () => {
     try {
+      setIsLoading(true);
       console.log("Starting demo login process...");
+      logInfo("Demo login process initiated");
       
       // Show loading state
       const button = document.getElementById('demo-login-button');
@@ -76,6 +80,7 @@ export default function DirectLogin() {
         });
         
         // Reset button state
+        setIsLoading(false);
         if (button) {
           button.textContent = "Log in as Demo User";
           button.removeAttribute('disabled');
@@ -95,12 +100,109 @@ export default function DirectLogin() {
         variant: "destructive"
       });
       
+      // Reset loading state
+      setIsLoading(false);
+      
       // Reset button state
       const button = document.getElementById('demo-login-button');
       if (button) {
         button.textContent = "Log in as Demo User";
         button.removeAttribute('disabled');
       }
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Log Firebase configuration for debugging
+      const configInfo = {
+        apiKey: import.meta.env.VITE_FIREBASE_API_KEY ? "Present (hidden)" : "Missing",
+        projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+        appId: import.meta.env.VITE_FIREBASE_APP_ID ? "Present (hidden)" : "Missing",
+        authDomain: `${import.meta.env.VITE_FIREBASE_PROJECT_ID || "demo-project"}.firebaseapp.com`,
+        currentUrl: window.location.href,
+        currentOrigin: window.location.origin,
+        environment: import.meta.env.NODE_ENV
+      };
+      
+      console.log("Firebase config being used:", configInfo);
+      logDebug("Attempting Google sign-in with config", configInfo);
+      
+      console.log("Starting Google sign-in popup...");
+      logInfo("Google sign-in process initiated from UI");
+      
+      // Use the popup authentication
+      const user = await signInWithGoogle();
+      console.log("Google sign-in completed successfully", user);
+      logInfo("Google sign-in completed successfully in UI component");
+      
+      // Redirect to dashboard or onboarding based on user data
+      if (user) {
+        logDebug("Checking user onboarding status");
+        // Check if we need to show onboarding (no selected leaders, etc)
+        const userResponse = await fetch('/api/users/me', {
+          credentials: 'include'
+        });
+        
+        if (userResponse.ok) {
+          const userData = await userResponse.json();
+          logDebug("User data received from server", { 
+            hasSelectedLeaders: !!userData.selectedLeaders,
+            hasDateOfBirth: !!userData.dateOfBirth,
+            hasProfession: !!userData.profession,
+            hasGoals: !!userData.goals
+          });
+          
+          // If user doesn't have onboarding data, go to onboarding
+          if (!userData.selectedLeaders || !userData.dateOfBirth || !userData.profession || !userData.goals) {
+            console.log("User needs onboarding, redirecting to /onboarding...");
+            logInfo("User needs onboarding, redirecting to /onboarding");
+            window.location.href = "/onboarding";
+          } else {
+            // User has completed onboarding, go to dashboard
+            console.log("User already onboarded, redirecting to dashboard...");
+            logInfo("User already onboarded, redirecting to dashboard");
+            window.location.href = "/dashboard";
+          }
+        } else {
+          const responseText = await userResponse.text();
+          console.error("Failed to get user data from server:", responseText);
+          logError("Failed to get user data from server", {
+            status: userResponse.status,
+            statusText: userResponse.statusText,
+            responseText
+          });
+          
+          // If we can't determine, just go to dashboard
+          logWarn("Could not determine onboarding status, redirecting to home as fallback");
+          window.location.href = "/";
+        }
+      }
+    } catch (error: any) {
+      console.error("Google sign in error:", error);
+      console.error("Error details:", {
+        code: error?.code,
+        message: error?.message,
+        stack: error?.stack
+      });
+      
+      logError("Google sign-in error in UI component", {
+        code: error?.code || "unknown",
+        message: error?.message || "Unknown error",
+        stack: error?.stack || "No stack trace",
+        url: window.location.href
+      });
+      
+      setIsLoading(false);
+      
+      // Show error toast with more details
+      toast({
+        title: "Authentication Error",
+        description: `${error?.code || 'unknown'}: ${error?.message || 'Unknown error'}. Please try again or use the demo login.`,
+        variant: "destructive",
+      });
     }
   };
 
@@ -112,39 +214,55 @@ export default function DirectLogin() {
           <p className="text-slate-500">AI-Powered Communication Coaching</p>
         </div>
 
-        <Tabs defaultValue="demo" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="demo">Quick Demo</TabsTrigger>
-            <TabsTrigger value="google">Google Login</TabsTrigger>
-          </TabsList>
+        <div className="space-y-6">
+          <div className="bg-amber-50 border-l-4 border-amber-400 p-4">
+            <p className="text-sm text-amber-700">
+              Try the app instantly with our demo mode or sign in with your Google account.
+            </p>
+          </div>
           
-          <TabsContent value="demo" className="space-y-4">
-            <div className="bg-amber-50 border-l-4 border-amber-400 p-4 my-4">
-              <p className="text-sm text-amber-700">
-                Demo mode: Try the app with pre-populated data.
-              </p>
-            </div>
-            
-            <Button 
-              id="demo-login-button"
-              size="lg"
-              className="w-full"
-              onClick={handleDirectLogin}
+          <Button 
+            id="demo-login-button"
+            size="lg"
+            className="w-full"
+            onClick={handleDirectLogin}
+            disabled={isLoading}
+          >
+            {isLoading ? "Logging in..." : "Log in as Demo User"}
+          </Button>
+          
+          <div className="relative flex items-center py-2">
+            <div className="flex-grow border-t border-gray-300"></div>
+            <span className="flex-shrink mx-3 text-gray-500 text-sm">or</span>
+            <div className="flex-grow border-t border-gray-300"></div>
+          </div>
+          
+          <Button
+            variant="outline"
+            size="lg"
+            className="w-full flex items-center justify-center gap-2"
+            onClick={handleGoogleSignIn}
+            disabled={isLoading}
+          >
+            <svg 
+              className="h-5 w-5" 
+              xmlns="http://www.w3.org/2000/svg" 
+              viewBox="0 0 48 48" 
+              width="48px" 
+              height="48px"
             >
-              Log in as Demo User
-            </Button>
-            
-            <div className="text-center text-xs text-slate-500 mt-2">
-              <p>No sign-up required. Click to continue.</p>
-            </div>
-          </TabsContent>
+              <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z" />
+              <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z" />
+              <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z" />
+              <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z" />
+            </svg>
+            Sign in with Google
+          </Button>
           
-          <TabsContent value="google" className="space-y-4">
-            <div className="text-center mb-4">
-              <GoogleSignUp />
-            </div>
-          </TabsContent>
-        </Tabs>
+          <div className="text-center text-xs text-slate-500 mt-2">
+            <p>No sign-up required for demo mode.</p>
+          </div>
+        </div>
 
         <div className="text-center text-xs text-slate-500 mt-6 pt-2 border-t border-slate-200">
           <p className="mb-2">By continuing, you agree to our <Link href="#" className="text-blue-600 hover:underline">Terms of Service</Link> and <Link href="#" className="text-blue-600 hover:underline">Privacy Policy</Link></p>
