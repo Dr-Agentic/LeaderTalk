@@ -111,12 +111,12 @@ export default function AllTranscripts() {
             <TranscriptsSkeleton />
           ) : filteredAndSortedRecordings.filter(r => 
               r.analysisResult?.overview?.rating === "Good" || 
-              (r.analysisResult?.overview?.score && r.analysisResult?.overview?.score > 0.65)
+              (r.analysisResult?.overview?.score && r.analysisResult?.overview?.score > 65)
             ).length > 0 ? (
             filteredAndSortedRecordings
               .filter(r => 
                 r.analysisResult?.overview?.rating === "Good" || 
-                (r.analysisResult?.overview?.score && r.analysisResult?.overview?.score > 0.65)
+                (r.analysisResult?.overview?.score && r.analysisResult?.overview?.score > 65)
               )
               .map(recording => (
                 <TranscriptCard 
@@ -134,12 +134,14 @@ export default function AllTranscripts() {
             <TranscriptsSkeleton />
           ) : filteredAndSortedRecordings.filter(r => 
               r.analysisResult?.overview?.rating === "Poor" || 
-              (r.analysisResult?.overview?.score !== undefined && r.analysisResult?.overview?.score < 0.5)
+              r.analysisResult?.overview?.rating === "Needs improvement" ||
+              (r.analysisResult?.overview?.score !== undefined && r.analysisResult?.overview?.score < 50)
             ).length > 0 ? (
             filteredAndSortedRecordings
               .filter(r => 
                 r.analysisResult?.overview?.rating === "Poor" || 
-                (r.analysisResult?.overview?.score !== undefined && r.analysisResult?.overview?.score < 0.5)
+                r.analysisResult?.overview?.rating === "Needs improvement" ||
+                (r.analysisResult?.overview?.score !== undefined && r.analysisResult?.overview?.score < 50)
               )
               .map(recording => (
                 <TranscriptCard 
@@ -209,11 +211,13 @@ function TranscriptCard({ recording }: { recording: Recording }) {
   const score = recording.analysisResult?.overview?.score || 0;
   
   // Calculate star rating (1-5 scale)
-  const starRating = Math.max(1, Math.min(5, Math.round(score * 5)));
+  // Score from server is 0-100, convert to 1-5 stars
+  const normalizedScore = score / 20; // Convert 0-100 to 0-5
+  const starRating = Math.max(1, Math.min(5, Math.round(normalizedScore)));
   
   const ratingColor = 
-    rating === "Good" || score > 0.65 ? "bg-green-100 text-green-800 border-green-200" :
-    rating === "Average" || (score >= 0.5 && score <= 0.65) ? "bg-yellow-100 text-yellow-800 border-yellow-200" :
+    rating === "Good" || score > 65 ? "bg-green-100 text-green-800 border-green-200" :
+    rating === "Average" || (score >= 50 && score <= 65) ? "bg-yellow-100 text-yellow-800 border-yellow-200" :
     "bg-red-100 text-red-800 border-red-200";
   
   // Count positive and negative instances
