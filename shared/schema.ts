@@ -13,7 +13,14 @@ export const users = pgTable("users", {
   goals: text("goals"),
   selectedLeaders: jsonb("selected_leaders").$type<number[]>(),
   preferredLeadershipStyle: text("preferred_leadership_style"),
+  // Registration date used for billing cycle calculation
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  // The day of the month for billing cycle reset (e.g., if registered on the 15th, billingCycleDay = 15)
+  billingCycleDay: integer("billing_cycle_day"),
+  // Last payment date (for premium users)
+  lastPaymentDate: timestamp("last_payment_date"),
+  // Current subscription plan (free, premium, etc.)
+  subscriptionPlan: text("subscription_plan").default("free"),
 });
 
 export const leaders = pgTable("leaders", {
@@ -105,13 +112,18 @@ export const leaderAlternatives = pgTable("leader_alternatives", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// Table to track monthly word usage for billing purposes
+// Table to track billing-cycle word usage
 export const userWordUsage = pgTable("user_word_usage", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
-  year: integer("year").notNull(),
-  month: integer("month").notNull(), // 1-12
+  // Start of the billing cycle (anniversary date)
+  cycleStartDate: timestamp("cycle_start_date").notNull(),
+  // End of the billing cycle
+  cycleEndDate: timestamp("cycle_end_date").notNull(),
+  // Accumulated word count for this billing cycle
   wordCount: integer("word_count").notNull().default(0),
+  // Billing cycle number (1 = first month, 2 = second month, etc.)
+  cycleNumber: integer("cycle_number").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -251,8 +263,9 @@ export const insertUserWordUsageSchema = createInsertSchema(userWordUsage).omit(
 export const updateUserWordUsageSchema = createInsertSchema(userWordUsage).omit({
   id: true,
   userId: true,
-  year: true,
-  month: true,
+  cycleStartDate: true,
+  cycleEndDate: true,
+  cycleNumber: true,
   createdAt: true,
   updatedAt: true,
 });
