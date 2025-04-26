@@ -111,12 +111,12 @@ export default function AllTranscripts() {
             <TranscriptsSkeleton />
           ) : filteredAndSortedRecordings.filter(r => 
               r.analysisResult?.overview?.rating === "Good" || 
-              r.analysisResult?.overview?.score > 0.65
+              (r.analysisResult?.overview?.score && r.analysisResult?.overview?.score > 0.65)
             ).length > 0 ? (
             filteredAndSortedRecordings
               .filter(r => 
                 r.analysisResult?.overview?.rating === "Good" || 
-                r.analysisResult?.overview?.score > 0.65
+                (r.analysisResult?.overview?.score && r.analysisResult?.overview?.score > 0.65)
               )
               .map(recording => (
                 <TranscriptCard 
@@ -134,12 +134,12 @@ export default function AllTranscripts() {
             <TranscriptsSkeleton />
           ) : filteredAndSortedRecordings.filter(r => 
               r.analysisResult?.overview?.rating === "Poor" || 
-              r.analysisResult?.overview?.score < 0.5
+              (r.analysisResult?.overview?.score !== undefined && r.analysisResult?.overview?.score < 0.5)
             ).length > 0 ? (
             filteredAndSortedRecordings
               .filter(r => 
                 r.analysisResult?.overview?.rating === "Poor" || 
-                r.analysisResult?.overview?.score < 0.5
+                (r.analysisResult?.overview?.score !== undefined && r.analysisResult?.overview?.score < 0.5)
               )
               .map(recording => (
                 <TranscriptCard 
@@ -208,6 +208,9 @@ function TranscriptCard({ recording }: { recording: Recording }) {
   const rating = recording.analysisResult?.overview?.rating || "N/A";
   const score = recording.analysisResult?.overview?.score || 0;
   
+  // Calculate star rating (1-5 scale)
+  const starRating = Math.max(1, Math.min(5, Math.round(score * 5)));
+  
   const ratingColor = 
     rating === "Good" || score > 0.65 ? "bg-green-100 text-green-800 border-green-200" :
     rating === "Average" || (score >= 0.5 && score <= 0.65) ? "bg-yellow-100 text-yellow-800 border-yellow-200" :
@@ -236,7 +239,13 @@ function TranscriptCard({ recording }: { recording: Recording }) {
             variant="outline" 
             className={`mt-2 md:mt-0 ${ratingColor}`}
           >
-            {rating} {score > 0 && `(${Math.round(score * 100)}%)`}
+            {rating} {score > 0 && (
+              <span className="ml-1">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <span key={i} className={i < starRating ? "text-yellow-500" : "text-gray-300"}>★</span>
+                ))}
+              </span>
+            )}
           </Badge>
         </div>
       </CardHeader>
