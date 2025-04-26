@@ -1,5 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, signInWithPopup, GoogleAuthProvider, getRedirectResult } from "firebase/auth";
+import { logInfo, logError, logDebug, logWarn } from "@/lib/debugLogger";
 
 // IMPORTANT: Switch from redirect to popup authentication to avoid CORS issues
 // This should resolve the "accounts.google.com refused to connect" error
@@ -18,14 +19,21 @@ export const provider = new GoogleAuthProvider();
 
 export async function signInWithGoogle() {
   try {
-    console.log("Firebase config:", {
+    const configInfo = {
       apiKey: import.meta.env.VITE_FIREBASE_API_KEY ? "Present (hidden)" : "Missing",
       projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
       appId: import.meta.env.VITE_FIREBASE_APP_ID ? "Present (hidden)" : "Missing",
       authDomain: `${import.meta.env.VITE_FIREBASE_PROJECT_ID || "demo-project"}.firebaseapp.com`,
-    });
+      currentUrl: window.location.href,
+      currentOrigin: window.location.origin,
+      deployedEnvironment: import.meta.env.NODE_ENV
+    };
+    
+    console.log("Firebase config:", configInfo);
+    logDebug("Firebase authentication attempt", configInfo);
     
     console.log("Starting Google sign-in with popup...");
+    logInfo("Starting Google sign-in with popup");
     console.log("Auth state before popup:", auth.currentUser ? "User is signed in" : "No user");
     
     // Configure provider to return to this exact URL to prevent redirect issues
@@ -34,20 +42,32 @@ export async function signInWithGoogle() {
     });
     
     // Use popup instead of redirect to avoid cross-origin issues
+    logDebug("Opening Google auth popup");
     const result = await signInWithPopup(auth, provider);
     console.log("Popup authentication completed");
+    logInfo("Google popup authentication completed");
     
     // Return the user information
     const user = result.user;
-    console.log("User authenticated:", {
+    const userInfo = {
       uid: user.uid,
       email: user.email,
-      displayName: user.displayName
-    });
+      displayName: user.displayName,
+      hasPhotoUrl: !!user.photoURL
+    };
+    
+    console.log("User authenticated:", userInfo);
+    logInfo("Firebase user authenticated", userInfo);
     
     // Now create or update the user on our server
     try {
       console.log("Sending user data to server...");
+      logDebug("Sending user data to server for authentication", {
+        endpoint: '/api/users',
+        method: 'POST',
+        googleId: user.uid ? "Present (hidden)" : "Missing"
+      });
+      
       const response = await fetch('/api/users', {
         method: 'POST',
         headers: {
@@ -64,33 +84,57 @@ export async function signInWithGoogle() {
       
       if (response.ok) {
         console.log("User successfully registered/logged in on server");
+        logInfo("User successfully registered/logged in on server");
+        
         const userData = await response.json();
         console.log("Server response:", userData);
         
         // Check if user has completed onboarding
         if (userData.dateOfBirth && userData.profession && userData.goals && userData.selectedLeaders) {
           console.log("User already onboarded, redirecting to dashboard...");
+          logInfo("User already onboarded, redirecting to dashboard");
           window.location.href = '/dashboard';
         } else {
           console.log("User needs onboarding, redirecting to /onboarding...");
+          logInfo("User needs onboarding, redirecting to /onboarding");
           window.location.href = '/onboarding';
         }
       } else {
-        console.error("Server registration failed:", await response.text());
+        const responseText = await response.text();
+        console.error("Server registration failed:", responseText);
+        logError("Server registration failed", {
+          status: response.status,
+          responseText,
+          url: '/api/users'
+        });
       }
-    } catch (serverError) {
+    } catch (serverError: any) {
       console.error("Error communicating with server:", serverError);
+      logError("Error communicating with server after Google authentication", {
+        message: serverError?.message || "Unknown server error",
+        stack: serverError?.stack || "No stack trace"
+      });
     }
     
     return user;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error signing in with Google", error);
     console.error("Error details:", {
-      code: error.code,
-      message: error.message,
-      stack: error.stack,
-      name: error.name
+      code: error?.code,
+      message: error?.message,
+      stack: error?.stack,
+      name: error?.name
     });
+    
+    logError("Google sign-in error", {
+      code: error?.code || "unknown",
+      message: error?.message || "Unknown Google sign-in error",
+      stack: error?.stack || "No stack trace",
+      name: error?.name || "Error",
+      currentUrl: window.location.href,
+      firebaseProjectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "demo-project"
+    });
+    
     throw error;
   }
 }
@@ -98,28 +142,42 @@ export async function signInWithGoogle() {
 export async function handleRedirectResult() {
   try {
     console.log("Checking for redirect result...");
+    logDebug("Checking for Google auth redirect result");
     const result = await getRedirectResult(auth);
     
     if (result) {
       console.log("Redirect result found");
+      logInfo("Google redirect result found - user authenticated");
       // The signed-in user info
       const user = result.user;
-      console.log("User authenticated:", {
+      const userInfo = {
         uid: user.uid,
         email: user.email,
-        displayName: user.displayName
-      });
+        displayName: user.displayName,
+        hasPhotoUrl: !!user.photoURL
+      };
+      console.log("User authenticated:", userInfo);
+      logInfo("User authenticated via redirect", userInfo);
       return user;
     }
     console.log("No redirect result found");
+    logDebug("No Google redirect result found");
     return null;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error handling redirect result", error);
     console.error("Error details:", {
-      code: error.code,
-      message: error.message,
-      stack: error.stack,
-      name: error.name
+      code: error?.code,
+      message: error?.message,
+      stack: error?.stack,
+      name: error?.name
+    });
+    
+    logError("Error handling Google redirect result", {
+      code: error?.code || "unknown",
+      message: error?.message || "Unknown redirect error",
+      stack: error?.stack || "No stack trace",
+      name: error?.name || "Error",
+      url: window.location.href
     });
     throw error;
   }
@@ -127,9 +185,15 @@ export async function handleRedirectResult() {
 
 export async function signOut() {
   try {
+    logInfo("Signing out user");
     await auth.signOut();
-  } catch (error) {
+    logInfo("User signed out successfully");
+  } catch (error: any) {
     console.error("Error signing out", error);
+    logError("Error signing out user", {
+      message: error?.message || "Unknown sign out error",
+      code: error?.code
+    });
     throw error;
   }
 }

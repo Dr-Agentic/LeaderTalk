@@ -4,6 +4,7 @@ import { useState } from "react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { getAuth } from "firebase/auth";
+import { logDebug, logError, logInfo, logWarn } from "@/lib/debugLogger";
 
 export default function GoogleSignUp() {
   const [isLoading, setIsLoading] = useState(false);
@@ -16,23 +17,30 @@ export default function GoogleSignUp() {
       setIsLoading(true);
       
       // Log Firebase configuration for debugging
-      console.log("Firebase config being used:", {
+      const configInfo = {
         apiKey: import.meta.env.VITE_FIREBASE_API_KEY ? "Present (hidden)" : "Missing",
         projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
         appId: import.meta.env.VITE_FIREBASE_APP_ID ? "Present (hidden)" : "Missing",
         authDomain: `${import.meta.env.VITE_FIREBASE_PROJECT_ID || "demo-project"}.firebaseapp.com`,
         currentUrl: window.location.href,
-        currentOrigin: window.location.origin
-      });
+        currentOrigin: window.location.origin,
+        environment: import.meta.env.NODE_ENV
+      };
+      
+      console.log("Firebase config being used:", configInfo);
+      logDebug("Attempting Google sign-in with config", configInfo);
       
       console.log("Starting Google sign-in popup...");
+      logInfo("Google sign-in process initiated from UI");
       
       // Use the popup authentication (changed from redirect to fix CORS issues)
       const user = await signInWithGoogle();
       console.log("Google sign-in completed successfully", user);
+      logInfo("Google sign-in completed successfully in UI component");
       
       // Redirect to dashboard or onboarding based on user data
       if (user) {
+        logDebug("Checking user onboarding status");
         // Check if we need to show onboarding (no selected leaders, etc)
         const userResponse = await fetch('/api/users/me', {
           credentials: 'include'
@@ -40,35 +48,59 @@ export default function GoogleSignUp() {
         
         if (userResponse.ok) {
           const userData = await userResponse.json();
+          logDebug("User data received from server", { 
+            hasSelectedLeaders: !!userData.selectedLeaders,
+            hasDateOfBirth: !!userData.dateOfBirth,
+            hasProfession: !!userData.profession,
+            hasGoals: !!userData.goals
+          });
           
           // If user doesn't have onboarding data, go to onboarding
           if (!userData.selectedLeaders || !userData.dateOfBirth || !userData.profession || !userData.goals) {
             console.log("User needs onboarding, redirecting to /onboarding...");
+            logInfo("User needs onboarding, redirecting to /onboarding");
             window.location.href = "/onboarding";
           } else {
             // User has completed onboarding, go to dashboard
             console.log("User already onboarded, redirecting to dashboard...");
+            logInfo("User already onboarded, redirecting to dashboard");
             window.location.href = "/";
           }
         } else {
-          console.error("Failed to get user data from server:", await userResponse.text());
+          const responseText = await userResponse.text();
+          console.error("Failed to get user data from server:", responseText);
+          logError("Failed to get user data from server", {
+            status: userResponse.status,
+            statusText: userResponse.statusText,
+            responseText
+          });
+          
           // If we can't determine, just go to dashboard
+          logWarn("Could not determine onboarding status, redirecting to home as fallback");
           window.location.href = "/";
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Google sign in error:", error);
       console.error("Error details:", {
-        code: error.code,
-        message: error.message,
-        stack: error.stack
+        code: error?.code,
+        message: error?.message,
+        stack: error?.stack
       });
+      
+      logError("Google sign-in error in UI component", {
+        code: error?.code || "unknown",
+        message: error?.message || "Unknown error",
+        stack: error?.stack || "No stack trace",
+        url: window.location.href
+      });
+      
       setIsLoading(false);
       
       // Show error toast with more details
       toast({
         title: "Authentication Error",
-        description: `${error.code || 'unknown'}: ${error.message || 'Unknown error'}. Please try again or use the demo login.`,
+        description: `${error?.code || 'unknown'}: ${error?.message || 'Unknown error'}. Please try again or use the demo login.`,
         variant: "destructive",
       });
     }
