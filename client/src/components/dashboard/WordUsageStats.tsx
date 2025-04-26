@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { CalendarIcon } from "lucide-react";
 
 // Monthly word limit for billing
 const MONTHLY_WORD_LIMIT = 50000;
@@ -19,6 +20,7 @@ export default function WordUsageStats() {
   const currentMonthUsage = data?.currentMonthUsage || 0;
   const usagePercentage = Math.min(100, (currentMonthUsage / MONTHLY_WORD_LIMIT) * 100);
   const formattedHistory = formatHistoryData(data?.history || []);
+  const billingCycle = data?.billingCycle || {};
 
   return (
     <Card className="mb-6">
@@ -38,6 +40,24 @@ export default function WordUsageStats() {
               {Math.round(usagePercentage)}% of your monthly word allocation used
             </p>
           </div>
+
+          {/* Billing cycle information */}
+          {billingCycle && billingCycle.startDate && (
+            <div className="mt-4 p-3 bg-muted rounded-md">
+              <div className="flex items-start gap-3">
+                <CalendarIcon className="h-5 w-5 text-muted-foreground mt-0.5" />
+                <div>
+                  <h4 className="text-sm font-medium">Current Billing Cycle</h4>
+                  <p className="text-sm text-muted-foreground">
+                    {formatDate(billingCycle.startDate)} — {formatDate(billingCycle.endDate)}
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {billingCycle.daysRemaining} days remaining in this cycle
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {formattedHistory.length > 1 && (
             <div className="h-48 mt-6">
@@ -62,7 +82,7 @@ export default function WordUsageStats() {
           )}
 
           <p className="text-sm text-muted-foreground mt-4">
-            Usage resets on the 1st of each month. Exceeding your word limit may affect billing.
+            Usage resets on your monthly anniversary date. Your billing cycle is based on your registration date.
           </p>
         </div>
       </CardContent>
@@ -101,9 +121,37 @@ function formatHistoryData(history) {
 
   return history
     .slice(0, 6) // Only show last 6 months
-    .map(item => ({
-      name: `${monthNames[item.month - 1]} ${String(item.year).slice(2)}`,
-      words: item.wordCount
-    }))
+    .map(item => {
+      // Check if the item has the new format (displayName) or old format (year/month)
+      if (item.displayName) {
+        return {
+          name: item.displayName,
+          words: item.wordCount
+        };
+      } else {
+        return {
+          name: `${monthNames[item.month - 1]} ${String(item.year).slice(2)}`,
+          words: item.wordCount
+        };
+      }
+    })
     .reverse(); // Show oldest to newest
+}
+
+// Format a date string like '2023-04-15' to 'Apr 15, 2023'
+function formatDate(dateString) {
+  if (!dateString) return 'N/A';
+  
+  try {
+    const date = new Date(dateString);
+    
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    }).format(date);
+  } catch (e) {
+    console.error('Error formatting date:', e);
+    return dateString; // Return the original string if parsing fails
+  }
 }
