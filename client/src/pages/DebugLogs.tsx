@@ -66,7 +66,7 @@ export default function DebugLogs() {
   const getBadgeVariant = (level: string) => {
     switch (level) {
       case 'error': return "destructive";
-      case 'warn': return "warning";
+      case 'warn': return "outline"; // Change from "warning" to "outline" as it's supported
       case 'debug': return "outline";
       default: return "secondary";
     }
