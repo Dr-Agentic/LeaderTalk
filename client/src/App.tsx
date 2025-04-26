@@ -15,8 +15,10 @@ import Training from "@/pages/Training";
 import ModuleView from "@/pages/ModuleView";
 import SituationView from "@/pages/SituationView";
 import NextSituation from "@/pages/NextSituation";
+import DebugLogs from "@/pages/DebugLogs";
 import { useEffect, useState } from "react";
 import { apiRequest } from "./lib/queryClient";
+import { logInfo, logError, logDebug } from "@/lib/debugLogger";
 
 function Router() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
