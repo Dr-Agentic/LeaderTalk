@@ -430,8 +430,49 @@ As your application grows:
 3. **S3 Lifecycle Policies**:
    - Implement lifecycle policies to move older audio files to cheaper storage classes
 
+## Replit Deployment
+
+If you're deploying on Replit instead of AWS, follow these specific steps for proper configuration:
+
+1. **Set Environment Secrets**:
+
+   Go to the Secrets tab in your Replit project and add these required secrets:
+   
+   ```
+   # Session configuration
+   SESSION_SECRET=your-strong-random-secret-key
+   COOKIE_DOMAIN=your-replit-app-domain.replit.app
+   
+   # OpenAI 
+   OPENAI_API_KEY=your_openai_api_key
+   
+   # Firebase
+   VITE_FIREBASE_API_KEY=your_firebase_api_key
+   VITE_FIREBASE_APP_ID=your_firebase_app_id
+   VITE_FIREBASE_PROJECT_ID=your_firebase_project_id
+   ```
+
+2. **Update Firebase Configuration**:
+
+   a. Go to Firebase Console → Authentication → Settings → Authorized domains
+   
+   b. Add your Replit domain (e.g., `your-replit-app.replit.app`) to the list of authorized domains
+   
+   > **Important**: If you've set up a custom domain for your Replit app, add both the Replit domain AND your custom domain to the authorized domains list
+
+3. **Verify Session Configuration**:
+
+   a. After deployment, visit the `/api/debug/session` endpoint to verify cookie settings
+   
+   b. Check that:
+      - You see a session ID displayed
+      - When logged in, the `userId` field is populated
+      - The `cookiePresent` field should be `true` after logging in
+      
+   c. If sessions aren't persisting, verify your COOKIE_DOMAIN matches exactly what's shown in your browser's address bar
+
 ## Conclusion
 
-Following this guide, you've deployed LeaderTalk to AWS in a scalable, secure manner. Regular monitoring and maintenance will ensure optimal performance and user experience.
+Following this guide, you've deployed LeaderTalk in a scalable, secure manner. Regular monitoring and maintenance will ensure optimal performance and user experience.
 
-For specific AWS service documentation, refer to the AWS official documentation.
+For specific cloud service documentation, refer to AWS or Replit documentation as appropriate for your deployment choice.
