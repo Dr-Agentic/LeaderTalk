@@ -20,6 +20,7 @@ const __dirname = path.dirname(__filename);
 import { 
   insertUserSchema, updateUserSchema, insertRecordingSchema, 
   leaders, chapters, modules, situations, userProgress, situationAttempts,
+  recordings, users, userWordUsage,
   insertChapterSchema, insertModuleSchema, insertSituationSchema,
   insertUserProgressSchema, updateUserProgressSchema,
   insertSituationAttemptSchema, AttemptEvaluation
