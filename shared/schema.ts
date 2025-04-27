@@ -109,6 +109,7 @@ export const leaderAlternatives = pgTable("leader_alternatives", {
   leaderId: integer("leader_id").notNull(),
   originalText: text("original_text").notNull(),
   alternativeText: text("alternative_text").notNull(),
+  createdBy: integer("created_by").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

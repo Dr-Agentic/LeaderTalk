@@ -154,6 +154,7 @@ function createDefaultAnalysis(reason: string): AnalysisResult {
 export async function generateLeaderAlternative(
   leaderId: number,
   originalText: string,
+  userId?: number,
   leaderInfo?: Leader
 ): Promise<string> {
   try {
@@ -223,11 +224,12 @@ export async function generateLeaderAlternative(
     
     const alternativeText = response.choices[0].message.content.trim();
     
-    // Store in database for future use
+    // Store in database for future use with the creator's user ID
     await storage.createLeaderAlternative({
       leaderId,
       originalText,
-      alternativeText
+      alternativeText,
+      createdBy: userId || undefined
     });
     
     return alternativeText;
