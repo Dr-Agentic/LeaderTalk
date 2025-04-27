@@ -569,6 +569,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Delete user account completely
+  app.post("/api/users/delete-account", requireAuth, async (req, res) => {
+    try {
+      // Get the current user ID from the session
+      const userId = req.session.userId;
+      
+      if (!userId) {
+        return res.status(401).json({ success: false, message: "Not authenticated" });
+      }
+      
+      console.log(`Requested complete deletion of user account ID: ${userId}`);
+      
+      // Delete all recordings
+      console.log('- Deleting recordings...');
+      await db.delete(recordings)
+        .where(eq(recordings.userId, userId));
+      
+      // Delete all progress records
+      console.log('- Deleting progress records...');
+      await db.delete(userProgress)
+        .where(eq(userProgress.userId, userId));
+      
+      // Delete all situation attempts
+      console.log('- Deleting situation attempts...');
+      await db.delete(situationAttempts)
+        .where(eq(situationAttempts.userId, userId));
+      
+      // Delete all word usage records
+      console.log('- Deleting word usage records...');
+      await db.delete(userWordUsage)
+        .where(eq(userWordUsage.userId, userId));
+      
+      // Delete any leader alternatives 
+      console.log('- Deleting leader alternatives...');
+      await db.delete(leaderAlternatives)
+        .where(eq(leaderAlternatives.createdBy, userId));
+        
+      // Finally, delete the user account itself
+      console.log('- Deleting user account...');
+      const [deletedUser] = await db.delete(users)
+        .where(eq(users.id, userId))
+        .returning();
+      
+      // Destroy the session
+      req.session.destroy((err) => {
+        if (err) {
+          console.error("Error destroying session:", err);
+        }
+        console.log("Session destroyed");
+      });
+      
+      // Return success along with minimal info about the deleted user
+      return res.json({
+        success: true,
+        message: "Account successfully deleted",
+        user: {
+          id: deletedUser.id,
+          email: deletedUser.email
+        }
+      });
+    } catch (error) {
+      console.error('Error deleting user account:', error);
+      return res.status(500).json({ 
+        success: false, 
+        message: "Failed to delete user account", 
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
   // Create new user
   app.post("/api/users", async (req, res) => {
     try {

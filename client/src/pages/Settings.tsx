@@ -143,16 +143,16 @@ export default function Settings() {
             {/* Word usage stats for billing */}
             <WordUsageStats />
             
-            {/* Data management for testing */}
+            {/* Account deletion */}
             <Card>
               <CardHeader>
-                <CardTitle>Data Management</CardTitle>
-                <CardDescription>For testing and development purposes</CardDescription>
+                <CardTitle>Delete Account</CardTitle>
+                <CardDescription>Permanently remove your account and data</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
                   <div>
-                    <h3 className="text-sm font-medium text-red-500 mb-2">DELETE USER ACCOUNT</h3>
+                    <h3 className="text-sm font-medium text-red-500 mb-2">DELETE YOUR ACCOUNT</h3>
                     <p className="text-sm text-gray-600 mb-4">
                       This will permanently delete your entire account, including all your personal data,
                       recordings, progress, and settings. This action cannot be undone.
