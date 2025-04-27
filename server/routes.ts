@@ -58,6 +58,10 @@ const multerStorage = multer.diskStorage({
       ext = '.webm';
     } else if (file.mimetype === 'audio/m4a') {
       ext = '.m4a';
+    } else if (file.mimetype === 'audio/mp4') {
+      ext = '.mp4';
+    } else if (file.mimetype === 'audio/aac') {
+      ext = '.aac';
     } else {
       // Default to mp3 if unknown
       ext = '.mp3';
@@ -75,10 +79,15 @@ const upload = multer({
     const validMimes = [
       'audio/mp3', 'audio/mpeg', 'audio/wav', 
       'audio/webm', 'audio/ogg', 'audio/oga', 
-      'audio/m4a', 'audio/flac'
+      'audio/m4a', 'audio/flac', 'audio/mp4',
+      'audio/aac', 'audio/x-m4a', 'audio/x-aac'
     ];
     
+    // Log all audio file uploads with type
+    console.log(`Received audio upload with mimetype: ${file.mimetype}`);
+    
     if (validMimes.includes(file.mimetype)) {
+      console.log(`Accepted audio file with mimetype: ${file.mimetype}`);
       cb(null, true);
     } else {
       console.warn(`Rejected file upload with mimetype: ${file.mimetype}`);
@@ -838,16 +847,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Upload and analyze recording
   app.post("/api/recordings/upload", requireAuth, upload.single("audio"), async (req, res) => {
     try {
+      // Check if we have a file at all
       if (!req.file) {
         console.error("No file was uploaded or file was rejected by multer");
-        return res.status(400).json({ message: "No audio file provided" });
+        
+        // More detailed error based on what might have happened
+        if (req.headers['content-type']?.includes('multipart/form-data')) {
+          // The right content-type was sent, but maybe the file was rejected by multer
+          return res.status(400).json({ 
+            message: "No audio file provided or file format not supported", 
+            supportedFormats: [
+              'audio/mp3', 'audio/mpeg', 'audio/wav',
+              'audio/webm', 'audio/ogg', 'audio/oga',
+              'audio/m4a', 'audio/flac', 'audio/mp4',
+              'audio/aac', 'audio/x-m4a', 'audio/x-aac'
+            ]
+          });
+        } else {
+          // Content-type might be wrong
+          return res.status(400).json({ 
+            message: "Incorrect request format. Audio must be sent as multipart/form-data with 'audio' field name." 
+          });
+        }
       }
       
       console.log("Received audio file:", {
         filename: req.file.filename,
         mimetype: req.file.mimetype,
         size: req.file.size,
-        path: req.file.path
+        path: req.file.path,
+        originalname: req.file.originalname || "unknown"
       });
       
       // Verify audio file is valid
