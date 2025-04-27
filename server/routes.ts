@@ -740,9 +740,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           catch (e) { famousPhrases = []; }
         }
         
-        // Generate photoUrl based on leader name
-        const photoName = leader.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
-        const photoUrl = `/images/leaders/${photoName}.svg`;
+        // Use the photoUrl from database if it exists; only generate as fallback
+        let photoUrl = leader.photoUrl;
+        
+        // If no photoUrl in database, generate one based on leader name
+        if (!photoUrl) {
+          const photoName = leader.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
+          photoUrl = `/images/leaders/${photoName}.svg`;
+        }
         
         // Return enhanced leader object
         return {
@@ -751,7 +756,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           leadershipStyles: leadershipStyles || [],
           famousPhrases: famousPhrases || [],
           controversial: !!leader.controversial, // Ensure it's a boolean
-          photoUrl: photoUrl // Add the photo URL
+          photoUrl: photoUrl // Use database photoUrl or fallback
         };
       });
       
