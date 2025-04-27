@@ -28,6 +28,7 @@ LeaderTalk is a comprehensive communication coaching platform that leverages adv
 - **Color-coded Text**: Transcripts display text highlighting positive, negative, and neutral communication
 - **Anniversary-based Billing**: Word usage tracked and reset on monthly anniversary of user registration
 - **Usage Monitoring**: Track word usage with billing cycle information and days remaining
+- **Account Management**: Complete account deletion with comprehensive data removal across all tables
 
 ## Technology Stack
 
@@ -150,7 +151,7 @@ The application uses a PostgreSQL database with the following key tables:
 - `recordings`: User conversation recordings and analysis results
 - `chapters`, `modules`, `situations`: Training content structure
 - `user_progress`, `situation_attempts`: User training progress tracking
-- `leader_alternatives`: Cached leadership style alternatives
+- `leader_alternatives`: Cached leadership style alternatives with user tracking
 - `user_word_usage`: Anniversary-based billing cycle tracking
 
 ## API Endpoints
@@ -160,6 +161,7 @@ The application uses a PostgreSQL database with the following key tables:
 - `POST /api/users`: Create new user account
 - `GET /api/users/me`: Get current user profile
 - `PATCH /api/users/me`: Update user profile
+- `DELETE /api/users/me`: Delete user account with all associated data
 
 ### Recording
 - `POST /api/recordings`: Create new recording

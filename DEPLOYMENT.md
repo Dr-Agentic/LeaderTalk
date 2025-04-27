@@ -382,6 +382,17 @@ chmod +x deploy.sh
    - Check bucket name and region
    - Confirm environment variables are set correctly
 
+4. **Session Management Issues**:
+   - Verify `SESSION_SECRET` and `COOKIE_DOMAIN` environment variables
+   - Check that Firebase authorized domains are correctly configured
+   - Verify cookie settings and expiration times
+   - Look for CORS-related errors in browser console
+
+5. **Account Deletion Issues**:
+   - Ensure all database relations are properly set up for cascade deletion
+   - Check that leader alternatives include user tracking
+   - Verify session clearing works properly after deletion
+
 ## Scaling Considerations
 
 As your application grows:
