@@ -158,16 +158,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       name: 'leadertalk.sid', // Custom session name for easier identification
       secret: process.env.SESSION_SECRET || "leadertalk-session-secret",
       resave: false,
-      saveUninitialized: false,
+      saveUninitialized: true, // Changed to true to ensure cookie is set immediately
       rolling: true, // Force cookie to be set on every response
       cookie: {
         httpOnly: true, // Prevent client-side JS from reading cookie
-        secure: process.env.NODE_ENV === "production", // Must be true in production
+        // In production with HTTPS, set secure to true
+        // In development or when using HTTP, set to false
+        secure: process.env.NODE_ENV === "production" && 
+                process.env.SECURE_COOKIES !== "false",
+                
         maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
-        sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax', // Use 'none' in production for cross-site cookies
+        
+        // For cross-origin requests in production, use 'none'
+        // In development, use 'lax' for better security
+        sameSite: process.env.NODE_ENV === "production" ? 
+                 (process.env.SAMESITE_COOKIES || 'none') : 'lax',
+                 
         path: '/', // Ensure cookie is sent for all paths
+        
+        // Domain config for production environments
         domain: process.env.NODE_ENV === "production" && process.env.COOKIE_DOMAIN ? 
-          process.env.COOKIE_DOMAIN : undefined // Set domain in production if specified
+          process.env.COOKIE_DOMAIN : undefined
       },
       store: new MemoryStoreFactory({
         checkPeriod: 86400000, // 24 hours
@@ -193,8 +204,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.clearCookie('leadertalk.sid', {
           path: '/',
           httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: process.env.NODE_ENV === 'production' ? 'none' as const : 'lax' as const,
+          secure: process.env.NODE_ENV === "production" && 
+                  process.env.SECURE_COOKIES !== "false",
+          sameSite: process.env.NODE_ENV === 'production' ? 
+                   (process.env.SAMESITE_COOKIES || 'none') as const : 'lax' as const,
           maxAge: 0,
           domain: process.env.NODE_ENV === "production" && process.env.COOKIE_DOMAIN ? 
             process.env.COOKIE_DOMAIN : undefined
@@ -267,8 +280,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const cookieOptions = {
       path: '/',
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' as const : 'lax' as const,
+      secure: process.env.NODE_ENV === "production" && 
+              process.env.SECURE_COOKIES !== "false",
+      sameSite: process.env.NODE_ENV === 'production' ? 
+               (process.env.SAMESITE_COOKIES || 'none') as const : 'lax' as const,
       maxAge: 0,
       domain: process.env.NODE_ENV === "production" && process.env.COOKIE_DOMAIN ? 
         process.env.COOKIE_DOMAIN : undefined

@@ -9,9 +9,15 @@ let currentUserId: number | null = null;
 export async function checkSession(): Promise<boolean> {
   try {
     logDebug("Checking session status");
-    const response = await fetch('/api/debug/session', {
+    const timestamp = Date.now(); // Add timestamp to prevent caching
+    const response = await fetch(`/api/debug/session?t=${timestamp}`, {
       credentials: 'include', // Ensure cookies are sent
-      cache: 'no-cache'       // Prevent caching
+      cache: 'no-cache',      // Prevent caching
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
     });
     
     if (!response.ok) {
@@ -43,13 +49,15 @@ export async function checkSession(): Promise<boolean> {
     
     currentUserId = data.userId || null;
     
-    // Log session status
+    // Enhanced session status logging
     if (data.sessionExists && data.isLoggedIn) {
       const msg = `Session confirmed valid, user ID: ${currentUserId || 'unknown'}`;
       console.log(msg);
       logInfo(msg, { 
         userId: currentUserId,
-        sessionId: data.sessionId
+        sessionId: data.sessionId,
+        cookiePresent: data.cookiePresent,
+        cookieExists: data.cookieExists
       });
       return true;
     } else if (data.sessionExists && !data.isLoggedIn) {
@@ -57,13 +65,40 @@ export async function checkSession(): Promise<boolean> {
       console.log(msg);
       logWarn(msg, {
         sessionId: data.sessionId,
-        cookiePresent: data.cookiePresent
+        cookiePresent: data.cookiePresent,
+        cookieExists: data.cookieExists,
+        cookieHeader: data.cookieHeader ? 'Present' : 'Missing'
       });
+      
+      // Try a direct call to force-login in development mode
+      if (import.meta.env.DEV && window.location.hostname === 'localhost') {
+        console.log("Attempting development mode direct login");
+        try {
+          const forcedLogin = await fetch('/api/auth/force-login', {
+            credentials: 'include',
+            cache: 'no-cache'
+          });
+          
+          if (forcedLogin.ok) {
+            console.log("Development mode login successful, revalidating session");
+            // Wait a moment for the session to be properly set
+            await new Promise(resolve => setTimeout(resolve, 500));
+            return await checkSession(); // Retry the session check
+          }
+        } catch (e) {
+          console.log("Development mode login failed, continuing with normal flow");
+        }
+      }
+      
       return false;
     } else {
       const msg = "No valid session found";
       console.log(msg);
-      logWarn(msg);
+      logWarn(msg, {
+        sessionExists: data.sessionExists,
+        cookiePresent: data.cookiePresent,
+        cookieExists: data.cookieExists
+      });
       return false;
     }
   } catch (error: any) {
@@ -141,12 +176,62 @@ export async function apiRequest(
       }
     }
     
-    const res = await fetch(url, {
+    // Prepare fetch options with proper cache control
+    const fetchOptions: RequestInit = {
       method,
-      headers: data ? { "Content-Type": "application/json" } : {},
+      headers: {
+        // Always include cache control headers
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      },
       body: data ? JSON.stringify(data) : undefined,
       credentials: "include",
-    });
+    };
+    
+    // Add content type when there's data
+    if (data) {
+      fetchOptions.headers = {
+        ...fetchOptions.headers,
+        'Content-Type': 'application/json'
+      };
+    }
+    
+    // Add timestamp to URL to prevent caching
+    const timestampedUrl = url.includes('?') 
+      ? `${url}&_t=${Date.now()}` 
+      : `${url}?_t=${Date.now()}`;
+    
+    // Perform the fetch with retries for network issues
+    let retries = 0;
+    const MAX_RETRIES = 2;
+    let res: Response;
+    
+    while (true) {
+      try {
+        res = await fetch(timestampedUrl, fetchOptions);
+        break; // Success, exit retry loop
+      } catch (networkError: any) {
+        retries++;
+        if (retries > MAX_RETRIES) {
+          logError("Network request failed after retries", {
+            url,
+            retries,
+            error: networkError?.message || "Unknown network error"
+          });
+          throw networkError; // Re-throw after max retries
+        }
+        
+        logWarn("Network request failed, retrying...", {
+          url,
+          retry: retries,
+          error: networkError?.message
+        });
+        
+        // Exponential backoff before retry
+        await new Promise(resolve => setTimeout(resolve, 200 * Math.pow(2, retries)));
+      }
+    }
     
     // Special case for unauthorized - redirect to login page
     if (res.status === 401 && url.includes('/api/') && !url.includes('/api/auth/')) {
@@ -166,6 +251,26 @@ export async function apiRequest(
         const mismatchMsg = "Session appears valid but got 401 - possible server-side auth mismatch";
         console.log(mismatchMsg);
         logError(mismatchMsg, { url, method });
+        
+        // In development, try to force a login to recover
+        if (import.meta.env.DEV && window.location.hostname === 'localhost') {
+          try {
+            console.log("Attempting development recovery with force-login...");
+            const forceLogin = await fetch('/api/auth/force-login', { 
+              credentials: 'include' 
+            });
+            
+            if (forceLogin.ok) {
+              console.log("Development recovery successful, retrying request");
+              // Wait a moment for session to update
+              await new Promise(resolve => setTimeout(resolve, 500));
+              // Try the request again
+              return await apiRequest(method, url, data);
+            }
+          } catch (e) {
+            console.log("Development recovery failed");
+          }
+        }
       }
     }
     
