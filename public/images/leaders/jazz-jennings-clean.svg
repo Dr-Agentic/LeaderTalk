@@ -1,23 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg width="150" height="150" viewBox="0 0 150 150" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Simple face shape -->
-  <circle cx="75" cy="50" r="35" fill="#FFD6B3" />
-  
-  <!-- Hair -->
-  <path d="M35 55 C35 25, 115 25, 115 55" fill="#5A3825" />
-  
-  <!-- Eyes -->
-  <ellipse cx="60" cy="45" rx="5" ry="3" fill="#5A3825" />
-  <ellipse cx="90" cy="45" rx="5" ry="3" fill="#5A3825" />
-  
-  <!-- Smile -->
-  <path d="M65 60 Q75 70 85 60" stroke="#C85A5A" stroke-width="2" fill="none" />
-  
-  <!-- Simple body/top -->
-  <rect x="45" y="85" width="60" height="30" fill="#F5A9B8" />
-  
-  <!-- Transgender symbol -->
-  <circle cx="75" cy="115" r="10" stroke="#5BCEFA" stroke-width="2" fill="none" />
-  <line x1="75" y1="105" x2="75" y2="95" stroke="#5BCEFA" stroke-width="2" />
-  <line x1="70" y1="100" x2="80" y2="100" stroke="#5BCEFA" stroke-width="2" />
+  <circle cx="75" cy="60" r="40" fill="#F5A9B8"/>
+  <rect x="35" y="110" width="80" height="25" rx="5" fill="#5BCEFA"/>
 </svg>
