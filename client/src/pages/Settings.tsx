@@ -70,7 +70,7 @@ export default function Settings() {
     onError: () => {
       toast({
         title: "Error",
-        description: "Failed to delete user records. Please try again.",
+        description: "Failed to delete your account. Please try again.",
         variant: "destructive",
       });
     }
