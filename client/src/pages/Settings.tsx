@@ -20,7 +20,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Loader2, Trash2 } from "lucide-react";
+import { Loader2, Trash2, UserX } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 import { apiRequest } from "@/lib/queryClient";
 
 export default function Settings() {
@@ -35,26 +36,36 @@ export default function Settings() {
     enabled: activeTab === "leaders",
   });
   
-  // Delete user records mutation
-  const deleteRecordsMutation = useMutation({
+  // Delete user account mutation - deletes all user data and the account itself
+  const deleteUserMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest('POST', '/api/users/delete-records');
+      const response = await apiRequest('POST', '/api/users/delete-account');
       return response.json();
     },
     onSuccess: (data) => {
       toast({
-        title: "Records deleted",
-        description: `Successfully deleted user records: ${data.counts.recordings} recordings, ${data.counts.progressRecords} progress records, ${data.counts.situationAttempts} situation attempts, and ${data.counts.wordUsageRecords} word usage records.`,
+        title: "Account deleted",
+        description: "Your account and all associated data have been permanently deleted.",
         variant: "default",
       });
       
-      // Invalidate queries to refresh data
-      queryClient.invalidateQueries({ queryKey: ['/api/recordings'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/training'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/users/word-usage'] });
-      
-      // Force the user to complete onboarding again
-      queryClient.invalidateQueries({ queryKey: ['/api/users/me'] });
+      // Show a success message and then log the user out after a short delay
+      setTimeout(() => {
+        // Log the user out and redirect to login
+        apiRequest('GET', '/api/auth/logout')
+          .then(() => {
+            // Clear query cache
+            queryClient.invalidateQueries();
+            
+            // Redirect to login page
+            window.location.href = '/login';
+          })
+          .catch(error => {
+            console.error("Error during logout:", error);
+            // Force redirect even if logout fails
+            window.location.href = '/login';
+          });
+      }, 1500); // Short delay to allow the user to see the success message
     },
     onError: () => {
       toast({
@@ -139,47 +150,57 @@ export default function Settings() {
                 <CardDescription>For testing and development purposes</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+                <div className="space-y-6">
                   <div>
-                    <h3 className="text-sm font-medium text-gray-500 mb-2">RESET USER DATA</h3>
+                    <h3 className="text-sm font-medium text-red-500 mb-2">DELETE USER ACCOUNT</h3>
                     <p className="text-sm text-gray-600 mb-4">
-                      This will delete all your recordings, progress data, situation attempts, and 
-                      word usage records. Your account will remain but you'll need to complete onboarding
-                      again. This is useful for testing the application with a clean slate.
+                      This will permanently delete your entire account, including all your personal data,
+                      recordings, progress, and settings. This action cannot be undone.
                     </p>
                     
-                    {/* Alert dialog for confirmation */}
+                    {/* Alert dialog for account deletion confirmation */}
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button variant="destructive" className="gap-2">
-                          <Trash2 className="h-4 w-4" />
-                          Delete All User Records
+                        <Button variant="destructive" className="gap-2 bg-red-600 hover:bg-red-700">
+                          <UserX className="h-4 w-4" />
+                          Delete Account Permanently
                         </Button>
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
-                          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                          <AlertDialogTitle className="text-red-600">
+                            Delete Your Account Permanently?
+                          </AlertDialogTitle>
                           <AlertDialogDescription>
-                            This action will delete all your recordings, progress, and usage data.
-                            This action cannot be undone, and all your data will be permanently lost.
+                            <p>This will immediately and permanently delete:</p>
+                            <ul className="list-disc pl-5 mt-2 space-y-1">
+                              <li>Your user profile and personal information</li>
+                              <li>All recordings you've created</li>
+                              <li>All training progress and situation attempts</li>
+                              <li>All word usage records</li>
+                              <li>Selected leader preferences</li>
+                            </ul>
+                            <p className="mt-4 font-bold">
+                              This action CANNOT be undone. Are you sure you want to proceed?
+                            </p>
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>Cancel</AlertDialogCancel>
                           <AlertDialogAction
-                            onClick={() => deleteRecordsMutation.mutate()}
-                            disabled={deleteRecordsMutation.isPending}
+                            onClick={() => deleteUserMutation.mutate()}
+                            disabled={deleteUserMutation.isPending}
                             className="bg-red-600 hover:bg-red-700 gap-2"
                           >
-                            {deleteRecordsMutation.isPending ? (
+                            {deleteUserMutation.isPending ? (
                               <>
                                 <Loader2 className="h-4 w-4 animate-spin" />
-                                Deleting...
+                                Deleting Account...
                               </>
                             ) : (
                               <>
-                                <Trash2 className="h-4 w-4" />
-                                Delete All Records
+                                <UserX className="h-4 w-4" />
+                                Yes, Delete My Account
                               </>
                             )}
                           </AlertDialogAction>
