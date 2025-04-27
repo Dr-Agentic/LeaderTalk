@@ -297,71 +297,110 @@ export const getQueryFn: <T>(options: {
   async ({ queryKey }) => {
     try {
       // If we're accessing authenticated resources, check session first
-      const url = queryKey[0] as string;
-      logDebug("Query function called", { url });
+      const requestUrl = queryKey[0] as string;
+      logDebug("Query function called", { requestUrl });
       
-      if (url.includes('/api/') && !url.includes('/api/auth/') && !sessionChecked) {
+      if (requestUrl.includes('/api/') && !requestUrl.includes('/api/auth/') && !sessionChecked) {
         const msg = "Checking session before API call...";
         console.log(msg);
-        logDebug(msg, { url });
+        logDebug(msg, { requestUrl });
         
         const isLoggedIn = await checkSession();
         
         if (!isLoggedIn) {
           const redirectMsg = "Not logged in, redirecting to login page";
           console.log(redirectMsg);
-          logWarn(redirectMsg, { url });
+          logWarn(redirectMsg, { requestUrl });
           window.location.href = '/login';
           return null;
         }
         
         const successMsg = "Session check successful, proceeding with API call";
         console.log(successMsg);
-        logInfo(successMsg, { url });
+        logInfo(successMsg, { requestUrl });
       }
       
-      const res = await fetch(queryKey[0] as string, {
-        credentials: "include",
-      });
+      // Add timestamp to URL to prevent caching
+      const timestampedUrl = requestUrl.includes('?') 
+        ? `${requestUrl}&_t=${Date.now()}` 
+        : `${requestUrl}?_t=${Date.now()}`;
+      
+      // Perform the fetch with retries for network errors
+      let retries = 0;
+      const MAX_RETRIES = 2;
+      let res: Response;
+      
+      while (true) {
+        try {
+          res = await fetch(timestampedUrl, {
+            credentials: "include",
+            headers: {
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache',
+              'Expires': '0'
+            }
+          });
+          break; // Success, exit retry loop
+        } catch (networkError: any) {
+          retries++;
+          if (retries > MAX_RETRIES) {
+            logError("Network request failed after retries", {
+              requestUrl,
+              retries,
+              error: networkError?.message || "Unknown network error"
+            });
+            throw networkError; // Re-throw after max retries
+          }
+          
+          logWarn("Network request failed, retrying...", {
+            requestUrl,
+            retry: retries,
+            error: networkError?.message
+          });
+          
+          // Exponential backoff before retry
+          await new Promise(resolve => setTimeout(resolve, 200 * Math.pow(2, retries)));
+        }
+      }
 
       // Check for 401 (unauthorized) status
       if (res.status === 401) {
         // If it's an API route, check session again and redirect to login if needed
-        if (url.includes('/api/') && !url.includes('/api/auth/')) {
+        if (requestUrl.includes('/api/') && !requestUrl.includes('/api/auth/')) {
           const recheckMsg = "Received 401, checking session again...";
           console.log(recheckMsg);
-          logWarn(recheckMsg, { url, status: res.status });
+          logWarn(recheckMsg, { requestUrl, status: res.status });
           
           const isLoggedIn = await checkSession();
           
           if (!isLoggedIn) {
             const expiredMsg = "Session expired, redirecting to login page";
             console.log(expiredMsg);
-            logWarn(expiredMsg, { url });
+            logWarn(expiredMsg, { requestUrl });
             window.location.href = '/login';
             return null;
           } else {
             const mismatchMsg = "Session valid but got 401 - session mismatch or server error";
             console.log(mismatchMsg);
-            logError(mismatchMsg, { url });
+            logError(mismatchMsg, { requestUrl });
             throw new Error("Session error - please try refreshing the page");
           }
         }
         
         // Handle based on behavior option
         if (unauthorizedBehavior === "returnNull") {
-          logDebug("Returning null on 401 per behavior option", { url });
+          logDebug("Returning null on 401 per behavior option", { requestUrl });
           return null;
         }
       }
 
       await throwIfResNotOk(res);
-      logDebug("Query successful", { url, status: res.status });
+      logDebug("Query successful", { requestUrl, status: res.status });
       return await res.json();
     } catch (error: any) {
       console.error("Query error:", error);
       logError("Query function error", {
-        url: queryKey[0] as string,
+        requestUrl: queryKey[0] as string,
         message: error?.message || "Unknown error",
         stack: error?.stack
       });

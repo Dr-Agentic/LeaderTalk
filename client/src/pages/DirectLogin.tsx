@@ -25,8 +25,52 @@ export default function DirectLogin() {
       }
       
       console.log("Sending force-login request to server...");
-      // Use fetch instead of direct navigation to prevent full page reload
-      const response = await fetch("/api/auth/force-login");
+      logInfo("Attempting demo login via force-login endpoint");
+      
+      // Use enhanced fetching approach with cache-busting
+      const fetchOptions: RequestInit = {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      };
+      
+      // Add timestamp to URL to prevent caching
+      const url = "/api/auth/force-login";
+      const timestampedUrl = `${url}?_t=${Date.now()}`; 
+      
+      // Add retry mechanism for network issues
+      let retries = 0;
+      const MAX_RETRIES = 2;
+      let response: Response;
+      
+      while (true) {
+        try {
+          response = await fetch(timestampedUrl, fetchOptions);
+          break; // Success, exit retry loop
+        } catch (networkError: any) {
+          retries++;
+          if (retries > MAX_RETRIES) {
+            console.error("Network request failed after retries:", networkError);
+            logError("Demo login network request failed after retries", {
+              error: networkError?.message || "Unknown network error"
+            });
+            throw networkError; // Re-throw after max retries
+          }
+          
+          console.log(`Network request failed, retrying (${retries}/${MAX_RETRIES})...`);
+          logWarn("Demo login network request failed, retrying...", {
+            retry: retries,
+            error: networkError?.message
+          });
+          
+          // Exponential backoff before retry
+          await new Promise(resolve => setTimeout(resolve, 300 * Math.pow(2, retries)));
+        }
+      }
       
       console.log("Force login response received:", {
         status: response.status,
@@ -34,9 +78,16 @@ export default function DirectLogin() {
         redirected: response.redirected,
         redirectUrl: response.redirected ? response.url : 'none',
         ok: response.ok,
-        type: response.type,
-        headers: [...response.headers].map(([key, value]) => `${key}: ${value}`).join(', ')
+        type: response.type
       });
+      
+      try {
+        // Try to get header info for debugging
+        const headerInfo = [...response.headers].map(([key, value]) => `${key}: ${value}`).join(', ');
+        console.log("Response headers:", headerInfo);
+      } catch (headerError) {
+        console.log("Could not log response headers due to browser restrictions");
+      }
       
       if (response.ok || response.redirected) {
         console.log("Login successful, checking onboarding status...");
@@ -142,9 +193,7 @@ export default function DirectLogin() {
       if (user) {
         logDebug("Checking user onboarding status");
         // Check if we need to show onboarding (no selected leaders, etc)
-        const userResponse = await fetch('/api/users/me', {
-          credentials: 'include'
-        });
+        const userResponse = await apiRequest('GET', '/api/users/me');
         
         if (userResponse.ok) {
           const userData = await userResponse.json();
