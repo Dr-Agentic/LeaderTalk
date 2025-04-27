@@ -1,0 +1,235 @@
+[
+  {
+    "name": "Abraham Lincoln",
+    "generation_most_affected": "Lost Gen+",
+    "leadership_styles": [
+      "Principled",
+      "Integrative",
+      "Transformational"
+    ],
+    "famous_phrases": [
+      "I am not bound to win, but I am bound to be true.",
+      "Determine that the thing can and shall be done and then... find the way."
+    ],
+    "controversial": false
+  },
+  {
+    "name": "Mahatma Gandhi",
+    "generation_most_affected": "Greatest/Silent",
+    "leadership_styles": [
+      "Transformational",
+      "Visionary",
+      "Adaptive",
+      "Ethical"
+    ],
+    "famous_phrases": [
+      "The future depends on what we do in the present.",
+      "Hate the sin, love the sinner."
+    ],
+    "controversial": false
+  },
+  {
+    "name": "Winston Churchill",
+    "generation_most_affected": "Silent",
+    "leadership_styles": [
+      "Authentic",
+      "Crisis",
+      "Resilient",
+      "Strategic"
+    ],
+    "famous_phrases": [
+      "Success is not final, failure is not fatal: it is the courage to continue that counts.",
+      "If you're going through hell, keep going."
+    ],
+    "controversial": false
+  },
+  {
+    "name": "Franklin D. Roosevelt",
+    "generation_most_affected": "Greatest/Silent",
+    "leadership_styles": [
+      "Pragmatic",
+      "Charismatic",
+      "Centralized"
+    ],
+    "famous_phrases": [
+      "The only thing we have to fear is fear itself.",
+      "The country needs... bold, persistent experimentation."
+    ],
+    "controversial": false
+  },
+  {
+    "name": "Nelson Mandela",
+    "generation_most_affected": "Gen X",
+    "leadership_styles": [
+      "Transformational",
+      "Ethical",
+      "Charismatic",
+      "Empowering"
+    ],
+    "famous_phrases": [
+      "It always seems impossible until it’s done.",
+      "Education is the most powerful weapon which you can use to change the world."
+    ],
+    "controversial": false
+  },
+  {
+    "name": "Martin Luther King Jr.",
+    "generation_most_affected": "Boomers",
+    "leadership_styles": [
+      "Transformational",
+      "Visionary",
+      "Nonviolent",
+      "Inclusive"
+    ],
+    "famous_phrases": [
+      "I have a dream.",
+      "Love is mankind's most potent weapon for personal and social transformation."
+    ],
+    "controversial": false
+  },
+  {
+    "name": "Mother Teresa",
+    "generation_most_affected": "Gen X",
+    "leadership_styles": [
+      "Servant",
+      "Compassionate",
+      "Ethical"
+    ],
+    "famous_phrases": [
+      "Not all of us can do great things. But we can do small things with great love."
+    ],
+    "controversial": false
+  },
+  {
+    "name": "Xi Jinping",
+    "generation_most_affected": "Gen Z",
+    "leadership_styles": [
+      "Authoritarian",
+      "Strategic",
+      "Centralized"
+    ],
+    "famous_phrases": [
+      "The Chinese nation has stood up, grown rich, and is becoming strong."
+    ],
+    "controversial": true
+  },
+  {
+    "name": "Vladimir Putin",
+    "generation_most_affected": "Millennials/Gen Z",
+    "leadership_styles": [
+      "Authoritarian",
+      "Strategic",
+      "Assertive"
+    ],
+    "famous_phrases": [
+      "Whoever does not miss the Soviet Union has no heart. Whoever wants it back has no brain."
+    ],
+    "controversial": true
+  },
+  {
+    "name": "Joseph Stalin",
+    "generation_most_affected": "Greatest/Silent",
+    "leadership_styles": [
+      "Authoritarian",
+      "Strategic",
+      "Ruthless"
+    ],
+    "famous_phrases": [
+      "The only real power comes out of a long rifle."
+    ],
+    "controversial": true
+  },
+  {
+    "name": "Vladimir Lenin",
+    "generation_most_affected": "Greatest/Silent",
+    "leadership_styles": [
+      "Revolutionary",
+      "Authoritarian",
+      "Ideological"
+    ],
+    "famous_phrases": [
+      "There are decades where nothing happens; and there are weeks where decades happen."
+    ],
+    "controversial": true
+  },
+  {
+    "name": "Ali Khamenei",
+    "generation_most_affected": "Gen X/Gen Z",
+    "leadership_styles": [
+      "Authoritarian",
+      "Theocratic",
+      "Strategic"
+    ],
+    "famous_phrases": [
+      "America is the great Satan."
+    ],
+    "controversial": true
+  },
+  {
+    "name": "Greta Thunberg",
+    "generation_most_affected": "Gen Z",
+    "leadership_styles": [
+      "Activistic",
+      "Inspirational",
+      "Grassroots"
+    ],
+    "famous_phrases": [
+      "How dare you!",
+      "Our house is on fire."
+    ],
+    "controversial": true
+  },
+  {
+    "name": "Malala Yousafzai",
+    "generation_most_affected": "Gen Z",
+    "leadership_styles": [
+      "Ethical",
+      "Inspirational",
+      "Advocacy"
+    ],
+    "famous_phrases": [
+      "One child, one teacher, one book, one pen can change the world."
+    ],
+    "controversial": false
+  },
+  {
+    "name": "Emma González",
+    "generation_most_affected": "Gen Z",
+    "leadership_styles": [
+      "Activistic",
+      "Emotional",
+      "Grassroots"
+    ],
+    "famous_phrases": [
+      "We call BS!",
+      "Fight for your lives before it's someone else's job."
+    ],
+    "controversial": true
+  },
+  {
+    "name": "Jazz Jennings",
+    "generation_most_affected": "Gen Z",
+    "leadership_styles": [
+      "Advocacy",
+      "Inspirational",
+      "Personal"
+    ],
+    "famous_phrases": [
+      "Be your authentic self."
+    ],
+    "controversial": false
+  },
+  {
+    "name": "David Hogg",
+    "generation_most_affected": "Gen Z",
+    "leadership_styles": [
+      "Activistic",
+      "Strategic",
+      "Grassroots"
+    ],
+    "famous_phrases": [
+      "We will be the last mass shooting."
+    ],
+    "controversial": true
+  }
+]
