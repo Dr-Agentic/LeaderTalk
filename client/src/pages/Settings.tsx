@@ -38,10 +38,8 @@ export default function Settings() {
   // Delete user records mutation
   const deleteRecordsMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest('/api/users/delete-records', {
-        method: 'POST'
-      });
-      return response;
+      const response = await apiRequest('POST', '/api/users/delete-records');
+      return response.json();
     },
     onSuccess: (data) => {
       toast({
