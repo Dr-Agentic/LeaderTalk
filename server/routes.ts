@@ -2006,11 +2006,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // If not found, generate a new one
       if (!alternative) {
         try {
-          const alternativeText = await generateLeaderAlternative(leaderId, originalText, leader);
+          // Get the user ID from the session
+          const userId = req.session.userId as number;
+          
+          // Generate the alternative text passing the user ID
+          const alternativeText = await generateLeaderAlternative(leaderId, originalText, userId, leader);
+          
+          // Create the leader alternative entry with the user ID
           alternative = await storage.createLeaderAlternative({
             leaderId,
             originalText,
-            alternativeText
+            alternativeText,
+            createdBy: userId
           });
         } catch (genError) {
           console.error("Error generating leader alternative:", genError);
