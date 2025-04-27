@@ -501,6 +501,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Delete all records for the current user (for testing purposes)
+  app.post("/api/users/delete-records", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId!;
+      
+      console.log(`Requested deletion of records for user ID: ${userId}`);
+      
+      // Delete recordings
+      console.log('- Deleting recordings...');
+      const deletedRecordings = await db.delete(recordings)
+        .where(eq(recordings.userId, userId))
+        .returning({ id: recordings.id });
+      console.log(`  Deleted ${deletedRecordings.length} recordings.`);
+      
+      // Delete progress records
+      console.log('- Deleting progress records...');
+      const deletedProgress = await db.delete(userProgress)
+        .where(eq(userProgress.userId, userId))
+        .returning({ id: userProgress.id });
+      console.log(`  Deleted ${deletedProgress.length} progress records.`);
+      
+      // Delete situation attempts
+      console.log('- Deleting situation attempts...');
+      const deletedAttempts = await db.delete(situationAttempts)
+        .where(eq(situationAttempts.userId, userId))
+        .returning({ id: situationAttempts.id });
+      console.log(`  Deleted ${deletedAttempts.length} situation attempts.`);
+      
+      // Delete word usage records
+      console.log('- Deleting word usage records...');
+      const deletedWordUsage = await db.delete(userWordUsage)
+        .where(eq(userWordUsage.userId, userId))
+        .returning({ id: userWordUsage.id });
+      console.log(`  Deleted ${deletedWordUsage.length} word usage records.`);
+      
+      // Reset user onboarding fields
+      console.log('- Resetting user onboarding data...');
+      await db.update(users)
+        .set({
+          dateOfBirth: null,
+          profession: null,
+          goals: null,
+          selectedLeaders: null
+        })
+        .where(eq(users.id, userId));
+      
+      console.log(`Cleanup complete for user ID: ${userId}`);
+      
+      return res.json({ 
+        success: true, 
+        message: "All user records have been deleted", 
+        counts: {
+          recordings: deletedRecordings.length,
+          progressRecords: deletedProgress.length,
+          situationAttempts: deletedAttempts.length,
+          wordUsageRecords: deletedWordUsage.length
+        }
+      });
+    } catch (error) {
+      console.error("Error deleting user records:", error);
+      return res.status(500).json({ 
+        success: false, 
+        message: "Failed to delete user records" 
+      });
+    }
+  });
+  
   // Create new user
   app.post("/api/users", async (req, res) => {
     try {
