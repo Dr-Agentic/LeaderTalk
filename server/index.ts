@@ -39,12 +39,30 @@ app.use((req, res, next) => {
 (async () => {
   const server = await registerRoutes(app);
 
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+  app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
-
-    res.status(status).json({ message });
-    throw err;
+    
+    console.error('Server Error:', {
+      message: err.message,
+      stack: err.stack,
+      sessionId: req.session?.id,
+      hasUserId: !!req.session?.userId,
+      path: req.path,
+      method: req.method,
+      headers: {
+        cookie: req.headers.cookie ? 'Present (hidden)' : 'Missing',
+        origin: req.headers.origin,
+        referer: req.headers.referer
+      }
+    });
+    
+    res.status(status).json({
+      message,
+      statusCode: status,
+      path: req.path,
+      sessionValid: !!req.session?.userId
+    });
   });
 
   // importantly only setup vite in development and after
