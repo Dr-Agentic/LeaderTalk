@@ -117,6 +117,9 @@ export const leaderAlternatives = pgTable("leader_alternatives", {
 export const userWordUsage = pgTable("user_word_usage", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
+  // Legacy fields for backward compatibility
+  year: integer("year").notNull(),
+  month: integer("month").notNull(),
   // Start of the billing cycle (anniversary date)
   cycleStartDate: timestamp("cycle_start_date").notNull(),
   // End of the billing cycle
@@ -124,7 +127,7 @@ export const userWordUsage = pgTable("user_word_usage", {
   // Accumulated word count for this billing cycle
   wordCount: integer("word_count").notNull().default(0),
   // Billing cycle number (1 = first month, 2 = second month, etc.)
-  cycleNumber: integer("cycle_number").notNull(),
+  cycleNumber: integer("cycle_number"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
