@@ -335,6 +335,8 @@ export class MemStorage implements IStorage {
     // Create new cycle record
     const newCycle = await this.createUserWordUsage({
       userId,
+      year: cycleStartDate.getUTCFullYear(),
+      month: cycleStartDate.getUTCMonth() + 1, // JavaScript months are 0-indexed
       cycleStartDate,
       cycleEndDate,
       wordCount: 0,
