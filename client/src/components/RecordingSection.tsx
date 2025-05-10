@@ -11,7 +11,11 @@ import { useMicrophonePermission } from "@/hooks/useMicrophonePermission";
 import { apiRequest } from "@/lib/queryClient";
 import { Mic, Pause, Play, OctagonMinus, AlertCircle } from "lucide-react";
 
-export default function RecordingSection({ onRecordingComplete }) {
+interface RecordingSectionProps {
+  onRecordingComplete: (recording: any) => void;
+}
+
+export default function RecordingSection({ onRecordingComplete }: RecordingSectionProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
@@ -23,7 +27,7 @@ export default function RecordingSection({ onRecordingComplete }) {
   const [isProcessing, setIsProcessing] = useState(false);
   
   const { toast } = useToast();
-  const timerRef = useRef(null);
+  const timerRef = useRef<number | null>(null);
   const MAX_RECORDING_TIME = 50 * 60; // 50 minutes in seconds
   
   // Use our microphone permission hook to manage mic access
@@ -44,7 +48,8 @@ export default function RecordingSection({ onRecordingComplete }) {
   // Handle recording timer
   useEffect(() => {
     if (isRecording && !isPaused) {
-      timerRef.current = setInterval(() => {
+      // Need to use non-null assertion because TypeScript doesn't know setInterval returns number in browser
+      timerRef.current = window.setInterval(() => {
         setRecordingTime(prev => {
           const newTime = prev + 1;
           const progress = (newTime / MAX_RECORDING_TIME) * 100;
@@ -57,16 +62,26 @@ export default function RecordingSection({ onRecordingComplete }) {
           
           return newTime;
         });
-      }, 1000);
+      }, 1000) as unknown as number;
     } else {
-      clearInterval(timerRef.current);
+      if (timerRef.current !== null) {
+        const id = timerRef.current;
+        window.clearInterval(id);
+        timerRef.current = null;
+      }
     }
     
-    return () => clearInterval(timerRef.current);
+    return () => {
+      if (timerRef.current !== null) {
+        const id = timerRef.current;
+        window.clearInterval(id);
+        timerRef.current = null;
+      }
+    };
   }, [isRecording, isPaused]);
   
   // Format time as MM:SS
-  const formatTime = (timeInSeconds) => {
+  const formatTime = (timeInSeconds: number): string => {
     const minutes = Math.floor(timeInSeconds / 60);
     const seconds = timeInSeconds % 60;
     return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
@@ -373,7 +388,7 @@ export default function RecordingSection({ onRecordingComplete }) {
                   <Checkbox 
                     id="detect-speakers" 
                     checked={detectSpeakers}
-                    onCheckedChange={setDetectSpeakers}
+                    onCheckedChange={(checked) => setDetectSpeakers(checked === true)}
                     disabled={isRecording}
                   />
                   <Label htmlFor="detect-speakers" className="text-sm text-gray-600">
@@ -385,7 +400,7 @@ export default function RecordingSection({ onRecordingComplete }) {
                   <Checkbox 
                     id="transcribe" 
                     checked={createTranscript}
-                    onCheckedChange={setCreateTranscript}
+                    onCheckedChange={(checked) => setCreateTranscript(checked === true)}
                     disabled={isRecording}
                   />
                   <Label htmlFor="transcribe" className="text-sm text-gray-600">
