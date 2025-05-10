@@ -7,8 +7,9 @@ import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useRecording } from "@/hooks/useRecording";
+import { useMicrophonePermission } from "@/hooks/useMicrophonePermission";
 import { apiRequest } from "@/lib/queryClient";
-import { Mic, Pause, Play, OctagonMinus } from "lucide-react";
+import { Mic, Pause, Play, OctagonMinus, AlertCircle } from "lucide-react";
 
 export default function RecordingSection({ onRecordingComplete }) {
   const [isRecording, setIsRecording] = useState(false);
@@ -24,6 +25,13 @@ export default function RecordingSection({ onRecordingComplete }) {
   const { toast } = useToast();
   const timerRef = useRef(null);
   const MAX_RECORDING_TIME = 50 * 60; // 50 minutes in seconds
+  
+  // Use our microphone permission hook to manage mic access
+  const { 
+    permissionStatus, 
+    requestPermission, 
+    isDenied 
+  } = useMicrophonePermission();
   
   const { 
     startRecording, 
@@ -64,6 +72,17 @@ export default function RecordingSection({ onRecordingComplete }) {
     return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   };
   
+  // Request mic permission early if we don't have it yet
+  useEffect(() => {
+    // If permission status is prompt, we can ask for permission proactively
+    // This will make sure we only prompt once instead of every recording
+    if (permissionStatus === 'prompt') {
+      requestPermission().catch(err => {
+        console.error("Error requesting initial microphone permission:", err);
+      });
+    }
+  }, [permissionStatus, requestPermission]);
+
   // Handle start recording
   const handleStartRecording = async () => {
     if (isRecording) {
@@ -71,10 +90,8 @@ export default function RecordingSection({ onRecordingComplete }) {
     }
     
     try {
-      // First, check for microphone permissions
-      const permissionStatus = await navigator.permissions.query({ name: 'microphone' as PermissionName });
-      
-      if (permissionStatus.state === 'denied') {
+      // Check if permission is denied
+      if (isDenied) {
         toast({
           title: "Microphone access denied",
           description: "Please allow microphone access in your browser settings and try again.",
@@ -294,6 +311,16 @@ export default function RecordingSection({ onRecordingComplete }) {
                 "Click to start recording your conversation.\nLeaderTalk will analyze your communication patterns."
               )}
             </p>
+            
+            {/* Microphone permission warning */}
+            {isDenied && !isRecording && (
+              <div className="mt-3 p-2 bg-red-50 text-red-600 rounded-md flex items-center text-sm">
+                <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0" />
+                <span>
+                  Microphone access denied. Please enable it in your browser settings to record conversations.
+                </span>
+              </div>
+            )}
             
             {/* Recording Controls */}
             {isRecording && (

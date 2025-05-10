@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from "react";
+import { useMicrophonePermission } from "./useMicrophonePermission";
 
 export function useRecording() {
   const [isRecording, setIsRecording] = useState(false);
@@ -9,11 +10,22 @@ export function useRecording() {
   const audioChunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
   
+  const { permissionStatus, requestPermission } = useMicrophonePermission();
+  
   // Start recording
   const startRecording = useCallback(async () => {
     audioChunksRef.current = [];
     
     try {
+      // First ensure we have microphone permission
+      if (permissionStatus !== 'granted') {
+        const granted = await requestPermission();
+        if (!granted) {
+          throw new Error("Microphone permission denied");
+        }
+      }
+      
+      // Now get the audio stream with quality options
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
           echoCancellation: true,
