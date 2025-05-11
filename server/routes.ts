@@ -1124,7 +1124,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Verify we got meaningful transcription before updating
           if (!transcription || transcription.trim().length === 0) {
             console.error("Empty transcription received from OpenAI");
+            // Keep necessary fields for updateRecording (title and duration are required)
+            const recording = await storage.getRecording(recordingId);
             await storage.updateRecording(recordingId, { 
+              title: recording?.title || `Recording #${recordingId}`,
+              duration: recording?.duration || 0,
               status: "failed",
               errorDetails: "Transcription was empty - possible audio file corruption or unsupported format"
             });
@@ -1146,7 +1150,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             
             // Still update but flag it as potentially having issues
             await storage.updateRecordingAnalysis(recordingId, transcription, analysis);
+            // Get recording details to include required fields
+            const recording = await storage.getRecording(recordingId);
             await storage.updateRecording(recordingId, { 
+              title: recording?.title || `Recording #${recordingId}`,
+              duration: recording?.duration || 0,
               status: "completed",
               errorDetails: "Possible transcription issues detected - unusual character set"
             });
