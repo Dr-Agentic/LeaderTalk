@@ -1022,15 +1022,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
         originalname: req.file.originalname || "unknown"
       });
       
-      // Verify audio file is valid
+      // Enhanced audio file validation
       if (req.file.size === 0) {
-        console.error("Empty audio file received");
+        console.error("Empty audio file received (0 bytes)");
+        fs.unlink(req.file.path, (err) => {
+          if (err) console.error("Error deleting empty audio file:", err);
+        });
         return res.status(400).json({ message: "Empty audio file received" });
       }
       
-      // Very small files are likely corrupted or empty
+      // Check file size for potential issues
       if (req.file.size < 1000) { // Less than 1KB
-        console.warn("Very small audio file received, might be corrupted");
+        console.warn(`Very small audio file received (${req.file.size} bytes), likely corrupted`);
+        // Continue processing but log the warning
+      }
+      
+      // Check if file exists and is readable
+      try {
+        const stats = fs.statSync(req.file.path);
+        console.log(`Audio file validation: Size on disk: ${stats.size} bytes, Created: ${stats.birthtime}`);
+        
+        // Verify file format by checking first few bytes
+        const buffer = Buffer.alloc(16);
+        const fd = fs.openSync(req.file.path, 'r');
+        fs.readSync(fd, buffer, 0, 16, 0);
+        fs.closeSync(fd);
+        
+        console.log(`File header bytes: ${buffer.toString('hex')}`);
+        
+        // Check for common audio file signatures
+        const isWebm = buffer.toString('ascii', 0, 4) === '%\x9F\x80\x8A'; // WebM
+        const isWav = buffer.toString('ascii', 0, 4) === 'RIFF'; // WAV
+        const isMp3 = buffer[0] === 0x49 && buffer[1] === 0x44 && buffer[2] === 0x33; // MP3 with ID3
+        const isOgg = buffer.toString('ascii', 0, 4) === 'OggS'; // Ogg container
+        
+        if (!isWebm && !isWav && !isMp3 && !isOgg) {
+          console.warn("Audio file does not have a recognized audio format signature");
+          // Log but continue - some valid audio files may not match these signatures
+        }
+      } catch (fileError) {
+        console.error("Error validating audio file:", fileError);
+        return res.status(400).json({ 
+          message: "Error validating audio file", 
+          error: fileError instanceof Error ? fileError.message : String(fileError) 
+        });
       }
       
       const recordingId = parseInt(req.body.recordingId);
@@ -1072,17 +1107,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Process the recording in the background
       const audioPath = req.file.path;
       
-      // Start the transcription and analysis process
+      // Start the transcription and analysis process in the background
+      console.log(`Starting transcription and analysis for recording ${recordingId}...`);
+      
       transcribeAndAnalyzeAudio(audioPath, recording, leaders)
         .then(async ({ transcription, analysis }) => {
           console.log("Audio successfully processed:", {
             recordingId,
             transcriptionLength: transcription?.length || 0,
-            analysisReceived: !!analysis
+            analysisReceived: !!analysis,
+            analysisScore: analysis?.overview?.score || "N/A",
+            positiveInstances: analysis?.positiveInstances?.length || 0,
+            negativeInstances: analysis?.negativeInstances?.length || 0
           });
           
-          // Update the recording with transcription and analysis
-          await storage.updateRecordingAnalysis(recordingId, transcription, analysis);
+          // Verify we got meaningful transcription before updating
+          if (!transcription || transcription.trim().length === 0) {
+            console.error("Empty transcription received from OpenAI");
+            await storage.updateRecording(recordingId, { 
+              status: "failed",
+              errorDetails: "Transcription was empty - possible audio file corruption or unsupported format"
+            });
+            return;
+          }
+          
+          // Check for unusually short transcriptions (likely errors)
+          if (transcription.trim().length < 10) {
+            console.warn(`Very short transcription received: "${transcription}"`);
+          }
+          
+          // Detect transcription issues (for example, Korean text appearing instead of English)
+          const nonLatinChars = transcription.match(/[^\x00-\x7F\s]/g);
+          const nonLatinPercent = nonLatinChars ? nonLatinChars.length / transcription.length : 0;
+          
+          if (nonLatinPercent > 0.5) { // More than 50% non-Latin characters
+            console.error(`Possible transcription issue: ${Math.round(nonLatinPercent * 100)}% non-Latin characters`);
+            console.error(`Sample of transcription: ${transcription.substring(0, 100)}...`);
+            
+            // Still update but flag it as potentially having issues
+            await storage.updateRecordingAnalysis(recordingId, transcription, analysis);
+            await storage.updateRecording(recordingId, { 
+              status: "completed",
+              errorDetails: "Possible transcription issues detected - unusual character set"
+            });
+          } else {
+            // Normal update with successful transcription
+            await storage.updateRecordingAnalysis(recordingId, transcription, analysis);
+          }
           
           // Delete the temporary file
           fs.unlink(audioPath, (err) => {
@@ -1092,11 +1163,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .catch((error) => {
           console.error("Error processing recording:", error);
           
-          // Update recording with error status
+          // Provide more detailed error information
+          let errorDetails = "Unknown error during processing";
+          if (error instanceof Error) {
+            errorDetails = `${error.name}: ${error.message}`;
+          } else if (typeof error === 'string') {
+            errorDetails = error;
+          }
+          
+          // Update recording with error status and details
           storage.updateRecording(recordingId, { 
             status: "failed",
             title: recording.title || `Recording #${recordingId}`,
-            duration: recording.duration || 0
+            duration: recording.duration || 0,
+            errorDetails: errorDetails.substring(0, 255) // Ensure we don't exceed field length
           });
           
           // Delete the temporary file

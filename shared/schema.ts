@@ -47,6 +47,7 @@ export const recordings = pgTable("recordings", {
   status: text("status").notNull().default("processing"),
   transcription: text("transcription"),
   analysisResult: jsonb("analysis_result").$type<AnalysisResult>(),
+  errorDetails: text("error_details"), // Track any errors during processing
 });
 
 // Chapters, Modules, and Situations tables for the Training Module
