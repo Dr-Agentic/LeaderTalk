@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Mary Barra SVG -->
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0288D1;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#4FC3F7;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <circle cx="100" cy="100" r="95" fill="white" stroke="url(#grad1)" stroke-width="2"/>
+  
+  <!-- Face -->
+  <ellipse cx="100" cy="80" rx="30" ry="38" fill="#ffe0bd"/>
+  
+  <!-- Hair -->
+  <path d="M70 50 Q 100 30, 130 50 L130 85 L70 85 Z" fill="#9e9e9e"/>
+  <path d="M70 50 Q 100 25, 130 50" fill="#9e9e9e"/>
+  <path d="M70 70 L70 85 L65 85 L65 70 Z" fill="#9e9e9e"/>
+  <path d="M130 70 L130 85 L135 85 L135 70 Z" fill="#9e9e9e"/>
+  
+  <!-- Eyes -->
+  <ellipse cx="88" cy="75" rx="4" ry="3" fill="#333"/>
+  <ellipse cx="112" cy="75" rx="4" ry="3" fill="#333"/>
+  
+  <!-- Eyebrows -->
+  <path d="M82 68 Q 88 65, 94 68" fill="none" stroke="#666" stroke-width="1.5"/>
+  <path d="M106 68 Q 112 65, 118 68" fill="none" stroke="#666" stroke-width="1.5"/>
+  
+  <!-- Nose -->
+  <path d="M100 75 L100 85 Q 102 88, 105 85" fill="none" stroke="#999" stroke-width="1.5"/>
+  
+  <!-- Mouth -->
+  <path d="M90 95 Q 100 100, 110 95" fill="none" stroke="#666" stroke-width="1.5"/>
+  
+  <!-- Professional Attire -->
+  <path d="M70 110 Q 85 125, 100 110 Q 115 125, 130 110 L130 160 Q 100 180, 70 160 Z" fill="#01579B"/>
+  <path d="M90 110 L110 110 L110 140 L90 140 Z" fill="#f5f5f5"/>
+  
+  <!-- Necklace -->
+  <path d="M90 115 L95 120 L105 120 L110 115" fill="none" stroke="#FFD54F" stroke-width="1.5"/>
+  <circle cx="100" cy="119" r="3" fill="#FFD54F"/>
+  
+  <!-- GM Logo Style -->
+  <rect x="85" y="155" width="30" height="15" rx="2" ry="2" fill="#4FC3F7"/>
+  <path d="M90 162.5 L110 162.5" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"/>
+  
+  <!-- Automotive Icon - Simplified Car -->
+  <rect x="80" y="175" width="40" height="12" rx="5" ry="5" fill="#0288D1"/>
+  <circle cx="85" cy="187" r="4" fill="#333"/>
+  <circle cx="85" cy="187" r="2" fill="#ccc"/>
+  <circle cx="115" cy="187" r="4" fill="#333"/>
+  <circle cx="115" cy="187" r="2" fill="#ccc"/>
+  <rect x="82" y="177" width="36" height="5" rx="2" ry="2" fill="#B3E5FC"/>
+</svg>
