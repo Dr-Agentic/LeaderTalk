@@ -190,8 +190,25 @@ export default function RecordingSection({ onRecordingComplete }: RecordingSecti
       // Upload the audio file for analysis
       const formData = new FormData();
       
+      // Validate the audio blob before uploading
+      if (recordingBlob.size === 0) {
+        throw new Error("Recording is empty (0 bytes). Please try again.");
+      }
+      
+      if (recordingBlob.size < 1000) { // Less than 1KB is suspiciously small
+        console.warn(`Warning: Very small recording (${recordingBlob.size} bytes), might be corrupted`);
+        toast({
+          title: "Warning",
+          description: "The recording is very small and might be incomplete. Continuing anyway.",
+          variant: "destructive",
+        });
+      }
+      
+      console.log(`Preparing to upload audio: ${recordingBlob.size} bytes, type: ${recordingBlob.type}`);
+      
       // Check for supported formats (OpenAI API requires specific formats)
-      const mimeType = recordingBlob.type;
+      const mimeType = recordingBlob.type || 'audio/webm'; // Default to webm if type is empty
+      
       // Map MIME types to appropriate file extensions for OpenAI
       const fileExtensionMap = {
         'audio/mp3': 'mp3',
@@ -207,40 +224,84 @@ export default function RecordingSection({ onRecordingComplete }: RecordingSecti
         'audio/aac': 'm4a'
       };
       
-      // Use the mapped extension or default to 'mp3' if unknown
+      // Use the mapped extension or default to 'webm' if unknown (this matches most browsers' MediaRecorder default)
       const fileExtension = Object.prototype.hasOwnProperty.call(fileExtensionMap, mimeType) 
         ? fileExtensionMap[mimeType as keyof typeof fileExtensionMap] 
-        : 'mp3';
+        : 'webm';
       
       console.log(`Uploading audio file with MIME type: ${mimeType} and extension: ${fileExtension}`);
       
-      formData.append("audio", recordingBlob, `recording.${fileExtension}`);
+      // Add the file to the form with an appropriate extension
+      formData.append("audio", recordingBlob, `recording_${Date.now()}.${fileExtension}`);
       formData.append("recordingId", recording.id.toString());
       formData.append("detectSpeakers", detectSpeakers.toString());
       formData.append("createTranscript", createTranscript.toString());
       
-      // Upload audio file
-      const uploadRes = await fetch('/api/recordings/upload', {
-        method: 'POST',
-        body: formData,
-        credentials: 'include',
-      });
+      // Capture upload start time for timing
+      const uploadStartTime = Date.now();
+      console.log("Starting audio upload", { recordingId: recording.id, size: recordingBlob.size });
       
-      // Handle different response statuses
-      if (!uploadRes.ok) {
-        const errorData = await uploadRes.json().catch(() => ({ message: "Unknown server error" }));
-        console.error("Upload error:", errorData);
-        throw new Error(errorData.message || "Failed to upload recording");
-      }
+      // Upload audio file with timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
       
-      // Process successful response
-      let responseData;
       try {
-        const responseText = await uploadRes.text();
-        responseData = responseText ? JSON.parse(responseText) : { message: "No response data" };
-        console.log("Upload response:", responseData);
+        // Upload audio file
+        const uploadRes = await fetch('/api/recordings/upload', {
+          method: 'POST',
+          body: formData,
+          credentials: 'include',
+          signal: controller.signal
+        });
+        
+        // Clear the timeout
+        clearTimeout(timeoutId);
+        
+        // Log timing information
+        const uploadDuration = Date.now() - uploadStartTime;
+        console.log(`Upload completed in ${uploadDuration}ms with status ${uploadRes.status}`);
+        
+        // Handle different response statuses
+        if (!uploadRes.ok) {
+          // Try to get detailed error information
+          let errorMessage = `Server error: ${uploadRes.status} ${uploadRes.statusText}`;
+          try {
+            const errorData = await uploadRes.json();
+            console.error("Upload error details:", errorData);
+            errorMessage = errorData.message || errorMessage;
+          } catch (parseError) {
+            console.error("Could not parse error response:", parseError);
+          }
+          
+          throw new Error(errorMessage);
+        }
+        
+        // Process successful response
+        try {
+          const responseText = await uploadRes.text();
+          if (responseText) {
+            const responseData = JSON.parse(responseText);
+            console.log("Upload response:", responseData);
+          } else {
+            console.log("Empty response with status:", uploadRes.status);
+          }
+        } catch (parseError) {
+          console.warn("Could not parse response:", parseError);
+          console.log("Response status:", uploadRes.status);
+        }
       } catch (error) {
-        console.log("Response handling completed:", uploadRes.status);
+        // Clear the timeout if fetch failed
+        clearTimeout(timeoutId);
+        
+        const fetchError = error as Error; // Type assertion for TypeScript
+        
+        if (fetchError.name === 'AbortError') {
+          console.error("Upload timed out after 60 seconds");
+          throw new Error("Upload timed out. Please try again with a shorter recording.");
+        }
+        
+        console.error("Fetch error during upload:", fetchError);
+        throw fetchError;
       }
       
       // Show success message
@@ -260,15 +321,52 @@ export default function RecordingSection({ onRecordingComplete }: RecordingSecti
       }
     } catch (error) {
       console.error("Recording error:", error);
+      
+      // Generate more specific error messages based on the error type
+      let errorTitle = "Error saving recording";
       let errorMessage = "There was an issue saving your recording.";
+      let troubleshootingMessage = "Please check your microphone permissions and try again with a shorter recording.";
       
       // Add more detailed error message if available
       if (error instanceof Error) {
         errorMessage = error.message || errorMessage;
+        
+        // Provide specific error messages for common issues
+        if (errorMessage.includes("timed out") || errorMessage.includes("timeout")) {
+          errorTitle = "Upload timeout";
+          errorMessage = "Your recording is too large or your connection is slow.";
+          troubleshootingMessage = "Try recording a shorter segment or check your internet connection.";
+        } else if (errorMessage.includes("network") || errorMessage.includes("offline") || errorMessage.includes("connection")) {
+          errorTitle = "Network error";
+          errorMessage = "Unable to connect to the server.";
+          troubleshootingMessage = "Please check your internet connection and try again.";
+        } else if (errorMessage.includes("format") || errorMessage.includes("corrupted") || errorMessage.includes("invalid")) {
+          errorTitle = "Audio format error";
+          errorMessage = "The recording format is not supported or the file is corrupted.";
+          troubleshootingMessage = "Try using a different browser or restart your device and try again.";
+        } else if (errorMessage.includes("empty") || errorMessage.includes("0 bytes")) {
+          errorTitle = "Empty recording";
+          errorMessage = "No audio data was captured during recording.";
+          troubleshootingMessage = "Check that your microphone is working and not muted, then try again.";
+        } else if (errorMessage.includes("permission") || errorMessage.includes("denied")) {
+          errorTitle = "Microphone access denied";
+          errorMessage = "The app doesn't have permission to use your microphone.";
+          troubleshootingMessage = "Please enable microphone access in your browser settings.";
+        }
       }
       
+      // Log additional debug information
+      console.debug("Recording error details:", {
+        errorType: error instanceof Error ? error.name : typeof error,
+        message: errorMessage,
+        recordingTime,
+        hasBlob: !!recordingBlob,
+        blobSize: recordingBlob?.size || 0,
+        blobType: recordingBlob?.type || 'unknown'
+      });
+      
       toast({
-        title: "Error saving recording",
+        title: errorTitle,
         description: errorMessage,
         variant: "destructive",
       });
@@ -276,7 +374,7 @@ export default function RecordingSection({ onRecordingComplete }: RecordingSecti
       // Show additional toast with troubleshooting help
       toast({
         title: "Troubleshooting",
-        description: "Please check your microphone permissions and try again with a shorter recording.",
+        description: troubleshootingMessage,
         variant: "default",
       });
     } finally {
