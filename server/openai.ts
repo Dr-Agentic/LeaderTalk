@@ -264,7 +264,18 @@ async function transcribeAudio(audioPath: string): Promise<string> {
       file: audioReadStream,
       model: "whisper-1",
       response_format: "text",
+      language: "en", // Explicitly set language to English
     });
+    
+    // Log the transcription for debugging
+    console.log(`Transcription received, first 50 chars: "${transcription.substring(0, 50)}..."`);
+    
+    // Check if the transcription appears to be in a non-Latin script (potential wrong language detection)
+    const nonLatinRegex = /[^\u0000-\u007F\u0080-\u00FF\u0100-\u017F\u0180-\u024F]/;
+    if (nonLatinRegex.test(transcription)) {
+      console.warn("Transcription contains non-Latin characters, possible wrong language detection");
+      console.warn(`Full transcription: "${transcription}"`);
+    }
     
     // Return the transcription text
     return transcription;
