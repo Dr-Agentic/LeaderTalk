@@ -103,7 +103,16 @@ async function updateUserWordUsage(userId: number, wordCount: number): Promise<v
     if (currentCycle) {
       // Update existing cycle record
       const newWordCount = currentCycle.wordCount + wordCount;
-      await storage.updateUserWordUsage(currentCycle.id, { wordCount: newWordCount });
+      // Extract current year and month from the cycle for the update
+      const date = new Date(currentCycle.cycleStartDate);
+      const year = date.getFullYear();
+      const month = date.getMonth() + 1; // JavaScript months are 0-based
+      
+      await storage.updateUserWordUsage(currentCycle.id, { 
+        wordCount: newWordCount,
+        year,
+        month
+      });
       console.log(`Updated word usage for user ${userId} (cycle #${currentCycle.cycleNumber}): ${currentCycle.wordCount} -> ${newWordCount}`);
       
       // Log billing cycle information for debugging
@@ -222,7 +231,10 @@ export async function generateLeaderAlternative(
       max_tokens: 150, // Keep it concise
     });
     
-    const alternativeText = response.choices[0].message.content.trim();
+    // Handle null response content (shouldn't happen, but TypeScript is warning about it)
+    const firstChoice = response.choices[0];
+    const messageContent = firstChoice && firstChoice.message && firstChoice.message.content ? firstChoice.message.content : '';
+    const alternativeText = messageContent.trim();
     
     // Store in database for future use with the creator's user ID
     await storage.createLeaderAlternative({
@@ -413,7 +425,10 @@ async function analyzeTranscription(
       response_format: { type: "json_object" },
     });
     
-    const result = JSON.parse(response.choices[0].message.content);
+    // Handle potential null content (TypeScript warning)
+    const firstChoice = response.choices[0];
+    const messageContent = firstChoice && firstChoice.message && firstChoice.message.content ? firstChoice.message.content : '{}';
+    const result = JSON.parse(messageContent);
     return result as AnalysisResult;
   } catch (error) {
     console.error("Error in transcript analysis:", error);
