@@ -1140,13 +1140,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.warn(`Very short transcription received: "${transcription}"`);
           }
           
-          // Detect transcription issues (for example, Korean text appearing instead of English)
-          const nonLatinChars = transcription.match(/[^\x00-\x7F\s]/g);
-          const nonLatinPercent = nonLatinChars ? nonLatinChars.length / transcription.length : 0;
+          // Note: With auto-detection enabled, we expect various languages and scripts
+          // Let's analyze what we received to help with debugging
+          const scriptAnalysis = {
+            latin: (transcription.match(/[a-zA-Z]/g) || []).length,
+            cyrillic: (transcription.match(/[\u0400-\u04FF]/g) || []).length,
+            cjk: (transcription.match(/[\u4E00-\u9FFF\u3040-\u309F\u30A0-\u30FF\uAC00-\uD7AF]/g) || []).length,
+            arabic: (transcription.match(/[\u0600-\u06FF]/g) || []).length,
+            devanagari: (transcription.match(/[\u0900-\u097F]/g) || []).length,
+            total: transcription.length
+          };
           
-          if (nonLatinPercent > 0.5) { // More than 50% non-Latin characters
-            console.error(`Possible transcription issue: ${Math.round(nonLatinPercent * 100)}% non-Latin characters`);
-            console.error(`Sample of transcription: ${transcription.substring(0, 100)}...`);
+          // Get dominant script
+          const dominantScript = Object.entries(scriptAnalysis)
+            .filter(([key]) => key !== 'total')
+            .sort(([, a], [, b]) => b - a)[0];
+          
+          // Log detected language for debugging  
+          console.log(
+            `Transcription analysis - dominant script: ${dominantScript[0]} (${Math.floor((dominantScript[1] / scriptAnalysis.total) * 100)}%)`
+          );
+          
+          // Flag recordings with less than 20% Latin characters for additional review  
+          if (dominantScript[0] !== 'latin' && (scriptAnalysis.latin / scriptAnalysis.total) < 0.2) {
+            console.log(`Mostly non-Latin transcription detected: ${dominantScript[0]} script`);
+            console.log(`Sample of transcription: "${transcription.substring(0, 100)}..."`);
             
             // Still update but flag it as potentially having issues
             await storage.updateRecordingAnalysis(recordingId, transcription, analysis);
@@ -1156,7 +1174,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               title: recording?.title || `Recording #${recordingId}`,
               duration: recording?.duration || 0,
               status: "completed",
-              errorDetails: "Possible transcription issues detected - unusual character set"
+              errorDetails: `Detected ${dominantScript[0]} as primary language in transcription`
             });
           } else {
             // Normal update with successful transcription

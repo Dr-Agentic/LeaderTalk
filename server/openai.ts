@@ -306,17 +306,33 @@ async function transcribeAudio(audioPath: string): Promise<string> {
       file: audioReadStream,
       model: "whisper-1",
       response_format: "text",
-      language: "en", // Explicitly set language to English
+      // Using auto language detection (removed explicit language parameter)
     });
     
     // Log the transcription for debugging
     console.log(`Transcription received, first 50 chars: "${transcription.substring(0, 50)}..."`);
     
-    // Check if the transcription appears to be in a non-Latin script (potential wrong language detection)
-    const nonLatinRegex = /[^\u0000-\u007F\u0080-\u00FF\u0100-\u017F\u0180-\u024F]/;
-    if (nonLatinRegex.test(transcription)) {
-      console.warn("Transcription contains non-Latin characters, possible wrong language detection");
-      console.warn(`Full transcription: "${transcription}"`);
+    // Log detected language characteristics for debugging
+    // Note: With auto-detection now enabled, we expect to see various scripts
+    // This is just for logging purposes to help diagnose potential transcription issues
+    const scriptAnalysis = {
+      latin: (transcription.match(/[a-zA-Z]/g) || []).length,
+      cyrillic: (transcription.match(/[\u0400-\u04FF]/g) || []).length,
+      cjk: (transcription.match(/[\u4E00-\u9FFF\u3040-\u309F\u30A0-\u30FF\uAC00-\uD7AF]/g) || []).length,
+      arabic: (transcription.match(/[\u0600-\u06FF]/g) || []).length,
+      devanagari: (transcription.match(/[\u0900-\u097F]/g) || []).length,
+      total: transcription.length
+    };
+    
+    // Log script detection
+    if (scriptAnalysis.total > 0) {
+      const dominantScript = Object.entries(scriptAnalysis)
+        .filter(([key]) => key !== 'total')
+        .sort(([, a], [, b]) => b - a)[0];
+      
+      console.log(
+        `Transcription language analysis: ${dominantScript[0]} script appears dominant (${Math.floor((dominantScript[1] / scriptAnalysis.total) * 100)}%)`
+      );
     }
     
     // Return the transcription text
