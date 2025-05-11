@@ -241,16 +241,46 @@ export async function generateLeaderAlternative(
 
 async function transcribeAudio(audioPath: string): Promise<string> {
   try {
-    // Check file exists and get its stats
+    // Check if file exists and get its stats
+    if (!fs.existsSync(audioPath)) {
+      throw new Error(`Audio file does not exist at path: ${audioPath}`);
+    }
+    
     const stats = fs.statSync(audioPath);
-    console.log(`Audio file size: ${stats.size} bytes`);
+    console.log(`Audio file size: ${stats.size} bytes, last modified: ${stats.mtime}`);
     
     if (stats.size === 0) {
       throw new Error("Audio file is empty (0 bytes)");
     }
     
+    // Analyze file size to identify potential issues
     if (stats.size < 1024) { // Less than 1KB
-      console.warn("Audio file is very small, might be corrupted");
+      console.warn("Audio file is very small (<1KB), likely corrupted or empty");
+    } else if (stats.size < 5 * 1024) { // Less than 5KB
+      console.warn("Audio file is small (<5KB), might be too short or corrupted");
+    } else {
+      console.log(`Audio file appears to be of reasonable size: ${(stats.size / 1024).toFixed(2)}KB`);
+    }
+    
+    // Read the first few bytes to check if the file format seems valid
+    try {
+      const buffer = Buffer.alloc(16);
+      const fd = fs.openSync(audioPath, 'r');
+      fs.readSync(fd, buffer, 0, 16, 0);
+      fs.closeSync(fd);
+      
+      console.log(`File header bytes: ${buffer.toString('hex')}`);
+      
+      // Check for common audio file signatures
+      const isWebm = buffer.toString('ascii', 0, 4) === '%\x9F\x80\x8A'; // WebM
+      const isWav = buffer.toString('ascii', 0, 4) === 'RIFF'; // WAV
+      const isMp3 = buffer[0] === 0x49 && buffer[1] === 0x44 && buffer[2] === 0x33; // MP3 with ID3
+      
+      if (!isWebm && !isWav && !isMp3) {
+        console.warn("Audio file does not have a recognized audio format signature");
+      }
+    } catch (headerError) {
+      console.warn("Could not analyze audio file header", headerError);
     }
     
     // Create readable stream

@@ -88,11 +88,21 @@ export function useRecording() {
           // Create blob with the recorder's MIME type
           const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
           
-          // Verify the blob has content
+          // Verify the blob has content and log details
+          console.log(`Audio blob created with size: ${audioBlob.size} bytes, type: ${audioBlob.type}`);
+          console.log(`Total audio chunks collected: ${audioChunksRef.current.length}`);
+          
           if (audioBlob.size > 0) {
+            // Log more details about larger blobs
+            if (audioBlob.size > 1024) {
+              console.log(`Audio blob is ${(audioBlob.size / 1024).toFixed(2)} KB in size`);
+            } else {
+              console.warn("Audio blob is very small (<1KB), may be corrupted or empty");
+            }
+            
             setRecordingBlob(audioBlob);
           } else {
-            console.error("Created empty audio blob");
+            console.error("Created empty audio blob (0 bytes)");
             setRecordingBlob(null);
           }
         } catch (error) {
@@ -106,7 +116,11 @@ export function useRecording() {
         }
       });
       
-      mediaRecorder.start();
+      // Request data at regular intervals (100ms) to ensure we capture everything
+      // This is critical - without this, the dataavailable event may not fire frequently enough
+      mediaRecorder.start(100);
+      
+      console.log("Started MediaRecorder with 100ms timeslice for frequent data capture");
       setIsRecording(true);
       setIsPaused(false);
     } catch (error) {
