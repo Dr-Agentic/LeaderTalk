@@ -478,17 +478,17 @@ export default function Progress() {
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={timeBasedChartData}
-                    margin={{ top: 20, right: 30, left: 20, bottom: 70 }}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 100 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
                     <XAxis 
                       dataKey="period" 
-                      angle={-65} 
+                      angle={-70} 
                       textAnchor="end" 
-                      tick={{ fontSize: 9, fill: "#4B5563" }}
-                      height={90}
+                      tick={{ fontSize: 8, fill: "#4B5563" }}
+                      height={100}
                       interval={0}
-                      tickMargin={25}
+                      tickMargin={35}
                       scale="band"
                     />
                     <YAxis 
