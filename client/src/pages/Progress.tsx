@@ -63,7 +63,7 @@ export default function Progress() {
           const recordings = await res.json();
           
           // Process recordings to extract relevant data and calculate scores
-          const processedRecordings = recordings.map(recording => {
+          const processedRecordings = recordings.map((recording: Recording) => {
             // Extract score from analysis
             let score = 0;
             let leaderMatch = "";
@@ -100,7 +100,9 @@ export default function Progress() {
           });
           
           // Sort by date (newest first)
-          processedRecordings.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+          processedRecordings.sort((a: RecordingWithScore, b: RecordingWithScore) => 
+            new Date(b.date).getTime() - new Date(a.date).getTime()
+          );
           
           // Store all recordings
           setAllRecordings(processedRecordings);
@@ -116,9 +118,9 @@ export default function Progress() {
           const startOfYear = new Date(now.getFullYear(), 0, 1);
           
           // Filter recordings for each time range
-          const last7Days = processedRecordings.filter(r => new Date(r.date) >= sevenDaysAgo);
-          const last30Days = processedRecordings.filter(r => new Date(r.date) >= thirtyDaysAgo);
-          const thisYear = processedRecordings.filter(r => new Date(r.date) >= startOfYear);
+          const last7Days = processedRecordings.filter((r: RecordingWithScore) => new Date(r.date) >= sevenDaysAgo);
+          const last30Days = processedRecordings.filter((r: RecordingWithScore) => new Date(r.date) >= thirtyDaysAgo);
+          const thisYear = processedRecordings.filter((r: RecordingWithScore) => new Date(r.date) >= startOfYear);
           const allTime = processedRecordings;
           
           // Calculate average scores and improvements for each time range
@@ -380,8 +382,11 @@ export default function Progress() {
                       label={{ value: 'Average Score', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle' } }}
                     />
                     <Tooltip 
-                      formatter={(value) => [`${Number(value).toFixed(1)}`, 'Average Score']}
-                      labelFormatter={(label) => `Period: ${label}`}
+                      formatter={(value) => {
+                        if (value === undefined || value === null) return ['N/A', 'Average Score'];
+                        return [`${Number(value).toFixed(1)}`, 'Average Score'];
+                      }}
+                      labelFormatter={(label) => label ? `Period: ${label}` : 'Unknown Period'}
                     />
                     <Legend />
                     <Area 
@@ -452,8 +457,12 @@ export default function Progress() {
                     <Tooltip 
                       formatter={(value) => [`${Number(value).toFixed(1)}`, 'Score']}
                       labelFormatter={(index) => {
-                        const recording = recordingsChartData[index - 1];
-                        return `Recording ${index}: ${recording.fullTitle}\nDate: ${recording.date}`;
+                        const recording = recordingsChartData[parseInt(index) - 1];
+                        // Check if recording exists before accessing properties
+                        if (recording) {
+                          return `Recording ${index}: ${recording.fullTitle || recording.name}\nDate: ${recording.date}`;
+                        }
+                        return `Recording ${index}`;
                       }}
                     />
                     <Legend />
