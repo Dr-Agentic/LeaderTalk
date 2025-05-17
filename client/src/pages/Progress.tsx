@@ -719,11 +719,11 @@ export default function Progress() {
           </CardHeader>
           <CardContent>
             {recordingsChartData.length > 0 ? (
-              <div className="w-full h-96 mt-4">
+              <div className="w-full h-[400px] mt-4">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart
                     data={recordingsChartData}
-                    margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
                     <XAxis
@@ -775,7 +775,13 @@ export default function Progress() {
                         return `Recording ${index}`;
                       }}
                     />
-                    <Legend />
+                    <Legend 
+                      verticalAlign="bottom"
+                      wrapperStyle={{
+                        paddingTop: 5,
+                        bottom: 20
+                      }}
+                    />
                     <Line
                       type="monotone"
                       dataKey="score"
