@@ -1,6 +1,7 @@
 import { Link } from "wouter";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Mic, BarChart, TrendingUp, GraduationCap } from "lucide-react";
+import { SmallText, H4 } from "@/components/ui/typography";
 
 export default function QuickActions({ recordingsCount, weeklyImprovement }) {
   return (
@@ -14,15 +15,15 @@ export default function QuickActions({ recordingsCount, weeklyImprovement }) {
             </div>
             <div className="ml-5 w-0 flex-1">
               <dl>
-                <dt className="text-sm font-medium text-gray-500 truncate">Record Conversation</dt>
-                <dd className="text-lg font-semibold text-gray-900">Start a new recording</dd>
+                <dt><SmallText className="truncate">Record Conversation</SmallText></dt>
+                <dd><H4>Start a new recording</H4></dd>
               </dl>
             </div>
           </div>
         </CardContent>
         <CardFooter className="bg-gray-50 px-5 py-3">
-          <div className="text-sm">
-            <a href="#record-section" className="font-medium text-primary hover:text-blue-900">
+          <div>
+            <a href="#record-section" className="font-sans text-sm font-medium text-primary hover:text-blue-900">
               Start recording &rarr;
             </a>
           </div>
@@ -38,10 +39,10 @@ export default function QuickActions({ recordingsCount, weeklyImprovement }) {
             </div>
             <div className="ml-5 w-0 flex-1">
               <dl>
-                <dt className="text-sm font-medium text-gray-500 truncate">Recent Analyses</dt>
-                <dd className="text-lg font-semibold text-gray-900">
+                <dt><SmallText className="truncate">Recent Analyses</SmallText></dt>
+                <dd><H4>
                   {recordingsCount} {recordingsCount === 1 ? 'recording' : 'recordings'}
-                </dd>
+                </H4></dd>
               </dl>
             </div>
           </div>
@@ -64,11 +65,11 @@ export default function QuickActions({ recordingsCount, weeklyImprovement }) {
             </div>
             <div className="ml-5 w-0 flex-1">
               <dl>
-                <dt className="text-sm font-medium text-gray-500 truncate">Weekly Improvement</dt>
+                <dt><SmallText className="truncate">Weekly Improvement</SmallText></dt>
                 <dd className="flex items-baseline">
-                  <div className="text-lg font-semibold text-gray-900">
+                  <H4 className="flex items-center">
                     {weeklyImprovement > 0 ? `+${weeklyImprovement}%` : `${weeklyImprovement}%`}
-                  </div>
+                  </H4>
                   {weeklyImprovement > 0 && (
                     <p className="ml-2 flex items-baseline text-sm font-semibold text-green-600">
                       <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -101,10 +102,10 @@ export default function QuickActions({ recordingsCount, weeklyImprovement }) {
             </div>
             <div className="ml-5 w-0 flex-1">
               <dl>
-                <dt className="text-sm font-medium text-gray-500 truncate">Training Module</dt>
-                <dd className="text-lg font-semibold text-gray-900">
+                <dt><SmallText className="truncate">Training Module</SmallText></dt>
+                <dd><H4>
                   Improve your skills
-                </dd>
+                </H4></dd>
               </dl>
             </div>
           </div>

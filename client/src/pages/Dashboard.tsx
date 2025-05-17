@@ -49,7 +49,7 @@ export default function Dashboard() {
           <div className="py-6">
             <div id="dashboard" className="px-4 sm:px-6 md:px-8">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                <h1 className="text-2xl font-semibold text-gray-900">Dashboard</h1>
+                <H1>Dashboard</H1>
                 <Link href="/transcripts" className="mt-2 sm:mt-0 inline-flex items-center text-sm font-medium text-primary hover:text-primary-dark">
                   View all transcripts
                   <ChevronRight className="ml-1 h-4 w-4" />
