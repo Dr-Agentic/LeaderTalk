@@ -191,7 +191,11 @@ export default function WordUsageStats() {
             <p className="mb-2 text-sm font-medium">Usage History</p>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={usageHistory}>
-                <XAxis dataKey="name" fontSize={12} />
+                <XAxis 
+                  dataKey="name" 
+                  fontSize={12} 
+                  interval={0} 
+                />
                 <YAxis fontSize={12} />
                 <Tooltip 
                   formatter={(value) => [`${value.toLocaleString()} words`, 'Usage']}
