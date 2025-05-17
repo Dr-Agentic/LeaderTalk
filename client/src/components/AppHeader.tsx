@@ -54,8 +54,8 @@ export default function AppHeader({
             </Button>
           )}
           
-          {/* App title/logo */}
-          <h1 className="text-lg font-bold text-primary">{title}</h1>
+          {/* App title/logo - always show LeaderTalk */}
+          <h1 className="text-lg font-bold text-primary">LeaderTalk</h1>
         </div>
         
         {/* User profile icon */}
