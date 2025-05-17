@@ -4,9 +4,9 @@ import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, BookOpen, CheckSquare, Trophy } from "lucide-react";
-import { BackButton } from "../components/BackButton";
 import { useAuth } from "../hooks/useAuth";
 import { getQueryFn } from "../lib/queryClient";
+import AppLayout from "@/components/AppLayout";
 
 interface NextSituation {
   completed: boolean;
@@ -80,28 +80,29 @@ export default function NextSituation() {
 
   // Handle the case where all situations are completed
   if (data?.completed) {
+    // Determine the appropriate back navigation path
+    const backTo = chapterId && effectiveModuleId 
+      ? `/training/chapter/${chapterId}/module/${effectiveModuleId}` 
+      : chapterId 
+        ? `/training/chapter/${chapterId}`
+        : effectiveModuleId 
+          ? `/training/module/${effectiveModuleId}` 
+          : "/training";
+    
+    const backLabel = effectiveModuleId 
+      ? "Back to Module" 
+      : chapterId 
+        ? "Back to Chapter" 
+        : "Back to Training";
+    
     return (
-      <div className="container mx-auto px-4 py-8">
-        {chapterId ? (
-          <BackButton 
-            to={effectiveModuleId 
-              ? `/training/chapter/${chapterId}/module/${effectiveModuleId}` 
-              : `/training/chapter/${chapterId}`} 
-            label={effectiveModuleId ? "Back to Module" : "Back to Chapter"} 
-          />
-        ) : effectiveModuleId ? (
-          <BackButton 
-            to={`/training/module/${effectiveModuleId}`} 
-            label="Back to Module" 
-          />
-        ) : (
-          <BackButton 
-            to="/training" 
-            label="Back to Training" 
-          />
-        )}
-        
-        <div className="max-w-2xl mx-auto mt-10">
+      <AppLayout
+        showBackButton
+        backTo={backTo}
+        backLabel={backLabel}
+        pageTitle="Training Complete"
+      >
+        <div className="max-w-2xl mx-auto">
           <Card>
             <CardHeader>
               <div className="flex items-center justify-center mb-4">
@@ -150,28 +151,29 @@ export default function NextSituation() {
   if (data?.nextSituation) {
     const { nextSituation } = data;
     
+    // Determine the appropriate back navigation path
+    const backTo = chapterId && effectiveModuleId 
+      ? `/training/chapter/${chapterId}/module/${effectiveModuleId}` 
+      : chapterId 
+        ? `/training/chapter/${chapterId}`
+        : effectiveModuleId 
+          ? `/training/module/${effectiveModuleId}` 
+          : "/training";
+    
+    const backLabel = effectiveModuleId 
+      ? "Back to Module" 
+      : chapterId 
+        ? "Back to Chapter" 
+        : "Back to Training";
+    
     return (
-      <div className="container mx-auto px-4 py-8">
-        {chapterId ? (
-          <BackButton 
-            to={effectiveModuleId 
-              ? `/training/chapter/${chapterId}/module/${effectiveModuleId}` 
-              : `/training/chapter/${chapterId}`} 
-            label={effectiveModuleId ? "Back to Module" : "Back to Chapter"} 
-          />
-        ) : effectiveModuleId ? (
-          <BackButton 
-            to={`/training/module/${effectiveModuleId}`} 
-            label="Back to Module" 
-          />
-        ) : (
-          <BackButton 
-            to="/training" 
-            label="Back to Training" 
-          />
-        )}
-        
-        <div className="max-w-2xl mx-auto mt-10">
+      <AppLayout
+        showBackButton
+        backTo={backTo}
+        backLabel={backLabel}
+        pageTitle="Continue Your Training"
+      >
+        <div className="max-w-2xl mx-auto">
           <Card>
             <CardHeader>
               <div className="flex items-center justify-center mb-4">
