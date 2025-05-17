@@ -5,6 +5,21 @@ import LeaderSelection from "@/components/onboarding/LeaderSelection";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BackButton } from "@/components/BackButton";
 
+// Interface to match the LeaderSelection component's expected format
+interface LeaderData {
+  id: number;
+  name: string;
+  title: string;
+  description: string;
+  traits?: string[];
+  biography?: string;
+  photoUrl?: string;
+  controversial?: boolean;
+  generationMostAffected?: string;
+  leadershipStyles?: string[];
+  famousPhrases?: string[];
+}
+
 export default function LeadershipInspirations() {
   const { userData } = useAuth();
   
@@ -25,7 +40,16 @@ export default function LeadershipInspirations() {
       ) : (
         <Card className="p-6">
           <LeaderSelection 
-            leaders={leaders || []} 
+            leaders={Array.isArray(leaders) ? 
+              leaders.map(leader => ({
+                ...leader,
+                traits: leader.traits || [],
+                photoUrl: leader.photoUrl || '',
+                generationMostAffected: leader.generationMostAffected || '',
+                leadershipStyles: leader.leadershipStyles || [],
+                famousPhrases: leader.famousPhrases || []
+              })) : []
+            } 
             currentSelections={userData?.selectedLeaders || []}
             isSettingsPage={true}
           />
