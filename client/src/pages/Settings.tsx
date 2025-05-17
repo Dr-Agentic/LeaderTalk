@@ -2,10 +2,10 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BackButton } from "@/components/BackButton";
 import { useToast } from "@/hooks/use-toast";
 import WordUsageStats from "@/components/dashboard/WordUsageStats";
 import SubscriptionManager from "@/components/subscription/SubscriptionManager";
+import AppLayout from "@/components/AppLayout";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -66,11 +66,7 @@ export default function Settings() {
   });
   
   return (
-    <div className="container mx-auto py-10 px-4">
-      <BackButton to="/dashboard" label="Back to Dashboard" />
-      <div className="flex items-center justify-between my-8">
-        <h1 className="text-3xl font-bold">Account Settings</h1>
-      </div>
+    <AppLayout showBackButton backTo="/dashboard" backLabel="Back to Dashboard" pageTitle="Account Settings">
       
       <div className="space-y-6">
         <Card>
@@ -196,6 +192,6 @@ export default function Settings() {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </AppLayout>
   );
 }
