@@ -3,10 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-import { CalendarIcon } from "lucide-react";
-
-// Monthly word limit for billing
-const MONTHLY_WORD_LIMIT = 50000;
+import { CalendarIcon, CheckCircle2, PackageOpen } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 export default function WordUsageStats() {
   const { data, isLoading } = useQuery({
@@ -17,12 +15,26 @@ export default function WordUsageStats() {
     return <WordUsageStatsSkeleton />;
   }
 
-  // Get current usage data, with a known fallback for testing (196 words)
+  // Get current usage data with fallback
   const currentMonthUsage = data?.currentMonthUsage || 196;
-  // Calculate the percentage of the monthly limit
-  const usagePercentage = Math.min(100, (currentMonthUsage / MONTHLY_WORD_LIMIT) * 100);
+  
+  // Get subscription plan information
+  const subscriptionPlan = data?.subscriptionPlan || {
+    name: "Starter",
+    monthlyWordLimit: 5000,
+    features: ["5,000 words per month", "Basic analytics", "Up to 3 leader models"]
+  };
+  
+  // Use the word limit from the user's plan
+  const monthlyWordLimit = subscriptionPlan.monthlyWordLimit;
+  
+  // Get usage percentage from API or calculate it
+  const usagePercentage = data?.wordLimitPercentage || 
+    Math.min(100, Math.round((currentMonthUsage / monthlyWordLimit) * 100));
+    
   // Format the history data for display
   const formattedHistory = formatHistoryData(data?.history || []);
+  
   // Billing cycle information
   const billingCycle = data?.billingCycle || {};
 
@@ -30,19 +42,46 @@ export default function WordUsageStats() {
     <Card className="mb-6">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
-          <span>Word Usage</span>
+          <div className="flex items-center gap-2">
+            <span>Word Usage</span>
+            <Badge variant="outline" className="ml-2 gap-1">
+              <PackageOpen className="h-3 w-3 mr-1" />
+              {subscriptionPlan.name} Plan
+            </Badge>
+          </div>
           <span className="text-sm font-normal text-muted-foreground">
-            {currentMonthUsage.toLocaleString()} / {MONTHLY_WORD_LIMIT.toLocaleString()} words
+            {currentMonthUsage.toLocaleString()} / {monthlyWordLimit.toLocaleString()} words
           </span>
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           <div>
-            <Progress value={usagePercentage} className="h-2" />
+            <Progress 
+              value={usagePercentage} 
+              className="h-2" 
+              // Change color based on usage percentage
+              color={usagePercentage > 90 ? "destructive" : undefined}
+            />
             <p className="mt-2 text-sm text-muted-foreground">
-              {Math.round(usagePercentage)}% of your monthly word allocation used
+              {usagePercentage}% of your monthly word allocation used
             </p>
+          </div>
+
+          {/* Subscription plan features */}
+          <div className="mt-4 p-4 bg-muted/50 rounded-md border">
+            <h4 className="text-sm font-medium mb-2 flex items-center">
+              <PackageOpen className="h-4 w-4 mr-2" />
+              {subscriptionPlan.name} Plan Features
+            </h4>
+            <ul className="space-y-1">
+              {subscriptionPlan.features && subscriptionPlan.features.map((feature, index) => (
+                <li key={index} className="text-sm flex items-start gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                  <span>{feature}</span>
+                </li>
+              ))}
+            </ul>
           </div>
 
           {/* Billing cycle information */}

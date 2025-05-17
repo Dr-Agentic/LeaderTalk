@@ -2164,6 +2164,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get the current billing cycle for additional information
       const currentCycle = await storage.getCurrentBillingCycle(req.session.userId!);
       
+      // Get the user's subscription plan
+      let subscriptionPlan = null;
+      if (user.subscriptionPlan) {
+        subscriptionPlan = await storage.getSubscriptionPlanByCode(user.subscriptionPlan);
+      }
+      
+      // If no plan is assigned or found, use the default plan
+      if (!subscriptionPlan) {
+        subscriptionPlan = await storage.getDefaultSubscriptionPlan();
+      }
+      
       // Calculate days remaining in current cycle
       let daysRemaining = 0;
       let cycleStartDate = '';
@@ -2196,22 +2207,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       });
       
-      // Log what's being returned for debugging
+      // Calculate usage percentage based on the user's subscription plan
+      const wordLimitPercentage = subscriptionPlan 
+        ? Math.min(100, Math.round((currentUsage / subscriptionPlan.monthlyWordLimit) * 100))
+        : 0;
+      
       console.log("Returning word usage data:", {
         currentUsage,
         cycleStartDate,
-        cycleEndDate
+        cycleEndDate,
+        subscriptionPlan: subscriptionPlan ? {
+          name: subscriptionPlan.name,
+          monthlyWordLimit: subscriptionPlan.monthlyWordLimit
+        } : null
       });
       
       return res.json({
         currentMonthUsage: currentUsage,
+        wordLimitPercentage,
         history: formattedHistory,
         billingCycle: {
           startDate: cycleStartDate,
           endDate: cycleEndDate,
           daysRemaining,
           cycleNumber: currentCycle?.cycleNumber || 1
-        }
+        },
+        subscriptionPlan: subscriptionPlan ? {
+          id: subscriptionPlan.id,
+          name: subscriptionPlan.name,
+          planCode: subscriptionPlan.planCode,
+          monthlyWordLimit: subscriptionPlan.monthlyWordLimit,
+          monthlyPrice: subscriptionPlan.monthlyPriceUsd,
+          yearlyPrice: subscriptionPlan.yearlyPriceUsd,
+          features: subscriptionPlan.features || []
+        } : null
       });
     } catch (error) {
       console.error("Error fetching word usage statistics:", error);

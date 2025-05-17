@@ -322,7 +322,101 @@ export class DatabaseStorage implements IStorage {
       }
     }
   }
+  
+  // Subscription plan operations
+  async getSubscriptionPlans(): Promise<SubscriptionPlan[]> {
+    return db.select().from(subscriptionPlans).orderBy(subscriptionPlans.monthlyWordLimit);
+  }
+  
+  async getSubscriptionPlan(id: number): Promise<SubscriptionPlan | undefined> {
+    const result = await db.select().from(subscriptionPlans).where(eq(subscriptionPlans.id, id));
+    return result[0];
+  }
+  
+  async getSubscriptionPlanByCode(planCode: string): Promise<SubscriptionPlan | undefined> {
+    const result = await db.select().from(subscriptionPlans).where(eq(subscriptionPlans.planCode, planCode));
+    return result[0];
+  }
+  
+  async createSubscriptionPlan(plan: InsertSubscriptionPlan): Promise<SubscriptionPlan> {
+    // If this plan is set as default, unset any existing default plans
+    if (plan.isDefault) {
+      await db.update(subscriptionPlans).set({ isDefault: false }).where(eq(subscriptionPlans.isDefault, true));
+    }
+    
+    const result = await db.insert(subscriptionPlans).values(plan).returning();
+    return result[0];
+  }
+  
+  async updateSubscriptionPlan(id: number, data: UpdateSubscriptionPlan): Promise<SubscriptionPlan | undefined> {
+    // If this plan is being set as default, unset any existing default plans
+    if (data.isDefault) {
+      await db.update(subscriptionPlans).set({ isDefault: false }).where(eq(subscriptionPlans.isDefault, true));
+    }
+    
+    const result = await db.update(subscriptionPlans).set(data).where(eq(subscriptionPlans.id, id)).returning();
+    return result[0];
+  }
+  
+  async getDefaultSubscriptionPlan(): Promise<SubscriptionPlan> {
+    // Get the default plan, or the lowest tier if no default is set
+    const defaultPlan = await db.select().from(subscriptionPlans).where(eq(subscriptionPlans.isDefault, true));
+    
+    if (defaultPlan.length > 0) {
+      return defaultPlan[0];
+    }
+    
+    // If no default plan, return the plan with the lowest tier (usually free)
+    const allPlans = await this.getSubscriptionPlans();
+    return allPlans[0]; // First plan after sorting by word limit
+  }
+  
+  // Initialize default subscription plans
+  async initializeSubscriptionPlans(): Promise<void> {
+    const existingPlans = await db.select().from(subscriptionPlans);
+    
+    if (existingPlans.length === 0) {
+      const defaultPlans = [
+        {
+          planCode: "starter",
+          name: "Starter",
+          monthlyWordLimit: 5000,
+          monthlyPriceUsd: 0,
+          yearlyPriceUsd: 0,
+          features: ["5,000 words per month", "Basic analytics", "Up to 3 leader models"],
+          isDefault: true
+        },
+        {
+          planCode: "pro",
+          name: "Pro",
+          monthlyWordLimit: 15000,
+          monthlyPriceUsd: 9.99,
+          yearlyPriceUsd: 99,
+          features: ["15,000 words per month", "Advanced analytics", "Up to 5 leader models", "Priority support"],
+          isDefault: false
+        },
+        {
+          planCode: "executive",
+          name: "Executive",
+          monthlyWordLimit: 50000,
+          monthlyPriceUsd: 29,
+          yearlyPriceUsd: 199,
+          features: ["50,000 words per month", "Premium analytics", "Unlimited leader models", "24/7 priority support", "Custom leader models"],
+          isDefault: false
+        }
+      ];
+      
+      for (const plan of defaultPlans) {
+        await this.createSubscriptionPlan(plan);
+      }
+    }
+  }
 }
 
 // Export a singleton instance
 export const dbStorage = new DatabaseStorage();
+
+// Initialize default subscription plans
+dbStorage.initializeSubscriptionPlans().catch(err => {
+  console.error('Failed to initialize subscription plans:', err);
+});
