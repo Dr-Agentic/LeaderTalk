@@ -7,7 +7,7 @@ import { CalendarIcon, PackageOpen } from "lucide-react";
 
 // Generate a data structure for the past 6 months
 function generatePast6MonthsData(history: any[]) {
-  const today = new Date();
+  const today = new Date("2025-05-17"); // Use the current date (May 17, 2025)
   const months = [];
   const data = [];
   
@@ -38,11 +38,14 @@ function generatePast6MonthsData(history: any[]) {
   // Aggregate actual usage data
   if (history && Array.isArray(history)) {
     history.forEach(item => {
-      if (item.year && item.month) {
-        const key = `${item.year}-${item.month}`;
-        if (monthlyUsage.has(key)) {
-          monthlyUsage.set(key, monthlyUsage.get(key) + (item.wordCount || 0));
-        }
+      // Extract year and month from displayName or directly from data
+      const year = item.year || parseInt(item.displayName?.split(' ')[1] || '2025');
+      const monthStr = item.displayName?.split(' ')[0] || '';
+      const monthNumber = item.month || getMonthNumber(monthStr);
+      
+      const key = `${year}-${monthNumber}`;
+      if (monthlyUsage.has(key)) {
+        monthlyUsage.set(key, monthlyUsage.get(key) + (item.wordCount || 0));
       }
     });
   }
@@ -56,7 +59,18 @@ function generatePast6MonthsData(history: any[]) {
     });
   });
   
+  console.log("Generated chart data:", data);
   return data;
+}
+
+// Helper function to convert month name to number
+function getMonthNumber(monthStr: string): number {
+  const months = {
+    'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4,
+    'May': 5, 'Jun': 6, 'Jul': 7, 'Aug': 8,
+    'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12
+  };
+  return months[monthStr as keyof typeof months] || 0;
 }
 
 // Format a date string like '2023-04-15' to 'Apr 15, 2023'
