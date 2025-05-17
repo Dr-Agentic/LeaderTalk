@@ -54,16 +54,17 @@ export default function LeaderSelection({
   const [currentLeader, setCurrentLeader] = useState<LeaderData | null>(null);
   const { toast } = useToast();
   
+  // Update selected leaders when currentSelections prop changes
+  useEffect(() => {
+    setSelectedLeaders(currentSelections);
+  }, [currentSelections]);
+  
   const toggleLeaderSelection = (leaderId: number) => {
     setSelectedLeaders(prev => {
       if (prev.includes(leaderId)) {
         // Always allow removing a leader
         return prev.filter(id => id !== leaderId);
       } else {
-        // Adding a leader - check if we've reached the maximum
-        // Count unique leaders between those in the database (currentSelections) 
-        // and those selected in the UI (prev) that aren't in currentSelections
-        
         // The actual total would be the unique combination of database selections and UI selections
         const allSelectionsSet = new Set([...currentSelections, ...prev]);
         
