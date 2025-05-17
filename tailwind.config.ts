@@ -6,8 +6,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        serif: ['Source Serif Pro', 'Georgia', 'serif'],
-        sans: ['Work Sans', 'system-ui', 'sans-serif'],
+        serif: ['Playfair Display', 'Georgia', 'serif'],
+        sans: ['Poppins', 'system-ui', 'sans-serif'],
       },
       fontSize: {
         'heading-1': ['2.75rem', { lineHeight: '1.1', fontWeight: '700' }],
