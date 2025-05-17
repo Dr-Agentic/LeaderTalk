@@ -44,7 +44,7 @@ export default function WordUsageStats() {
     cycleNumber: 1
   };
 
-  // Create chart data based on actual month usage - just showing May 2025
+  // Create chart data based on actual month usage
   const usageHistory = [
     { name: 'May 25', words: currentMonthUsage }
   ];
