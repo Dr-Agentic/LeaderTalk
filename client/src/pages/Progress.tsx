@@ -485,8 +485,10 @@ export default function Progress() {
                       dataKey="period" 
                       angle={-45} 
                       textAnchor="end" 
-                      tick={{ fontSize: 12 }}
-                      height={60}
+                      tick={{ fontSize: 10 }}
+                      height={70}
+                      interval={0}
+                      tickMargin={15}
                     />
                     <YAxis 
                       domain={[0, 100]}
