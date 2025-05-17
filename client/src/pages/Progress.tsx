@@ -474,7 +474,7 @@ export default function Progress() {
           </CardHeader>
           <CardContent>
             {timeBasedChartData.length > 0 ? (
-              <div className="w-full h-96 mt-4">
+              <div className="w-full h-[450px] mt-4">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={timeBasedChartData}
