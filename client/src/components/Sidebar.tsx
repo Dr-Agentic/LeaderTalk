@@ -72,6 +72,7 @@ function SidebarContent({ location }) {
     { name: "All Transcripts", href: "/transcripts", icon: FileText },
     { name: "My Progress", href: "/progress", icon: LineChart },
     { name: "Training Module", href: "/training", icon: GraduationCap },
+    { name: "Leadership Inspirations", href: "/leadership-inspirations", icon: UserRound },
     { name: "Settings", href: "/settings", icon: Settings },
   ];
   
