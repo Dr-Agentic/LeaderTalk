@@ -6,9 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { AlertCircle, CheckCircle, XCircle, ArrowRight } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { BackButton } from "../components/BackButton";
 import { useAuth } from "../hooks/useAuth";
 import { getQueryFn } from "../lib/queryClient";
+import AppLayout from "@/components/AppLayout";
 
 interface Situation {
   id: number;
@@ -102,8 +102,12 @@ export default function ModuleView() {
 
   if (!module) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <BackButton to="/training" label="Back to Training" />
+      <AppLayout
+        showBackButton
+        backTo="/training"
+        backLabel="Back to Training"
+        pageTitle="Module"
+      >
         <Alert variant="destructive" className="mt-4">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Module not found</AlertTitle>
@@ -111,7 +115,7 @@ export default function ModuleView() {
             The module you're looking for doesn't exist or has been removed.
           </AlertDescription>
         </Alert>
-      </div>
+      </AppLayout>
     );
   }
 

@@ -6,10 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { BackButton } from "../components/BackButton";
 import { useAuth } from "../hooks/useAuth";
 import { ChevronRight, BookOpen, Award, CheckCircle, XCircle, ArrowRight } from "lucide-react";
 import { getQueryFn } from "../lib/queryClient";
+import AppLayout from "@/components/AppLayout";
 
 interface Progress {
   totalSituations: number;
@@ -97,10 +97,14 @@ export default function Training() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <AppLayout
+      showBackButton
+      backTo="/dashboard"
+      backLabel="Back to Dashboard"
+      pageTitle="Training"
+    >
       <div className="flex items-center justify-between mb-8">
         <div>
-          <BackButton to="/" label="Dashboard" />
           <h1 className="text-3xl font-bold mt-2">Leadership Training</h1>
           <p className="text-muted-foreground">
             Improve your leadership communication skills through guided exercises
@@ -351,10 +355,9 @@ function ChaptersList({ chapters }: { chapters: ChapterProgress[] }) {
 
 function TrainingSkeleton() {
   return (
-    <div className="container mx-auto px-4 py-8">
+    <AppLayout>
       <div className="flex items-center justify-between mb-8">
         <div>
-          <div className="h-6 w-24 bg-muted rounded animate-pulse mb-2"></div>
           <div className="h-8 w-64 bg-muted rounded animate-pulse"></div>
           <div className="h-5 w-96 bg-muted rounded animate-pulse mt-2"></div>
         </div>
@@ -391,6 +394,6 @@ function TrainingSkeleton() {
           </div>
         ))}
       </div>
-    </div>
+    </AppLayout>
   );
 }
