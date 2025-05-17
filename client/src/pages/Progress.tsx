@@ -432,8 +432,8 @@ export default function Progress() {
             {timeBasedChartData.length > 0 ? (
               <div className="w-full h-80">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart
-                    data={timeBasedChartData}
+                  <BarChart
+                    data={timeBasedChartData.filter(data => data.score !== null)}
                     margin={{ top: 10, right: 30, left: 0, bottom: 30 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
@@ -449,24 +449,26 @@ export default function Progress() {
                       label={{ value: 'Average Score', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle' } }}
                     />
                     <Tooltip 
-                      formatter={(value) => {
+                      formatter={(value, name, props) => {
                         if (value === undefined || value === null) return ['N/A', 'Average Score'];
-                        return [`${Number(value).toFixed(1)}`, 'Average Score'];
+                        const entry = timeBasedChartData.find(item => item.period === props.payload.period);
+                        const recordingCount = entry?.count || 0;
+                        return [
+                          `${Number(value).toFixed(1)}`, 
+                          'Average Score',
+                          `Based on ${recordingCount} ${recordingCount === 1 ? 'recording' : 'recordings'}`
+                        ];
                       }}
                       labelFormatter={(label) => label ? `Period: ${label}` : 'Unknown Period'}
                     />
                     <Legend />
-                    <Area 
-                      type="monotone" 
+                    <Bar 
                       dataKey="score" 
                       name="Leadership Score" 
-                      stroke="#6366F1"
-                      fill="#6366F180"
-                      strokeWidth={2}
-                      activeDot={{ r: 6, strokeWidth: 2 }}
-                      connectNulls={true}
+                      fill="#6366F1"
+                      radius={[4, 4, 0, 0]}
                     />
-                  </AreaChart>
+                  </BarChart>
                 </ResponsiveContainer>
               </div>
             ) : (
