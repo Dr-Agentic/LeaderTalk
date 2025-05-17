@@ -5,6 +5,78 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { CalendarIcon, PackageOpen } from "lucide-react";
 
+// Generate a data structure for the past 6 months
+function generatePast6MonthsData(history: any[]) {
+  const today = new Date();
+  const months = [];
+  const data = [];
+  
+  // Generate the past 6 months
+  for (let i = 5; i >= 0; i--) {
+    const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+    const month = date.getMonth() + 1; // JavaScript months are 0-indexed
+    const year = date.getFullYear();
+    const monthName = date.toLocaleString('default', { month: 'short' });
+    const yearShort = String(year).slice(2);
+    
+    months.push({ 
+      month, 
+      year,
+      label: `${monthName} ${yearShort}`
+    });
+  }
+  
+  // Create a map to aggregate word counts by month and year
+  const monthlyUsage = new Map();
+  
+  // Initialize all months with zero
+  months.forEach(month => {
+    const key = `${month.year}-${month.month}`;
+    monthlyUsage.set(key, 0);
+  });
+  
+  // Aggregate actual usage data
+  if (history && Array.isArray(history)) {
+    history.forEach(item => {
+      if (item.year && item.month) {
+        const key = `${item.year}-${item.month}`;
+        if (monthlyUsage.has(key)) {
+          monthlyUsage.set(key, monthlyUsage.get(key) + (item.wordCount || 0));
+        }
+      }
+    });
+  }
+  
+  // Convert aggregated data to chart format
+  months.forEach(month => {
+    const key = `${month.year}-${month.month}`;
+    data.push({
+      name: month.label,
+      words: monthlyUsage.get(key) || 0
+    });
+  });
+  
+  return data;
+}
+
+// Format a date string like '2023-04-15' to 'Apr 15, 2023'
+function formatDate(dateString: string) {
+  if (!dateString) return 'N/A';
+  
+  try {
+    const date = new Date(dateString);
+    
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    }).format(date);
+  } catch (e) {
+    console.error('Error formatting date:', e);
+    return dateString; // Return the original string if parsing fails
+  }
+}
+
 export default function WordUsageStats() {
   const { data, isLoading } = useQuery({
     queryKey: ['/api/usage/words'],
@@ -44,10 +116,8 @@ export default function WordUsageStats() {
     cycleNumber: 1
   };
 
-  // Create chart data based on actual month usage - just showing May 2025
-  const usageHistory = [
-    { name: 'May 25', words: currentMonthUsage }
-  ];
+  // Generate history data for the past 6 months
+  const usageHistory = generatePast6MonthsData(data?.history || []);
 
   return (
     <Card className="mb-6">
@@ -145,22 +215,4 @@ function WordUsageStatsSkeleton() {
       </CardContent>
     </Card>
   );
-}
-
-// Format a date string like '2023-04-15' to 'Apr 15, 2023'
-function formatDate(dateString: string) {
-  if (!dateString) return 'N/A';
-  
-  try {
-    const date = new Date(dateString);
-    
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    }).format(date);
-  } catch (e) {
-    console.error('Error formatting date:', e);
-    return dateString; // Return the original string if parsing fails
-  }
 }
