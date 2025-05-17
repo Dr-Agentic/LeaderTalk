@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronRight } from "lucide-react";
 import { queryClient } from "@/lib/queryClient";
+import { H1, H2, Lead, Paragraph } from "@/components/ui/typography";
 
 export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);

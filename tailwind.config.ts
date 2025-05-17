@@ -5,6 +5,17 @@ export default {
   content: ["./client/index.html", "./client/src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
+      fontFamily: {
+        serif: ['Source Serif Pro', 'Georgia', 'serif'],
+        sans: ['Work Sans', 'system-ui', 'sans-serif'],
+      },
+      fontSize: {
+        'heading-1': ['2.75rem', { lineHeight: '1.1', fontWeight: '700' }],
+        'heading-2': ['2.25rem', { lineHeight: '1.2', fontWeight: '600' }],
+        'heading-3': ['1.5rem', { lineHeight: '1.3', fontWeight: '700' }],
+        'body-large': ['1.125rem', { lineHeight: '1.6' }],
+        'body': ['1rem', { lineHeight: '1.6' }],
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
