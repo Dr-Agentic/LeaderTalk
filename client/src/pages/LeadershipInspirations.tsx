@@ -4,9 +4,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { Card } from "@/components/ui/card";
 import LeaderSelection from "@/components/onboarding/LeaderSelection";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BackButton } from "@/components/BackButton";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import AppLayout from "@/components/AppLayout";
 
 // Interface to match the LeaderSelection component's expected format
 interface LeaderData {
@@ -75,11 +75,12 @@ export default function LeadershipInspirations() {
   };
 
   return (
-    <div className="container mx-auto py-10 px-4">
-      <BackButton to="/dashboard" label="Back to Dashboard" />
-      <div className="flex items-center justify-between my-8">
-        <h1 className="text-3xl font-bold">Leadership Inspirations</h1>
-      </div>
+    <AppLayout 
+      showBackButton 
+      backTo="/dashboard" 
+      backLabel="Back to Dashboard" 
+      pageTitle="Leadership Inspirations"
+    >
       
       {isLoadingLeaders ? (
         <LeadershipInspirationsSkeleton />
@@ -175,7 +176,7 @@ export default function LeadershipInspirations() {
           </Card>
         </>
       )}
-    </div>
+    </AppLayout>
   );
 }
 
