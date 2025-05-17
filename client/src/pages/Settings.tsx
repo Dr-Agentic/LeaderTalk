@@ -161,6 +161,9 @@ export default function Settings() {
                           <li>All word usage records</li>
                           <li>Selected leader preferences</li>
                         </ul>
+                        <p className="mt-4">
+                          <span className="text-red-500">Note:</span> If you have a paid subscription, any remaining time or unused words in your current billing cycle <span className="font-bold">cannot be reimbursed</span> if you delete your account.
+                        </p>
                         <p className="mt-4 font-bold">
                           This action CANNOT be undone. Are you sure you want to proceed?
                         </p>
