@@ -46,9 +46,9 @@ export default function Dashboard() {
         <MobileHeader setSidebarOpen={setSidebarOpen} user={userData} />
         
         <main className="relative flex-1 overflow-y-auto focus:outline-none">
-          <div className="py-6">
+          <div className="py-8">
             <div id="dashboard" className="px-4 sm:px-6 md:px-8">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
                 <H1>Dashboard</H1>
                 <Link href="/transcripts" className="mt-2 sm:mt-0 inline-flex items-center text-sm font-medium text-primary hover:text-primary-dark">
                   View all transcripts
