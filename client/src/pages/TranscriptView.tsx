@@ -3,7 +3,6 @@ import { useLocation, useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { BackButton } from "@/components/BackButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -11,6 +10,7 @@ import { AnalysisInstance, Recording, AnalysisResult } from "../../../shared/sch
 import { useAuth } from "../hooks/useAuth";
 import { useToast } from "../hooks/use-toast";
 import { getQueryFn, checkSession } from "../lib/queryClient";
+import AppLayout from "@/components/AppLayout";
 
 // Type for query data from API
 interface RecordingWithAnalysis extends Omit<Recording, 'analysisResult'> {
@@ -132,34 +132,32 @@ export default function TranscriptView() {
   
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" />
-      </div>
+      <AppLayout showBackButton backTo="/transcripts" backLabel="Back to All Transcripts">
+        <div className="flex items-center justify-center h-96">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        </div>
+      </AppLayout>
     );
   }
   
   if (!recording) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <AppLayout showBackButton backTo="/transcripts" backLabel="Back to All Transcripts">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Recording Not Found</h1>
           <p className="mb-6">The requested recording could not be found.</p>
-          <BackButton to="/transcripts" label="Back to All Transcripts" className="mx-auto" />
         </div>
-      </div>
+      </AppLayout>
     );
   }
   
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="mb-6 flex items-center">
-        <BackButton 
-          to="/transcripts" 
-          label="Back to All Transcripts" 
-          className="mr-2"
-        />
-        <h1 className="text-2xl font-bold">{recording.title} - Transcript</h1>
-      </div>
+    <AppLayout 
+      showBackButton 
+      backTo="/transcripts" 
+      backLabel="Back to All Transcripts"
+      pageTitle={`${recording.title} - Transcript`}
+    >
       
       <Card className="mb-8">
         <CardHeader>
@@ -229,7 +227,7 @@ export default function TranscriptView() {
           />
         </CardContent>
       </Card>
-    </div>
+    </AppLayout>
   );
 }
 
