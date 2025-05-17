@@ -44,25 +44,26 @@ export default function SubscriptionManager() {
     mutationFn: async () => {
       if (!selectedPlan) return null;
       
-      const response = await apiRequest('POST', '/api/update-subscription', {
-        planCode: selectedPlan
-      });
-      return response.json();
+      const response = await apiRequest('POST', '/api/update-subscription', { planCode: selectedPlan });
+      const data = await response.json();
+      return data;
     },
     onSuccess: (data) => {
-      toast({
-        title: "Subscription Updated",
-        description: `You've successfully updated to the ${data.plan.name} plan.`,
-        variant: "default",
-      });
-      
-      // Invalidate queries to refresh data
-      queryClient.invalidateQueries({ queryKey: ['/api/usage/words'] });
+      if (data) {
+        toast({
+          title: "Subscription Updated",
+          description: `You've successfully updated to the ${data.plan.name} plan.`,
+          variant: "default",
+        });
+        
+        // Invalidate queries to refresh data
+        queryClient.invalidateQueries({ queryKey: ['/api/usage/words'] });
+      }
     },
-    onError: () => {
+    onError: (error) => {
       toast({
         title: "Error",
-        description: "Failed to update your subscription. Please try again.",
+        description: error.message || "Failed to update your subscription. Please try again.",
         variant: "destructive",
       });
     }

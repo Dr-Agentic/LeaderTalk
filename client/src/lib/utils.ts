@@ -32,3 +32,15 @@ export function calculateSavings(monthlyPrice: number, yearlyPrice: number): num
   if (monthlyTotal === 0) return 0;
   return Math.round(((monthlyTotal - yearlyPrice) / monthlyTotal) * 100);
 }
+
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+/**
+ * Combine class names with Tailwind's class merging
+ * @param inputs Class values to combine
+ * @returns Combined class string
+ */
+export function cn(...inputs: ClassValue[]): string {
+  return twMerge(clsx(inputs));
+}
