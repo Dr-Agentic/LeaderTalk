@@ -118,7 +118,7 @@ const RecordingsTooltip = ({ active, payload, label }: any) => {
 
 export default function Progress() {
   const { toast } = useToast();
-  const { isAuthenticated, authLoading } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [recordings, setRecordings] = useState<RecordingWithScore[]>([]);
   const [timeRanges, setTimeRanges] = useState<{
     sevenDays: TimeRange;
@@ -166,19 +166,33 @@ export default function Progress() {
     async function fetchRecordings() {
       try {
         setIsLoading(true);
-        const response = await fetch("/api/recordings")
-          .then(res => {
-            if (!res.ok) throw new Error('Failed to fetch recordings');
-            return res.json();
-          });
-
+        
+        const res = await fetch("/api/recordings");
+        if (!res.ok) {
+          throw new Error("Failed to fetch recordings");
+        }
+        
+        const recordingsData = await res.json();
+        
         // Process the recordings data
-        if (response) {
-          const processedRecordings = response.map((recording: Recording) => {
-            // Create a normalized score from 0-100 from the analysis
-            const positiveScore = recording.analysisResult?.positiveScore || 0;
-            const negativeScore = recording.analysisResult?.negativeScore || 0;
-            const neutralScore = recording.analysisResult?.neutralScore || 0;
+        if (recordingsData && Array.isArray(recordingsData)) {
+          const processedRecordings = recordingsData.map((recording) => {
+            // Extract analysis values with fallbacks
+            let positiveScore = 0;
+            let negativeScore = 0;
+            let neutralScore = 0;
+            let leaderMatch = undefined;
+            
+            if (recording.analysisResult) {
+              positiveScore = recording.analysisResult.positiveScore || 0;
+              negativeScore = recording.analysisResult.negativeScore || 0;
+              neutralScore = recording.analysisResult.neutralScore || 0;
+              
+              if (recording.analysisResult.leaderMatches && 
+                  recording.analysisResult.leaderMatches.length > 0) {
+                leaderMatch = recording.analysisResult.leaderMatches[0].name;
+              }
+            }
             
             // Calculate a weighted score where positive is good and negative is bad
             const weightedPositive = positiveScore * 100;
@@ -189,19 +203,36 @@ export default function Progress() {
             const rawScore = 50 + weightedPositive + weightedNegative + weightedNeutral;
             const score = Math.max(0, Math.min(100, rawScore));
             
+            // Get date from recording, with fallbacks
+            let recordingDate = new Date().toISOString();
+            if (recording.createdAt) {
+              // If it's a Date object, convert to ISO string
+              if (recording.createdAt instanceof Date) {
+                recordingDate = recording.createdAt.toISOString();
+              } else if (typeof recording.createdAt === 'string') {
+                recordingDate = recording.createdAt;
+              }
+            } else if (recording.recordedAt) {
+              // Fallback to recordedAt if available
+              if (recording.recordedAt instanceof Date) {
+                recordingDate = recording.recordedAt.toISOString();
+              } else if (typeof recording.recordedAt === 'string') {
+                recordingDate = recording.recordedAt;
+              }
+            }
+            
             return {
               id: recording.id,
               title: recording.title || `Recording ${recording.id}`,
-              date: recording.createdAt?.toISOString() || new Date().toISOString(),
+              date: recordingDate,
               score,
-              leaderMatch: recording.analysisResult?.leaderMatches?.[0]?.name,
+              leaderMatch
             };
           });
 
           // Sort recordings by date (newest first)
           const sortedRecordings = [...processedRecordings].sort(
-            (a: RecordingWithScore, b: RecordingWithScore) =>
-              new Date(b.date).getTime() - new Date(a.date).getTime()
+            (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
           );
 
           setRecordings(sortedRecordings);
@@ -218,25 +249,25 @@ export default function Progress() {
 
           // Filter recordings for each time range
           const last7DaysRecordings = sortedRecordings.filter(
-            (r: RecordingWithScore) => new Date(r.date) >= sevenDaysAgo
+            (r) => new Date(r.date) >= sevenDaysAgo
           );
 
           const last30DaysRecordings = sortedRecordings.filter(
-            (r: RecordingWithScore) => new Date(r.date) >= thirtyDaysAgo
+            (r) => new Date(r.date) >= thirtyDaysAgo
           );
 
           const thisYearRecordings = sortedRecordings.filter(
-            (r: RecordingWithScore) => new Date(r.date) >= startOfYear
+            (r) => new Date(r.date) >= startOfYear
           );
 
           // Calculate average scores for each time range
-          const calcAverage = (recordings: RecordingWithScore[]) => 
+          const calcAverage = (recordings) => 
             recordings.length 
               ? recordings.reduce((sum, r) => sum + r.score, 0) / recordings.length 
               : 0;
 
           // Calculate improvement (comparing first and last recording in range)
-          const calcImprovement = (recordings: RecordingWithScore[]) => {
+          const calcImprovement = (recordings) => {
             if (recordings.length < 2) return 0;
             const oldest = recordings[recordings.length - 1];
             const newest = recordings[0];
@@ -290,7 +321,7 @@ export default function Progress() {
     }
 
     fetchRecordings();
-  }, [isAuthenticated, authLoading, toast]);
+  }, [isAuthenticated, toast]);
 
   // Update recordings chart data when count changes
   useEffect(() => {
@@ -308,14 +339,14 @@ export default function Progress() {
 
   // Function to generate time-based chart data
   const generateTimeBasedChartData = (
-    recordings: RecordingWithScore[],
-    viewType: "week" | "month" | "quarter" | "year" | "alltime"
+    recordings,
+    viewType
   ) => {
     const now = new Date();
-    let periodBoundaries: { start: Date; end: Date; label: string }[] = [];
+    let periodBoundaries = [];
 
     // Helper function to get week number
-    const getWeekNumber = (date: Date): number => {
+    const getWeekNumber = (date) => {
       const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
       const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000;
       return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
@@ -560,10 +591,8 @@ export default function Progress() {
                   <Bar
                     dataKey="score"
                     name="Score"
-                    fill={(data) =>
-                      data.isEmpty ? "#e5e7eb" : "var(--primary)"
-                    }
-                    opacity={(data) => (data.isEmpty ? 0.5 : 1)}
+                    fill={(data) => data.isEmpty ? "#e5e7eb" : "var(--primary)"}
+                    opacity={(data) => data.isEmpty ? 0.5 : 1}
                     radius={[4, 4, 0, 0]}
                   />
                 </BarChart>
