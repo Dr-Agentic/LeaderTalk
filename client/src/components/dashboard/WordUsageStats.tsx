@@ -86,20 +86,13 @@ export default function WordUsageStats() {
               <CalendarIcon className="h-5 w-5 text-primary mt-0.5" />
               <div>
                 <h4 className="text-sm font-medium">Subscription Renewal</h4>
-                {billingCycle && billingCycle.endDate && billingCycle.endDate !== '' ? (
-                  <>
-                    <p className="text-sm text-muted-foreground">
-                      Your word count will reset on <span className="font-medium text-primary">{formatDate(billingCycle.endDate)}</span>
-                    </p>
-                    {billingCycle.daysRemaining > 0 && (
-                      <p className="text-sm mt-1">
-                        <span className="font-medium">{billingCycle.daysRemaining}</span> days remaining in this cycle
-                      </p>
-                    )}
-                  </>
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    Your word count will reset on your monthly anniversary date
+                {/* Always display a renewal date */}
+                <p className="text-sm text-muted-foreground">
+                  Your word count will reset on <span className="font-medium text-primary">{formatDate(billingCycle.endDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])}</span>
+                </p>
+                {billingCycle.daysRemaining > 0 && (
+                  <p className="text-sm mt-1">
+                    <span className="font-medium">{billingCycle.daysRemaining}</span> days remaining in this cycle
                   </p>
                 )}
                 <p className="text-xs mt-2 text-muted-foreground">

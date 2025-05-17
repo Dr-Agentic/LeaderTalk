@@ -2285,6 +2285,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         daysRemaining
       });
       
+      // Log the full JSON response for debugging
+      const responseData = {
+        currentMonthUsage: currentUsage,
+        wordLimitPercentage,
+        history: formattedHistory,
+        billingCycle: {
+          startDate: cycleStartDate,
+          endDate: cycleEndDate,
+          daysRemaining,
+          cycleNumber: currentCycle?.cycleNumber || 1
+        },
+        subscriptionPlan: subscriptionPlan ? {
+          id: subscriptionPlan.id,
+          name: subscriptionPlan.name,
+          planCode: subscriptionPlan.planCode,
+          monthlyWordLimit: subscriptionPlan.monthlyWordLimit,
+          monthlyPriceUsd: subscriptionPlan.monthlyPriceUsd,
+          yearlyPriceUsd: subscriptionPlan.yearlyPriceUsd,
+          features: subscriptionPlan.features ? 
+            typeof subscriptionPlan.features === 'string' ? 
+              JSON.parse(subscriptionPlan.features) : 
+              subscriptionPlan.features 
+            : null,
+          isDefault: subscriptionPlan.isDefault || false
+        } : null
+      };
+      
+      console.log("Full API response:", JSON.stringify(responseData, null, 2));
+      
       return res.json({
         currentMonthUsage: currentUsage,
         wordLimitPercentage,
