@@ -8,7 +8,7 @@ export default function QuickActions({ recordingsCount, weeklyImprovement }) {
     <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
       {/* Record New Conversation */}
       <Card className="shadow-card hover:shadow-card-hover transition-shadow duration-300">
-        <CardContent className="p-card-inner">
+        <CardContent className="p-card-inner pt-6 pb-5">
           <div className="flex items-center">
             <div className="flex-shrink-0 bg-gradient-primary rounded-md p-3">
               <Mic className="h-5 w-5 text-white" />
@@ -32,7 +32,7 @@ export default function QuickActions({ recordingsCount, weeklyImprovement }) {
       
       {/* Recent Analyses */}
       <Card className="shadow-card hover:shadow-card-hover transition-shadow duration-300">
-        <CardContent className="p-card-inner">
+        <CardContent className="p-card-inner pt-6 pb-5">
           <div className="flex items-center">
             <div className="flex-shrink-0 bg-gradient-secondary rounded-md p-3">
               <BarChart className="h-5 w-5 text-white" />
@@ -58,7 +58,7 @@ export default function QuickActions({ recordingsCount, weeklyImprovement }) {
       
       {/* Weekly Improvement */}
       <Card className="shadow-card hover:shadow-card-hover transition-shadow duration-300">
-        <CardContent className="p-card-inner">
+        <CardContent className="p-card-inner pt-6 pb-5">
           <div className="flex items-center">
             <div className="flex-shrink-0 bg-gradient-primary rounded-md p-3">
               <TrendingUp className="h-5 w-5 text-white" />
@@ -95,7 +95,7 @@ export default function QuickActions({ recordingsCount, weeklyImprovement }) {
       
       {/* Training Module */}
       <Card className="shadow-card hover:shadow-card-hover transition-shadow duration-300">
-        <CardContent className="p-card-inner">
+        <CardContent className="p-card-inner pt-6 pb-5">
           <div className="flex items-center">
             <div className="flex-shrink-0 bg-gradient-secondary rounded-md p-3">
               <GraduationCap className="h-5 w-5 text-white" />
