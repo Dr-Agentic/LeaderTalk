@@ -6,19 +6,19 @@ interface TypographyProps {
   className?: string;
 }
 
-// H1 - Main Heading (Source Serif Pro)
+// H1 - Main Heading (Playfair Display)
 export function H1({ children, className }: TypographyProps) {
   return (
-    <h1 className={cn("text-heading-1 font-serif text-foreground", className)}>
+    <h1 className={cn("text-heading-1 font-serif text-foreground font-playfair", className)}>
       {children}
     </h1>
   );
 }
 
-// H2 - Section Heading (Source Serif Pro)
+// H2 - Section Heading (Playfair Display)
 export function H2({ children, className }: TypographyProps) {
   return (
-    <h2 className={cn("text-heading-2 font-serif text-foreground", className)}>
+    <h2 className={cn("text-heading-2 font-serif text-foreground font-playfair", className)}>
       {children}
     </h2>
   );
