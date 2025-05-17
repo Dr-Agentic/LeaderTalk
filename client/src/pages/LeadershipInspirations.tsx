@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import LeaderSelection from "@/components/onboarding/LeaderSelection";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BackButton } from "@/components/BackButton";
+import { queryClient } from "../lib/queryClient";
 
 // Interface to match the LeaderSelection component's expected format
 interface LeaderData {
