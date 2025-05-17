@@ -54,6 +54,9 @@ export default function LeaderSelection({
   
   // Initialize with current selections if they exist
   const [selectedLeaders, setSelectedLeaders] = useState<number[]>(currentSelections);
+  
+  // Keep track of initial selections to avoid losing them when new ones are added
+  const [initialSelections] = useState<number[]>(currentSelections);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showInfoDialog, setShowInfoDialog] = useState(false);
   const [currentLeader, setCurrentLeader] = useState<LeaderData | null>(null);
@@ -92,8 +95,24 @@ export default function LeaderSelection({
     setIsSubmitting(true);
     
     try {
+      // Combine initial selections with the newly selected leaders
+      // Filter out any duplicates to ensure we don't have the same leader twice
+      let allSelections = [...initialSelections];
+      
+      // Add any newly selected leaders that weren't in the initial selections
+      selectedLeaders.forEach(leaderId => {
+        if (!allSelections.includes(leaderId)) {
+          allSelections.push(leaderId);
+        }
+      });
+      
+      // Make sure we don't exceed the maximum number of leaders
+      if (allSelections.length > MAX_SELECTIONS) {
+        allSelections = allSelections.slice(0, MAX_SELECTIONS);
+      }
+      
       const response = await apiRequest('PATCH', '/api/users/me', {
-        selectedLeaders,
+        selectedLeaders: allSelections,
       });
       
       if (response.ok) {
