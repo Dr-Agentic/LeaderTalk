@@ -163,113 +163,113 @@ export default function ModuleView() {
       ?.modules.find(m => m.id === moduleId)?.progress || 0 : 0;
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {chapterId ? (
-        <BackButton to={`/training`} label="Back to Training" />
-      ) : (
-        <BackButton to="/training" label="Back to Training" />
-      )}
-      
-      <div className="mt-6">
-        <div className="flex justify-between items-center mb-4">
-          <div>
-            <h1 className="text-3xl font-bold">{module.title}</h1>
-            {module.description && (
-              <p className="text-muted-foreground">{module.description}</p>
-            )}
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="text-sm font-medium">
-              {moduleCompletion}% Complete
-            </span>
-            <Progress value={moduleCompletion} className="w-32 h-2" />
-          </div>
+    <AppLayout
+      showBackButton
+      backTo="/training"
+      backLabel="Back to Training"
+      pageTitle={module.title}
+    >
+      <div className="flex justify-between items-center mb-4">
+        <div>
+          <h1 className="text-3xl font-bold">{module.title}</h1>
+          {module.description && (
+            <p className="text-muted-foreground">{module.description}</p>
+          )}
         </div>
-        
-        {module.leadershipTrait && module.situationType && (
-          <div className="flex flex-wrap gap-3 mb-6">
-            <div className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium">
-              {module.leadershipTrait}
-            </div>
-            <div className="bg-muted px-3 py-1 rounded-full text-sm font-medium">
-              {module.situationType}
-            </div>
-          </div>
-        )}
-        
-        <div className="grid gap-6 mt-8">
-          {module.situations.map((situation, index) => {
-            const situationProgress = getSituationProgress(situation.id);
-            
-            return (
-              <Card key={situation.id} className="relative overflow-hidden">
-                {situationProgress?.status === "completed" && (
-                  <div className="absolute top-0 right-0 bg-green-500 text-white px-3 py-1 rounded-bl-md">
-                    Passed
-                  </div>
-                )}
-                {situationProgress?.status === "failed" && (
-                  <div className="absolute top-0 right-0 bg-yellow-500 text-white px-3 py-1 rounded-bl-md">
-                    Needs Improvement
-                  </div>
-                )}
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center gap-2">
-                    {situationProgress?.status === "completed" ? (
-                      <CheckCircle className="h-5 w-5 text-green-500" />
-                    ) : situationProgress?.status === "failed" ? (
-                      <XCircle className="h-5 w-5 text-yellow-500" />
-                    ) : (
-                      <span className="flex items-center justify-center h-5 w-5 rounded-full bg-muted text-xs font-bold">
-                        {index + 1}
-                      </span>
-                    )}
-                    Situation {index + 1}
-                  </CardTitle>
-                  {situationProgress?.status !== "not-started" && (
-                    <CardDescription>
-                      Score: {situationProgress?.score}/100
-                    </CardDescription>
-                  )}
-                </CardHeader>
-                <CardContent>
-                  <p className="mb-4">{situation.description}</p>
-                  
-                  {chapterId ? (
-                    <Link href={`/training/chapter/${chapterId}/module/${moduleId}/situation/${situation.id}`}>
-                      <Button className="w-full flex items-center justify-center gap-2">
-                        {situationProgress?.status !== "not-started"
-                          ? "Review Response" 
-                          : "Respond to Situation"}
-                        <ArrowRight size={16} />
-                      </Button>
-                    </Link>
-                  ) : (
-                    <Link href={`/training/situation/${situation.id}?moduleId=${module.id}&fromChapter=${module.chapterId}`}>
-                      <Button className="w-full flex items-center justify-center gap-2">
-                        {situationProgress?.status !== "not-started"
-                          ? "Review Response" 
-                          : "Respond to Situation"}
-                        <ArrowRight size={16} />
-                      </Button>
-                    </Link>
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })}
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-medium">
+            {moduleCompletion}% Complete
+          </span>
+          <Progress value={moduleCompletion} className="w-32 h-2" />
         </div>
       </div>
-    </div>
+      
+      {module.leadershipTrait && module.situationType && (
+        <div className="flex flex-wrap gap-3 mb-6">
+          <div className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium">
+            {module.leadershipTrait}
+          </div>
+          <div className="bg-muted px-3 py-1 rounded-full text-sm font-medium">
+            {module.situationType}
+          </div>
+        </div>
+      )}
+      
+      <div className="grid gap-6 mt-8">
+        {module.situations.map((situation, index) => {
+          const situationProgress = getSituationProgress(situation.id);
+          
+          return (
+            <Card key={situation.id} className="relative overflow-hidden">
+              {situationProgress?.status === "completed" && (
+                <div className="absolute top-0 right-0 bg-green-500 text-white px-3 py-1 rounded-bl-md">
+                  Passed
+                </div>
+              )}
+              {situationProgress?.status === "failed" && (
+                <div className="absolute top-0 right-0 bg-yellow-500 text-white px-3 py-1 rounded-bl-md">
+                  Needs Improvement
+                </div>
+              )}
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-2">
+                  {situationProgress?.status === "completed" ? (
+                    <CheckCircle className="h-5 w-5 text-green-500" />
+                  ) : situationProgress?.status === "failed" ? (
+                    <XCircle className="h-5 w-5 text-yellow-500" />
+                  ) : (
+                    <span className="flex items-center justify-center h-5 w-5 rounded-full bg-muted text-xs font-bold">
+                      {index + 1}
+                    </span>
+                  )}
+                  Situation {index + 1}
+                </CardTitle>
+                {situationProgress?.status !== "not-started" && (
+                  <CardDescription>
+                    Score: {situationProgress?.score}/100
+                  </CardDescription>
+                )}
+              </CardHeader>
+              <CardContent>
+                <p className="mb-4">{situation.description}</p>
+                
+                {chapterId ? (
+                  <Link href={`/training/chapter/${chapterId}/module/${moduleId}/situation/${situation.id}`}>
+                    <Button className="w-full flex items-center justify-center gap-2">
+                      {situationProgress?.status !== "not-started"
+                        ? "Review Response" 
+                        : "Respond to Situation"}
+                      <ArrowRight size={16} />
+                    </Button>
+                  </Link>
+                ) : (
+                  <Link href={`/training/situation/${situation.id}?moduleId=${module.id}&fromChapter=${module.chapterId}`}>
+                    <Button className="w-full flex items-center justify-center gap-2">
+                      {situationProgress?.status !== "not-started"
+                        ? "Review Response" 
+                        : "Respond to Situation"}
+                      <ArrowRight size={16} />
+                    </Button>
+                  </Link>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+    </AppLayout>
   );
 }
 
 function ModuleViewSkeleton() {
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="h-6 w-40 bg-muted rounded animate-pulse"></div>
-      
-      <div className="mt-6 animate-pulse">
+    <AppLayout
+      showBackButton
+      backTo="/training"
+      backLabel="Back to Training"
+      pageTitle="Loading Module..."
+    >
+      <div className="animate-pulse">
         <div className="flex justify-between items-center mb-6">
           <div>
             <div className="h-8 w-64 bg-muted rounded mb-2"></div>
@@ -300,6 +300,6 @@ function ModuleViewSkeleton() {
           ))}
         </div>
       </div>
-    </div>
+    </AppLayout>
   );
 }

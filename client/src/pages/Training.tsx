@@ -181,7 +181,7 @@ export default function Training() {
           )}
         </TabsContent>
       </Tabs>
-    </div>
+    </AppLayout>
   );
 }
 
