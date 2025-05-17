@@ -1,10 +1,11 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { Card } from "@/components/ui/card";
 import LeaderSelection from "@/components/onboarding/LeaderSelection";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BackButton } from "@/components/BackButton";
-import { queryClient } from "@/lib/queryClient";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 // Interface to match the LeaderSelection component's expected format
@@ -25,12 +26,54 @@ interface LeaderData {
 export default function LeadershipInspirations() {
   const { userData } = useAuth();
   const { toast } = useToast();
+  const [isRemovingLeader, setIsRemovingLeader] = useState(false);
   
   // Fetch leaders data
   const { data: leaders, isLoading: isLoadingLeaders } = useQuery({
     queryKey: ['/api/leaders'],
   });
   
+  // Function to handle leader removal
+  const handleRemoveLeader = async (leaderId: number, leaderName: string) => {
+    if (!userData?.selectedLeaders || isRemovingLeader) return;
+    
+    setIsRemovingLeader(true);
+    
+    try {
+      // Create a new array without the removed leader
+      const newSelections = userData.selectedLeaders.filter(id => id !== leaderId);
+      
+      // Update the user's selected leaders
+      const response = await apiRequest('PATCH', '/api/users/me', {
+        selectedLeaders: newSelections
+      });
+      
+      if (response.ok) {
+        // Show success toast
+        toast({
+          title: "Leader removed",
+          description: `${leaderName} has been removed from your inspirations.`,
+        });
+        
+        // Force invalidate all user data queries to ensure UI updates
+        await queryClient.invalidateQueries({ 
+          queryKey: ['/api/users/me']
+        });
+      } else {
+        throw new Error("Failed to update leader selections");
+      }
+    } catch (error) {
+      console.error("Error removing leader:", error);
+      toast({
+        title: "Error",
+        description: "Failed to remove leader. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsRemovingLeader(false);
+    }
+  };
+
   return (
     <div className="container mx-auto py-10 px-4">
       <BackButton to="/dashboard" label="Back to Dashboard" />
@@ -69,48 +112,15 @@ export default function LeadershipInspirations() {
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary">
-                                {selectedLeader.name.split(' ').map(n => n[0]).join('')}
+                                {selectedLeader.name.split(' ').map((n: string) => n[0]).join('')}
                               </div>
                             )}
                           </div>
                           
                           <button 
                             className="absolute -top-2 -right-2 bg-red-100 rounded-full w-5 h-5 flex items-center justify-center text-red-700 hover:bg-red-200 transition-colors"
-                            onClick={async () => {
-                              if (!userData?.selectedLeaders) return;
-                              
-                              // Create a new array without the removed leader
-                              const newSelections = userData.selectedLeaders.filter(id => id !== leaderId);
-                              
-                              try {
-                                // Update the user's selected leaders
-                                const response = await fetch('/api/users/me', {
-                                  method: 'PATCH',
-                                  headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({ selectedLeaders: newSelections })
-                                });
-                                
-                                if (response.ok) {
-                                  // Show success toast
-                                  toast({
-                                    title: "Leader removed",
-                                    description: `${selectedLeader.name} has been removed from your inspirations.`,
-                                  });
-                                  
-                                  // Invalidate cache to refresh the data
-                                  queryClient.invalidateQueries({ queryKey: ['/api/users/me'] });
-                                } else {
-                                  throw new Error("Failed to update leader selections");
-                                }
-                              } catch (error) {
-                                console.error("Error removing leader:", error);
-                                toast({
-                                  title: "Error",
-                                  description: "Failed to remove leader. Please try again.",
-                                  variant: "destructive",
-                                });
-                              }
-                            }}
+                            onClick={() => handleRemoveLeader(selectedLeader.id, selectedLeader.name)}
+                            disabled={isRemovingLeader}
                             aria-label={`Remove ${selectedLeader.name}`}
                           >
                             <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -171,37 +181,28 @@ export default function LeadershipInspirations() {
 
 function LeadershipInspirationsSkeleton() {
   return (
-    <div className="max-w-4xl mx-auto my-10 bg-white p-8 rounded-lg shadow-md">
-      <Skeleton className="h-8 w-32 mb-4" /> {/* BackButton skeleton */}
-      <div className="text-center mb-6">
-        <Skeleton className="h-8 w-64 mx-auto mb-4" />
-        <Skeleton className="h-4 w-96 mx-auto" />
-        <Skeleton className="h-4 w-72 mx-auto mt-1" />
-      </div>
+    <div className="space-y-8">
+      <Card className="p-6">
+        <Skeleton className="h-8 w-64 mb-4" />
+        <Skeleton className="h-4 w-full max-w-lg mb-6" />
+        
+        <div className="flex justify-center gap-4">
+          {[1, 2, 3].map(i => (
+            <Skeleton key={i} className="h-32 w-32 rounded-lg" />
+          ))}
+        </div>
+      </Card>
       
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 mt-8">
-        {[1, 2, 3, 4, 5, 6].map((i) => (
-          <div key={i} className="bg-white overflow-hidden rounded-lg border border-gray-200">
-            <div className="p-4">
-              <Skeleton className="w-full h-36 rounded-md mb-4" />
-              <Skeleton className="h-5 w-3/4 mb-2" />
-              <Skeleton className="h-4 w-1/2 mb-4" />
-              <div className="flex gap-2 mb-4">
-                <Skeleton className="h-5 w-16 rounded-full" />
-                <Skeleton className="h-5 w-16 rounded-full" />
-                <Skeleton className="h-5 w-16 rounded-full" />
-              </div>
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-full mt-1" />
-              <Skeleton className="h-4 w-3/4 mt-1" />
-            </div>
-          </div>
-        ))}
-      </div>
-      
-      <div className="mt-8 flex justify-center">
-        <Skeleton className="h-10 w-32" />
-      </div>
+      <Card className="p-6">
+        <Skeleton className="h-8 w-64 mb-4" />
+        <Skeleton className="h-4 w-full max-w-lg mb-6" />
+        
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3, 4, 5, 6].map(i => (
+            <Skeleton key={i} className="h-64 rounded-lg" />
+          ))}
+        </div>
+      </Card>
     </div>
   );
 }
