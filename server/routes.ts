@@ -2240,19 +2240,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
           monthlyPrice: subscriptionPlan.monthlyPriceUsd,
           yearlyPrice: subscriptionPlan.yearlyPriceUsd,
           features: (() => {
+            // Default features if we encounter parsing issues
+            const defaultFeatures = [
+              `${subscriptionPlan.monthlyWordLimit.toLocaleString()} words per month`, 
+              "Basic analytics", 
+              "Leadership style guidance"
+            ];
+            
             // Safely parse subscription plan features
-            if (!subscriptionPlan.features) return [];
+            if (!subscriptionPlan.features) return defaultFeatures;
             
             try {
               if (typeof subscriptionPlan.features === 'string') {
-                return JSON.parse(subscriptionPlan.features);
+                // Handle potential issues with the JSON string
+                const cleanedString = subscriptionPlan.features.trim();
+                if (!cleanedString) return defaultFeatures;
+                
+                // If it starts with a bracket, try to parse it
+                if (cleanedString.startsWith('[')) {
+                  return JSON.parse(cleanedString);
+                } else {
+                  // If it's not a proper JSON array, fallback to default
+                  return defaultFeatures;
+                }
               } else if (Array.isArray(subscriptionPlan.features)) {
-                return subscriptionPlan.features;
+                return subscriptionPlan.features.length > 0 ? 
+                  subscriptionPlan.features : defaultFeatures;
               }
             } catch (e) {
               console.error(`Error parsing features for plan ${subscriptionPlan.name}:`, e);
             }
-            return [];
+            return defaultFeatures;
           })()
         } : null
       });
@@ -2270,14 +2288,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Format pricing and features for display
       const formattedPlans = plans.map(plan => {
-        let parsedFeatures = [];
+        // Default features if we encounter parsing issues
+        const defaultFeatures = [
+          `${plan.monthlyWordLimit.toLocaleString()} words per month`, 
+          "Basic analytics", 
+          "Leadership style guidance"
+        ];
+        
+        let parsedFeatures = defaultFeatures;
         
         if (plan.features) {
           try {
             if (typeof plan.features === 'string') {
-              parsedFeatures = JSON.parse(plan.features);
+              // Handle potential issues with the JSON string
+              const cleanedString = plan.features.trim();
+              if (cleanedString && cleanedString.startsWith('[')) {
+                parsedFeatures = JSON.parse(cleanedString);
+              }
             } else if (Array.isArray(plan.features)) {
-              parsedFeatures = plan.features;
+              parsedFeatures = plan.features.length > 0 ? plan.features : defaultFeatures;
             }
           } catch (e) {
             console.error(`Error parsing features for plan ${plan.name}:`, e);
