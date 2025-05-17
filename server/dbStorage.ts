@@ -209,8 +209,21 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getCurrentWordUsage(userId: number): Promise<number> {
-    const currentCycle = await this.getCurrentBillingCycle(userId);
-    return currentCycle ? currentCycle.wordCount : 0;
+    const now = new Date();
+    
+    // Find all word usage entries for the current billing cycle
+    const result = await db.select()
+      .from(userWordUsage)
+      .where(
+        and(
+          eq(userWordUsage.userId, userId),
+          sql`${userWordUsage.cycleStartDate} <= ${now}`,
+          sql`${userWordUsage.cycleEndDate} >= ${now}`
+        )
+      );
+    
+    // Sum up all word usage from the current billing cycle
+    return result.reduce((total, cycle) => total + cycle.wordCount, 0);
   }
   
   async getOrCreateCurrentBillingCycle(userId: number): Promise<UserWordUsage> {
