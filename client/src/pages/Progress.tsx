@@ -578,11 +578,11 @@ export default function Progress() {
           </CardHeader>
           <CardContent>
             {recordingsChartData.length > 0 ? (
-              <div className="w-full h-80">
+              <div className="w-full h-96 mt-4">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart
                     data={recordingsChartData}
-                    margin={{ top: 10, right: 30, left: 0, bottom: 30 }}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
                     <XAxis 
@@ -591,12 +591,33 @@ export default function Progress() {
                         value: 'Recording Number', 
                         position: 'insideBottom', 
                         offset: -10,
-                        style: { textAnchor: 'middle' } 
+                        style: { 
+                          textAnchor: 'middle',
+                          fontSize: 12,
+                          fill: "#4B5563", 
+                          fontWeight: 500,
+                          dy: 10
+                        } 
                       }}
+                      tick={{ fontSize: 10, fill: "#4B5563" }}
+                      padding={{ left: 10, right: 10 }}
                     />
                     <YAxis 
                       domain={[0, 100]}
-                      label={{ value: 'Score', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle' } }}
+                      label={{ 
+                        value: 'Score', 
+                        angle: -90, 
+                        position: 'insideLeft', 
+                        style: { 
+                          textAnchor: 'middle',
+                          fontSize: 12,
+                          fill: "#4B5563",
+                          fontWeight: 500,
+                          dy: -10
+                        } 
+                      }}
+                      tick={{ fontSize: 10, fill: "#4B5563" }}
+                      width={50}
                     />
                     <Tooltip 
                       formatter={(value) => [`${Number(value).toFixed(1)}`, 'Score']}
@@ -616,8 +637,9 @@ export default function Progress() {
                       name="Leadership Score" 
                       stroke="#0EA5E9" 
                       strokeWidth={2}
-                      dot={{ fill: '#0EA5E9', r: 4 }}
-                      activeDot={{ r: 6, strokeWidth: 2 }}
+                      dot={{ fill: '#0EA5E9', r: 4, strokeWidth: 1, stroke: '#FFFFFF' }}
+                      activeDot={{ r: 6, strokeWidth: 2, stroke: '#FFFFFF' }}
+                      isAnimationActive={false}
                     />
                   </LineChart>
                 </ResponsiveContainer>
