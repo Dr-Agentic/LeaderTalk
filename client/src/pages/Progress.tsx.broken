@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import PerformanceSnapshotGenerator from "@/components/dashboard/PerformanceSnapshotGenerator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import {
@@ -119,7 +120,7 @@ const RecordingsTooltip = ({ active, payload, label }: any) => {
 
 export default function Progress() {
   const { toast } = useToast();
-  const { isAuthenticated, authLoading } = useAuth();
+  const { isAuthenticated, user, authLoading } = useAuth();
   const [recordings, setRecordings] = useState<RecordingWithScore[]>([]);
   const [timeRanges, setTimeRanges] = useState<{
     sevenDays: TimeRange;
@@ -159,6 +160,10 @@ export default function Progress() {
     "week" | "month" | "quarter" | "year" | "alltime"
   >("month");
   const [recordingsCount, setRecordingsCount] = useState<10 | 20 | 50>(10);
+  
+  // Create refs for chart containers to use with the snapshot generator
+  const timeBasedChartRef = useRef<HTMLDivElement>(null);
+  const recordingsChartRef = useRef<HTMLDivElement>(null);
 
   // Fetch recordings data
   useEffect(() => {
@@ -492,270 +497,292 @@ export default function Progress() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-8">
-        {/* Time-Based Progress Chart */}
-        <Card>
-          <CardHeader>
-            <div className="w-full mb-4">
-              <CardTitle className="text-xl">Progress Over Time</CardTitle>
-              <CardDescription>
-                Your leadership score evolution by time period
-              </CardDescription>
-            </div>
-            <div className="flex justify-end">
-              <Select
-                value={timeBasedView}
-                onValueChange={(value) =>
-                  setTimeBasedView(
-                    value as "week" | "month" | "quarter" | "year" | "alltime"
-                  )
-                }
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Time Period" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="week">Last 7 Weeks</SelectItem>
-                  <SelectItem value="month">Last 30 Days</SelectItem>
-                  <SelectItem value="quarter">Last Quarter</SelectItem>
-                  <SelectItem value="year">Last Year</SelectItem>
-                  <SelectItem value="alltime">All Time</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="w-full h-[400px] mt-4">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={timeBasedChartData}
-                  margin={{
-                    top: 20,
-                    right: 30,
-                    left: 20,
-                    bottom: 70,
-                  }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
-                  <XAxis
-                    dataKey="period"
-                    angle={-45}
-                    textAnchor="end"
-                    height={70}
-                    tick={{ fontSize: 12 }}
-                  />
-                  <YAxis
-                    domain={[0, 100]}
-                    tickCount={6}
-                    tick={{ fontSize: 12 }}
-                    label={{
-                      value: "Leadership Score",
-                      angle: -90,
-                      position: "insideLeft",
-                      style: { textAnchor: "middle" },
-                    }}
-                  />
-                  <Tooltip content={<TimeBasedTooltip />} />
-                  <ReferenceLine y={50} stroke="#ddd" label="Average" />
-                  <Bar
-                    dataKey="score"
-                    name="Score"
-                    fill={(data) =>
-                      data.isEmpty ? "#e5e7eb" : "var(--primary)"
-                    }
-                    opacity={(data) => (data.isEmpty ? 0.5 : 1)}
-                    radius={[4, 4, 0, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Recordings Progress Chart */}
-        <Card>
-          <CardHeader>
-            <div className="w-full mb-4">
-              <CardTitle className="text-xl">Recent Recordings Performance</CardTitle>
-              <CardDescription>
-                Track your scores across individual recordings
-              </CardDescription>
-            </div>
-            <div className="flex justify-end">
-              <Select
-                value={recordingsCount.toString()}
-                onValueChange={(value) =>
-                  setRecordingsCount(parseInt(value) as 10 | 20 | 50)
-                }
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Number of Recordings" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="10">Last 10 Recordings</SelectItem>
-                  <SelectItem value="20">Last 20 Recordings</SelectItem>
-                  <SelectItem value="50">Last 50 Recordings</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="w-full h-[400px] mt-4">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart
-                  data={recordingsChartData}
-                  margin={{
-                    top: 20,
-                    right: 30,
-                    left: 20,
-                    bottom: 70,
-                  }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
-                  <XAxis
-                    dataKey="date"
-                    tickFormatter={(dateStr) =>
-                      new Date(dateStr).toLocaleDateString()
-                    }
-                    angle={-45}
-                    textAnchor="end"
-                    height={70}
-                    tick={{ fontSize: 12 }}
-                  />
-                  <YAxis
-                    domain={[0, 100]}
-                    tickCount={6}
-                    tick={{ fontSize: 12 }}
-                    label={{
-                      value: "Leadership Score",
-                      angle: -90,
-                      position: "insideLeft",
-                      style: { textAnchor: "middle" },
-                    }}
-                  />
-                  <Tooltip content={<RecordingsTooltip />} />
-                  <ReferenceLine y={50} stroke="#ddd" label="Average" />
-                  <Line
-                    type="monotone"
-                    dataKey="score"
-                    name="Leadership Score"
-                    stroke="var(--primary)"
-                    activeDot={{ r: 8 }}
-                    strokeWidth={2}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className="lg:col-span-3 space-y-8">
+          {/* Time-Based Progress Chart */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Last 7 Days</CardTitle>
+              <div className="w-full mb-4">
+                <CardTitle className="text-xl">Progress Over Time</CardTitle>
+                <CardDescription>
+                  Your leadership score evolution by time period
+                </CardDescription>
+              </div>
+              <div className="flex justify-end">
+                <Select
+                  value={timeBasedView}
+                  onValueChange={(value) =>
+                    setTimeBasedView(
+                      value as "week" | "month" | "quarter" | "year" | "alltime"
+                    )
+                  }
+                >
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Time Period" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="week">Last 7 Weeks</SelectItem>
+                    <SelectItem value="month">Last 30 Days</SelectItem>
+                    <SelectItem value="quarter">Last Quarter</SelectItem>
+                    <SelectItem value="year">Last Year</SelectItem>
+                    <SelectItem value="alltime">All Time</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {timeRanges.sevenDays.recordings.length > 0 ? (
-                <>
-                  <div className="flex justify-between items-center">
-                    <div className="text-sm text-muted-foreground">
-                      Average Score
-                    </div>
-                    <div className="text-2xl font-bold">
-                      {timeRanges.sevenDays.averageScore.toFixed(1)}
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <div className="text-sm text-muted-foreground">
-                      Recordings
-                    </div>
-                    <div className="text-lg font-medium">
-                      {timeRanges.sevenDays.recordings.length}
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <div className="text-sm text-muted-foreground">
-                      Improvement
-                    </div>
-                    <div
-                      className={`text-lg font-medium ${
-                        timeRanges.sevenDays.improvement > 0
-                          ? "text-green-500"
-                          : timeRanges.sevenDays.improvement < 0
-                          ? "text-red-500"
-                          : ""
-                      }`}
-                    >
-                      {timeRanges.sevenDays.improvement > 0 ? "+" : ""}
-                      {timeRanges.sevenDays.improvement.toFixed(1)}%
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <Alert>
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertTitle>No Data</AlertTitle>
-                  <AlertDescription>
-                    No recordings in the last 7 days.
-                  </AlertDescription>
-                </Alert>
-              )}
+            <CardContent>
+              <div ref={timeBasedChartRef} className="w-full h-[400px] mt-4">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={timeBasedChartData}
+                    margin={{
+                      top: 20,
+                      right: 30,
+                      left: 20,
+                      bottom: 70,
+                    }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
+                    <XAxis
+                      dataKey="period"
+                      angle={-45}
+                      textAnchor="end"
+                      height={70}
+                      tick={{ fontSize: 12 }}
+                    />
+                    <YAxis
+                      domain={[0, 100]}
+                      tickCount={6}
+                      tick={{ fontSize: 12 }}
+                      label={{
+                        value: "Leadership Score",
+                        angle: -90,
+                        position: "insideLeft",
+                        style: { textAnchor: "middle" },
+                      }}
+                    />
+                    <Tooltip content={<TimeBasedTooltip />} />
+                    <ReferenceLine y={50} stroke="#ddd" label="Average" />
+                    <Bar
+                      dataKey="score"
+                      name="Score"
+                      fill={({ isEmpty }) =>
+                        isEmpty ? "#e5e7eb" : "var(--primary)"
+                      }
+                      opacity={({ isEmpty }) => (isEmpty ? 0.5 : 1)}
+                      radius={[4, 4, 0, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </CardContent>
           </Card>
 
+          {/* Recordings Progress Chart */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Last 30 Days</CardTitle>
+              <div className="w-full mb-4">
+                <CardTitle className="text-xl">Recent Recordings Performance</CardTitle>
+                <CardDescription>
+                  Track your scores across individual recordings
+                </CardDescription>
+              </div>
+              <div className="flex justify-end">
+                <Select
+                  value={recordingsCount.toString()}
+                  onValueChange={(value) =>
+                    setRecordingsCount(parseInt(value) as 10 | 20 | 50)
+                  }
+                >
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Number of Recordings" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">Last 10 Recordings</SelectItem>
+                    <SelectItem value="20">Last 20 Recordings</SelectItem>
+                    <SelectItem value="50">Last 50 Recordings</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {timeRanges.thirtyDays.recordings.length > 0 ? (
-                <>
-                  <div className="flex justify-between items-center">
-                    <div className="text-sm text-muted-foreground">
-                      Average Score
-                    </div>
-                    <div className="text-2xl font-bold">
-                      {timeRanges.thirtyDays.averageScore.toFixed(1)}
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <div className="text-sm text-muted-foreground">
-                      Recordings
-                    </div>
-                    <div className="text-lg font-medium">
-                      {timeRanges.thirtyDays.recordings.length}
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <div className="text-sm text-muted-foreground">
-                      Improvement
-                    </div>
-                    <div
-                      className={`text-lg font-medium ${
-                        timeRanges.thirtyDays.improvement > 0
-                          ? "text-green-500"
-                          : timeRanges.thirtyDays.improvement < 0
-                          ? "text-red-500"
-                          : ""
-                      }`}
-                    >
-                      {timeRanges.thirtyDays.improvement > 0 ? "+" : ""}
-                      {timeRanges.thirtyDays.improvement.toFixed(1)}%
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <Alert>
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertTitle>No Data</AlertTitle>
-                  <AlertDescription>
-                    No recordings in the last 30 days.
-                  </AlertDescription>
-                </Alert>
-              )}
+            <CardContent>
+              <div ref={recordingsChartRef} className="w-full h-[400px] mt-4">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart
+                    data={recordingsChartData}
+                    margin={{
+                      top: 20,
+                      right: 30,
+                      left: 20,
+                      bottom: 70,
+                    }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
+                    <XAxis
+                      dataKey="date"
+                      tickFormatter={(dateStr) =>
+                        new Date(dateStr).toLocaleDateString()
+                      }
+                      angle={-45}
+                      textAnchor="end"
+                      height={70}
+                      tick={{ fontSize: 12 }}
+                    />
+                    <YAxis
+                      domain={[0, 100]}
+                      tickCount={6}
+                      tick={{ fontSize: 12 }}
+                      label={{
+                        value: "Leadership Score",
+                        angle: -90,
+                        position: "insideLeft",
+                        style: { textAnchor: "middle" },
+                      }}
+                    />
+                    <Tooltip content={<RecordingsTooltip />} />
+                    <ReferenceLine y={50} stroke="#ddd" label="Average" />
+                    <Line
+                      type="monotone"
+                      dataKey="score"
+                      name="Leadership Score"
+                      stroke="var(--primary)"
+                      activeDot={{ r: 8 }}
+                      strokeWidth={2}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
             </CardContent>
           </Card>
+        </div>
+        
+        {/* Performance Snapshot and Summary Cards */}
+        <div className="space-y-6">
+          {/* Performance Snapshot Generator */}
+          <PerformanceSnapshotGenerator
+            timeBasedChartRef={timeBasedChartRef}
+            recordingsChartRef={recordingsChartRef}
+            chartDataReady={!isLoading && recordings.length > 0}
+            userName={user?.name}
+          />
+          
+          {/* Summary Cards */}
+          <Tabs defaultValue="7days" className="w-full">
+            <TabsList className="grid grid-cols-2 mb-4">
+              <TabsTrigger value="7days">7 Days</TabsTrigger>
+              <TabsTrigger value="30days">30 Days</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="7days">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Last 7 Days</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {timeRanges.sevenDays.recordings.length > 0 ? (
+                    <>
+                      <div className="flex justify-between items-center">
+                        <div className="text-sm text-muted-foreground">
+                          Average Score
+                        </div>
+                        <div className="text-2xl font-bold">
+                          {timeRanges.sevenDays.averageScore.toFixed(1)}
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <div className="text-sm text-muted-foreground">
+                          Recordings
+                        </div>
+                        <div className="text-lg font-medium">
+                          {timeRanges.sevenDays.recordings.length}
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <div className="text-sm text-muted-foreground">
+                          Improvement
+                        </div>
+                        <div
+                          className={`text-lg font-medium ${
+                            timeRanges.sevenDays.improvement > 0
+                              ? "text-green-500"
+                              : timeRanges.sevenDays.improvement < 0
+                              ? "text-red-500"
+                              : ""
+                          }`}
+                        >
+                          {timeRanges.sevenDays.improvement > 0 ? "+" : ""}
+                          {timeRanges.sevenDays.improvement.toFixed(1)}%
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <Alert>
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertTitle>No Data</AlertTitle>
+                      <AlertDescription>
+                        No recordings in the last 7 days.
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="30days">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Last 30 Days</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {timeRanges.thirtyDays.recordings.length > 0 ? (
+                    <>
+                      <div className="flex justify-between items-center">
+                        <div className="text-sm text-muted-foreground">
+                          Average Score
+                        </div>
+                        <div className="text-2xl font-bold">
+                          {timeRanges.thirtyDays.averageScore.toFixed(1)}
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <div className="text-sm text-muted-foreground">
+                          Recordings
+                        </div>
+                        <div className="text-lg font-medium">
+                          {timeRanges.thirtyDays.recordings.length}
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <div className="text-sm text-muted-foreground">
+                          Improvement
+                        </div>
+                        <div
+                          className={`text-lg font-medium ${
+                            timeRanges.thirtyDays.improvement > 0
+                              ? "text-green-500"
+                              : timeRanges.thirtyDays.improvement < 0
+                              ? "text-red-500"
+                              : ""
+                          }`}
+                        >
+                          {timeRanges.thirtyDays.improvement > 0 ? "+" : ""}
+                          {timeRanges.thirtyDays.improvement.toFixed(1)}%
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <Alert>
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertTitle>No Data</AlertTitle>
+                      <AlertDescription>
+                        No recordings in the last 30 days.
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </div>
