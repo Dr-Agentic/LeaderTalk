@@ -39,14 +39,14 @@ export default function AnalysisDisplay({ recording, leaders }) {
   };
   
   return (
-    <div className="mt-section">
-      <h2 className="text-heading-3 text-gray-900 font-serif">Last Analysis</h2>
+    <div className="mt-8">
+      <h2 className="text-lg font-medium text-gray-900">Last Analysis</h2>
       
-      <Card className="mt-4 shadow-card">
-        <CardHeader className="px-6 py-5 sm:px-6 flex flex-col sm:flex-row sm:justify-between sm:items-center">
+      <Card className="mt-4">
+        <CardHeader className="px-4 py-5 sm:px-6 flex flex-col sm:flex-row sm:justify-between sm:items-center">
           <div>
-            <CardTitle className="text-lg leading-6 font-serif text-gray-900">{title}</CardTitle>
-            <p className="mt-1 max-w-2xl text-sm text-gray-500 font-sans">
+            <CardTitle className="text-lg leading-6 font-medium text-gray-900">{title}</CardTitle>
+            <p className="mt-1 max-w-2xl text-sm text-gray-500">
               Recorded {formattedDate} ({formattedDuration})
             </p>
           </div>
@@ -66,10 +66,10 @@ export default function AnalysisDisplay({ recording, leaders }) {
           
           {/* Key Insights */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
-            <TabsList className="grid grid-cols-3 rounded-md bg-gray-100 p-1">
-              <TabsTrigger value="positive" className="text-sm rounded-md font-medium">Positive Moments</TabsTrigger>
-              <TabsTrigger value="improve" className="text-sm rounded-md font-medium">Areas for Improvement</TabsTrigger>
-              <TabsTrigger value="leadership" className="text-sm rounded-md font-medium">Leadership Insights</TabsTrigger>
+            <TabsList className="grid grid-cols-3">
+              <TabsTrigger value="positive" className="text-sm">Positive Moments</TabsTrigger>
+              <TabsTrigger value="improve" className="text-sm">Areas for Improvement</TabsTrigger>
+              <TabsTrigger value="leadership" className="text-sm">Leadership Insights</TabsTrigger>
             </TabsList>
             
             <TabsContent value="positive" className="mt-4">
@@ -151,12 +151,12 @@ export default function AnalysisDisplay({ recording, leaders }) {
           </Tabs>
         </CardContent>
         
-        <CardFooter className="px-6 py-4 sm:px-6 bg-gray-50 flex justify-between border-t">
-          <Link href={`/transcript/${recording.id}`} className="text-sm font-medium text-primary hover:text-primary-dark transition-colors">
+        <CardFooter className="px-4 py-4 sm:px-6 bg-gray-50 flex justify-between">
+          <Link href={`/transcript/${recording.id}`} className="text-sm font-medium text-primary hover:text-blue-900">
             View transcript
           </Link>
           <div className="flex space-x-4">
-            <Link href={`/transcript/${recording.id}`} className="text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors">
+            <Link href={`/transcript/${recording.id}`} className="text-sm font-medium text-gray-500 hover:text-gray-700">
               Detailed analysis
             </Link>
             <span className="text-sm font-medium text-gray-400">
