@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { BackButton } from "@/components/BackButton";
 import { useToast } from "@/hooks/use-toast";
 import WordUsageStats from "@/components/dashboard/WordUsageStats";
+import SubscriptionManager from "@/components/subscription/SubscriptionManager";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -111,6 +112,17 @@ export default function Settings() {
         
         {/* Word usage stats for billing */}
         <WordUsageStats />
+        
+        {/* Subscription Management */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Subscription Management</CardTitle>
+            <CardDescription>View and manage your subscription plan</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <SubscriptionManager />
+          </CardContent>
+        </Card>
         
         {/* Account deletion */}
         <Card>
