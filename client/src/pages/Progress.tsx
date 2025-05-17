@@ -571,32 +571,34 @@ export default function Progress() {
       <div className="grid grid-cols-1 gap-8">
         {/* Time-Based Progress Chart */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle>Progress Over Time</CardTitle>
+          <CardHeader>
+            <div className="w-full mb-4">
+              <CardTitle className="text-xl">Progress Over Time</CardTitle>
               <CardDescription>
                 Your leadership score evolution by time period
               </CardDescription>
             </div>
-            <Select
-              value={timeBasedView}
-              onValueChange={(value) =>
-                setTimeBasedView(
-                  value as "week" | "month" | "quarter" | "year" | "alltime",
-                )
-              }
-            >
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Select time period" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="week">Last 7 Days</SelectItem>
-                <SelectItem value="month">Last 30 Days</SelectItem>
-                <SelectItem value="quarter">Last 90 Days</SelectItem>
-                <SelectItem value="year">Last 365 Days</SelectItem>
-                <SelectItem value="alltime">All Time</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex justify-end">
+              <Select
+                value={timeBasedView}
+                onValueChange={(value) =>
+                  setTimeBasedView(
+                    value as "week" | "month" | "quarter" | "year" | "alltime",
+                  )
+                }
+              >
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Select time period" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="week">Last 7 Days</SelectItem>
+                  <SelectItem value="month">Last 30 Days</SelectItem>
+                  <SelectItem value="quarter">Last 90 Days</SelectItem>
+                  <SelectItem value="year">Last 365 Days</SelectItem>
+                  <SelectItem value="alltime">All Time</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </CardHeader>
           <CardContent>
             {timeBasedChartData.length > 0 ? (
@@ -694,28 +696,30 @@ export default function Progress() {
 
         {/* Recording-Based Progress Chart */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle>Recording-by-Recording Progress</CardTitle>
+          <CardHeader>
+            <div className="w-full mb-4">
+              <CardTitle className="text-xl">Recording-by-Recording Progress</CardTitle>
               <CardDescription>
                 Your leadership score changes across individual recordings
               </CardDescription>
             </div>
-            <Select
-              value={recordingsCount.toString()}
-              onValueChange={(value) =>
-                setRecordingsCount(parseInt(value) as 10 | 20 | 50)
-              }
-            >
-              <SelectTrigger className="w-36">
-                <SelectValue placeholder="Select count" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="10">Last 10</SelectItem>
-                <SelectItem value="20">Last 20</SelectItem>
-                <SelectItem value="50">Last 50</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex justify-end">
+              <Select
+                value={recordingsCount.toString()}
+                onValueChange={(value) =>
+                  setRecordingsCount(parseInt(value) as 10 | 20 | 50)
+                }
+              >
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Select count" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10">Last 10</SelectItem>
+                  <SelectItem value="20">Last 20</SelectItem>
+                  <SelectItem value="50">Last 50</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </CardHeader>
           <CardContent>
             {recordingsChartData.length > 0 ? (
