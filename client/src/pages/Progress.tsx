@@ -294,14 +294,23 @@ export default function Progress() {
       yearAgo.setDate(now.getDate() - 365);
       filteredRecordings = allRecordings.filter(r => new Date(r.date) >= yearAgo);
       
-      // Create monthly entries
+      // Create 12 monthly entries - current month and previous 11 months
       const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      let currentMonth = now.getMonth();
+      let currentMonth = now.getMonth(); // 0-11
       let currentYear = now.getFullYear();
       
-      for (let i = 0; i < 12; i++) {
-        const monthIndex = (currentMonth - i + 12) % 12;
-        const year = currentYear - Math.floor((i - currentMonth) / 12);
+      // Start from 11 months ago and add 12 months in chronological order
+      for (let i = 11; i >= 0; i--) {
+        // Calculate the month index going backwards i months
+        // If we go back past January, adjust the year
+        let monthIndex = currentMonth - i;
+        let year = currentYear;
+        
+        if (monthIndex < 0) {
+          // Adjust for previous year
+          monthIndex = 12 + monthIndex; // Convert negative to equivalent month in previous year
+          year -= 1;
+        }
         
         const startDate = new Date(year, monthIndex, 1);
         
@@ -311,9 +320,6 @@ export default function Progress() {
         const label = `${monthNames[monthIndex]} ${year}`;
         periodBoundaries.push({ start: startDate, end: endDate, label });
       }
-      
-      // Reverse to get chronological order
-      periodBoundaries.reverse();
     } else {
       // All time - group by month
       filteredRecordings = [...allRecordings];
