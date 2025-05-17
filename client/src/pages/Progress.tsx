@@ -93,7 +93,7 @@ export default function Progress() {
             return {
               id: recording.id,
               title: recording.title || `Recording ${recording.id}`,
-              date: recording.createdAt || new Date().toISOString(),
+              date: recording.recordedAt ? new Date(recording.recordedAt).toISOString() : new Date().toISOString(),
               score,
               leaderMatch
             };
@@ -414,16 +414,17 @@ export default function Progress() {
             </div>
             <Select 
               value={timeBasedView} 
-              onValueChange={(value) => setTimeBasedView(value as "week" | "month" | "quarter" | "year")}
+              onValueChange={(value) => setTimeBasedView(value as "week" | "month" | "quarter" | "year" | "alltime")}
             >
-              <SelectTrigger className="w-36">
-                <SelectValue placeholder="Select view" />
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Select time period" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="week">Weekly</SelectItem>
-                <SelectItem value="month">Monthly</SelectItem>
-                <SelectItem value="quarter">Quarterly</SelectItem>
-                <SelectItem value="year">Yearly</SelectItem>
+                <SelectItem value="week">Last 7 Days</SelectItem>
+                <SelectItem value="month">Last 30 Days</SelectItem>
+                <SelectItem value="quarter">Last 90 Days</SelectItem>
+                <SelectItem value="year">Last 365 Days</SelectItem>
+                <SelectItem value="alltime">All Time</SelectItem>
               </SelectContent>
             </Select>
           </CardHeader>
@@ -463,6 +464,7 @@ export default function Progress() {
                       fill="#6366F180"
                       strokeWidth={2}
                       activeDot={{ r: 6, strokeWidth: 2 }}
+                      connectNulls={true}
                     />
                   </AreaChart>
                 </ResponsiveContainer>
