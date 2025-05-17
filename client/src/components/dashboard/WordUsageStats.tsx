@@ -17,9 +17,13 @@ export default function WordUsageStats() {
     return <WordUsageStatsSkeleton />;
   }
 
+  // Sum up the word count from all entries in the current month
   const currentMonthUsage = data?.currentMonthUsage || 0;
+  // Calculate the percentage of the monthly limit
   const usagePercentage = Math.min(100, (currentMonthUsage / MONTHLY_WORD_LIMIT) * 100);
+  // Format the history data for display
   const formattedHistory = formatHistoryData(data?.history || []);
+  // Billing cycle information
   const billingCycle = data?.billingCycle || {};
 
   return (
@@ -53,6 +57,9 @@ export default function WordUsageStats() {
                   </p>
                   <p className="text-sm text-muted-foreground mt-1">
                     {billingCycle.daysRemaining} days remaining in this cycle
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-1 font-medium">
+                    Next reset: {formatDate(billingCycle.endDate)}
                   </p>
                 </div>
               </div>
