@@ -32,7 +32,7 @@ interface TimeRange {
 interface PeriodData {
   period: string;  // The time period (week/month/quarter/year)
   date: Date;      // Start date of the period
-  score: number;   // Average score for the period
+  score: number | null;   // Average score for the period (null if no recordings)
   count: number;   // Number of recordings in the period
 }
 
@@ -47,7 +47,7 @@ export default function Progress() {
     { label: "All time", recordings: [], averageScore: 0, improvement: 0 }
   ]);
   const [isLoading, setIsLoading] = useState(true);
-  const [timeBasedView, setTimeBasedView] = useState<"week" | "month" | "quarter" | "year">("month");
+  const [timeBasedView, setTimeBasedView] = useState<"week" | "month" | "quarter" | "year" | "alltime">("month");
   const [recordingsCount, setRecordingsCount] = useState<10 | 20 | 50>(10);
 
   // Fetch recordings data
@@ -209,65 +209,133 @@ export default function Progress() {
   const getTimeBasedChartData = (): PeriodData[] => {
     if (allRecordings.length === 0) return [];
     
-    const sortedRecordings = [...allRecordings].sort(
+    // Filter recordings based on selected time view
+    const now = new Date();
+    let filteredRecordings: RecordingWithScore[] = [];
+    let groupingGranularity: "day" | "week" | "month";
+    
+    // Filter by time range and determine appropriate grouping
+    if (timeBasedView === "week") {
+      // Last 7 days
+      const sevenDaysAgo = new Date(now);
+      sevenDaysAgo.setDate(now.getDate() - 7);
+      filteredRecordings = allRecordings.filter(r => new Date(r.date) >= sevenDaysAgo);
+      groupingGranularity = "day";
+    } else if (timeBasedView === "month") {
+      // Last 30 days
+      const thirtyDaysAgo = new Date(now);
+      thirtyDaysAgo.setDate(now.getDate() - 30);
+      filteredRecordings = allRecordings.filter(r => new Date(r.date) >= thirtyDaysAgo);
+      groupingGranularity = "day";
+    } else if (timeBasedView === "quarter") {
+      // Last 90 days
+      const ninetyDaysAgo = new Date(now);
+      ninetyDaysAgo.setDate(now.getDate() - 90);
+      filteredRecordings = allRecordings.filter(r => new Date(r.date) >= ninetyDaysAgo);
+      groupingGranularity = "week";
+    } else if (timeBasedView === "year") {
+      // Last 365 days
+      const yearAgo = new Date(now);
+      yearAgo.setDate(now.getDate() - 365);
+      filteredRecordings = allRecordings.filter(r => new Date(r.date) >= yearAgo);
+      groupingGranularity = "month";
+    } else {
+      // All time
+      filteredRecordings = [...allRecordings];
+      groupingGranularity = "month";
+    }
+    
+    if (filteredRecordings.length === 0) return [];
+    
+    // Sort by date (oldest first)
+    const sortedRecordings = [...filteredRecordings].sort(
       (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
     );
     
-    const firstDate = new Date(sortedRecordings[0].date);
-    const lastDate = new Date(sortedRecordings[sortedRecordings.length - 1].date);
-    
-    // Group recordings by the selected time period
+    // Group recordings by the appropriate granularity
     const periodMap = new Map<string, { scores: number[], date: Date }>();
     
+    // Fill in periods with no data for more continuous charts
+    if (filteredRecordings.length > 0) {
+      const oldestDate = new Date(sortedRecordings[0].date);
+      const fillBlanks = (startDate: Date, endDate: Date, granularity: "day" | "week" | "month") => {
+        let current = new Date(startDate);
+        while (current <= endDate) {
+          let periodKey: string;
+          let periodDate = new Date(current);
+          
+          if (granularity === "day") {
+            const year = current.getFullYear();
+            const month = current.getMonth();
+            const day = current.getDate();
+            periodKey = `${year}-${month + 1}-${day}`;
+          } else if (granularity === "week") {
+            const year = current.getFullYear();
+            const weekNum = getWeekNumber(current);
+            periodKey = `${year}-W${weekNum}`;
+          } else { // month
+            const year = current.getFullYear();
+            const month = current.getMonth();
+            periodKey = `${year}-${month + 1}`;
+          }
+          
+          if (!periodMap.has(periodKey)) {
+            periodMap.set(periodKey, { scores: [], date: periodDate });
+          }
+          
+          // Advance to next period
+          if (granularity === "day") {
+            current.setDate(current.getDate() + 1);
+          } else if (granularity === "week") {
+            current.setDate(current.getDate() + 7);
+          } else { // month
+            current.setMonth(current.getMonth() + 1);
+          }
+        }
+      };
+      
+      fillBlanks(oldestDate, now, groupingGranularity);
+    }
+    
+    // Add actual recordings to the periods
     for (const recording of sortedRecordings) {
       const recordingDate = new Date(recording.date);
       let periodKey: string;
-      let periodStartDate: Date;
       
-      if (timeBasedView === "week") {
-        // Group by week (using ISO week number)
+      if (groupingGranularity === "day") {
+        const year = recordingDate.getFullYear();
+        const month = recordingDate.getMonth();
+        const day = recordingDate.getDate();
+        periodKey = `${year}-${month + 1}-${day}`;
+      } else if (groupingGranularity === "week") {
         const year = recordingDate.getFullYear();
         const weekNum = getWeekNumber(recordingDate);
         periodKey = `${year}-W${weekNum}`;
-        
-        // Calculate the start of the week (Monday)
-        const dayOfWeek = recordingDate.getDay() || 7; // Convert Sunday (0) to 7
-        const startOfWeek = new Date(recordingDate);
-        startOfWeek.setDate(recordingDate.getDate() - dayOfWeek + 1);
-        periodStartDate = startOfWeek;
-      } else if (timeBasedView === "month") {
-        // Group by month
+      } else { // month
         const year = recordingDate.getFullYear();
         const month = recordingDate.getMonth();
         periodKey = `${year}-${month + 1}`;
-        periodStartDate = new Date(year, month, 1);
-      } else if (timeBasedView === "quarter") {
-        // Group by quarter
-        const year = recordingDate.getFullYear();
-        const quarter = Math.floor(recordingDate.getMonth() / 3) + 1;
-        periodKey = `${year}-Q${quarter}`;
-        periodStartDate = new Date(year, (quarter - 1) * 3, 1);
-      } else {
-        // Group by year
-        const year = recordingDate.getFullYear();
-        periodKey = `${year}`;
-        periodStartDate = new Date(year, 0, 1);
       }
       
-      if (!periodMap.has(periodKey)) {
-        periodMap.set(periodKey, { scores: [], date: periodStartDate });
+      if (periodMap.has(periodKey)) {
+        periodMap.get(periodKey)!.scores.push(recording.score);
       }
-      
-      periodMap.get(periodKey)!.scores.push(recording.score);
     }
     
     // Convert the map to an array of period data
-    return Array.from(periodMap.entries()).map(([key, data]) => ({
-      period: formatPeriodLabel(key, timeBasedView),
-      date: data.date,
-      score: data.scores.reduce((sum, score) => sum + score, 0) / data.scores.length,
-      count: data.scores.length
-    })).sort((a, b) => a.date.getTime() - b.date.getTime());
+    return Array.from(periodMap.entries()).map(([key, data]) => {
+      // If no recordings in this period, score will be null (but we'll still show the period)
+      const avgScore = data.scores.length > 0
+        ? data.scores.reduce((sum, score) => sum + score, 0) / data.scores.length
+        : null;
+      
+      return {
+        period: formatPeriodLabel(key, groupingGranularity),
+        date: data.date,
+        score: avgScore,
+        count: data.scores.length
+      };
+    }).sort((a, b) => a.date.getTime() - b.date.getTime());
   };
   
   // Get week number for a date (ISO week number)
@@ -280,18 +348,16 @@ export default function Progress() {
   };
   
   // Format period label based on the view type
-  const formatPeriodLabel = (periodKey: string, viewType: "week" | "month" | "quarter" | "year"): string => {
-    if (viewType === "week") {
+  const formatPeriodLabel = (periodKey: string, granularity: "day" | "week" | "month"): string => {
+    if (granularity === "day") {
+      const [year, month, day] = periodKey.split("-");
+      return new Date(parseInt(year), parseInt(month) - 1, parseInt(day)).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    } else if (granularity === "week") {
       const [year, weekNum] = periodKey.split("-W");
       return `Week ${weekNum}`;
-    } else if (viewType === "month") {
+    } else { // month
       const [year, month] = periodKey.split("-");
       return new Date(parseInt(year), parseInt(month) - 1, 1).toLocaleDateString("en-US", { month: "short", year: "numeric" });
-    } else if (viewType === "quarter") {
-      const [year, quarter] = periodKey.split("-Q");
-      return `Q${quarter} ${year}`;
-    } else {
-      return periodKey; // Year
     }
   };
   
