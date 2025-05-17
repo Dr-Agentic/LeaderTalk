@@ -3,11 +3,15 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, LineChart, Line } from "recharts";
+import { 
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, 
+  LineChart, Line, AreaChart, Area 
+} from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
 import { Recording } from "@shared/schema";
 import { BackButton } from "@/components/BackButton";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // Types for our recording analysis
 interface RecordingWithScore {
@@ -25,10 +29,17 @@ interface TimeRange {
   improvement: number; // Percentage improvement
 }
 
+interface PeriodData {
+  period: string;  // The time period (week/month/quarter/year)
+  date: Date;      // Start date of the period
+  score: number;   // Average score for the period
+  count: number;   // Number of recordings in the period
+}
+
 export default function Progress() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
-  const [recentRecordings, setRecentRecordings] = useState<RecordingWithScore[]>([]);
+  const [allRecordings, setAllRecordings] = useState<RecordingWithScore[]>([]);
   const [timeRanges, setTimeRanges] = useState<TimeRange[]>([
     { label: "Last 7 days", recordings: [], averageScore: 0, improvement: 0 },
     { label: "Last 30 days", recordings: [], averageScore: 0, improvement: 0 },
@@ -36,6 +47,8 @@ export default function Progress() {
     { label: "All time", recordings: [], averageScore: 0, improvement: 0 }
   ]);
   const [isLoading, setIsLoading] = useState(true);
+  const [timeBasedView, setTimeBasedView] = useState<"week" | "month" | "quarter" | "year">("month");
+  const [recordingsCount, setRecordingsCount] = useState<10 | 20 | 50>(10);
 
   // Fetch recordings data
   useEffect(() => {
@@ -51,7 +64,7 @@ export default function Progress() {
           
           // Process recordings to extract relevant data and calculate scores
           const processedRecordings = recordings.map(recording => {
-            // Extract score from analysis or use a random score for demo
+            // Extract score from analysis
             let score = 0;
             let leaderMatch = "";
             
@@ -62,7 +75,11 @@ export default function Progress() {
                   : recording.analysisResult;
                 
                 // Get score from analysis if available
-                score = analysis.overview?.score || Math.floor(Math.random() * 100);
+                if (analysis.overview?.score !== undefined) {
+                  score = analysis.overview.score;
+                } else {
+                  console.warn(`No score found for recording ${recording.id}, using 0`);
+                }
                 
                 // Get leader match if available
                 if (analysis.leadershipInsights && analysis.leadershipInsights.length > 0) {
@@ -70,11 +87,7 @@ export default function Progress() {
                 }
               } catch (e) {
                 console.error("Error parsing analysis result:", e);
-                score = Math.floor(Math.random() * 100);
               }
-            } else {
-              // Generate random score for demo purposes
-              score = Math.floor(Math.random() * 100);
             }
             
             return {
@@ -89,8 +102,8 @@ export default function Progress() {
           // Sort by date (newest first)
           processedRecordings.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
           
-          // Get the 10 most recent recordings for the histogram
-          setRecentRecordings(processedRecordings.slice(0, 10).reverse()); // Reverse for chronological order in the chart
+          // Store all recordings
+          setAllRecordings(processedRecordings);
           
           // Calculate time ranges
           const now = new Date();
@@ -114,19 +127,27 @@ export default function Progress() {
             
             const averageScore = recordings.reduce((sum, r) => sum + r.score, 0) / recordings.length;
             
-            // Calculate improvement by comparing first half to second half
-            if (recordings.length < 2) return { averageScore, improvement: 0 };
+            // If we have at least 2 recordings, calculate improvement from first to last
+            if (recordings.length >= 2) {
+              // Sort by date (oldest to newest)
+              const sorted = [...recordings].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+              
+              // Calculate average of first 30% and last 30% of recordings
+              const firstThirdCount = Math.max(1, Math.floor(sorted.length * 0.3));
+              const lastThirdCount = Math.max(1, Math.floor(sorted.length * 0.3));
+              
+              const firstThird = sorted.slice(0, firstThirdCount);
+              const lastThird = sorted.slice(sorted.length - lastThirdCount);
+              
+              const firstAvg = firstThird.reduce((sum, r) => sum + r.score, 0) / firstThird.length;
+              const lastAvg = lastThird.reduce((sum, r) => sum + r.score, 0) / lastThird.length;
+              
+              const improvement = firstAvg > 0 ? ((lastAvg - firstAvg) / firstAvg) * 100 : 0;
+              
+              return { averageScore, improvement };
+            }
             
-            const midpoint = Math.floor(recordings.length / 2);
-            const firstHalf = recordings.slice(0, midpoint);
-            const secondHalf = recordings.slice(midpoint);
-            
-            const firstAvg = firstHalf.reduce((sum, r) => sum + r.score, 0) / firstHalf.length;
-            const secondAvg = secondHalf.reduce((sum, r) => sum + r.score, 0) / secondHalf.length;
-            
-            const improvement = firstAvg > 0 ? ((secondAvg - firstAvg) / firstAvg) * 100 : 0;
-            
-            return { averageScore, improvement };
+            return { averageScore, improvement: 0 };
           };
           
           setTimeRanges([
@@ -182,56 +203,124 @@ export default function Progress() {
     return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   };
   
+  // Create time-based chart data
+  const getTimeBasedChartData = (): PeriodData[] => {
+    if (allRecordings.length === 0) return [];
+    
+    const sortedRecordings = [...allRecordings].sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+    
+    const firstDate = new Date(sortedRecordings[0].date);
+    const lastDate = new Date(sortedRecordings[sortedRecordings.length - 1].date);
+    
+    // Group recordings by the selected time period
+    const periodMap = new Map<string, { scores: number[], date: Date }>();
+    
+    for (const recording of sortedRecordings) {
+      const recordingDate = new Date(recording.date);
+      let periodKey: string;
+      let periodStartDate: Date;
+      
+      if (timeBasedView === "week") {
+        // Group by week (using ISO week number)
+        const year = recordingDate.getFullYear();
+        const weekNum = getWeekNumber(recordingDate);
+        periodKey = `${year}-W${weekNum}`;
+        
+        // Calculate the start of the week (Monday)
+        const dayOfWeek = recordingDate.getDay() || 7; // Convert Sunday (0) to 7
+        const startOfWeek = new Date(recordingDate);
+        startOfWeek.setDate(recordingDate.getDate() - dayOfWeek + 1);
+        periodStartDate = startOfWeek;
+      } else if (timeBasedView === "month") {
+        // Group by month
+        const year = recordingDate.getFullYear();
+        const month = recordingDate.getMonth();
+        periodKey = `${year}-${month + 1}`;
+        periodStartDate = new Date(year, month, 1);
+      } else if (timeBasedView === "quarter") {
+        // Group by quarter
+        const year = recordingDate.getFullYear();
+        const quarter = Math.floor(recordingDate.getMonth() / 3) + 1;
+        periodKey = `${year}-Q${quarter}`;
+        periodStartDate = new Date(year, (quarter - 1) * 3, 1);
+      } else {
+        // Group by year
+        const year = recordingDate.getFullYear();
+        periodKey = `${year}`;
+        periodStartDate = new Date(year, 0, 1);
+      }
+      
+      if (!periodMap.has(periodKey)) {
+        periodMap.set(periodKey, { scores: [], date: periodStartDate });
+      }
+      
+      periodMap.get(periodKey)!.scores.push(recording.score);
+    }
+    
+    // Convert the map to an array of period data
+    return Array.from(periodMap.entries()).map(([key, data]) => ({
+      period: formatPeriodLabel(key, timeBasedView),
+      date: data.date,
+      score: data.scores.reduce((sum, score) => sum + score, 0) / data.scores.length,
+      count: data.scores.length
+    })).sort((a, b) => a.date.getTime() - b.date.getTime());
+  };
+  
+  // Get week number for a date (ISO week number)
+  const getWeekNumber = (date: Date): number => {
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+    d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7);
+    const week1 = new Date(d.getFullYear(), 0, 4);
+    return 1 + Math.round(((d.getTime() - week1.getTime()) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
+  };
+  
+  // Format period label based on the view type
+  const formatPeriodLabel = (periodKey: string, viewType: "week" | "month" | "quarter" | "year"): string => {
+    if (viewType === "week") {
+      const [year, weekNum] = periodKey.split("-W");
+      return `Week ${weekNum}`;
+    } else if (viewType === "month") {
+      const [year, month] = periodKey.split("-");
+      return new Date(parseInt(year), parseInt(month) - 1, 1).toLocaleDateString("en-US", { month: "short", year: "numeric" });
+    } else if (viewType === "quarter") {
+      const [year, quarter] = periodKey.split("-Q");
+      return `Q${quarter} ${year}`;
+    } else {
+      return periodKey; // Year
+    }
+  };
+  
+  // Get recording-based chart data
+  const getRecordingsChartData = () => {
+    if (allRecordings.length === 0) return [];
+    
+    // Sort by date (oldest to newest)
+    const sortedRecordings = [...allRecordings].sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+    
+    // Get the last N recordings
+    const lastNRecordings = sortedRecordings.slice(-recordingsCount);
+    
+    return lastNRecordings.map((recording, index) => ({
+      index: index + 1,
+      name: recording.title.length > 15 ? recording.title.substring(0, 15) + '...' : recording.title,
+      score: recording.score,
+      date: formatDate(recording.date),
+      fullTitle: recording.title,
+      leaderMatch: recording.leaderMatch || "Unknown"
+    }));
+  };
+  
   if (isLoading || authLoading) {
     return <ProgressSkeleton />;
   }
   
-  // Prepare the histogram data
-  const histogramData = recentRecordings.map(recording => ({
-    name: formatDate(recording.date),
-    score: recording.score,
-    title: recording.title,
-    leaderMatch: recording.leaderMatch || "Unknown"
-  }));
-  
-  // Prepare trend data for line charts
-  const prepareTrendData = (timeRange: TimeRange) => {
-    if (timeRange.recordings.length === 0) return [];
-    
-    // Group by day, week, or month depending on the time range
-    const groupedData = timeRange.recordings.reduce((groups, recording) => {
-      const date = new Date(recording.date);
-      let key;
-      
-      if (timeRange.label === "Last 7 days") {
-        // Group by day
-        key = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-      } else if (timeRange.label === "Last 30 days") {
-        // Group by week
-        const weekNumber = Math.floor(date.getDate() / 7) + 1;
-        key = `Week ${weekNumber}`;
-      } else {
-        // Group by month
-        key = date.toLocaleDateString("en-US", { month: "short" });
-      }
-      
-      if (!groups[key]) {
-        groups[key] = { scores: [], count: 0 };
-      }
-      
-      groups[key].scores.push(recording.score);
-      groups[key].count++;
-      
-      return groups;
-    }, {} as Record<string, { scores: number[], count: number }>);
-    
-    // Calculate average score for each group
-    return Object.entries(groupedData).map(([key, data]) => ({
-      name: key,
-      value: data.scores.reduce((sum, score) => sum + score, 0) / data.count,
-      count: data.count
-    }));
-  };
+  const timeBasedChartData = getTimeBasedChartData();
+  const recordingsChartData = getRecordingsChartData();
   
   return (
     <div className="container mx-auto py-6 px-4 sm:px-6 lg:px-8">
@@ -245,64 +334,150 @@ export default function Progress() {
         </div>
       </div>
       
-      <div className="grid grid-cols-1 gap-6">
-        {/* Recent Recordings Histogram */}
+      <div className="grid grid-cols-1 gap-8">
+        {/* Time-Based Progress Chart */}
         <Card>
-          <CardHeader>
-            <CardTitle>Latest Recording Scores</CardTitle>
-            <CardDescription>
-              Your 10 most recent recordings and their leadership scores
-            </CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>Progress Over Time</CardTitle>
+              <CardDescription>
+                Your leadership score evolution by time period
+              </CardDescription>
+            </div>
+            <Select 
+              value={timeBasedView} 
+              onValueChange={(value) => setTimeBasedView(value as "week" | "month" | "quarter" | "year")}
+            >
+              <SelectTrigger className="w-36">
+                <SelectValue placeholder="Select view" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="week">Weekly</SelectItem>
+                <SelectItem value="month">Monthly</SelectItem>
+                <SelectItem value="quarter">Quarterly</SelectItem>
+                <SelectItem value="year">Yearly</SelectItem>
+              </SelectContent>
+            </Select>
           </CardHeader>
           <CardContent>
-            {recentRecordings.length > 0 ? (
+            {timeBasedChartData.length > 0 ? (
               <div className="w-full h-80">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={histogramData}
-                    margin={{ top: 10, right: 20, left: 0, bottom: 40 }}
+                  <AreaChart
+                    data={timeBasedChartData}
+                    margin={{ top: 10, right: 30, left: 0, bottom: 30 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
                     <XAxis 
-                      dataKey="name" 
+                      dataKey="period" 
                       angle={-45} 
                       textAnchor="end" 
                       tick={{ fontSize: 12 }}
-                      height={70}
+                      height={60}
+                    />
+                    <YAxis 
+                      domain={[0, 100]}
+                      label={{ value: 'Average Score', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle' } }}
+                    />
+                    <Tooltip 
+                      formatter={(value) => [`${Number(value).toFixed(1)}`, 'Average Score']}
+                      labelFormatter={(label) => `Period: ${label}`}
+                    />
+                    <Legend />
+                    <Area 
+                      type="monotone" 
+                      dataKey="score" 
+                      name="Leadership Score" 
+                      stroke="#6366F1"
+                      fill="#6366F180"
+                      strokeWidth={2}
+                      activeDot={{ r: 6, strokeWidth: 2 }}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <div className="text-center py-10 text-gray-500">
+                <p>No recordings found. Record conversations to see your progress.</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+        
+        {/* Recording-Based Progress Chart */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>Recording-by-Recording Progress</CardTitle>
+              <CardDescription>
+                Your leadership score changes across individual recordings
+              </CardDescription>
+            </div>
+            <Select 
+              value={recordingsCount.toString()} 
+              onValueChange={(value) => setRecordingsCount(parseInt(value) as 10 | 20 | 50)}
+            >
+              <SelectTrigger className="w-36">
+                <SelectValue placeholder="Select count" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">Last 10</SelectItem>
+                <SelectItem value="20">Last 20</SelectItem>
+                <SelectItem value="50">Last 50</SelectItem>
+              </SelectContent>
+            </Select>
+          </CardHeader>
+          <CardContent>
+            {recordingsChartData.length > 0 ? (
+              <div className="w-full h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart
+                    data={recordingsChartData}
+                    margin={{ top: 10, right: 30, left: 0, bottom: 30 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                    <XAxis 
+                      dataKey="index" 
+                      label={{ 
+                        value: 'Recording Number', 
+                        position: 'insideBottom', 
+                        offset: -10,
+                        style: { textAnchor: 'middle' } 
+                      }}
                     />
                     <YAxis 
                       domain={[0, 100]}
                       label={{ value: 'Score', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle' } }}
                     />
                     <Tooltip 
-                      formatter={(value, name, props) => {
-                        return [
-                          `Score: ${value}`,
-                          `Title: ${props.payload.title}`,
-                          `Most similar to: ${props.payload.leaderMatch}`
-                        ];
+                      formatter={(value) => [`${Number(value).toFixed(1)}`, 'Score']}
+                      labelFormatter={(index) => {
+                        const recording = recordingsChartData[index - 1];
+                        return `Recording ${index}: ${recording.fullTitle}\nDate: ${recording.date}`;
                       }}
-                      labelFormatter={(label) => `Date: ${label}`}
                     />
                     <Legend />
-                    <Bar 
+                    <Line 
+                      type="monotone" 
                       dataKey="score" 
                       name="Leadership Score" 
-                      fill="#6366F1"
-                      radius={[4, 4, 0, 0]}
+                      stroke="#0EA5E9" 
+                      strokeWidth={2}
+                      dot={{ fill: '#0EA5E9', r: 4 }}
+                      activeDot={{ r: 6, strokeWidth: 2 }}
                     />
-                  </BarChart>
+                  </LineChart>
                 </ResponsiveContainer>
               </div>
             ) : (
               <div className="text-center py-10 text-gray-500">
-                <p>No recordings found. Record your first conversation to see your progress.</p>
+                <p>No recordings found. Record conversations to see your progress.</p>
               </div>
             )}
           </CardContent>
         </Card>
         
-        {/* Tabs for different time ranges */}
+        {/* Summary Statistics */}
         <Tabs defaultValue="7days" className="w-full">
           <TabsList className="grid grid-cols-4 mb-6">
             <TabsTrigger value="7days">Last 7 Days</TabsTrigger>
@@ -338,7 +513,7 @@ export default function Progress() {
                   <CardHeader>
                     <CardTitle>Improvement</CardTitle>
                     <CardDescription>
-                      Your progress compared to the previous period
+                      Your progress compared to when you started
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -355,40 +530,20 @@ export default function Progress() {
                 
                 <Card>
                   <CardHeader>
-                    <CardTitle>Trend</CardTitle>
+                    <CardTitle>Recordings</CardTitle>
                     <CardDescription>
-                      Your score progression over time
+                      Summary of your recordings in this period
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    {range.recordings.length > 0 ? (
-                      <div className="h-40">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <LineChart 
-                            data={prepareTrendData(range)}
-                            margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
-                          >
-                            <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                            <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-                            <YAxis domain={[0, 100]} hide />
-                            <Tooltip />
-                            <Line 
-                              type="monotone" 
-                              dataKey="value" 
-                              name="Score" 
-                              stroke="#6366F1" 
-                              strokeWidth={2}
-                              dot={{ r: 3 }}
-                              activeDot={{ r: 5 }}
-                            />
-                          </LineChart>
-                        </ResponsiveContainer>
-                      </div>
-                    ) : (
-                      <div className="text-center py-8 text-gray-500">
-                        <p>Not enough data to show trend</p>
-                      </div>
-                    )}
+                    <div className="text-3xl font-bold text-center">
+                      {range.recordings.length}
+                    </div>
+                    <div className="text-sm text-center text-gray-500 mt-2">
+                      {range.recordings.length > 0 
+                        ? `Latest on ${formatDate(range.recordings[0].date)}` 
+                        : "No recordings in this period"}
+                    </div>
                   </CardContent>
                 </Card>
               </div>
