@@ -8,11 +8,11 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { AlertCircle, Check, Mic, MicOff } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { BackButton } from "../components/BackButton";
 import { useToast } from "../hooks/use-toast";
 import { useAuth } from "../hooks/useAuth";
 import { useRecording } from "../hooks/useRecording";
 import { getQueryFn, apiRequest } from "../lib/queryClient";
+import AppLayout from "@/components/AppLayout";
 
 interface StyleResponse {
   empathetic: string;
@@ -270,24 +270,22 @@ export default function SituationView() {
   }
 
   if (!situation) {
+    // Determine the appropriate back navigation path
+    const backTo = chapterId && moduleId 
+      ? `/training/chapter/${chapterId}/module/${moduleId}`
+      : moduleId 
+        ? `/training/module/${moduleId}` 
+        : "/training";
+    
+    const backLabel = moduleId ? "Back to Module" : "Back to Training";
+    
     return (
-      <div className="container mx-auto px-4 py-8">
-        {chapterId && moduleId ? (
-          <BackButton 
-            to={`/training/chapter/${chapterId}/module/${moduleId}`} 
-            label="Back to Module" 
-          />
-        ) : moduleId ? (
-          <BackButton 
-            to={`/training/module/${moduleId}`} 
-            label="Back to Module" 
-          />
-        ) : (
-          <BackButton 
-            to="/training" 
-            label="Back to Training" 
-          />
-        )}
+      <AppLayout
+        showBackButton
+        backTo={backTo}
+        backLabel={backLabel}
+        pageTitle="Situation"
+      >
         <Alert variant="destructive" className="mt-4">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Situation not found</AlertTitle>
@@ -295,30 +293,27 @@ export default function SituationView() {
             The situation you're looking for doesn't exist or has been removed.
           </AlertDescription>
         </Alert>
-      </div>
+      </AppLayout>
     );
   }
 
+  // Determine the appropriate back navigation path
+  const backTo = chapterId && moduleId 
+    ? `/training/chapter/${chapterId}/module/${moduleId}`
+    : moduleId 
+      ? `/training/module/${moduleId}` 
+      : "/training";
+  
+  const backLabel = moduleId ? "Back to Module" : "Back to Training";
+  
   return (
-    <div className="container mx-auto px-4 py-8">
-      {chapterId && moduleId ? (
-        <BackButton 
-          to={`/training/chapter/${chapterId}/module/${moduleId}`} 
-          label="Back to Module" 
-        />
-      ) : moduleId ? (
-        <BackButton 
-          to={`/training/module/${moduleId}`} 
-          label="Back to Module" 
-        />
-      ) : (
-        <BackButton 
-          to="/training" 
-          label="Back to Training" 
-        />
-      )}
-      
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+    <AppLayout
+      showBackButton
+      backTo={backTo}
+      backLabel={backLabel}
+      pageTitle={situation.userProgress ? "Response Review" : "Training Situation"}
+    >
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>Leadership Situation</CardTitle>
@@ -586,13 +581,13 @@ export default function SituationView() {
 function SituationViewSkeleton() {
   // For skeleton we'll just show a back button to training since parameters may not be ready
   return (
-    <div className="container mx-auto px-4 py-8">
-      <BackButton 
-        to="/training"
-        label="Back to Training"
-      />
-      
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+    <AppLayout
+      showBackButton
+      backTo="/training"
+      backLabel="Back to Training"
+      pageTitle="Loading Situation..."
+    >
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 border rounded-lg p-6 animate-pulse">
           <div className="h-7 w-52 bg-muted rounded mb-2"></div>
           <div className="h-5 w-72 bg-muted rounded mb-8"></div>
