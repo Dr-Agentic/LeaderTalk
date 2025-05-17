@@ -474,25 +474,39 @@ export default function Progress() {
           </CardHeader>
           <CardContent>
             {timeBasedChartData.length > 0 ? (
-              <div className="w-full h-80">
+              <div className="w-full h-96 mt-4">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={timeBasedChartData}
-                    margin={{ top: 10, right: 30, left: 0, bottom: 30 }}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 70 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
                     <XAxis 
                       dataKey="period" 
-                      angle={-45} 
+                      angle={-65} 
                       textAnchor="end" 
-                      tick={{ fontSize: 10 }}
-                      height={70}
+                      tick={{ fontSize: 9, fill: "#4B5563" }}
+                      height={90}
                       interval={0}
-                      tickMargin={15}
+                      tickMargin={25}
+                      scale="band"
                     />
                     <YAxis 
                       domain={[0, 100]}
-                      label={{ value: 'Average Score', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle' } }}
+                      label={{ 
+                        value: 'Average Score', 
+                        angle: -90, 
+                        position: 'insideLeft', 
+                        style: { 
+                          textAnchor: 'middle',
+                          fontSize: 12,
+                          fill: "#4B5563",
+                          fontWeight: 500,
+                          dy: -10
+                        } 
+                      }}
+                      tick={{ fontSize: 10, fill: "#4B5563" }}
+                      width={50}
                     />
                     <Tooltip 
                       formatter={(value, name, props) => {
@@ -517,7 +531,8 @@ export default function Progress() {
                       name="Leadership Score" 
                       fill="#6366F1"
                       radius={[4, 4, 0, 0]}
-                      minPointSize={5} 
+                      minPointSize={5}
+                      maxBarSize={50}
                     >
                       {timeBasedChartData.map((entry, index) => (
                         <Cell 
