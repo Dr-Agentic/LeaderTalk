@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import PerformanceSnapshotGenerator from "@/components/dashboard/PerformanceSnapshotGenerator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import {
@@ -76,6 +77,9 @@ export default function Progress() {
   >("month");
   const [recordingsCount, setRecordingsCount] = useState<10 | 20 | 50>(10);
   
+  // Create refs for chart containers to use with the snapshot generator
+  const timeBasedChartRef = useRef<HTMLDivElement>(null);
+  const recordingsChartRef = useRef<HTMLDivElement>(null);
 
 
   // Fetch recordings data
@@ -570,8 +574,9 @@ export default function Progress() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-8">
-        {/* Time-Based Progress Chart */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className="lg:col-span-3 space-y-8">
+          {/* Time-Based Progress Chart */}
         <Card>
           <CardHeader>
             <div className="w-full mb-4">
