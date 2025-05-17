@@ -92,27 +92,22 @@ export default function LeaderSelection({
       return;
     }
     
+    // Check if we're exceeding the maximum number of leaders
+    if (selectedLeaders.length > MAX_SELECTIONS) {
+      toast({
+        title: "Too many leaders selected",
+        description: `You can only select up to ${MAX_SELECTIONS} leaders. Please remove some before saving.`,
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsSubmitting(true);
     
     try {
-      // Combine initial selections with the newly selected leaders
-      // Filter out any duplicates to ensure we don't have the same leader twice
-      let allSelections = [...initialSelections];
-      
-      // Add any newly selected leaders that weren't in the initial selections
-      selectedLeaders.forEach(leaderId => {
-        if (!allSelections.includes(leaderId)) {
-          allSelections.push(leaderId);
-        }
-      });
-      
-      // Make sure we don't exceed the maximum number of leaders
-      if (allSelections.length > MAX_SELECTIONS) {
-        allSelections = allSelections.slice(0, MAX_SELECTIONS);
-      }
-      
+      // Simply use the current selected leaders - this avoids the issue where leaders get combined with initial selections
       const response = await apiRequest('PATCH', '/api/users/me', {
-        selectedLeaders: allSelections,
+        selectedLeaders: selectedLeaders,
       });
       
       if (response.ok) {
@@ -176,7 +171,7 @@ export default function LeaderSelection({
       </div>
       
       {/* Show warning if user has max leaders selected */}
-      {initialSelections.length >= MAX_SELECTIONS && !isSettingsPage && (
+      {currentSelections.length >= MAX_SELECTIONS && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4 mb-6">
           <h3 className="text-amber-800 font-medium">Maximum Leaders Selected</h3>
           <p className="text-amber-700 text-sm mt-1">
@@ -196,13 +191,13 @@ export default function LeaderSelection({
                 : "border-gray-200"
             } ${
               // Disable hover effects and add opacity when max leaders reached (unless already selected)
-              initialSelections.length >= MAX_SELECTIONS && !selectedLeaders.includes(leader.id) && !isSettingsPage
+              currentSelections.length >= MAX_SELECTIONS && !selectedLeaders.includes(leader.id)
                 ? "opacity-60 cursor-not-allowed"
                 : "hover:shadow-md transition-shadow cursor-pointer"
             }`}
             onClick={() => {
-              // Only allow leader selection when under limit OR this leader is already selected OR we're in settings page
-              if (initialSelections.length < MAX_SELECTIONS || selectedLeaders.includes(leader.id) || isSettingsPage) {
+              // Only allow leader selection when under limit OR this leader is already selected
+              if (currentSelections.length < MAX_SELECTIONS || selectedLeaders.includes(leader.id)) {
                 toggleLeaderSelection(leader.id);
               } else {
                 // Show toast warning when trying to select more than the maximum
