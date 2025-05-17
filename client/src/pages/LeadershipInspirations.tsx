@@ -38,22 +38,81 @@ export default function LeadershipInspirations() {
       {isLoadingLeaders ? (
         <LeadershipInspirationsSkeleton />
       ) : (
-        <Card className="p-6">
-          <LeaderSelection 
-            leaders={Array.isArray(leaders) ? 
-              leaders.map(leader => ({
-                ...leader,
-                traits: leader.traits || [],
-                photoUrl: leader.photoUrl || '',
-                generationMostAffected: leader.generationMostAffected || '',
-                leadershipStyles: leader.leadershipStyles || [],
-                famousPhrases: leader.famousPhrases || []
-              })) : []
-            } 
-            currentSelections={userData?.selectedLeaders || []}
-            isSettingsPage={true}
-          />
-        </Card>
+        <>
+          {/* Current Selections Display */}
+          <Card className="p-6 mb-8">
+            <h2 className="text-xl font-semibold mb-4">Your Current Inspirations</h2>
+            <p className="text-gray-600 mb-6">
+              These are the leaders who currently inspire your communication style. You can select up to 3 leaders.
+            </p>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+              {[0, 1, 2].map((index) => {
+                const leaderId = userData?.selectedLeaders?.[index];
+                const selectedLeader = Array.isArray(leaders) ? 
+                  leaders.find(leader => leader.id === leaderId) : null;
+                
+                return (
+                  <div key={index} className={`rounded-lg border ${selectedLeader ? 'border-primary' : 'border-gray-200'} p-4 flex flex-col items-center justify-center h-64`}>
+                    {selectedLeader ? (
+                      <>
+                        <div className="w-24 h-24 rounded-full bg-gray-100 overflow-hidden mb-4">
+                          {selectedLeader.photoUrl ? (
+                            <img 
+                              src={selectedLeader.photoUrl} 
+                              alt={selectedLeader.name} 
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary">
+                              {selectedLeader.name.split(' ').map(n => n[0]).join('')}
+                            </div>
+                          )}
+                        </div>
+                        <h3 className="font-medium text-center">{selectedLeader.name}</h3>
+                        <p className="text-sm text-gray-500 text-center mt-1">{selectedLeader.title}</p>
+                      </>
+                    ) : (
+                      <>
+                        <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-gray-300">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                          </svg>
+                        </div>
+                        <h3 className="font-medium text-gray-400">Empty Slot</h3>
+                        <p className="text-sm text-gray-400 text-center mt-1">Select a leader below</p>
+                      </>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </Card>
+          
+          {/* Leader Selection */}
+          <Card className="p-6">
+            <h2 className="text-xl font-semibold mb-4">Available Leaders</h2>
+            <p className="text-gray-600 mb-6">
+              Select from our curated list of leaders to inspire your communication style.
+            </p>
+            
+            <LeaderSelection 
+              leaders={Array.isArray(leaders) ? 
+                leaders.map(leader => ({
+                  ...leader,
+                  traits: leader.traits || [],
+                  photoUrl: leader.photoUrl || '',
+                  generationMostAffected: leader.generationMostAffected || '',
+                  leadershipStyles: leader.leadershipStyles || [],
+                  famousPhrases: leader.famousPhrases || []
+                })) : []
+              } 
+              currentSelections={userData?.selectedLeaders || []}
+              isSettingsPage={true}
+            />
+          </Card>
+        </>
       )}
     </div>
   );
