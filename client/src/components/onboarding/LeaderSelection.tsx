@@ -64,11 +64,11 @@ export default function LeaderSelection({
         // Count unique leaders between those in the database (currentSelections) 
         // and those selected in the UI (prev) that aren't in currentSelections
         
-        // Get leaders that are in UI selection but not in database selection
-        const newSelectionsNotInDatabase = prev.filter(id => !currentSelections.includes(id));
+        // The actual total would be the unique combination of database selections and UI selections
+        const allSelectionsSet = new Set([...currentSelections, ...prev]);
         
-        // Total potential selections = database selections + new UI selections
-        const totalUniqueSelections = currentSelections.length + newSelectionsNotInDatabase.length;
+        // Count the total unique selections
+        const totalUniqueSelections = allSelectionsSet.size;
         
         // Check if adding one more exceeds the maximum
         if (totalUniqueSelections >= MAX_SELECTIONS) {
@@ -164,11 +164,11 @@ export default function LeaderSelection({
       
       {/* Show warning if user has reached max leaders */}
       {(() => {
-        // Get leaders that are in UI selection but not in database selection
-        const newSelectionsNotInDatabase = selectedLeaders.filter(id => !currentSelections.includes(id));
+        // The actual total would be the unique combination of database selections and UI selections
+        const allSelectionsSet = new Set([...currentSelections, ...selectedLeaders]);
         
-        // Total potential selections = database selections + new UI selections
-        const totalUniqueSelections = currentSelections.length + newSelectionsNotInDatabase.length;
+        // Count the total unique selections
+        const totalUniqueSelections = allSelectionsSet.size;
         
         if (totalUniqueSelections >= MAX_SELECTIONS) {
           return (
@@ -188,13 +188,18 @@ export default function LeaderSelection({
         {availableLeaders.map(leader => {
           // Calculate if this leader can be selected
           const isAlreadySelected = selectedLeaders.includes(leader.id);
-          const isInDatabase = currentSelections.includes(leader.id);
           
-          // New selections not in database
-          const newSelectionsNotInDatabase = selectedLeaders.filter(id => !currentSelections.includes(id) && id !== leader.id);
+          // Create a set of all unique selections (current + UI selected)
+          // but exclude this leader if it's not already selected
+          const selectionsWithoutThisLeader = new Set([
+            ...currentSelections,
+            ...selectedLeaders.filter(id => id !== leader.id)
+          ]);
           
-          // Total selections if this one were added
-          const totalIfAdded = currentSelections.length + newSelectionsNotInDatabase.length + 1;
+          // Calculate how many slots we'd use if we added this leader
+          const totalIfAdded = isAlreadySelected 
+            ? selectionsWithoutThisLeader.size // If already selected, count without it
+            : selectionsWithoutThisLeader.size + 1; // If not selected, adding it would increase by 1
           
           // Disable if adding would exceed limit (unless already selected)
           const disabled = !isAlreadySelected && totalIfAdded > MAX_SELECTIONS;

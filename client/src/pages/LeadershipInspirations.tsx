@@ -76,26 +76,40 @@ export default function LeadershipInspirations() {
                           
                           <button 
                             className="absolute -top-2 -right-2 bg-red-100 rounded-full w-5 h-5 flex items-center justify-center text-red-700 hover:bg-red-200 transition-colors"
-                            onClick={() => {
+                            onClick={async () => {
                               if (!userData?.selectedLeaders) return;
                               
                               // Create a new array without the removed leader
-                              const newSelections = [...userData.selectedLeaders];
-                              // Remove the leader at this index
-                              newSelections.splice(index, 1);
+                              const newSelections = userData.selectedLeaders.filter(id => id !== leaderId);
                               
-                              // Update the user's selected leaders
-                              fetch('/api/users/me', {
-                                method: 'PATCH',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ selectedLeaders: newSelections })
-                              })
-                              .then(res => {
-                                if (res.ok) {
+                              try {
+                                // Update the user's selected leaders
+                                const response = await fetch('/api/users/me', {
+                                  method: 'PATCH',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ selectedLeaders: newSelections })
+                                });
+                                
+                                if (response.ok) {
+                                  // Show success toast
+                                  toast({
+                                    title: "Leader removed",
+                                    description: `${selectedLeader.name} has been removed from your inspirations.`,
+                                  });
+                                  
                                   // Invalidate cache to refresh the data
                                   queryClient.invalidateQueries({ queryKey: ['/api/users/me'] });
+                                } else {
+                                  throw new Error("Failed to update leader selections");
                                 }
-                              });
+                              } catch (error) {
+                                console.error("Error removing leader:", error);
+                                toast({
+                                  title: "Error",
+                                  description: "Failed to remove leader. Please try again.",
+                                  variant: "destructive",
+                                });
+                              }
                             }}
                             aria-label={`Remove ${selectedLeader.name}`}
                           >
