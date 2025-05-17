@@ -35,8 +35,18 @@ export default function WordUsageStats() {
   // Format the history data for display
   const formattedHistory = formatHistoryData(data?.history || []);
   
-  // Billing cycle information
-  const billingCycle = data?.billingCycle || {};
+  // Billing cycle information with guaranteed default values
+  const billingCycle = data?.billingCycle ? {
+    startDate: data.billingCycle.startDate || '',
+    endDate: data.billingCycle.endDate || '',
+    daysRemaining: data.billingCycle.daysRemaining || 30,
+    cycleNumber: data.billingCycle.cycleNumber || 1
+  } : {
+    startDate: '',
+    endDate: '',
+    daysRemaining: 30,
+    cycleNumber: 1
+  };
 
   return (
     <Card className="mb-6">

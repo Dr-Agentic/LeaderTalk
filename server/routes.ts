@@ -2263,6 +2263,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } : null
       });
       
+      // Ensure we always have valid dates
+      if (!cycleStartDate || cycleStartDate === '') {
+        cycleStartDate = new Date().toISOString().split('T')[0];
+      }
+      
+      if (!cycleEndDate || cycleEndDate === '') {
+        // Calculate default end date (one month from now)
+        const defaultEndDate = new Date();
+        defaultEndDate.setMonth(defaultEndDate.getMonth() + 1);
+        cycleEndDate = defaultEndDate.toISOString().split('T')[0];
+      }
+      
+      // Make sure daysRemaining is a positive number
+      daysRemaining = Math.max(0, daysRemaining);
+      
+      // Log complete billing cycle data for debugging
+      console.log("Final billing cycle data:", {
+        startDate: cycleStartDate,
+        endDate: cycleEndDate,
+        daysRemaining
+      });
+      
       return res.json({
         currentMonthUsage: currentUsage,
         wordLimitPercentage,
