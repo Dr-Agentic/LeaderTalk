@@ -102,21 +102,7 @@ export default function WordUsageStats() {
             </div>
           </div>
 
-          {/* Subscription plan features */}
-          <div className="mt-4 p-4 bg-muted/50 rounded-md border">
-            <h4 className="text-sm font-medium mb-2 flex items-center">
-              <PackageOpen className="h-4 w-4 mr-2" />
-              {subscriptionPlan.name} Plan Features
-            </h4>
-            <ul className="space-y-1">
-              {subscriptionPlan.features && subscriptionPlan.features.map((feature, index) => (
-                <li key={index} className="text-sm flex items-start gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                  <span>{feature}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+
 
           {formattedHistory.length > 1 && (
             <div className="h-48 mt-6">
