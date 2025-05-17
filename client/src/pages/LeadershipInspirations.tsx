@@ -5,6 +5,7 @@ import LeaderSelection from "@/components/onboarding/LeaderSelection";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BackButton } from "@/components/BackButton";
 import { queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 // Interface to match the LeaderSelection component's expected format
 interface LeaderData {
@@ -23,6 +24,7 @@ interface LeaderData {
 
 export default function LeadershipInspirations() {
   const { userData } = useAuth();
+  const { toast } = useToast();
   
   // Fetch leaders data
   const { data: leaders, isLoading: isLoadingLeaders } = useQuery({

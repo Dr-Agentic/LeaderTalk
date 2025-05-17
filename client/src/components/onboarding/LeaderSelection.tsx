@@ -175,6 +175,17 @@ export default function LeaderSelection({
         </p>
       </div>
       
+      {/* Show warning if user has max leaders selected */}
+      {initialSelections.length >= MAX_SELECTIONS && !isSettingsPage && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4 mb-6">
+          <h3 className="text-amber-800 font-medium">Maximum Leaders Selected</h3>
+          <p className="text-amber-700 text-sm mt-1">
+            You've already selected the maximum number of leaders ({MAX_SELECTIONS}). 
+            Please remove a leader from your current selections before adding a new one.
+          </p>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 mt-8">
         {availableLeaders.map(leader => (
           <div 
@@ -183,8 +194,25 @@ export default function LeaderSelection({
               selectedLeaders.includes(leader.id)
                 ? "border-primary border-2"
                 : "border-gray-200"
-            } hover:shadow-md transition-shadow cursor-pointer`}
-            onClick={() => toggleLeaderSelection(leader.id)}
+            } ${
+              // Disable hover effects and add opacity when max leaders reached (unless already selected)
+              initialSelections.length >= MAX_SELECTIONS && !selectedLeaders.includes(leader.id) && !isSettingsPage
+                ? "opacity-60 cursor-not-allowed"
+                : "hover:shadow-md transition-shadow cursor-pointer"
+            }`}
+            onClick={() => {
+              // Only allow leader selection when under limit OR this leader is already selected OR we're in settings page
+              if (initialSelections.length < MAX_SELECTIONS || selectedLeaders.includes(leader.id) || isSettingsPage) {
+                toggleLeaderSelection(leader.id);
+              } else {
+                // Show toast warning when trying to select more than the maximum
+                toast({
+                  title: "Maximum leaders reached",
+                  description: `You can only select up to ${MAX_SELECTIONS} leaders. Please remove one before adding another.`,
+                  variant: "destructive",
+                });
+              }
+            }}
           >
             {/* Selected badge */}
             {selectedLeaders.includes(leader.id) && (
