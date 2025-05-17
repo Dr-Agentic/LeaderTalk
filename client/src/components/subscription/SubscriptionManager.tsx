@@ -85,13 +85,7 @@ export default function SubscriptionManager() {
     }
   });
 
-  // Calculate savings percentage for yearly plans
-  const calculateSavings = (monthlyPrice: number, yearlyPrice: number): number => {
-    // Yearly price is for 12 months, so calculate the savings
-    const monthlyTotal = monthlyPrice * 12;
-    if (monthlyTotal === 0) return 0;
-    return Math.round(((monthlyTotal - yearlyPrice) / monthlyTotal) * 100);
-  };
+  // Use the utility function for calculating savings
 
   if (isLoadingPlans || isLoadingUsage) {
     return <SubscriptionManagerSkeleton />;
