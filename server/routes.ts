@@ -2188,6 +2188,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Format dates for frontend display
         cycleStartDate = new Date(currentCycle.cycleStartDate).toISOString().split('T')[0];
         cycleEndDate = new Date(currentCycle.cycleEndDate).toISOString().split('T')[0];
+      } else {
+        // If we don't have a current cycle, calculate one based on user registration date
+        const registrationDate = new Date(user.createdAt);
+        const now = new Date();
+        
+        // Get the day of the month from the registration date
+        const billingDay = registrationDate.getDate();
+        
+        // Calculate the next billing date
+        const nextBillingDate = new Date(now);
+        nextBillingDate.setDate(billingDay);
+        
+        // If the billing day has already passed this month, move to next month
+        if (now.getDate() > billingDay) {
+          nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
+        }
+        
+        // If now is exactly the billing day, set next billing date to next month
+        if (now.getDate() === billingDay) {
+          nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
+        }
+        
+        // Calculate days remaining
+        daysRemaining = Math.ceil((nextBillingDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        
+        // Format for display
+        cycleEndDate = nextBillingDate.toISOString().split('T')[0];
+        
+        // Also calculate cycle start date (current month's billing day or previous month's billing day)
+        const cycleStartDateObj = new Date(now);
+        cycleStartDateObj.setDate(billingDay);
+        
+        // If today is past the billing day, use this month's billing day
+        if (now.getDate() >= billingDay) {
+          // Use current month's billing day
+          cycleStartDate = cycleStartDateObj.toISOString().split('T')[0];
+        } else {
+          // Use previous month's billing day
+          cycleStartDateObj.setMonth(cycleStartDateObj.getMonth() - 1);
+          cycleStartDate = cycleStartDateObj.toISOString().split('T')[0];
+        }
       }
       
       // Get all historical usage data
