@@ -1,25 +1,22 @@
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Info } from "lucide-react";
-import { 
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger 
-} from "@/components/ui/tooltip";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogHeader, 
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
+import { AlertCircle, CheckCircle2, ChevronRight, X } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
   DialogTitle,
-  DialogTrigger 
 } from "@/components/ui/dialog";
+import { queryClient } from '@/lib/queryClient';
 
+// Maximum number of leaders a user can select
+const MAX_SELECTIONS = 3;
+
+// Interface to match the expected format for leader data
 interface LeaderData {
   id: number;
   name: string;
@@ -41,22 +38,17 @@ interface LeaderSelectionProps {
   isSettingsPage?: boolean;
 }
 
-export default function LeaderSelection({ 
-  leaders, 
-  onComplete, 
-  currentSelections = [], 
-  isSettingsPage = false 
+/**
+ * Component for selecting inspiration leaders
+ * Allows user to select up to MAX_SELECTIONS leaders and view their detailed information
+ */
+export default function LeaderSelection({
+  leaders,
+  onComplete,
+  currentSelections = [],
+  isSettingsPage = false,
 }: LeaderSelectionProps) {
-  const MAX_SELECTIONS = 3;
-  
-  // Filter out controversial leaders
-  const availableLeaders = leaders.filter(leader => !leader.controversial);
-  
-  // Initialize with current selections if they exist
   const [selectedLeaders, setSelectedLeaders] = useState<number[]>(currentSelections);
-  
-  // Keep track of initial selections to avoid losing them when new ones are added
-  const [initialSelections] = useState<number[]>(currentSelections);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showInfoDialog, setShowInfoDialog] = useState(false);
   const [currentLeader, setCurrentLeader] = useState<LeaderData | null>(null);
@@ -65,18 +57,30 @@ export default function LeaderSelection({
   const toggleLeaderSelection = (leaderId: number) => {
     setSelectedLeaders(prev => {
       if (prev.includes(leaderId)) {
-        // Remove the leader
+        // Always allow removing a leader
         return prev.filter(id => id !== leaderId);
       } else {
-        // Add the leader, but check if we've reached the maximum
-        if (prev.length >= MAX_SELECTIONS) {
+        // Adding a leader - check if we've reached the maximum
+        // Count unique leaders between those in the database (currentSelections) 
+        // and those selected in the UI (prev) that aren't in currentSelections
+        
+        // Get leaders that are in UI selection but not in database selection
+        const newSelectionsNotInDatabase = prev.filter(id => !currentSelections.includes(id));
+        
+        // Total potential selections = database selections + new UI selections
+        const totalUniqueSelections = currentSelections.length + newSelectionsNotInDatabase.length;
+        
+        // Check if adding one more exceeds the maximum
+        if (totalUniqueSelections >= MAX_SELECTIONS) {
           toast({
             title: "Maximum leaders reached",
-            description: `You can only select up to ${MAX_SELECTIONS} leaders. Please deselect one before adding another.`,
+            description: `You can only select up to ${MAX_SELECTIONS} leaders total. Please remove a leader from "Your Current Inspirations" before adding a new one.`,
             variant: "destructive",
           });
           return prev;
         }
+        
+        // We're under the limit, so add the new leader
         return [...prev, leaderId];
       }
     });
@@ -116,164 +120,164 @@ export default function LeaderSelection({
           description: "Your leadership inspirations have been saved.",
         });
         
+        // Invalidate the user data query to refresh the UI
+        queryClient.invalidateQueries({ queryKey: ['/api/users/me'] });
+        
+        // If onComplete callback is provided, call it
         if (onComplete) {
           onComplete();
         }
       } else {
-        throw new Error("Failed to save selected leaders");
+        throw new Error("Failed to save leader selections");
       }
     } catch (error) {
+      console.error("Error saving leader selections:", error);
       toast({
         title: "Error",
-        description: "Failed to save your selections. Please try again.",
+        description: "There was an error saving your selections. Please try again.",
         variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
     }
   };
-
+  
   const handleShowLeaderInfo = (leader: LeaderData, e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent card click from toggling selection
+    e.stopPropagation(); // Don't toggle selection when clicking info button
     setCurrentLeader(leader);
     setShowInfoDialog(true);
   };
   
-  if (!availableLeaders || availableLeaders.length === 0) {
-    return (
-      <div className="max-w-4xl mx-auto my-10 bg-white p-8 rounded-lg shadow-md">
-        <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">Choose Leaders That Inspire You</h2>
-          <p className="text-gray-600 mt-1">We'll analyze your communication based on their style</p>
-        </div>
-        
-        <div className="text-center py-8 text-gray-500">
-          No leaders available. Please try again later.
-        </div>
-      </div>
-    );
-  }
+  // Filter out controversial leaders unless we're in the settings page
+  const availableLeaders = leaders.filter(leader => 
+    isSettingsPage || !leader.controversial
+  );
 
   return (
-    <div className="max-w-4xl mx-auto my-10 bg-white p-8 rounded-lg shadow-md">
-      <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">
-          {isSettingsPage ? "Modify Your Leadership Inspirations" : "Choose Leaders That Inspire You"}
-        </h2>
-        <p className="text-gray-600 mt-1">
-          Select up to {MAX_SELECTIONS} leaders whose communication style you admire.
-          <br />
-          We'll analyze your speaking patterns and provide insights based on their techniques.
-        </p>
-        <p className="text-primary font-medium mt-2">
+    <div className="w-full max-w-6xl mx-auto pb-10 px-4 sm:px-6">
+      <div className="flex flex-wrap items-center gap-2 mb-4 bg-gray-50 p-3 rounded-md">
+        <span className="font-medium text-gray-700">Selected:</span>
+        <p className="text-sm text-gray-500 ml-2">
           {selectedLeaders.length} of {MAX_SELECTIONS} leaders selected
         </p>
       </div>
       
-      {/* Show warning if user has max leaders selected */}
-      {currentSelections.length >= MAX_SELECTIONS && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4 mb-6">
-          <h3 className="text-amber-800 font-medium">Maximum Leaders Selected</h3>
-          <p className="text-amber-700 text-sm mt-1">
-            You've already selected the maximum number of leaders ({MAX_SELECTIONS}). 
-            Please remove a leader from your current selections before adding a new one.
-          </p>
-        </div>
-      )}
+      {/* Show warning if user has reached max leaders */}
+      {(() => {
+        // Get leaders that are in UI selection but not in database selection
+        const newSelectionsNotInDatabase = selectedLeaders.filter(id => !currentSelections.includes(id));
+        
+        // Total potential selections = database selections + new UI selections
+        const totalUniqueSelections = currentSelections.length + newSelectionsNotInDatabase.length;
+        
+        if (totalUniqueSelections >= MAX_SELECTIONS) {
+          return (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4 mb-6">
+              <h3 className="text-amber-800 font-medium">Maximum Leaders Selected</h3>
+              <p className="text-amber-700 text-sm mt-1">
+                You've reached the maximum number of leaders ({MAX_SELECTIONS}). 
+                Please remove a leader from "Your Current Inspirations" before adding a new one.
+              </p>
+            </div>
+          );
+        }
+        return null;
+      })()}
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 mt-8">
-        {availableLeaders.map(leader => (
-          <div 
-            key={leader.id}
-            className={`relative bg-white overflow-hidden rounded-lg border ${
-              selectedLeaders.includes(leader.id)
-                ? "border-primary border-2"
-                : "border-gray-200"
-            } ${
-              // Disable hover effects and add opacity when max leaders reached (unless already selected)
-              currentSelections.length >= MAX_SELECTIONS && !selectedLeaders.includes(leader.id)
-                ? "opacity-60 cursor-not-allowed"
-                : "hover:shadow-md transition-shadow cursor-pointer"
-            }`}
-            onClick={() => {
-              // Only allow leader selection when under limit OR this leader is already selected
-              if (currentSelections.length < MAX_SELECTIONS || selectedLeaders.includes(leader.id)) {
-                toggleLeaderSelection(leader.id);
-              } else {
-                // Show toast warning when trying to select more than the maximum
-                toast({
-                  title: "Maximum leaders reached",
-                  description: `You can only select up to ${MAX_SELECTIONS} leaders. Please remove one before adding another.`,
-                  variant: "destructive",
-                });
-              }
-            }}
-          >
-            {/* Selected badge */}
-            {selectedLeaders.includes(leader.id) && (
-              <div className="absolute top-2 right-2 z-10">
-                <Badge variant="default" className="bg-primary text-white">
-                  Selected
-                </Badge>
-              </div>
-            )}
-            
-            <div className="p-4">
-              {/* Use remote image URL from leader data */}
+        {availableLeaders.map(leader => {
+          // Calculate if this leader can be selected
+          const isAlreadySelected = selectedLeaders.includes(leader.id);
+          const isInDatabase = currentSelections.includes(leader.id);
+          
+          // New selections not in database
+          const newSelectionsNotInDatabase = selectedLeaders.filter(id => !currentSelections.includes(id) && id !== leader.id);
+          
+          // Total selections if this one were added
+          const totalIfAdded = currentSelections.length + newSelectionsNotInDatabase.length + 1;
+          
+          // Disable if adding would exceed limit (unless already selected)
+          const disabled = !isAlreadySelected && totalIfAdded > MAX_SELECTIONS;
+          
+          return (
+            <div 
+              key={leader.id}
+              className={`relative bg-white overflow-hidden rounded-lg border ${
+                isAlreadySelected
+                  ? "border-primary border-2"
+                  : "border-gray-200"
+              } ${
+                // Disable hover effects and add opacity when max leaders reached (unless already selected)
+                disabled
+                  ? "opacity-60 cursor-not-allowed"
+                  : "hover:shadow-md transition-shadow cursor-pointer"
+              }`}
+              onClick={() => {
+                if (!disabled || isAlreadySelected) {
+                  toggleLeaderSelection(leader.id);
+                } else {
+                  // Show toast warning when trying to select more than the maximum
+                  toast({
+                    title: "Maximum leaders reached",
+                    description: `You can only select up to ${MAX_SELECTIONS} leaders in total. Please remove a leader from "Your Current Inspirations" before adding a new one.`,
+                    variant: "destructive",
+                  });
+                }
+              }}
+            >
+              {/* Selected badge */}
+              {selectedLeaders.includes(leader.id) && (
+                <div className="absolute top-2 right-2 z-10">
+                  <Badge className="bg-primary text-white">
+                    <CheckCircle2 className="h-3 w-3 mr-1" />
+                    Selected
+                  </Badge>
+                </div>
+              )}
+              
+              {/* Leader image */}
               {leader.photoUrl ? (
                 <img 
                   src={leader.photoUrl} 
                   alt={leader.name} 
-                  className="w-full h-36 object-contain rounded-md mb-4" 
+                  className="w-full h-52 object-cover"
                 />
               ) : (
-                <div className="w-full h-36 bg-gray-200 rounded-md mb-4 flex items-center justify-center">
-                  <span className="text-gray-400">No image</span>
+                <div className="w-full h-52 bg-gray-200 flex items-center justify-center">
+                  <span className="text-gray-400">No image available</span>
                 </div>
               )}
               
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="font-semibold text-lg text-gray-900">{leader.name}</h3>
-                  <p className="text-sm text-gray-500">{leader.title}</p>
-                </div>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-8 w-8 rounded-full" 
-                        onClick={(e) => handleShowLeaderInfo(leader, e)}
-                      >
-                        <Info className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>View full details</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-              
-              <div className="mt-3 flex gap-2 flex-wrap">
-                {leader.traits && leader.traits.map((trait, index) => (
-                  <Badge key={index} variant="secondary" className="bg-blue-100 text-blue-800 hover:bg-blue-200">
-                    {trait}
-                  </Badge>
-                ))}
+              <div className="p-4">
+                <h3 className="font-bold text-gray-900 text-lg">{leader.name}</h3>
+                <p className="text-gray-500 text-sm">{leader.title}</p>
                 
-                {leader.leadershipStyles && leader.leadershipStyles.slice(0, 2).map((style, index) => (
-                  <Badge key={`style-${index}`} variant="outline" className="bg-green-50 text-green-800 border-green-200">
-                    {style}
-                  </Badge>
-                ))}
+                <p className="mt-3 text-gray-700 text-sm line-clamp-3">
+                  {leader.description}
+                </p>
+                
+                {/* Leadership styles tags */}
+                {leader.leadershipStyles && leader.leadershipStyles.length > 0 && (
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {leader.leadershipStyles.map((style, index) => (
+                      <Badge key={index} variant="outline" className="text-xs bg-gray-50">
+                        {style}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+                
+                <button
+                  onClick={(e) => handleShowLeaderInfo(leader, e)}
+                  className="mt-4 inline-flex items-center text-primary hover:text-primary/80 text-sm font-medium"
+                >
+                  Learn more
+                  <ChevronRight className="ml-1 h-4 w-4" />
+                </button>
               </div>
-              
-              <p className="mt-3 text-sm text-gray-600 line-clamp-3">{leader.description}</p>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
       
       <div className="mt-8 flex justify-center">
@@ -282,111 +286,134 @@ export default function LeaderSelection({
           disabled={isSubmitting || selectedLeaders.length === 0}
           className="px-6"
         >
-          {isSubmitting ? "Saving..." : isSettingsPage ? "Save Changes" : "Continue to Dashboard"}
+          {isSubmitting ? 'Saving...' : isSettingsPage ? 'Save Changes' : 'Continue'}
         </Button>
       </div>
-      
-      {/* Leader Detail Dialog */}
-      <Dialog open={showInfoDialog} onOpenChange={setShowInfoDialog}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          {currentLeader && (
-            <>
-              <DialogHeader>
-                <DialogTitle className="text-2xl">{currentLeader.name}</DialogTitle>
-                <p className="text-muted-foreground">{currentLeader.title}</p>
-              </DialogHeader>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
-                <div className="md:col-span-1">
-                  {currentLeader.photoUrl ? (
-                    <img 
-                      src={currentLeader.photoUrl} 
-                      alt={currentLeader.name} 
-                      className="w-full rounded-md object-contain" 
-                    />
-                  ) : (
-                    <div className="w-full h-48 bg-gray-200 rounded-md flex items-center justify-center">
-                      <span className="text-gray-400">No image</span>
-                    </div>
-                  )}
-                  
+
+      {/* Leader info dialog */}
+      {currentLeader && (
+        <Dialog open={showInfoDialog} onOpenChange={setShowInfoDialog}>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold">{currentLeader.name}</DialogTitle>
+              <DialogDescription className="text-primary font-medium">
+                {currentLeader.title}
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-3 mt-4">
+              {/* Leader image */}
+              <div className="md:col-span-1">
+                {currentLeader.photoUrl ? (
+                  <img 
+                    src={currentLeader.photoUrl} 
+                    alt={currentLeader.name} 
+                    className="w-full rounded-lg object-cover shadow-md"
+                  />
+                ) : (
+                  <div className="w-full h-52 bg-gray-200 rounded-lg flex items-center justify-center">
+                    <span className="text-gray-400">No image</span>
+                  </div>
+                )}
+
+                {/* Leadership styles */}
+                {currentLeader.leadershipStyles && currentLeader.leadershipStyles.length > 0 && (
                   <div className="mt-4">
-                    <h4 className="font-medium text-sm text-gray-500 mb-2">LEADERSHIP STYLES</h4>
+                    <h4 className="font-medium text-gray-900 mb-2">Leadership Styles</h4>
                     <div className="flex flex-wrap gap-2">
-                      {currentLeader.leadershipStyles?.map((style, index) => (
-                        <Badge key={index} variant="outline" className="bg-green-50 text-green-800 border-green-200">
+                      {currentLeader.leadershipStyles.map((style, index) => (
+                        <Badge key={index} variant="outline" className="bg-gray-50">
                           {style}
                         </Badge>
                       ))}
                     </div>
                   </div>
-                  
+                )}
+
+                {/* Famous phrases */}
+                {currentLeader.famousPhrases && currentLeader.famousPhrases.length > 0 && (
                   <div className="mt-4">
-                    <h4 className="font-medium text-sm text-gray-500 mb-2">PERSONALITY TRAITS</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {currentLeader.traits?.map((trait, index) => (
-                        <Badge key={index} variant="secondary" className="bg-blue-100 text-blue-800">
-                          {trait}
-                        </Badge>
+                    <h4 className="font-medium text-gray-900 mb-2">Famous Phrases</h4>
+                    <ul className="space-y-2">
+                      {currentLeader.famousPhrases.map((phrase, index) => (
+                        <li key={index} className="text-sm italic bg-gray-50 p-2 rounded-md">
+                          "{phrase}"
+                        </li>
                       ))}
-                    </div>
+                    </ul>
                   </div>
-                  
-                  {currentLeader.generationMostAffected && (
-                    <div className="mt-4">
-                      <h4 className="font-medium text-sm text-gray-500 mb-2">MOST INFLUENCED GENERATION</h4>
-                      <Badge className="bg-purple-100 text-purple-800">
-                        {currentLeader.generationMostAffected}
-                      </Badge>
+                )}
+
+                {/* Generation most affected */}
+                {currentLeader.generationMostAffected && (
+                  <div className="mt-4">
+                    <h4 className="font-medium text-gray-900 mb-1">Generation Influenced</h4>
+                    <p className="text-sm">{currentLeader.generationMostAffected}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Leader details */}
+              <div className="md:col-span-2">
+                <div className="space-y-6">
+                  {/* Description */}
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-2">Overview</h4>
+                    <p className="text-gray-700">{currentLeader.description}</p>
+                  </div>
+
+                  {/* Biography */}
+                  {currentLeader.biography && (
+                    <div>
+                      <h4 className="font-medium text-gray-900 mb-2">Biography</h4>
+                      <p className="text-gray-700 whitespace-pre-line">{currentLeader.biography}</p>
                     </div>
                   )}
-                </div>
-                
-                <div className="md:col-span-2">
-                  <div>
-                    <h4 className="font-medium text-sm text-gray-500 mb-2">BIOGRAPHY</h4>
-                    <p className="text-gray-700 whitespace-pre-line">{currentLeader.biography}</p>
-                  </div>
-                  
-                  {currentLeader.famousPhrases && currentLeader.famousPhrases.length > 0 && (
-                    <div className="mt-6">
-                      <h4 className="font-medium text-sm text-gray-500 mb-2">FAMOUS QUOTES</h4>
-                      <ul className="space-y-2">
-                        {currentLeader.famousPhrases.map((phrase, index) => (
-                          <li key={index} className="italic pl-4 border-l-2 border-gray-300 text-gray-700">
-                            "{phrase}"
+
+                  {/* Traits */}
+                  {currentLeader.traits && currentLeader.traits.length > 0 && (
+                    <div>
+                      <h4 className="font-medium text-gray-900 mb-2">Key Traits</h4>
+                      <ul className="grid grid-cols-2 gap-2">
+                        {currentLeader.traits.map((trait, index) => (
+                          <li key={index} className="flex items-center text-gray-700">
+                            <CheckCircle2 className="h-4 w-4 text-primary mr-2" />
+                            {trait}
                           </li>
                         ))}
                       </ul>
                     </div>
                   )}
-                  
-                  <div className="mt-6">
-                    <h4 className="font-medium text-sm text-gray-500 mb-2">COMMUNICATION STYLE</h4>
-                    <p className="text-gray-700">{currentLeader.description}</p>
+
+                  {/* Selection button */}
+                  <div className="pt-4 flex flex-col sm:flex-row gap-3 justify-end">
+                    <Button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        toggleLeaderSelection(currentLeader.id);
+                        setShowInfoDialog(false);
+                      }}
+                      variant={selectedLeaders.includes(currentLeader.id) ? "destructive" : "default"}
+                    >
+                      {selectedLeaders.includes(currentLeader.id) ? (
+                        <>
+                          <X className="h-4 w-4 mr-2" />
+                          Remove from selection
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle2 className="h-4 w-4 mr-2" />
+                          Select as inspiration
+                        </>
+                      )}
+                    </Button>
                   </div>
                 </div>
               </div>
-              
-              <div className="flex justify-between mt-6">
-                <Button variant="outline" onClick={() => setShowInfoDialog(false)}>
-                  Close
-                </Button>
-                
-                <Button
-                  onClick={() => {
-                    toggleLeaderSelection(currentLeader.id);
-                    setShowInfoDialog(false);
-                  }}
-                  variant={selectedLeaders.includes(currentLeader.id) ? "destructive" : "default"}
-                >
-                  {selectedLeaders.includes(currentLeader.id) ? "Remove Selection" : "Select This Leader"}
-                </Button>
-              </div>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
