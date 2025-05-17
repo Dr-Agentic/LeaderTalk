@@ -1,5 +1,4 @@
 import { useEffect, useState, useRef } from "react";
-import PerformanceSnapshotGenerator from "@/components/dashboard/PerformanceSnapshotGenerator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import {
@@ -77,9 +76,7 @@ export default function Progress() {
   >("month");
   const [recordingsCount, setRecordingsCount] = useState<10 | 20 | 50>(10);
   
-  // Create refs for chart containers to use with the snapshot generator
-  const timeBasedChartRef = useRef<HTMLDivElement>(null);
-  const recordingsChartRef = useRef<HTMLDivElement>(null);
+
 
   // Fetch recordings data
   useEffect(() => {
