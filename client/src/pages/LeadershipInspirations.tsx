@@ -53,35 +53,69 @@ export default function LeadershipInspirations() {
                   leaders.find(leader => leader.id === leaderId) : null;
                 
                 return (
-                  <div key={index} className={`rounded-lg border ${selectedLeader ? 'border-primary' : 'border-gray-200'} p-4 flex flex-col items-center justify-center h-64`}>
+                  <div key={index} className={`rounded-lg border ${selectedLeader ? 'border-primary' : 'border-gray-200'} p-4 flex flex-col items-center justify-center h-48`}>
                     {selectedLeader ? (
                       <>
-                        <div className="w-24 h-24 rounded-full bg-gray-100 overflow-hidden mb-4">
-                          {selectedLeader.photoUrl ? (
-                            <img 
-                              src={selectedLeader.photoUrl} 
-                              alt={selectedLeader.name} 
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary">
-                              {selectedLeader.name.split(' ').map(n => n[0]).join('')}
-                            </div>
-                          )}
+                        <div className="relative">
+                          <div className="w-16 h-16 rounded-full bg-gray-100 overflow-hidden mb-3">
+                            {selectedLeader.photoUrl ? (
+                              <img 
+                                src={selectedLeader.photoUrl} 
+                                alt={selectedLeader.name} 
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary">
+                                {selectedLeader.name.split(' ').map(n => n[0]).join('')}
+                              </div>
+                            )}
+                          </div>
+                          
+                          <button 
+                            className="absolute -top-2 -right-2 bg-red-100 rounded-full w-6 h-6 flex items-center justify-center text-red-700 hover:bg-red-200 transition-colors"
+                            onClick={() => {
+                              if (!userData?.selectedLeaders) return;
+                              
+                              // Create a new array without the removed leader
+                              const newSelections = [...userData.selectedLeaders];
+                              // Remove the leader at this index
+                              newSelections.splice(index, 1);
+                              
+                              // Update the user's selected leaders
+                              fetch('/api/users/me', {
+                                method: 'PATCH',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ selectedLeaders: newSelections })
+                              })
+                              .then(res => {
+                                if (res.ok) {
+                                  // Invalidate cache to refresh the data
+                                  queryClient.invalidateQueries({ queryKey: ['/api/users/me'] });
+                                }
+                              });
+                            }}
+                            aria-label={`Remove ${selectedLeader.name}`}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M18 6L6 18"></path>
+                              <path d="M6 6L18 18"></path>
+                            </svg>
+                          </button>
                         </div>
-                        <h3 className="font-medium text-center">{selectedLeader.name}</h3>
-                        <p className="text-sm text-gray-500 text-center mt-1">{selectedLeader.title}</p>
+                        
+                        <h3 className="font-medium text-center text-sm">{selectedLeader.name}</h3>
+                        <p className="text-xs text-gray-500 text-center mt-1 line-clamp-2">{selectedLeader.title}</p>
                       </>
                     ) : (
                       <>
-                        <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center mb-4">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-gray-300">
+                        <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-3">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-gray-300">
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                             <circle cx="12" cy="7" r="4"></circle>
                           </svg>
                         </div>
-                        <h3 className="font-medium text-gray-400">Empty Slot</h3>
-                        <p className="text-sm text-gray-400 text-center mt-1">Select a leader below</p>
+                        <h3 className="font-medium text-gray-400 text-sm">Empty Slot</h3>
+                        <p className="text-xs text-gray-400 text-center mt-1">Select a leader below</p>
                       </>
                     )}
                   </div>
