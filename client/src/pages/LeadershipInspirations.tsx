@@ -81,7 +81,6 @@ export default function LeadershipInspirations() {
       backLabel="Back to Dashboard" 
       pageTitle="Leadership Inspirations"
     >
-      
       {isLoadingLeaders ? (
         <LeadershipInspirationsSkeleton />
       ) : (
