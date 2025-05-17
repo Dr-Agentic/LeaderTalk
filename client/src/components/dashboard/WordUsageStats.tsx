@@ -107,14 +107,7 @@ export default function WordUsageStats() {
           <div className="h-48 mt-6">
             <p className="mb-2 text-sm font-medium">Usage History</p>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={[
-                { name: 'Dec 24', words: 76 },
-                { name: 'Jan 25', words: 125 },
-                { name: 'Feb 25', words: 89 },
-                { name: 'Mar 25', words: 156 },
-                { name: 'Apr 25', words: 112 },
-                { name: 'May 25', words: 196 },
-              ]}>
+              <BarChart data={formatHistoryData(data?.history || [])}>
                 <XAxis dataKey="name" fontSize={12} />
                 <YAxis fontSize={12} />
                 <Tooltip 
