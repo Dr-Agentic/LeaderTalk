@@ -9,7 +9,8 @@ interface TypographyProps {
 // H1 - Main Heading (Playfair Display)
 export function H1({ children, className }: TypographyProps) {
   return (
-    <h1 className={cn("text-heading-1 font-serif text-foreground font-playfair", className)}>
+    <h1 className={cn("text-heading-1 font-playfair text-foreground", className)}
+        style={{ fontFamily: 'Playfair Display, Georgia, serif' }}>
       {children}
     </h1>
   );
