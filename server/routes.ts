@@ -2239,7 +2239,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           monthlyWordLimit: subscriptionPlan.monthlyWordLimit,
           monthlyPrice: subscriptionPlan.monthlyPriceUsd,
           yearlyPrice: subscriptionPlan.yearlyPriceUsd,
-          features: subscriptionPlan.features || []
+          features: subscriptionPlan.features ? JSON.parse(subscriptionPlan.features) : []
         } : null
       });
     } catch (error) {
@@ -2248,6 +2248,84 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // API endpoint to get all subscription plans
+  app.get('/api/subscription-plans', async (req, res) => {
+    try {
+      // Get all subscription plans
+      const plans = await storage.getSubscriptionPlans();
+      
+      // Format pricing and features for display
+      const formattedPlans = plans.map(plan => ({
+        ...plan,
+        monthlyPrice: parseFloat(plan.monthlyPriceUsd),
+        yearlyPrice: parseFloat(plan.yearlyPriceUsd),
+        features: plan.features ? JSON.parse(plan.features) : []
+      }));
+      
+      res.json({ 
+        success: true, 
+        plans: formattedPlans 
+      });
+    } catch (error) {
+      console.error('Error fetching subscription plans:', error);
+      res.status(500).json({ success: false, error: 'Failed to fetch subscription plans' });
+    }
+  });
+  
+  // API endpoint to update user's subscription plan
+  app.post('/api/update-subscription', requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId!;
+      const { planCode } = req.body;
+      
+      if (!planCode) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Plan code is required' 
+        });
+      }
+      
+      // Validate that the plan exists
+      const plan = await storage.getSubscriptionPlanByCode(planCode);
+      if (!plan) {
+        return res.status(404).json({ 
+          success: false, 
+          error: 'Subscription plan not found' 
+        });
+      }
+      
+      // Update the user's subscription plan
+      const updatedUser = await storage.updateUser(userId, {
+        subscriptionPlan: planCode,
+        // In a real system, we would also update payment info and date here
+        lastPaymentDate: new Date()
+      });
+      
+      if (!updatedUser) {
+        return res.status(404).json({ 
+          success: false, 
+          error: 'User not found' 
+        });
+      }
+      
+      // Return success response with the updated plan
+      res.json({
+        success: true,
+        message: `Successfully updated to the ${plan.name} plan`,
+        plan: {
+          ...plan,
+          features: plan.features ? JSON.parse(plan.features) : []
+        }
+      });
+    } catch (error) {
+      console.error('Error updating subscription plan:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Failed to update subscription plan' 
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

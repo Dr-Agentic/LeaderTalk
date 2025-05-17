@@ -10,24 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-
-// Helper function to format dates consistently
-function formatDate(dateString: string): string {
-  if (!dateString) return 'N/A';
-  
-  try {
-    const date = new Date(dateString);
-    
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    }).format(date);
-  } catch (e) {
-    console.error('Error formatting date:', e);
-    return dateString; // Return the original string if parsing fails
-  }
-}
+import { formatDate, calculateSavings } from "@/lib/utils";
 
 export default function SubscriptionManager() {
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">("monthly");
