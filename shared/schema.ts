@@ -133,6 +133,20 @@ export const userWordUsage = pgTable("user_word_usage", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Table to define subscription plan tiers with word limits and pricing
+export const subscriptionPlans = pgTable("subscription_plans", {
+  id: serial("id").primaryKey(),
+  planCode: text("plan_code").notNull().unique(),  // "starter", "pro", "executive"
+  name: text("name").notNull(),                    // "Starter", "Pro", "Executive"
+  monthlyWordLimit: integer("monthly_word_limit").notNull(), 
+  monthlyPriceUsd: decimal("monthly_price_usd", { precision: 10, scale: 2 }).notNull(),
+  yearlyPriceUsd: decimal("yearly_price_usd", { precision: 10, scale: 2 }).notNull(),
+  features: jsonb("features").$type<string[]>(), 
+  isDefault: boolean("is_default").default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Types for training module
 export type StyleResponses = {
   empathetic: string;
@@ -275,6 +289,19 @@ export const updateUserWordUsageSchema = createInsertSchema(userWordUsage).omit(
   updatedAt: true,
 });
 
+export const insertSubscriptionPlanSchema = createInsertSchema(subscriptionPlans).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateSubscriptionPlanSchema = createInsertSchema(subscriptionPlans).omit({
+  id: true,
+  planCode: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type UpdateUser = z.infer<typeof updateUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -300,3 +327,6 @@ export type InsertLeaderAlternative = z.infer<typeof insertLeaderAlternativeSche
 export type UserWordUsage = typeof userWordUsage.$inferSelect;
 export type InsertUserWordUsage = z.infer<typeof insertUserWordUsageSchema>;
 export type UpdateUserWordUsage = z.infer<typeof updateUserWordUsageSchema>;
+export type SubscriptionPlan = typeof subscriptionPlans.$inferSelect;
+export type InsertSubscriptionPlan = z.infer<typeof insertSubscriptionPlanSchema>;
+export type UpdateSubscriptionPlan = z.infer<typeof updateSubscriptionPlanSchema>;

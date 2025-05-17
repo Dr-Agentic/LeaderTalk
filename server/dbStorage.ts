@@ -5,6 +5,7 @@ import {
   recordings, Recording, InsertRecording, UpdateRecording,
   leaderAlternatives, LeaderAlternative, InsertLeaderAlternative,
   userWordUsage, UserWordUsage, InsertUserWordUsage, UpdateUserWordUsage,
+  subscriptionPlans, SubscriptionPlan, InsertSubscriptionPlan, UpdateSubscriptionPlan,
   AnalysisResult
 } from '@shared/schema';
 import { eq, and, desc, sql } from 'drizzle-orm';

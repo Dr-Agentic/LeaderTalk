@@ -40,6 +40,14 @@ export interface IStorage {
   updateUserWordUsage(id: number, data: UpdateUserWordUsage): Promise<UserWordUsage | undefined>;
   getCurrentWordUsage(userId: number): Promise<number>;
   getOrCreateCurrentBillingCycle(userId: number): Promise<UserWordUsage>;
+  
+  // Subscription plan operations
+  getSubscriptionPlans(): Promise<SubscriptionPlan[]>;
+  getSubscriptionPlan(id: number): Promise<SubscriptionPlan | undefined>;
+  getSubscriptionPlanByCode(planCode: string): Promise<SubscriptionPlan | undefined>;
+  createSubscriptionPlan(plan: InsertSubscriptionPlan): Promise<SubscriptionPlan>;
+  updateSubscriptionPlan(id: number, data: UpdateSubscriptionPlan): Promise<SubscriptionPlan | undefined>;
+  getDefaultSubscriptionPlan(): Promise<SubscriptionPlan>;
 }
 
 export class MemStorage implements IStorage {
