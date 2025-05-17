@@ -58,8 +58,8 @@ export default function WordUsageStats() {
                   <p className="text-sm text-muted-foreground mt-1">
                     {billingCycle.daysRemaining} days remaining in this cycle
                   </p>
-                  <p className="text-sm text-muted-foreground mt-1 font-medium">
-                    Next reset: {formatDate(billingCycle.endDate)}
+                  <p className="text-sm font-medium text-primary mt-1">
+                    Word count resets on {formatDate(billingCycle.endDate)}
                   </p>
                 </div>
               </div>
