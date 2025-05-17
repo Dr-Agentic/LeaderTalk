@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import PerformanceSnapshotGenerator from "@/components/dashboard/PerformanceSnapshotGenerator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import {
@@ -62,7 +63,7 @@ interface PeriodData {
 
 export default function Progress() {
   const { toast } = useToast();
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { isAuthenticated, isLoading: authLoading, userData } = useAuth();
   const [allRecordings, setAllRecordings] = useState<RecordingWithScore[]>([]);
   const [timeRanges, setTimeRanges] = useState<TimeRange[]>([
     { label: "Last 7 days", recordings: [], averageScore: 0, improvement: 0 },
@@ -75,6 +76,10 @@ export default function Progress() {
     "week" | "month" | "quarter" | "year" | "alltime"
   >("month");
   const [recordingsCount, setRecordingsCount] = useState<10 | 20 | 50>(10);
+  
+  // Create refs for chart containers to use with the snapshot generator
+  const timeBasedChartRef = useRef<HTMLDivElement>(null);
+  const recordingsChartRef = useRef<HTMLDivElement>(null);
 
   // Fetch recordings data
   useEffect(() => {
@@ -602,7 +607,7 @@ export default function Progress() {
           </CardHeader>
           <CardContent>
             {timeBasedChartData.length > 0 ? (
-              <div className="w-full h-[400px] mt-4">
+              <div ref={timeBasedChartRef} className="w-full h-[400px] mt-4">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={timeBasedChartData}
@@ -723,7 +728,7 @@ export default function Progress() {
           </CardHeader>
           <CardContent>
             {recordingsChartData.length > 0 ? (
-              <div className="w-full h-[400px] mt-4">
+              <div ref={recordingsChartRef} className="w-full h-[400px] mt-4">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart
                     data={recordingsChartData}
