@@ -2196,6 +2196,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       });
       
+      // Log what's being returned for debugging
+      console.log("Returning word usage data:", {
+        currentUsage,
+        cycleStartDate,
+        cycleEndDate
+      });
+      
       return res.json({
         currentMonthUsage: currentUsage,
         history: formattedHistory,
