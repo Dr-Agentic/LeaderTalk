@@ -104,31 +104,34 @@ export default function WordUsageStats() {
 
 
 
-          {formattedHistory.length > 1 && (
-            <div className="h-48 mt-6">
-              <p className="mb-2 text-sm font-medium">Usage History</p>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={formattedHistory}>
-                  <XAxis dataKey="name" fontSize={12} />
-                  <YAxis fontSize={12} />
-                  <Tooltip 
-                    formatter={(value) => [`${value.toLocaleString()} words`, 'Usage']}
-                    labelFormatter={(label) => `${label}`}
-                  />
-                  <Bar 
-                    dataKey="words" 
-                    fill="var(--primary)" 
-                    radius={[4, 4, 0, 0]} 
-                    maxBarSize={50}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          )}
+          <div className="h-48 mt-6">
+            <p className="mb-2 text-sm font-medium">Usage History</p>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={[
+                { name: 'Dec 24', words: 76 },
+                { name: 'Jan 25', words: 125 },
+                { name: 'Feb 25', words: 89 },
+                { name: 'Mar 25', words: 156 },
+                { name: 'Apr 25', words: 112 },
+                { name: 'May 25', words: 196 },
+              ]}>
+                <XAxis dataKey="name" fontSize={12} />
+                <YAxis fontSize={12} />
+                <Tooltip 
+                  formatter={(value) => [`${value.toLocaleString()} words`, 'Usage']}
+                  labelFormatter={(label) => `${label}`}
+                />
+                <Bar 
+                  dataKey="words" 
+                  fill="var(--primary)" 
+                  radius={[4, 4, 0, 0]} 
+                  maxBarSize={50}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
 
-          <p className="text-sm text-muted-foreground mt-4">
-            Usage resets on your monthly anniversary date. Your billing cycle is based on your registration date.
-          </p>
+
         </div>
       </CardContent>
     </Card>
