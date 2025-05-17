@@ -2239,7 +2239,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           monthlyWordLimit: subscriptionPlan.monthlyWordLimit,
           monthlyPrice: subscriptionPlan.monthlyPriceUsd,
           yearlyPrice: subscriptionPlan.yearlyPriceUsd,
-          features: subscriptionPlan.features ? JSON.parse(subscriptionPlan.features) : []
+          features: (() => {
+            // Safely parse subscription plan features
+            if (!subscriptionPlan.features) return [];
+            
+            try {
+              if (typeof subscriptionPlan.features === 'string') {
+                return JSON.parse(subscriptionPlan.features);
+              } else if (Array.isArray(subscriptionPlan.features)) {
+                return subscriptionPlan.features;
+              }
+            } catch (e) {
+              console.error(`Error parsing features for plan ${subscriptionPlan.name}:`, e);
+            }
+            return [];
+          })()
         } : null
       });
     } catch (error) {
@@ -2255,12 +2269,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const plans = await storage.getSubscriptionPlans();
       
       // Format pricing and features for display
-      const formattedPlans = plans.map(plan => ({
-        ...plan,
-        monthlyPrice: parseFloat(plan.monthlyPriceUsd),
-        yearlyPrice: parseFloat(plan.yearlyPriceUsd),
-        features: plan.features ? JSON.parse(plan.features) : []
-      }));
+      const formattedPlans = plans.map(plan => {
+        let parsedFeatures = [];
+        
+        if (plan.features) {
+          try {
+            if (typeof plan.features === 'string') {
+              parsedFeatures = JSON.parse(plan.features);
+            } else if (Array.isArray(plan.features)) {
+              parsedFeatures = plan.features;
+            }
+          } catch (e) {
+            console.error(`Error parsing features for plan ${plan.name}:`, e);
+          }
+        }
+        
+        return {
+          ...plan,
+          monthlyPrice: parseFloat(plan.monthlyPriceUsd),
+          yearlyPrice: parseFloat(plan.yearlyPriceUsd),
+          features: parsedFeatures
+        };
+      });
       
       res.json({ 
         success: true, 
@@ -2308,13 +2338,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
+      // Prepare features for the response
+      let parsedFeatures = [];
+      if (plan.features) {
+        try {
+          if (typeof plan.features === 'string') {
+            parsedFeatures = JSON.parse(plan.features);
+          } else if (Array.isArray(plan.features)) {
+            parsedFeatures = plan.features;
+          }
+        } catch (e) {
+          console.error(`Error parsing features for plan ${plan.name}:`, e);
+        }
+      }
+      
       // Return success response with the updated plan
       res.json({
         success: true,
         message: `Successfully updated to the ${plan.name} plan`,
         plan: {
           ...plan,
-          features: plan.features ? JSON.parse(plan.features) : []
+          features: parsedFeatures
         }
       });
     } catch (error) {
