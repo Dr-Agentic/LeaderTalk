@@ -163,24 +163,63 @@ function formatHistoryData(history) {
     'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
     'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
   ];
-
-  return history
-    .slice(0, 6) // Only show last 6 months
-    .map(item => {
-      // Check if the item has the new format (displayName) or old format (year/month)
-      if (item.displayName) {
-        return {
-          name: item.displayName,
-          words: item.wordCount
-        };
-      } else {
-        return {
-          name: `${monthNames[item.month - 1]} ${String(item.year).slice(2)}`,
-          words: item.wordCount
-        };
-      }
-    })
-    .reverse(); // Show oldest to newest
+  
+  // Group data by calendar month instead of billing cycle
+  const monthlyData = {};
+  
+  // Process all history items to aggregate by calendar month
+  history.forEach(item => {
+    // Get the date from the item (cycleStartDate, createdAt, or use the month/year fields)
+    let year, month;
+    
+    if (item.cycleStartDate) {
+      const date = new Date(item.cycleStartDate);
+      year = date.getFullYear();
+      month = date.getMonth(); // 0-11
+    } else if (item.year && item.month) {
+      year = item.year;
+      month = item.month - 1; // Convert 1-12 to 0-11
+    } else if (item.createdAt) {
+      const date = new Date(item.createdAt);
+      year = date.getFullYear();
+      month = date.getMonth();
+    } else {
+      // Skip items with no date information
+      return;
+    }
+    
+    // Create a unique key for the month
+    const key = `${year}-${month}`;
+    
+    // Initialize or update the monthly aggregation
+    if (!monthlyData[key]) {
+      monthlyData[key] = {
+        year,
+        month,
+        wordCount: 0,
+        displayName: `${monthNames[month]} ${String(year).slice(2)}`
+      };
+    }
+    
+    // Add the word count to the month's total
+    monthlyData[key].wordCount += (item.wordCount || 0);
+  });
+  
+  // Convert to array and sort by date
+  const sortedData = Object.values(monthlyData)
+    .sort((a, b) => {
+      // Sort by year, then by month
+      if (a.year !== b.year) return a.year - b.year;
+      return a.month - b.month;
+    });
+  
+  // Take the 6 most recent months
+  return sortedData
+    .slice(-6) // Take last 6 months
+    .map(item => ({
+      name: item.displayName,
+      words: item.wordCount
+    }));
 }
 
 // Format a date string like '2023-04-15' to 'Apr 15, 2023'
