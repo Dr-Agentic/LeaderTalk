@@ -551,21 +551,21 @@ export default function SituationView() {
                   <div>
                     <h4 className="font-medium mb-2">Empathetic Style</h4>
                     <p className="text-sm bg-muted p-3 rounded-md">
-                      {situation.styleResponses.empathetic}
+                      {situation.styleResponses?.empathetic}
                     </p>
                   </div>
                   
                   <div>
                     <h4 className="font-medium mb-2">Inspirational Style</h4>
                     <p className="text-sm bg-muted p-3 rounded-md">
-                      {situation.styleResponses.inspirational}
+                      {situation.styleResponses?.inspirational}
                     </p>
                   </div>
                   
                   <div>
                     <h4 className="font-medium mb-2">Commanding Style</h4>
                     <p className="text-sm bg-muted p-3 rounded-md">
-                      {situation.styleResponses.commanding}
+                      {situation.styleResponses?.commanding}
                     </p>
                   </div>
                 </div>
@@ -574,7 +574,7 @@ export default function SituationView() {
           </Card>
         </div>
       </div>
-    </div>
+    </AppLayout>
   );
 }
 
@@ -621,66 +621,34 @@ function SituationViewSkeleton() {
           <div>
             <div className="h-6 w-40 bg-muted rounded mb-2"></div>
             <div className="space-y-2">
-              <div className="h-6 w-32 bg-muted rounded"></div>
-              <div className="h-6 w-32 bg-muted rounded"></div>
-              <div className="h-6 w-32 bg-muted rounded"></div>
+              <div className="flex items-center space-x-2">
+                <div className="h-5 w-5 rounded-full bg-muted"></div>
+                <div className="h-5 w-24 bg-muted rounded"></div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="h-5 w-5 rounded-full bg-muted"></div>
+                <div className="h-5 w-28 bg-muted rounded"></div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="h-5 w-5 rounded-full bg-muted"></div>
+                <div className="h-5 w-26 bg-muted rounded"></div>
+              </div>
             </div>
+          </div>
+
+          <div className="mt-6">
+            <div className="h-10 w-full bg-muted rounded"></div>
           </div>
         </div>
 
         <div className="space-y-6">
-          <div className="border rounded-lg p-6 animate-pulse">
-            <div className="h-7 w-40 bg-muted rounded mb-2"></div>
-            <div className="h-5 w-60 bg-muted rounded mb-6"></div>
-            <div className="h-24 w-full bg-muted rounded mb-4"></div>
-          </div>
-          
-          {/* Previous attempts skeleton */}
-          <div className="border rounded-lg p-6 animate-pulse">
-            <div className="h-7 w-48 bg-muted rounded mb-2"></div>
-            <div className="h-5 w-64 bg-muted rounded mb-6"></div>
-            
-            <div className="space-y-4">
-              {/* Attempt 1 */}
-              <div className="border rounded-md p-4 space-y-2">
-                <div className="flex justify-between">
-                  <div className="h-5 w-40 bg-muted rounded"></div>
-                  <div className="h-5 w-24 bg-muted rounded"></div>
-                </div>
-                <div className="h-4 w-full bg-muted rounded"></div>
-                <div className="grid grid-cols-4 gap-2">
-                  <div className="h-10 bg-muted rounded"></div>
-                  <div className="h-10 bg-muted rounded"></div>
-                  <div className="h-10 bg-muted rounded"></div>
-                  <div className="h-10 bg-muted rounded"></div>
-                </div>
-              </div>
-              
-              {/* Attempt 2 */}
-              <div className="border rounded-md p-4 space-y-2">
-                <div className="flex justify-between">
-                  <div className="h-5 w-40 bg-muted rounded"></div>
-                  <div className="h-5 w-24 bg-muted rounded"></div>
-                </div>
-                <div className="h-4 w-full bg-muted rounded"></div>
-                <div className="grid grid-cols-4 gap-2">
-                  <div className="h-10 bg-muted rounded"></div>
-                  <div className="h-10 bg-muted rounded"></div>
-                  <div className="h-10 bg-muted rounded"></div>
-                  <div className="h-10 bg-muted rounded"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          {/* Example responses skeleton */}
-          <div className="border rounded-lg p-6 animate-pulse">
+          <div className="border rounded-lg p-4 animate-pulse">
             <div className="h-7 w-40 bg-muted rounded mb-2"></div>
             <div className="h-5 w-60 bg-muted rounded mb-6"></div>
             <div className="h-10 w-full bg-muted rounded mb-6"></div>
           </div>
         </div>
       </div>
-    </div>
+    </AppLayout>
   );
 }

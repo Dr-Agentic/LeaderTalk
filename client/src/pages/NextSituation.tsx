@@ -31,7 +31,8 @@ export default function NextSituation() {
   const [location, navigate] = useLocation();
   
   // Extract params from both URL patterns - hierarchical and query params
-  const searchParams = new URLSearchParams(location.search);
+  const queryString = typeof location === 'string' ? location.split('?')[1] : '';
+  const searchParams = new URLSearchParams(queryString);
   const queryModuleId = searchParams.get('moduleId');
   const queryChapterId = searchParams.get('fromChapter');
   
@@ -143,7 +144,7 @@ export default function NextSituation() {
             </CardFooter>
           </Card>
         </div>
-      </div>
+      </AppLayout>
     );
   }
 
@@ -243,31 +244,33 @@ export default function NextSituation() {
             </CardFooter>
           </Card>
         </div>
-      </div>
+      </AppLayout>
     );
   }
 
   // Fallback if we have no data (should not happen)
+  // Determine the appropriate back navigation path for fallback case
+  const backTo = chapterId && effectiveModuleId 
+    ? `/training/chapter/${chapterId}/module/${effectiveModuleId}` 
+    : chapterId 
+      ? `/training/chapter/${chapterId}`
+      : effectiveModuleId 
+        ? `/training/module/${effectiveModuleId}` 
+        : "/training";
+  
+  const backLabel = effectiveModuleId 
+    ? "Back to Module" 
+    : chapterId 
+      ? "Back to Chapter" 
+      : "Back to Training";
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      {chapterId ? (
-        <BackButton 
-          to={effectiveModuleId 
-            ? `/training/chapter/${chapterId}/module/${effectiveModuleId}` 
-            : `/training/chapter/${chapterId}`} 
-          label={effectiveModuleId ? "Back to Module" : "Back to Chapter"} 
-        />
-      ) : effectiveModuleId ? (
-        <BackButton 
-          to={`/training/module/${effectiveModuleId}`} 
-          label="Back to Module" 
-        />
-      ) : (
-        <BackButton 
-          to="/training" 
-          label="Back to Training" 
-        />
-      )}
+    <AppLayout
+      showBackButton
+      backTo={backTo}
+      backLabel={backLabel}
+      pageTitle="No Situations Found"
+    >
       <div className="text-center mt-10">
         <p>Could not find the next training situation.</p>
         {chapterId ? (
@@ -286,16 +289,19 @@ export default function NextSituation() {
           </Button>
         )}
       </div>
-    </div>
+    </AppLayout>
   );
 }
 
 function NextSituationSkeleton() {
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="h-6 w-40 bg-muted rounded animate-pulse"></div>
-      
-      <div className="max-w-2xl mx-auto mt-10 animate-pulse">
+    <AppLayout
+      showBackButton
+      backTo="/training"
+      backLabel="Back to Training"
+      pageTitle="Loading Exercise..."
+    >
+      <div className="max-w-2xl mx-auto animate-pulse">
         <div className="border rounded-lg p-6">
           <div className="flex items-center justify-center mb-4">
             <div className="h-16 w-16 bg-muted rounded-full"></div>
@@ -331,6 +337,6 @@ function NextSituationSkeleton() {
           </div>
         </div>
       </div>
-    </div>
+    </AppLayout>
   );
 }
