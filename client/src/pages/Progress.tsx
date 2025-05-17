@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, 
-  LineChart, Line, AreaChart, Area 
+  LineChart, Line, AreaChart, Area, Cell
 } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
@@ -32,8 +32,9 @@ interface TimeRange {
 interface PeriodData {
   period: string;  // The time period (week/month/quarter/year)
   date: Date;      // Start date of the period
-  score: number | null;   // Average score for the period (null if no recordings)
+  score: number;   // Average score for the period (0 if no recordings)
   count: number;   // Number of recordings in the period
+  isEmpty: boolean; // Whether the period has no recordings
 }
 
 export default function Progress() {
@@ -357,15 +358,18 @@ export default function Progress() {
       });
       
       const scores = recordingsInPeriod.map(rec => rec.score);
+      // For display purposes, we'll use 0 for empty periods instead of null
+      // but track that this is an empty period with a separate property
       const avgScore = scores.length > 0
         ? scores.reduce((sum, score) => sum + score, 0) / scores.length
-        : null;
+        : 0;
       
       return {
         period: period.label,
         date: period.start,
         score: avgScore,
-        count: recordingsInPeriod.length
+        count: recordingsInPeriod.length,
+        isEmpty: recordingsInPeriod.length === 0
       };
     });
     
@@ -467,7 +471,7 @@ export default function Progress() {
               <div className="w-full h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
-                    data={timeBasedChartData.filter(data => data.score !== null)}
+                    data={timeBasedChartData}
                     margin={{ top: 10, right: 30, left: 0, bottom: 30 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
@@ -484,8 +488,12 @@ export default function Progress() {
                     />
                     <Tooltip 
                       formatter={(value, name, props) => {
-                        if (value === undefined || value === null) return ['N/A', 'Average Score'];
                         const entry = timeBasedChartData.find(item => item.period === props.payload.period);
+                        
+                        if (entry?.isEmpty) {
+                          return ['No recordings', 'Average Score'];
+                        }
+                        
                         const recordingCount = entry?.count || 0;
                         return [
                           `${Number(value).toFixed(1)}`, 
@@ -501,7 +509,16 @@ export default function Progress() {
                       name="Leadership Score" 
                       fill="#6366F1"
                       radius={[4, 4, 0, 0]}
-                    />
+                      minPointSize={5} 
+                    >
+                      {timeBasedChartData.map((entry, index) => (
+                        <Cell 
+                          key={`cell-${index}`}
+                          fill={entry.isEmpty ? "#E5E7EB" : "#6366F1"}
+                          opacity={entry.isEmpty ? 0.5 : 1}
+                        />
+                      ))}
+                    </Bar>
                   </BarChart>
                 </ResponsiveContainer>
               </div>
