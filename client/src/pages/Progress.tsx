@@ -600,11 +600,11 @@ export default function Progress() {
           </CardHeader>
           <CardContent>
             {timeBasedChartData.length > 0 ? (
-              <div className="w-full h-[450px] mt-4">
+              <div className="w-full h-[400px] mt-4">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={timeBasedChartData}
-                    margin={{ top: 20, right: 30, left: 20, bottom: 130 }}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 90 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
                     <XAxis
@@ -658,8 +658,8 @@ export default function Progress() {
                     <Legend 
                       verticalAlign="bottom"
                       wrapperStyle={{
-                        paddingTop: 20,
-                        bottom: -20
+                        paddingTop: 5,
+                        bottom: 20
                       }}
                     />
                     <Bar
