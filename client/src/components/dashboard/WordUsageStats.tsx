@@ -41,25 +41,27 @@ export default function WordUsageStats() {
   return (
     <Card className="mb-6">
       <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span>Word Usage</span>
-            <Badge variant="outline" className="ml-2 gap-1">
-              <PackageOpen className="h-3 w-3 mr-1" />
-              {subscriptionPlan.name} Plan
-            </Badge>
-          </div>
-          <span className="text-sm font-normal text-muted-foreground">
-            {currentMonthUsage.toLocaleString()} / {monthlyWordLimit.toLocaleString()} words
-          </span>
+        <CardTitle className="w-full">
+          Word Usage
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center">
+              <PackageOpen className="h-4 w-4 mr-2 text-primary" />
+              <span className="font-medium">{subscriptionPlan.name} Plan</span>
+            </div>
+            <div className="text-right">
+              <span className="font-medium">{currentMonthUsage.toLocaleString()}</span>
+              <span className="text-muted-foreground"> / {monthlyWordLimit.toLocaleString()} words</span>
+            </div>
+          </div>
+          
           <div>
             <Progress 
               value={usagePercentage} 
-              className="h-2" 
+              className="h-3" 
               // Change color based on usage percentage
               color={usagePercentage > 90 ? "destructive" : undefined}
             />
@@ -67,6 +69,38 @@ export default function WordUsageStats() {
               {usagePercentage}% of your monthly word allocation used
             </p>
           </div>
+
+          {/* Billing cycle information */}
+          {billingCycle && billingCycle.endDate ? (
+            <div className="mt-6 p-4 bg-primary/5 rounded-md border border-primary/20">
+              <div className="flex items-start gap-3">
+                <CalendarIcon className="h-5 w-5 text-primary mt-0.5" />
+                <div>
+                  <h4 className="text-sm font-medium">Subscription Renewal</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Your word count will reset on <span className="font-medium text-primary">{formatDate(billingCycle.endDate)}</span>
+                  </p>
+                  {billingCycle.daysRemaining && (
+                    <p className="text-sm mt-1">
+                      <span className="font-medium">{billingCycle.daysRemaining}</span> days remaining in this cycle
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="mt-6 p-4 bg-primary/5 rounded-md border border-primary/20">
+              <div className="flex items-start gap-3">
+                <CalendarIcon className="h-5 w-5 text-primary mt-0.5" />
+                <div>
+                  <h4 className="text-sm font-medium">Subscription Renewal</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Your word count will reset on your monthly anniversary date
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Subscription plan features */}
           <div className="mt-4 p-4 bg-muted/50 rounded-md border">
@@ -83,27 +117,6 @@ export default function WordUsageStats() {
               ))}
             </ul>
           </div>
-
-          {/* Billing cycle information */}
-          {billingCycle && billingCycle.startDate && (
-            <div className="mt-4 p-3 bg-muted rounded-md">
-              <div className="flex items-start gap-3">
-                <CalendarIcon className="h-5 w-5 text-muted-foreground mt-0.5" />
-                <div>
-                  <h4 className="text-sm font-medium">Current Billing Cycle</h4>
-                  <p className="text-sm text-muted-foreground">
-                    {formatDate(billingCycle.startDate)} — {formatDate(billingCycle.endDate)}
-                  </p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {billingCycle.daysRemaining} days remaining in this cycle
-                  </p>
-                  <p className="text-sm font-medium text-primary mt-1">
-                    Word count resets on {formatDate(billingCycle.endDate)}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
 
           {formattedHistory.length > 1 && (
             <div className="h-48 mt-6">
