@@ -47,18 +47,18 @@ export default function LeadershipInspirations() {
               These are the leaders who currently inspire your communication style. You can select up to 3 leaders.
             </p>
             
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <div className="flex flex-wrap justify-center gap-4">
               {[0, 1, 2].map((index) => {
                 const leaderId = userData?.selectedLeaders?.[index];
                 const selectedLeader = Array.isArray(leaders) ? 
                   leaders.find(leader => leader.id === leaderId) : null;
                 
                 return (
-                  <div key={index} className={`rounded-lg border ${selectedLeader ? 'border-primary' : 'border-gray-200'} p-4 flex flex-col items-center justify-center h-48`}>
+                  <div key={index} className={`rounded-lg border ${selectedLeader ? 'border-primary' : 'border-gray-200'} p-3 flex flex-col items-center justify-center w-1/4 max-w-[140px] h-32`}>
                     {selectedLeader ? (
                       <>
                         <div className="relative">
-                          <div className="w-16 h-16 rounded-full bg-gray-100 overflow-hidden mb-3">
+                          <div className="w-12 h-12 rounded-full bg-gray-100 overflow-hidden mb-2">
                             {selectedLeader.photoUrl ? (
                               <img 
                                 src={selectedLeader.photoUrl} 
@@ -73,7 +73,7 @@ export default function LeadershipInspirations() {
                           </div>
                           
                           <button 
-                            className="absolute -top-2 -right-2 bg-red-100 rounded-full w-6 h-6 flex items-center justify-center text-red-700 hover:bg-red-200 transition-colors"
+                            className="absolute -top-2 -right-2 bg-red-100 rounded-full w-5 h-5 flex items-center justify-center text-red-700 hover:bg-red-200 transition-colors"
                             onClick={() => {
                               if (!userData?.selectedLeaders) return;
                               
@@ -97,26 +97,26 @@ export default function LeadershipInspirations() {
                             }}
                             aria-label={`Remove ${selectedLeader.name}`}
                           >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M18 6L6 18"></path>
                               <path d="M6 6L18 18"></path>
                             </svg>
                           </button>
                         </div>
                         
-                        <h3 className="font-medium text-center text-sm">{selectedLeader.name}</h3>
-                        <p className="text-xs text-gray-500 text-center mt-1 line-clamp-2">{selectedLeader.title}</p>
+                        <h3 className="font-medium text-center text-xs mt-1">{selectedLeader.name}</h3>
+                        <p className="text-xs text-gray-500 text-center mt-0.5 line-clamp-1">{selectedLeader.title}</p>
                       </>
                     ) : (
                       <>
-                        <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-3">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-gray-300">
+                        <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-2">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-gray-300">
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                             <circle cx="12" cy="7" r="4"></circle>
                           </svg>
                         </div>
-                        <h3 className="font-medium text-gray-400 text-sm">Empty Slot</h3>
-                        <p className="text-xs text-gray-400 text-center mt-1">Select a leader below</p>
+                        <h3 className="font-medium text-gray-400 text-xs mt-1">Empty Slot</h3>
+                        <p className="text-[10px] text-gray-400 text-center mt-0.5">Select below</p>
                       </>
                     )}
                   </div>
