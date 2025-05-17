@@ -16,6 +16,20 @@ export default {
         'body-large': ['1.125rem', { lineHeight: '1.6' }],
         'body': ['1rem', { lineHeight: '1.6' }],
       },
+      boxShadow: {
+        'card': '0 2px 12px rgba(0, 0, 0, 0.04), 0 1px 4px rgba(0, 0, 0, 0.08)',
+        'card-hover': '0 4px 18px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.12)',
+        'subtle': '0 2px 8px rgba(0, 0, 0, 0.05)',
+        'dialog': '0 8px 30px rgba(0, 0, 0, 0.12)',
+      },
+      spacing: {
+        'section': '2.5rem',
+        'card-inner': '1.25rem',
+      },
+      backgroundImage: {
+        'gradient-primary': 'linear-gradient(135deg, hsl(215, 65%, 40%) 0%, hsl(215, 50%, 50%) 100%)',
+        'gradient-secondary': 'linear-gradient(135deg, hsl(215, 25%, 27%) 0%, hsl(215, 20%, 37%) 100%)',
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
