@@ -7,10 +7,10 @@ export default function QuickActions({ recordingsCount, weeklyImprovement }) {
   return (
     <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
       {/* Record New Conversation */}
-      <Card>
-        <CardContent className="p-5">
+      <Card className="shadow-card hover:shadow-card-hover transition-shadow duration-300">
+        <CardContent className="p-card-inner">
           <div className="flex items-center">
-            <div className="flex-shrink-0 bg-primary rounded-md p-3">
+            <div className="flex-shrink-0 bg-gradient-primary rounded-md p-3">
               <Mic className="h-5 w-5 text-white" />
             </div>
             <div className="ml-5 w-0 flex-1">
@@ -31,10 +31,10 @@ export default function QuickActions({ recordingsCount, weeklyImprovement }) {
       </Card>
       
       {/* Recent Analyses */}
-      <Card>
-        <CardContent className="p-5">
+      <Card className="shadow-card hover:shadow-card-hover transition-shadow duration-300">
+        <CardContent className="p-card-inner">
           <div className="flex items-center">
-            <div className="flex-shrink-0 bg-green-500 rounded-md p-3">
+            <div className="flex-shrink-0 bg-gradient-secondary rounded-md p-3">
               <BarChart className="h-5 w-5 text-white" />
             </div>
             <div className="ml-5 w-0 flex-1">
@@ -57,10 +57,10 @@ export default function QuickActions({ recordingsCount, weeklyImprovement }) {
       </Card>
       
       {/* Weekly Improvement */}
-      <Card>
-        <CardContent className="p-5">
+      <Card className="shadow-card hover:shadow-card-hover transition-shadow duration-300">
+        <CardContent className="p-card-inner">
           <div className="flex items-center">
-            <div className="flex-shrink-0 bg-indigo-500 rounded-md p-3">
+            <div className="flex-shrink-0 bg-gradient-primary rounded-md p-3">
               <TrendingUp className="h-5 w-5 text-white" />
             </div>
             <div className="ml-5 w-0 flex-1">
@@ -94,10 +94,10 @@ export default function QuickActions({ recordingsCount, weeklyImprovement }) {
       </Card>
       
       {/* Training Module */}
-      <Card>
-        <CardContent className="p-5">
+      <Card className="shadow-card hover:shadow-card-hover transition-shadow duration-300">
+        <CardContent className="p-card-inner">
           <div className="flex items-center">
-            <div className="flex-shrink-0 bg-amber-500 rounded-md p-3">
+            <div className="flex-shrink-0 bg-gradient-secondary rounded-md p-3">
               <GraduationCap className="h-5 w-5 text-white" />
             </div>
             <div className="ml-5 w-0 flex-1">
