@@ -10,6 +10,7 @@ import DirectLogin from "@/pages/DirectLogin";
 import TranscriptView from "@/pages/TranscriptView";
 import AllTranscripts from "@/pages/AllTranscripts";
 import Settings from "@/pages/Settings";
+import LeadershipInspirations from "@/pages/LeadershipInspirations";
 import Progress from "@/pages/Progress";
 import Training from "@/pages/Training";
 import ModuleView from "@/pages/ModuleView";
@@ -106,6 +107,7 @@ function Router() {
       {isAuthenticated && onboardingComplete && <Route path="/transcripts" component={AllTranscripts} />}
       {isAuthenticated && onboardingComplete && <Route path="/progress" component={Progress} />}
       {isAuthenticated && onboardingComplete && <Route path="/settings" component={Settings} />}
+      {isAuthenticated && onboardingComplete && <Route path="/leadership-inspirations" component={LeadershipInspirations} />}
       
       {/* Training module routes */}
       {isAuthenticated && onboardingComplete && <Route path="/training" component={Training} />}
