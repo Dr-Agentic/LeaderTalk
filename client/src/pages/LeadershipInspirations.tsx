@@ -42,7 +42,7 @@ export default function LeadershipInspirations() {
     
     try {
       // Create a new array without the removed leader
-      const newSelections = userData.selectedLeaders.filter(id => id !== leaderId);
+      const newSelections = userData.selectedLeaders.filter((id: number) => id !== leaderId);
       
       // Update the user's selected leaders
       const response = await apiRequest('PATCH', '/api/users/me', {
@@ -94,14 +94,23 @@ export default function LeadershipInspirations() {
             </p>
             
             <div className="flex flex-wrap justify-center gap-4">
+              {/* Always render 3 fixed slots */}
               {[0, 1, 2].map((index) => {
+                // Get leader ID from the user's selections at this index position (if it exists)
                 const leaderId = userData?.selectedLeaders?.[index];
                 const selectedLeader = Array.isArray(leaders) ? 
                   leaders.find(leader => leader.id === leaderId) : null;
                 
+                // This slot has a leader assigned
+                const hasLeader = !!selectedLeader;
+                
                 return (
-                  <div key={index} className={`rounded-lg border ${selectedLeader ? 'border-primary' : 'border-gray-200'} p-3 flex flex-col items-center justify-center w-1/4 max-w-[140px] h-32`}>
-                    {selectedLeader ? (
+                  <div 
+                    key={index} 
+                    className={`rounded-lg border ${hasLeader ? 'border-primary' : 'border-gray-200 bg-gray-50'} 
+                    p-3 flex flex-col items-center justify-center w-1/4 max-w-[140px] h-32 transition-all duration-200`}
+                  >
+                    {hasLeader ? (
                       <>
                         <div className="relative">
                           <div className="w-12 h-12 rounded-full bg-gray-100 overflow-hidden mb-2">
@@ -136,8 +145,9 @@ export default function LeadershipInspirations() {
                       </>
                     ) : (
                       <>
-                        <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-2">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-gray-300">
+                        {/* Empty slot with grayed-out appearance */}
+                        <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center mb-2">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                             <circle cx="12" cy="7" r="4"></circle>
                           </svg>
