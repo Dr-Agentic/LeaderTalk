@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useRecording } from "@/hooks/useRecording";
 import { useMicrophonePermission } from "@/hooks/useMicrophonePermission";
 import { apiRequest } from "@/lib/queryClient";
+import { H2, Paragraph } from "@/components/ui/typography";
 import { Mic, Pause, Play, OctagonMinus, AlertCircle } from "lucide-react";
 
 interface RecordingSectionProps {
@@ -384,7 +385,7 @@ export default function RecordingSection({ onRecordingComplete }: RecordingSecti
   
   return (
     <div id="record-section" className="mt-10">
-      <h2 className="text-lg font-medium text-gray-900">Record a Conversation</h2>
+      <H2>Record a Conversation</H2>
       
       <div className="mt-4 bg-white shadow sm:rounded-lg">
         <div className="px-4 py-5 sm:p-6">
