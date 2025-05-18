@@ -2,15 +2,15 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { Card } from "@/components/ui/card";
-import LeaderSelection from "@/components/onboarding/LeaderSelection";
 import { Skeleton } from "@/components/ui/skeleton";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/AppLayout";
 import { H2 } from "@/components/ui/typography";
+import { Button } from "@/components/ui/button";
 
-// Interface to match the LeaderSelection component's expected format
-interface LeaderData {
+// Interface for leader data
+interface Leader {
   id: number;
   name: string;
   title: string;
@@ -27,80 +27,107 @@ interface LeaderData {
 export default function LeadershipInspirations() {
   const { userData } = useAuth();
   const { toast } = useToast();
-  const [isRemovingLeader, setIsRemovingLeader] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [isSaving, setIsSaving] = useState(false);
   
-  // Fetch leaders data and ensure it updates when user data changes
+  // Fetch leaders data
   const { data: leaders, isLoading: isLoadingLeaders } = useQuery({
     queryKey: ['/api/leaders'],
   });
   
-  // Force component to update when userData changes
-  const [selectedLeaderIds, setSelectedLeaderIds] = useState<(number | null)[]>([null, null, null]);
+  // Active selections - always exactly 3 slots, with null for empty slots
+  const [selectedSlots, setSelectedSlots] = useState<(number | null)[]>([null, null, null]);
   
-  // Update the local state when userData changes
+  // Initialize slots from user data when it loads
   useEffect(() => {
     if (userData?.selectedLeaders && Array.isArray(userData.selectedLeaders)) {
-      // Create a fixed-size array of 3 elements, filled with nulls initially
-      const filledArray = [null, null, null] as (number | null)[];
+      // Create a fixed array of 3 slots filled with nulls
+      const slots = [null, null, null] as (number | null)[];
       
-      // Place each selected leader ID in the corresponding position
-      userData.selectedLeaders.forEach((id: number, index: number) => {
+      // Fill slots with user's selected leaders
+      userData.selectedLeaders.forEach((id, index) => {
         if (index < 3) {
-          filledArray[index] = id;
+          slots[index] = id;
         }
       });
       
-      setSelectedLeaderIds(filledArray);
-    } else {
-      setSelectedLeaderIds([null, null, null]);
+      setSelectedSlots(slots);
     }
-  }, [userData, refreshKey]);
+  }, [userData]);
   
-  // Function to handle leader removal
-  const handleRemoveLeader = async (leaderId: number, leaderName: string) => {
-    if (!userData?.selectedLeaders || isRemovingLeader) return;
+  // Toggle a leader selection
+  const toggleLeader = (leaderId: number) => {
+    // Check if this leader is already selected
+    const existingIndex = selectedSlots.indexOf(leaderId);
     
-    setIsRemovingLeader(true);
+    if (existingIndex !== -1) {
+      // Leader is already selected - remove it
+      const newSlots = [...selectedSlots];
+      newSlots[existingIndex] = null;
+      setSelectedSlots(newSlots);
+    } else {
+      // Leader is not selected - try to add it
+      const firstEmptyIndex = selectedSlots.findIndex(slot => slot === null);
+      
+      if (firstEmptyIndex !== -1) {
+        // Empty slot found - add the leader
+        const newSlots = [...selectedSlots];
+        newSlots[firstEmptyIndex] = leaderId;
+        setSelectedSlots(newSlots);
+      } else {
+        // No empty slots - show error
+        toast({
+          title: "Maximum leaders reached",
+          description: "You can only select up to 3 leaders. Please remove a leader before adding a new one.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+  
+  // Save selections to the database
+  const saveSelections = async () => {
+    // Filter out nulls to get a clean array of IDs
+    const selectedLeaderIds = selectedSlots.filter((id): id is number => id !== null);
+    
+    if (selectedLeaderIds.length === 0) {
+      toast({
+        title: "No leaders selected",
+        description: "Please select at least one leader who inspires you.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setIsSaving(true);
     
     try {
-      // Create a new array without the removed leader
-      const newSelections = userData.selectedLeaders.filter((id: number) => id !== leaderId);
-      
-      // Update the user's selected leaders
+      // Save to backend
       const response = await apiRequest('PATCH', '/api/users/me', {
-        selectedLeaders: newSelections
+        selectedLeaders: selectedLeaderIds
       });
       
       if (response.ok) {
-        // Show success toast
         toast({
-          title: "Leader removed",
-          description: `${leaderName} has been removed from your inspirations.`,
+          title: "Leaders saved",
+          description: "Your leadership inspirations have been saved successfully."
         });
         
-        // Immediately update local state for instant UI feedback
-        setSelectedLeaderIds(newSelections);
-        
-        // Increment refresh key to force re-render with updated leaders
-        setRefreshKey(prevKey => prevKey + 1);
-        
-        // Force invalidate all user data queries to ensure UI updates
-        await queryClient.invalidateQueries({ 
+        // Refresh data
+        await queryClient.invalidateQueries({
           queryKey: ['/api/users/me']
         });
       } else {
-        throw new Error("Failed to update leader selections");
+        throw new Error("Failed to save leader selections");
       }
     } catch (error) {
-      console.error("Error removing leader:", error);
+      console.error("Error saving leaders:", error);
       toast({
         title: "Error",
-        description: "Failed to remove leader. Please try again.",
-        variant: "destructive",
+        description: "Failed to save leaders. Please try again.",
+        variant: "destructive"
       });
     } finally {
-      setIsRemovingLeader(false);
+      setIsSaving(false);
     }
   };
 
@@ -126,7 +153,7 @@ export default function LeadershipInspirations() {
               {/* Always render 3 fixed slots */}
               {[0, 1, 2].map((index) => {
                 // Get leader ID from the fixed-size array (could be null)
-                const leaderId = selectedLeaderIds[index];
+                const leaderId = selectedLeaderSlots[index];
                 // Find the leader object from the ID if it exists
                 const selectedLeader = leaderId !== null && Array.isArray(leaders) ? 
                   leaders.find(leader => leader.id === leaderId) : null;
@@ -159,8 +186,7 @@ export default function LeadershipInspirations() {
                           
                           <button 
                             className="absolute -top-2 -right-2 bg-red-100 rounded-full w-5 h-5 flex items-center justify-center text-red-700 hover:bg-red-200 transition-colors"
-                            onClick={() => handleRemoveLeader(selectedLeader.id, selectedLeader.name)}
-                            disabled={isRemovingLeader}
+                            onClick={() => toggleLeaderSelection(selectedLeader.id)}
                             aria-label={`Remove ${selectedLeader.name}`}
                           >
                             <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -192,31 +218,84 @@ export default function LeadershipInspirations() {
             </div>
           </Card>
           
-          {/* Leader Selection */}
+          {/* Leader Selection Grid */}
           <Card className="p-6">
             <H2 className="text-xl mb-4">Available Leaders</H2>
             <p className="text-gray-600 mb-6">
               Select from our curated list of leaders to inspire your communication style.
             </p>
             
-            <LeaderSelection 
-              leaders={Array.isArray(leaders) ? 
-                leaders.map(leader => ({
-                  ...leader,
-                  traits: leader.traits || [],
-                  photoUrl: leader.photoUrl || '',
-                  generationMostAffected: leader.generationMostAffected || '',
-                  leadershipStyles: leader.leadershipStyles || [],
-                  famousPhrases: leader.famousPhrases || []
-                })) : []
-              } 
-              currentSelections={(userData?.selectedLeaders || []).filter((id): id is number => typeof id === 'number')}
-              isSettingsPage={true}
-              onComplete={() => {
-                // Force reload of the page after saving to show updated selections
-                window.location.reload();
-              }}
-            />
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {Array.isArray(leaders) && leaders
+                .filter(leader => !leader.controversial) // Filter out controversial leaders
+                .map((leader) => {
+                  // Check if this leader is already selected
+                  const isSelected = selectedLeaderSlots.includes(leader.id);
+                  
+                  return (
+                    <div 
+                      key={leader.id}
+                      className={`relative bg-white overflow-hidden rounded-lg border ${
+                        isSelected ? "border-primary border-2" : "border-gray-200"
+                      } hover:shadow-md transition-shadow cursor-pointer`}
+                      onClick={() => toggleLeaderSelection(leader.id)}
+                    >
+                      {/* Selected badge */}
+                      {isSelected && (
+                        <div className="absolute top-2 right-2 z-10">
+                          <Badge className="bg-primary text-white">
+                            Selected
+                          </Badge>
+                        </div>
+                      )}
+                      
+                      {/* Leader image */}
+                      {leader.photoUrl ? (
+                        <img 
+                          src={leader.photoUrl} 
+                          alt={leader.name} 
+                          className="w-full h-52 object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-52 bg-gray-200 flex items-center justify-center">
+                          <span className="text-gray-400">No image</span>
+                        </div>
+                      )}
+                      
+                      <div className="p-4">
+                        <h3 className="font-bold text-gray-900 text-lg">{leader.name}</h3>
+                        <p className="text-gray-500 text-sm">{leader.title}</p>
+                        
+                        <p className="mt-3 text-gray-700 text-sm line-clamp-3">
+                          {leader.description}
+                        </p>
+                        
+                        {/* Leadership styles tags */}
+                        {leader.leadershipStyles && leader.leadershipStyles.length > 0 && (
+                          <div className="mt-4 flex flex-wrap gap-2">
+                            {leader.leadershipStyles.map((style, index) => (
+                              <Badge key={index} variant="outline" className="text-xs bg-gray-50">
+                                {style}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+            
+            {/* Save Button */}
+            <div className="mt-8 flex justify-center">
+              <Button
+                onClick={saveLeaderSelections}
+                disabled={isSaving || selectedLeaderSlots.every(slot => slot === null)}
+                className="px-6"
+              >
+                {isSaving ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </div>
           </Card>
         </>
       )}
