@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import {
@@ -27,7 +28,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
 import { Recording } from "@shared/schema";
-import { BackButton } from "@/components/BackButton";
+import AppLayout from "@/components/AppLayout";
 import {
   Select,
   SelectContent,
@@ -549,24 +550,36 @@ export default function Progress() {
     }));
   };
 
+  const [, setLocation] = useLocation();
+  
+  // Navigation function
+  const navigate = (path: string) => {
+    setLocation(path);
+  };
+
   if (isLoading || authLoading) {
-    return <ProgressSkeleton />;
+    return (
+      <AppLayout showBackButton backTo="/dashboard" backLabel="Back to Dashboard" pageTitle="Your Progress">
+        <div className="flex items-center justify-center h-96">
+          <Skeleton className="w-full h-80" />
+        </div>
+      </AppLayout>
+    );
   }
 
   const timeBasedChartData = getTimeBasedChartData();
   const recordingsChartData = getRecordingsChartData();
 
   return (
-    <div className="container mx-auto py-6 px-4 sm:px-6 lg:px-8">
-      <div className="flex flex-col">
-        <BackButton to="/dashboard" label="Back to Dashboard" />
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Your Progress</h1>
-          <p className="text-gray-500 mt-2">
-            Track your communication improvement over time
-          </p>
-        </div>
-      </div>
+    <AppLayout 
+      showBackButton 
+      backTo="/dashboard" 
+      backLabel="Back to Dashboard"
+      pageTitle="Your Progress"
+    >
+      <p className="text-muted-foreground mb-8">
+        Track your communication improvement over time
+      </p>
 
       <div className="grid grid-cols-1 gap-8">
         {/* Time-Based Progress Chart */}
@@ -898,13 +911,9 @@ export default function Progress() {
 
 function ProgressSkeleton() {
   return (
-    <div className="container mx-auto py-6 px-4 sm:px-6 lg:px-8">
-      <div className="flex flex-col">
-        <Skeleton className="h-8 w-32 mb-4" /> {/* BackButton skeleton */}
-        <div className="mb-8">
-          <Skeleton className="h-10 w-64 mb-2" />
-          <Skeleton className="h-5 w-96" />
-        </div>
+    <AppLayout showBackButton backTo="/dashboard" backLabel="Back to Dashboard" pageTitle="Your Progress">
+      <div className="mb-8">
+        <Skeleton className="h-5 w-96" />
       </div>
 
       <div className="grid grid-cols-1 gap-6">
