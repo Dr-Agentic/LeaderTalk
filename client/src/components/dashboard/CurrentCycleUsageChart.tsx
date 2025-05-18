@@ -128,16 +128,16 @@ function prepareUsageDataByCycle(usageHistory, yearMonth) {
 function CustomTooltip({ active, payload, label }) {
   if (active && payload && payload.length) {
     const entry = payload[0].payload;
-    const recordingTitle = entry.recordingName || `Recording ${label || ''}`;
+    const recordingTitle = entry.recordingName || entry.title || `Recording ${label || ''}`;
     
     return (
       <div className="bg-background border rounded-md shadow-md p-3 text-sm">
-        <p className="font-medium">{recordingTitle}</p>
+        <p className="font-semibold text-primary">{recordingTitle}</p>
         <p className="text-xs text-muted-foreground mb-1">{entry.fullDate}</p>
-        <p className="text-primary">
+        <p className="text-sm">
           Words recorded: {entry.words.toLocaleString()}
         </p>
-        <p className="text-muted-foreground">
+        <p className="text-muted-foreground text-sm">
           Total this cycle: {entry.runningTotal?.toLocaleString() || entry.words.toLocaleString()} words
         </p>
       </div>
