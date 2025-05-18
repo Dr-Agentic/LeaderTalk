@@ -44,7 +44,7 @@ export default function LeadershipInspirations() {
       const slots = [null, null, null] as (number | null)[];
       
       // Fill slots with user's selected leaders
-      userData.selectedLeaders.forEach((id, index) => {
+      userData.selectedLeaders.forEach((id: number, index: number) => {
         if (index < 3) {
           slots[index] = id;
         }
@@ -153,7 +153,7 @@ export default function LeadershipInspirations() {
               {/* Always render 3 fixed slots */}
               {[0, 1, 2].map((index) => {
                 // Get leader ID from the fixed-size array (could be null)
-                const leaderId = selectedLeaderSlots[index];
+                const leaderId = selectedSlots[index];
                 // Find the leader object from the ID if it exists
                 const selectedLeader = leaderId !== null && Array.isArray(leaders) ? 
                   leaders.find(leader => leader.id === leaderId) : null;
@@ -186,7 +186,7 @@ export default function LeadershipInspirations() {
                           
                           <button 
                             className="absolute -top-2 -right-2 bg-red-100 rounded-full w-5 h-5 flex items-center justify-center text-red-700 hover:bg-red-200 transition-colors"
-                            onClick={() => toggleLeaderSelection(selectedLeader.id)}
+                            onClick={() => toggleLeader(selectedLeader.id)}
                             aria-label={`Remove ${selectedLeader.name}`}
                           >
                             <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -230,7 +230,7 @@ export default function LeadershipInspirations() {
                 .filter(leader => !leader.controversial) // Filter out controversial leaders
                 .map((leader) => {
                   // Check if this leader is already selected
-                  const isSelected = selectedLeaderSlots.includes(leader.id);
+                  const isSelected = selectedSlots.includes(leader.id);
                   
                   return (
                     <div 
@@ -238,14 +238,14 @@ export default function LeadershipInspirations() {
                       className={`relative bg-white overflow-hidden rounded-lg border ${
                         isSelected ? "border-primary border-2" : "border-gray-200"
                       } hover:shadow-md transition-shadow cursor-pointer`}
-                      onClick={() => toggleLeaderSelection(leader.id)}
+                      onClick={() => toggleLeader(leader.id)}
                     >
                       {/* Selected badge */}
                       {isSelected && (
                         <div className="absolute top-2 right-2 z-10">
-                          <Badge className="bg-primary text-white">
+                          <div className="bg-primary text-white text-xs font-medium py-1 px-2 rounded-full">
                             Selected
-                          </Badge>
+                          </div>
                         </div>
                       )}
                       
@@ -273,10 +273,13 @@ export default function LeadershipInspirations() {
                         {/* Leadership styles tags */}
                         {leader.leadershipStyles && leader.leadershipStyles.length > 0 && (
                           <div className="mt-4 flex flex-wrap gap-2">
-                            {leader.leadershipStyles.map((style, index) => (
-                              <Badge key={index} variant="outline" className="text-xs bg-gray-50">
+                            {leader.leadershipStyles.map((style: string, index: number) => (
+                              <div 
+                                key={index} 
+                                className="text-xs bg-gray-50 border border-gray-200 px-2 py-1 rounded-full"
+                              >
                                 {style}
-                              </Badge>
+                              </div>
                             ))}
                           </div>
                         )}
@@ -289,8 +292,8 @@ export default function LeadershipInspirations() {
             {/* Save Button */}
             <div className="mt-8 flex justify-center">
               <Button
-                onClick={saveLeaderSelections}
-                disabled={isSaving || selectedLeaderSlots.every(slot => slot === null)}
+                onClick={saveSelections}
+                disabled={isSaving || selectedSlots.every(slot => slot === null)}
                 className="px-6"
               >
                 {isSaving ? 'Saving...' : 'Save Changes'}
