@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { signOut } from "@/firebase";
@@ -16,6 +17,20 @@ import {
 
 export default function Sidebar({ sidebarOpen, setSidebarOpen, user }) {
   const [location] = useLocation();
+  
+  // Listen for the custom closeSidebar event
+  useEffect(() => {
+    const handleCloseSidebar = (event) => {
+      setSidebarOpen(event.detail.value);
+    };
+    
+    window.addEventListener('closeSidebar', handleCloseSidebar);
+    
+    // Clean up the event listener when the component unmounts
+    return () => {
+      window.removeEventListener('closeSidebar', handleCloseSidebar);
+    };
+  }, [setSidebarOpen]);
   
   return (
     <>
@@ -66,6 +81,15 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, user }) {
 }
 
 function SidebarContent({ location }) {
+  // Get setSidebarOpen from parent component
+  const setSidebarOpen = (value) => {
+    // On mobile, we need to close the sidebar when a link is clicked
+    // This function is only used when we're on a mobile view
+    // We use a custom event to communicate with the parent component
+    const event = new CustomEvent('closeSidebar', { detail: { value } });
+    window.dispatchEvent(event);
+  };
+  
   const navItems = [
     { name: "Dashboard", href: "/", icon: Home },
     { name: "Record & Analyze", href: "#record-section", icon: Mic, scrollTo: true },
@@ -89,6 +113,7 @@ function SidebarContent({ location }) {
                   ? "text-primary bg-blue-50"
                   : "text-gray-600 hover:bg-gray-50"
               } rounded-md group`}
+              onClick={() => setSidebarOpen(false)}
             >
               <item.icon className="mr-3 h-5 w-5 text-gray-400 group-hover:text-primary" />
               {item.name}
@@ -102,6 +127,7 @@ function SidebarContent({ location }) {
                   ? "text-primary bg-blue-50"
                   : "text-gray-600 hover:bg-gray-50"
               } rounded-md group`}
+              onClick={() => setSidebarOpen(false)}
             >
               <item.icon className={`mr-3 h-5 w-5 ${
                 location === item.href
