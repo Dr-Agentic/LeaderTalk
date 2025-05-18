@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useLocation, Link } from "wouter";
+import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { 
   CalendarDays, 
@@ -11,7 +11,6 @@ import {
   Filter, 
   Search
 } from "lucide-react";
-import { BackButton } from "@/components/BackButton";
 import { formatDistanceToNow } from "date-fns";
 import AppLayout from "@/components/AppLayout";
 
@@ -285,13 +284,13 @@ function TranscriptCard({ recording }: { recording: Recording }) {
       </CardContent>
       
       <CardFooter className="bg-muted/50 flex justify-between">
-        <Link 
+        <WouterLink 
           href={`/transcript/${recording.id}`} 
           className="text-sm font-medium text-primary hover:text-primary/80 flex items-center"
         >
           View transcript
           <ChevronRight className="h-4 w-4 ml-1" />
-        </Link>
+        </WouterLink>
       </CardFooter>
     </Card>
   );
@@ -346,7 +345,7 @@ function EmptyState({ filter, query }: { filter?: string, query?: string }) {
         )}
       </p>
       
-      <BackButton to="/dashboard" label="Back to Dashboard" className="mt-4 mx-auto" />
+      <Button onClick={() => navigate("/dashboard")} variant="outline" className="mt-4 mx-auto">Back to Dashboard</Button>
     </div>
   );
 }
