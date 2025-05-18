@@ -86,7 +86,7 @@ export default function RevenueCatSubscription() {
 
   // Mutation to update the user's subscription in our database
   const updateSubscriptionMutation = useMutation({
-    mutationFn: async (planCode: string) => {
+    mutationFn: (planCode: string) => {
       return apiRequest('POST', '/api/users/subscription', { planCode });
     },
     onSuccess: () => {
