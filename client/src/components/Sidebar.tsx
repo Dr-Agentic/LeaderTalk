@@ -104,21 +104,6 @@ function SidebarContent({ location }) {
     <div className="flex flex-col flex-grow pt-5 pb-4 overflow-y-auto">
       <nav className="px-2 space-y-1">
         {navItems.map((item) => (
-          item.scrollTo ? (
-            <a
-              key={item.name}
-              href={item.href}
-              className={`flex items-center px-4 py-3 text-sm font-medium ${
-                false
-                  ? "text-primary bg-blue-50"
-                  : "text-gray-600 hover:bg-gray-50"
-              } rounded-md group`}
-              onClick={() => setSidebarOpen(false)}
-            >
-              <item.icon className="mr-3 h-5 w-5 text-gray-400 group-hover:text-primary" />
-              {item.name}
-            </a>
-          ) : (
             <Link
               key={item.name}
               href={item.href}
@@ -136,7 +121,6 @@ function SidebarContent({ location }) {
               }`} />
               {item.name}
             </Link>
-          )
         ))}
       </nav>
     </div>
