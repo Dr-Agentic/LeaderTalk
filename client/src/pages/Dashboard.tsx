@@ -1,17 +1,19 @@
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import QuickActions from "@/components/dashboard/QuickActions";
 import AnalysisDisplay from "@/components/dashboard/AnalysisDisplay";
-import RecordingSection from "@/components/RecordingSection";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Mic } from "lucide-react";
 import { queryClient } from "@/lib/queryClient";
 import { H1, H2, Lead, Paragraph } from "@/components/ui/typography";
 import AppLayout from "@/components/AppLayout";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function Dashboard() {
   const { toast } = useToast();
+  const [, navigate] = useLocation();
   
   const { data: recordingsData, isLoading: recordingsLoading } = useQuery({
     queryKey: ['/api/recordings'],
@@ -53,18 +55,23 @@ export default function Dashboard() {
             />
           )}
           
-          <RecordingSection 
-            onRecordingComplete={(recording) => {
-              toast({
-                title: "Recording Complete",
-                description: `Your recording "${recording.title}" is being analyzed.`,
-              });
+          <Card className="mt-8">
+            <CardContent className="pt-6">
+              <H2>Record a Conversation</H2>
+              <Paragraph className="mt-2 mb-4">
+                Record your conversations to get AI-powered insights on your communication style.
+              </Paragraph>
               
-              // Force a refetch of recordings and word usage data
-              queryClient.invalidateQueries({ queryKey: ['/api/recordings'] });
-              queryClient.invalidateQueries({ queryKey: ['/api/usage/words'] });
-            }}
-          />
+              <Button 
+                className="mt-2 flex items-center" 
+                size="lg"
+                onClick={() => navigate('/recording')}
+              >
+                <Mic className="mr-2 h-5 w-5" />
+                Go to Recording Page
+              </Button>
+            </CardContent>
+          </Card>
         </>
       )}
     </AppLayout>
