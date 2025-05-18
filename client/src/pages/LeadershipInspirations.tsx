@@ -28,6 +28,7 @@ export default function LeadershipInspirations() {
   const { userData } = useAuth();
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
+  const [viewMode, setViewMode] = useState<'detailed' | 'compact'>('detailed');
   
   // Fetch leaders data
   const { data: leaders, isLoading: isLoadingLeaders } = useQuery({
@@ -223,74 +224,156 @@ export default function LeadershipInspirations() {
           
           {/* Leader Selection Grid */}
           <Card className="p-6">
-            <H2 className="text-xl mb-4">Available Leaders</H2>
+            <div className="flex justify-between items-center mb-4">
+              <H2 className="text-xl">Available Leaders</H2>
+              <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-md">
+                <button 
+                  className={`text-xs px-3 py-1.5 rounded ${viewMode === 'detailed' ? 'bg-white shadow-sm' : 'text-gray-600'}`}
+                  onClick={() => setViewMode('detailed')}
+                >
+                  Detailed
+                </button>
+                <button 
+                  className={`text-xs px-3 py-1.5 rounded ${viewMode === 'compact' ? 'bg-white shadow-sm' : 'text-gray-600'}`}
+                  onClick={() => setViewMode('compact')}
+                >
+                  Compact
+                </button>
+              </div>
+            </div>
+            
             <p className="text-gray-600 mb-6">
               Select from our curated list of leaders to inspire your communication style.
             </p>
             
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {Array.isArray(leaders) && leaders
-                .filter(leader => !leader.controversial) // Filter out controversial leaders
-                .map((leader) => {
-                  // Check if this leader is already selected
-                  const isSelected = selectedSlots.includes(leader.id);
-                  
-                  return (
-                    <div 
-                      key={leader.id}
-                      className={`relative bg-white overflow-hidden rounded-lg border ${
-                        isSelected ? "border-primary border-2" : "border-gray-200"
-                      } hover:shadow-md transition-shadow cursor-pointer`}
-                      onClick={() => toggleLeader(leader.id)}
-                    >
-                      {/* Selected badge */}
-                      {isSelected && (
-                        <div className="absolute top-2 right-2 z-10">
-                          <div className="bg-primary text-white text-xs font-medium py-1 px-2 rounded-full">
-                            Selected
-                          </div>
-                        </div>
-                      )}
-                      
-                      {/* Leader image */}
-                      {leader.photoUrl ? (
-                        <img 
-                          src={leader.photoUrl} 
-                          alt={leader.name} 
-                          className="w-full h-52 object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-52 bg-gray-200 flex items-center justify-center">
-                          <span className="text-gray-400">No image</span>
-                        </div>
-                      )}
-                      
-                      <div className="p-4">
-                        <h3 className="font-bold text-gray-900 text-lg">{leader.name}</h3>
-                        <p className="text-gray-500 text-sm">{leader.title}</p>
-                        
-                        <p className="mt-3 text-gray-700 text-sm line-clamp-3">
-                          {leader.description}
-                        </p>
-                        
-                        {/* Leadership styles tags */}
-                        {leader.leadershipStyles && leader.leadershipStyles.length > 0 && (
-                          <div className="mt-4 flex flex-wrap gap-2">
-                            {leader.leadershipStyles.map((style: string, index: number) => (
-                              <div 
-                                key={index} 
-                                className="text-xs bg-gray-50 border border-gray-200 px-2 py-1 rounded-full"
-                              >
-                                {style}
-                              </div>
-                            ))}
+            {viewMode === 'detailed' ? (
+              // Detailed view (cards with images)
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {Array.isArray(leaders) && leaders
+                  .filter(leader => !leader.controversial) // Filter out controversial leaders
+                  .map((leader) => {
+                    // Check if this leader is already selected
+                    const isSelected = selectedSlots.includes(leader.id);
+                    
+                    return (
+                      <div 
+                        key={leader.id}
+                        className={`relative bg-white overflow-hidden rounded-lg border ${
+                          isSelected ? "border-primary border-2" : "border-gray-200"
+                        } hover:shadow-md transition-shadow cursor-pointer`}
+                        onClick={() => toggleLeader(leader.id)}
+                      >
+                        {/* Selected badge */}
+                        {isSelected && (
+                          <div className="absolute top-2 right-2 z-10">
+                            <div className="bg-primary text-white text-xs font-medium py-1 px-2 rounded-full">
+                              Selected
+                            </div>
                           </div>
                         )}
+                        
+                        {/* Leader image */}
+                        {leader.photoUrl ? (
+                          <img 
+                            src={leader.photoUrl} 
+                            alt={leader.name} 
+                            className="w-full h-52 object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-52 bg-gray-200 flex items-center justify-center">
+                            <span className="text-gray-400">No image</span>
+                          </div>
+                        )}
+                        
+                        <div className="p-4">
+                          <h3 className="font-bold text-gray-900 text-lg">{leader.name}</h3>
+                          <p className="text-gray-500 text-sm">{leader.title}</p>
+                          
+                          <p className="mt-3 text-gray-700 text-sm line-clamp-3">
+                            {leader.description}
+                          </p>
+                          
+                          {/* Leadership styles tags */}
+                          {leader.leadershipStyles && leader.leadershipStyles.length > 0 && (
+                            <div className="mt-4 flex flex-wrap gap-2">
+                              {leader.leadershipStyles.map((style: string, index: number) => (
+                                <div 
+                                  key={index} 
+                                  className="text-xs bg-gray-50 border border-gray-200 px-2 py-1 rounded-full"
+                                >
+                                  {style}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
-            </div>
+                    );
+                  })}
+              </div>
+            ) : (
+              // Compact view (row layout)
+              <div className="space-y-2">
+                {Array.isArray(leaders) && leaders
+                  .filter(leader => !leader.controversial) // Filter out controversial leaders
+                  .map((leader) => {
+                    // Check if this leader is already selected
+                    const isSelected = selectedSlots.includes(leader.id);
+                    
+                    return (
+                      <div 
+                        key={leader.id}
+                        className={`flex items-start p-3 rounded-lg border ${
+                          isSelected ? "border-primary bg-primary/5" : "border-gray-200 hover:bg-gray-50"
+                        } cursor-pointer transition-colors`}
+                        onClick={() => toggleLeader(leader.id)}
+                      >
+                        {/* Small leader image (32x32) */}
+                        <div className="w-8 h-8 rounded-full overflow-hidden mr-3 flex-shrink-0">
+                          {leader.photoUrl ? (
+                            <img 
+                              src={leader.photoUrl} 
+                              alt={leader.name} 
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary text-xs">
+                              {leader.name.split(' ').map(n => n[0]).join('')}
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="flex-grow min-w-0">
+                          <div className="flex justify-between">
+                            <h3 className="font-medium text-gray-900">{leader.name}</h3>
+                            
+                            {/* Selected indicator */}
+                            {isSelected && (
+                              <span className="text-xs text-primary font-medium ml-2">Selected</span>
+                            )}
+                          </div>
+                          
+                          <p className="text-gray-500 text-sm">{leader.title}</p>
+                          
+                          {/* Leadership styles in a single line */}
+                          {leader.leadershipStyles && leader.leadershipStyles.length > 0 && (
+                            <div className="mt-1 flex flex-wrap gap-1 overflow-hidden">
+                              {leader.leadershipStyles.map((style: string, index: number) => (
+                                <span 
+                                  key={index} 
+                                  className="text-xs text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded"
+                                >
+                                  {style}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            )}
             
             {/* Save Button */}
             <div className="mt-8 flex justify-center">
