@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { 
   CalendarDays, 
@@ -26,7 +26,7 @@ import { Recording } from "../../../shared/schema";
 type SortOption = "date-desc" | "date-asc" | "rating-desc" | "rating-asc";
 
 export default function AllTranscripts() {
-  const [, push] = useLocation();
+  const [, navigate] = useLocation();
   const [sortBy, setSortBy] = useState<SortOption>("date-desc");
   const [searchQuery, setSearchQuery] = useState("");
   
@@ -287,7 +287,7 @@ function TranscriptCard({ recording }: { recording: Recording }) {
         <Button 
           variant="link"
           className="text-sm font-medium text-primary hover:text-primary/80 flex items-center p-0"
-          onClick={() => push(`/transcript/${recording.id}`)}
+          onClick={() => navigate(`/transcript/${recording.id}`)}
         >
           View transcript
           <ChevronRight className="h-4 w-4 ml-1" />
