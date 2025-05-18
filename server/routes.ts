@@ -28,6 +28,7 @@ import {
 import { importLeadersFromFile } from "./import-leaders";
 import { updateLeaderImages } from "./update-leader-images";
 import { importTrainingData } from "./import-training-data";
+import { updateUserSubscription, handleRevenueCatWebhook } from "./subscription";
 import { z } from "zod";
 import { ZodError } from "zod";
 
