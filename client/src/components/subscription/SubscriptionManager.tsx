@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { formatDate, calculateSavings } from "@/lib/utils";
+import RevenueCatSubscription from "./RevenueCatSubscription";
 
 export default function SubscriptionManager() {
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">("monthly");
