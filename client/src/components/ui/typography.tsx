@@ -6,7 +6,7 @@ interface TypographyProps {
   className?: string;
 }
 
-// H1 - Main Heading (Libre Franklin)
+// H1 - Main Heading (Libre Franklin) 
 export function H1({ children, className }: TypographyProps) {
   return (
     <h1 className={cn("text-3xl lg:text-4xl font-franklin font-extrabold tracking-tight text-foreground", className)}>
@@ -15,10 +15,10 @@ export function H1({ children, className }: TypographyProps) {
   );
 }
 
-// H2 - Section Heading (Playfair Display with enhanced styling)
+// H2 - Section Heading (Playfair Display)
 export function H2({ children, className }: TypographyProps) {
   return (
-    <h2 className={cn("text-2xl lg:text-3xl font-serif text-foreground font-playfair leading-tight", className)}>
+    <h2 className={cn("text-2xl lg:text-3xl font-playfair text-foreground leading-tight", className)}>
       {children}
     </h2>
   );
@@ -27,7 +27,7 @@ export function H2({ children, className }: TypographyProps) {
 // H3 - Subsection Heading (Work Sans - Bold)
 export function H3({ children, className }: TypographyProps) {
   return (
-    <h3 className={cn("text-heading-3 font-sans text-foreground", className)}>
+    <h3 className={cn("text-heading-3 font-sans text-foreground font-bold", className)}>
       {children}
     </h3>
   );
@@ -90,7 +90,7 @@ export function Muted({ children, className }: TypographyProps) {
 // Blockquote for featured quotes or testimonials
 export function BlockQuote({ children, className }: TypographyProps) {
   return (
-    <blockquote className={cn("border-l-4 border-primary pl-4 italic font-serif text-body-large", className)}>
+    <blockquote className={cn("border-l-4 border-primary pl-4 italic font-playfair text-body-large", className)}>
       {children}
     </blockquote>
   );
