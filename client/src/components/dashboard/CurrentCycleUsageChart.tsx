@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, ReferenceLine } from "recharts";
 import { Info, ChevronLeft, ChevronRight, CalendarIcon } from "lucide-react";
 import { format, parseISO, setMonth, startOfMonth, endOfMonth, subMonths } from "date-fns";
 import { useState, useEffect } from "react";
@@ -93,7 +93,8 @@ function prepareUsageDataByCycle(usageHistory, yearMonth) {
       words: entry.wordCount,
       runningTotal: runningTotal,
       timestamp: entryDate.getTime(), // Used for tooltip custom sorting
-      rawDate: entry.createdAt // Keep the original date
+      rawDate: entry.createdAt, // Keep the original date
+      fullDate: format(entryDate, 'MMMM d, yyyy')
     };
   });
 
@@ -108,7 +109,8 @@ function prepareUsageDataByCycle(usageHistory, yearMonth) {
           words: 0,
           entries: 0,
           latestTimestamp: item.timestamp,
-          rawDate: item.rawDate
+          rawDate: item.rawDate,
+          fullDate: item.fullDate
         };
       }
       acc[key].words += item.words;
@@ -130,7 +132,8 @@ function prepareUsageDataByCycle(usageHistory, yearMonth) {
         words: item.words,
         runningTotal: runningSum,
         entries: item.entries,
-        rawDate: item.rawDate
+        rawDate: item.rawDate,
+        fullDate: item.fullDate
       };
     });
 
@@ -154,12 +157,12 @@ function CustomTooltip({ active, payload, label }) {
   if (active && payload && payload.length) {
     return (
       <div className="bg-background border rounded-md shadow-md p-3 text-sm">
-        <p className="font-medium">{label}</p>
+        <p className="font-medium">{payload[0].payload.fullDate || label}</p>
         <p className="text-primary">
-          Words this session: {payload[0].payload.words.toLocaleString()}
+          Words recorded: {payload[0].payload.words.toLocaleString()}
         </p>
         <p className="text-muted-foreground">
-          Total used: {payload[0].payload.runningTotal?.toLocaleString() || payload[0].payload.words.toLocaleString()} words
+          Total this month: {payload[0].payload.runningTotal?.toLocaleString() || payload[0].payload.words.toLocaleString()} words
         </p>
         {payload[0].payload.entries > 1 && (
           <p className="text-xs text-muted-foreground mt-1">
@@ -289,14 +292,27 @@ export default function CurrentCycleUsageChart() {
   // Check if this is the current month
   const isCurrentMonth = selectedMonth === format(new Date(), 'yyyy-MM');
 
+  // Calculate the maximum value for Y-axis to create a consistent scale
+  const maxWordCount = chartData.length > 0 
+    ? Math.max(...chartData.map(entry => entry.words)) 
+    : 0;
+  const yAxisMax = Math.ceil(maxWordCount * 1.2); // Add 20% for better visualization
+
   return (
     <Card className="mb-6">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle>Monthly Usage History</CardTitle>
-        <div className="flex items-center space-x-2">
-          <div className="flex items-center text-sm text-muted-foreground">
-            <CalendarIcon className="h-4 w-4 mr-1" />
-            <span>{monthYear}</span>
+        <div className="flex flex-col">
+          <CardTitle className="text-2xl font-bold">Monthly Usage History</CardTitle>
+          {chartData.length > 0 && (
+            <p className="text-sm text-muted-foreground mt-1">
+              {totalWords.toLocaleString()} words recorded in {monthYear}
+            </p>
+          )}
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 bg-muted/50 rounded-md px-3 py-1.5">
+            <CalendarIcon className="h-4 w-4 text-primary" />
+            <span className="font-medium">{monthYear}</span>
           </div>
           <div className="flex space-x-1">
             <Button 
@@ -322,27 +338,47 @@ export default function CurrentCycleUsageChart() {
       </CardHeader>
       <CardContent>
         {chartData.length > 0 ? (
-          <div className="h-64">
+          <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+              <BarChart 
+                data={chartData} 
+                margin={{ top: 20, right: 20, left: 10, bottom: 10 }}
+                barSize={40}
+              >
                 <XAxis
                   dataKey="date"
                   fontSize={12}
-                  interval="preserveStartEnd"
+                  angle={0}
+                  textAnchor="middle"
+                  height={50}
+                  interval={0}
+                  padding={{ left: 20, right: 20 }}
                 />
                 <YAxis 
                   fontSize={12}
-                  tickFormatter={(value) => value.toLocaleString()}
+                  tickFormatter={(value) => value === 0 ? '0' : value.toLocaleString()}
+                  domain={[0, yAxisMax > 0 ? yAxisMax : 600]}
+                  allowDecimals={false}
+                  width={60}
                 />
-                <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="words" name="Words Used">
+                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }} />
+                <Bar 
+                  dataKey="words" 
+                  name="Words Used"
+                  radius={[4, 4, 0, 0]}
+                >
                   {chartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={getBarColor(entry)} />
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={getBarColor(entry)} 
+                      stroke="var(--border)"
+                      strokeWidth={0.5}
+                    />
                   ))}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
-            <div className="mt-4 flex items-center text-sm text-muted-foreground">
+            <div className="mt-1 flex items-center justify-center text-sm text-muted-foreground">
               <Info className="h-4 w-4 mr-2" />
               <span>
                 {chartData.length > 0 ? `Showing ${chartData.length} recording session${chartData.length !== 1 ? 's' : ''} for ${monthYear}` : `No recordings in ${monthYear}`}
