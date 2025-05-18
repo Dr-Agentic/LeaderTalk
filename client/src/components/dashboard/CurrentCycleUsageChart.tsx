@@ -45,7 +45,7 @@ function prepareMonthlyUsageData(usageHistory) {
 }
 
 // For the billing cycle view
-function prepareUsageDataByCycle(usageHistory, yearMonth) {
+function prepareUsageDataByCycle(usageHistory, yearMonth, recordingsMap = {}) {
   if (!usageHistory || !Array.isArray(usageHistory) || usageHistory.length === 0) {
     return { chartData: [], monthYear: null, totalWords: 0 };
   }
@@ -89,6 +89,10 @@ function prepareUsageDataByCycle(usageHistory, yearMonth) {
       .slice(0, index + 1)
       .reduce((sum, e) => sum + e.wordCount, 0);
     
+    // Get the recording title from recordings map if available
+    const recording = recordingsMap[entry.recordingId];
+    const recordingTitle = recording ? recording.title : null;
+    
     return {
       date: recordingNumber, // Show minimal or no label when many recordings
       words: entry.wordCount,
@@ -96,8 +100,8 @@ function prepareUsageDataByCycle(usageHistory, yearMonth) {
       timestamp: entryDate.getTime(),
       rawDate: entry.createdAt,
       fullDate: format(entryDate, 'MMMM d, yyyy'),
-      title: entry.title || `Recording ${index + 1}`,
-      recordingName: entry.title // Use actual recording name from database when available
+      title: recordingTitle || entry.title || `Recording ${index + 1}`,
+      recordingName: recordingTitle || entry.title || `Recording ${index + 1}` // Use actual recording name from database when available
     };
   });
 
@@ -151,6 +155,11 @@ export default function CurrentCycleUsageChart() {
     queryKey: ['/api/usage/words'],
   });
   
+  // Also fetch the actual recordings to get their titles
+  const { data: recordingsData } = useQuery({
+    queryKey: ['/api/recordings'],
+  });
+  
   // State for the month we're viewing (format: 'YYYY-MM')
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date();
@@ -169,12 +178,18 @@ export default function CurrentCycleUsageChart() {
 
   // Process the data to get monthly usage and details for the selected month
   useEffect(() => {
-    if (!data || !data.history || !Array.isArray(data.history)) {
+    if (!data || !data.history || !Array.isArray(data.history) || !recordingsData) {
       return;
     }
 
+    // Map recordings by ID for easy lookup
+    const recordingsMap = Array.isArray(recordingsData) ? recordingsData.reduce((map, rec) => {
+      map[rec.id] = rec;
+      return map;
+    }, {}) : {};
+
     // Get monthly totals
-    const monthlyTotals = prepareMonthlyUsageData(data.history);
+    const monthlyTotals = prepareMonthlyUsageData(data.history, recordingsMap);
     
     // Make sure we have at least 6 months of data for display
     const sixMonths = [];
@@ -207,7 +222,7 @@ export default function CurrentCycleUsageChart() {
     const sortedMonths = sixMonths.sort((a, b) => b.sortDate - a.sortDate);
     
     // Get data for the selected month
-    const currentMonthData = prepareUsageDataByCycle(data.history, selectedMonth);
+    const currentMonthData = prepareUsageDataByCycle(data.history, selectedMonth, recordingsMap);
     
     setMonthlyData({
       allMonths: sortedMonths,
