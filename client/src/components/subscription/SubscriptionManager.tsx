@@ -107,68 +107,47 @@ export default function SubscriptionManager() {
         </div>
       )}
       
-      {/* Payment Provider Selection */}
+      {/* Billing Period Selector */}
       <div className="flex justify-center mb-6">
         <Tabs 
-          defaultValue="legacy" 
-          value={paymentProcessor}
-          onValueChange={(value) => setPaymentProcessor(value as "legacy" | "revenuecat")} 
+          defaultValue="monthly" 
+          value={billingPeriod}
+          onValueChange={(value) => setBillingPeriod(value as "monthly" | "yearly")} 
           className="w-full"
         >
           <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
-            <TabsTrigger value="legacy">Standard Payment</TabsTrigger>
-            <TabsTrigger value="revenuecat">RevenueCat Payment</TabsTrigger>
+            <TabsTrigger value="monthly">Monthly</TabsTrigger>
+            <TabsTrigger value="yearly">Yearly (Save up to 30%)</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="revenuecat" className="mt-6">
-            <RevenueCatSubscription />
+          <TabsContent value="monthly" className="mt-6">
+            <div className="grid gap-4 md:grid-cols-3">
+              {sortedPlans.map((plan) => (
+                <PlanCard
+                  key={plan.planCode}
+                  plan={plan}
+                  isCurrentPlan={currentPlan?.planCode === plan.planCode}
+                  isSelected={selectedPlan === plan.planCode}
+                  onSelect={() => setSelectedPlan(plan.planCode)}
+                  billingPeriod={billingPeriod}
+                />
+              ))}
+            </div>
           </TabsContent>
           
-          <TabsContent value="legacy" className="mt-6">
-            {/* Billing Period Selector */}
-            <div className="flex justify-center mb-6">
-              <Tabs 
-                defaultValue="monthly" 
-                value={billingPeriod}
-                onValueChange={(value) => setBillingPeriod(value as "monthly" | "yearly")} 
-                className="w-full"
-              >
-                <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
-                  <TabsTrigger value="monthly">Monthly</TabsTrigger>
-                  <TabsTrigger value="yearly">Yearly (Save up to 30%)</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="monthly" className="mt-6">
-                  <div className="grid gap-4 md:grid-cols-3">
-                    {sortedPlans.map((plan) => (
-                      <PlanCard
-                        key={plan.planCode}
-                        plan={plan}
-                        isCurrentPlan={currentPlan?.planCode === plan.planCode}
-                        isSelected={selectedPlan === plan.planCode}
-                        onSelect={() => setSelectedPlan(plan.planCode)}
-                        billingPeriod={billingPeriod}
-                      />
-                    ))}
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="yearly" className="mt-6">
-                  <div className="grid gap-4 md:grid-cols-3">
-                    {sortedPlans.map((plan) => (
-                      <PlanCard
-                        key={plan.planCode}
-                        plan={plan}
-                        isCurrentPlan={currentPlan?.planCode === plan.planCode}
-                        isSelected={selectedPlan === plan.planCode}
-                        onSelect={() => setSelectedPlan(plan.planCode)}
-                        billingPeriod={billingPeriod}
-                        savingsPercentage={calculateSavings(plan.monthlyPrice, plan.yearlyPrice)}
-                      />
-                    ))}
-                  </div>
-                </TabsContent>
-              </Tabs>
+          <TabsContent value="yearly" className="mt-6">
+            <div className="grid gap-4 md:grid-cols-3">
+              {sortedPlans.map((plan) => (
+                <PlanCard
+                  key={plan.planCode}
+                  plan={plan}
+                  isCurrentPlan={currentPlan?.planCode === plan.planCode}
+                  isSelected={selectedPlan === plan.planCode}
+                  onSelect={() => setSelectedPlan(plan.planCode)}
+                  billingPeriod={billingPeriod}
+                  savingsPercentage={calculateSavings(plan.monthlyPrice, plan.yearlyPrice)}
+                />
+              ))}
             </div>
           </TabsContent>
         </Tabs>
