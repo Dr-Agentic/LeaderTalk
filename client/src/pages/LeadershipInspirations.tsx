@@ -113,13 +113,13 @@ export default function LeadershipInspirations() {
           description: "Your leadership inspirations have been saved successfully."
         });
         
-        // Refresh data and scroll to top
+        // Refresh data
         await queryClient.invalidateQueries({
           queryKey: ['/api/users/me']
         });
         
-        // Scroll to the top of the page to see updated selections
-        window.scrollTo(0, 0);
+        // Reload the page and scroll to top to see updated selections
+        window.location.href = window.location.pathname;
       } else {
         throw new Error("Failed to save leader selections");
       }
