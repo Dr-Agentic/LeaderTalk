@@ -68,6 +68,9 @@ export default function LeadershipInspirations() {
           description: `${leaderName} has been removed from your inspirations.`,
         });
         
+        // Immediately update local state for instant UI feedback
+        setSelectedLeaderIds(newSelections);
+        
         // Force invalidate all user data queries to ensure UI updates
         await queryClient.invalidateQueries({ 
           queryKey: ['/api/users/me']
@@ -108,9 +111,10 @@ export default function LeadershipInspirations() {
             <div className="flex flex-wrap justify-center gap-4">
               {/* Always render 3 fixed slots */}
               {[0, 1, 2].map((index) => {
-                // Get leader ID from our local state which updates when userData changes
+                // Use the selectedLeaderIds state to determine which leaders are selected
                 const leaderId = selectedLeaderIds[index];
-                const selectedLeader = Array.isArray(leaders) ? 
+                // Only try to find a leader if the ID exists
+                const selectedLeader = leaderId && Array.isArray(leaders) ? 
                   leaders.find(leader => leader.id === leaderId) : null;
                 
                 // This slot has a leader assigned
