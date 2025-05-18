@@ -305,14 +305,18 @@ export default function CurrentCycleUsageChart() {
           <CardTitle className="text-2xl font-bold">Billing Cycle Recordings</CardTitle>
           {chartData.length > 0 && (
             <p className="text-sm text-muted-foreground">
-              {totalWords.toLocaleString()} words recorded in your billing cycle ({formattedDateRange})
+              {totalWords.toLocaleString()} words recorded in your billing cycle
             </p>
           )}
           
           <div className="flex items-center justify-between mt-3">
             <div className="flex items-center gap-1 bg-muted/50 rounded-md px-3 py-1.5">
               <CalendarIcon className="h-4 w-4 text-primary" />
-              <span className="font-medium">Billing Period {data?.billingCycle?.cycleNumber || 1}</span>
+              <span className="font-medium">
+                {data?.billingCycle?.startDate && data?.billingCycle?.endDate 
+                  ? `${new Date(data.billingCycle.startDate).toLocaleDateString()} - ${new Date(data.billingCycle.endDate).toLocaleDateString()}`
+                  : 'Current Billing Period'}
+              </span>
             </div>
             <div className="flex space-x-1">
               <Button 
