@@ -28,7 +28,7 @@ export default function LeadershipInspirations() {
   const { userData } = useAuth();
   const { toast } = useToast();
   const [isRemovingLeader, setIsRemovingLeader] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0); // Add a refresh key to force re-render
+  const [refreshKey, setRefreshKey] = useState(0);
   
   // Fetch leaders data and ensure it updates when user data changes
   const { data: leaders, isLoading: isLoadingLeaders } = useQuery({
@@ -36,14 +36,24 @@ export default function LeadershipInspirations() {
   });
   
   // Force component to update when userData changes
-  const [selectedLeaderIds, setSelectedLeaderIds] = useState<number[]>([]);
+  const [selectedLeaderIds, setSelectedLeaderIds] = useState<(number | null)[]>([null, null, null]);
   
-  // Update the local state when userData changes or refresh is triggered
+  // Update the local state when userData changes
   useEffect(() => {
-    if (userData?.selectedLeaders) {
-      setSelectedLeaderIds([...userData.selectedLeaders]);
+    if (userData?.selectedLeaders && Array.isArray(userData.selectedLeaders)) {
+      // Create a fixed-size array of 3 elements, filled with nulls initially
+      const filledArray = [null, null, null] as (number | null)[];
+      
+      // Place each selected leader ID in the corresponding position
+      userData.selectedLeaders.forEach((id: number, index: number) => {
+        if (index < 3) {
+          filledArray[index] = id;
+        }
+      });
+      
+      setSelectedLeaderIds(filledArray);
     } else {
-      setSelectedLeaderIds([]);
+      setSelectedLeaderIds([null, null, null]);
     }
   }, [userData, refreshKey]);
   
@@ -115,10 +125,10 @@ export default function LeadershipInspirations() {
             <div className="flex flex-wrap justify-center gap-4">
               {/* Always render 3 fixed slots */}
               {[0, 1, 2].map((index) => {
-                // Use the selectedLeaderIds state to determine which leaders are selected
+                // Get leader ID from the fixed-size array (could be null)
                 const leaderId = selectedLeaderIds[index];
-                // Only try to find a leader if the ID exists
-                const selectedLeader = leaderId && Array.isArray(leaders) ? 
+                // Find the leader object from the ID if it exists
+                const selectedLeader = leaderId !== null && Array.isArray(leaders) ? 
                   leaders.find(leader => leader.id === leaderId) : null;
                 
                 // This slot has a leader assigned
@@ -200,11 +210,11 @@ export default function LeadershipInspirations() {
                   famousPhrases: leader.famousPhrases || []
                 })) : []
               } 
-              currentSelections={selectedLeaderIds}
+              currentSelections={userData?.selectedLeaders || []}
               isSettingsPage={true}
               onComplete={() => {
-                // Force refresh after saving selections
-                setRefreshKey(prevKey => prevKey + 1);
+                // Force reload of the page after saving to show updated selections
+                window.location.reload();
               }}
             />
           </Card>
