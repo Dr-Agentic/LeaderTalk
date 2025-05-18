@@ -76,15 +76,14 @@ export default function Settings() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">NAME</h3>
-                  <p className="mt-1 text-sm text-gray-900">{userData?.username || 'Not set'}</p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">EMAIL</h3>
-                  <p className="mt-1 text-sm text-gray-900">{userData?.email || 'Not set'}</p>
-                </div>
+              <div>
+                <h3 className="text-sm font-medium text-gray-500">NAME</h3>
+                <p className="mt-1 text-sm text-gray-900">{userData?.username || 'Not set'}</p>
+              </div>
+              
+              <div>
+                <h3 className="text-sm font-medium text-gray-500">EMAIL</h3>
+                <p className="mt-1 text-sm text-gray-900 break-all">{userData?.email || 'Not set'}</p>
               </div>
               
               <div className="grid grid-cols-2 gap-4">
