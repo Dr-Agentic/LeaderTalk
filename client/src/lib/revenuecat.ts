@@ -16,8 +16,7 @@ export async function initializeRevenueCat() {
       apiKey: RC_PUBLIC_SDK_KEY,
       appUserID: undefined, // Optional user ID
       observerMode: false, // Set to true to prevent making purchases
-      useAmazon: false, // Set to true to use Amazon as the store
-    });
+    } as PurchasesConfiguration);
     
     console.log('RevenueCat SDK initialized successfully');
     

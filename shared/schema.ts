@@ -21,6 +21,10 @@ export const users = pgTable("users", {
   lastPaymentDate: timestamp("last_payment_date"),
   // Current subscription plan (free, premium, etc.)
   subscriptionPlan: text("subscription_plan").default("free"),
+  // When the subscription was last updated
+  subscriptionUpdatedAt: timestamp("subscription_updated_at"),
+  // When the subscription expires (if applicable)
+  subscriptionExpirationDate: timestamp("subscription_expiration_date"),
 });
 
 export const leaders = pgTable("leaders", {

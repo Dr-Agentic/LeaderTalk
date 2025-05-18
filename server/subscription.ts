@@ -114,7 +114,7 @@ async function handleSubscriptionActivation(event: any) {
     
     // Update the user's subscription
     await storage.updateUser(user.id, {
-      subscriptionPlanId: plan.id,
+      subscriptionPlan: planCode,
       subscriptionUpdatedAt: new Date(),
       subscriptionExpirationDate: new Date(event.expiration_at_ms),
     });
@@ -143,7 +143,7 @@ async function handleSubscriptionDeactivation(event: any) {
     
     // Update the user's subscription to the default plan
     await storage.updateUser(user.id, {
-      subscriptionPlanId: defaultPlan.id,
+      subscriptionPlan: defaultPlan.planCode,
       subscriptionUpdatedAt: new Date(),
       subscriptionExpirationDate: null,
     });
@@ -189,7 +189,7 @@ async function handleSubscriptionChange(event: any) {
     
     // Update the user's subscription
     await storage.updateUser(user.id, {
-      subscriptionPlanId: plan.id,
+      subscriptionPlan: planCode,
       subscriptionUpdatedAt: new Date(),
       subscriptionExpirationDate: new Date(event.expiration_at_ms),
     });
