@@ -385,7 +385,7 @@ export default function RecordingSection({ onRecordingComplete }: RecordingSecti
   
   return (
     <div id="record-section" className="mt-10">
-      <H2>Record a Conversation</H2>
+      <h2 className="text-2xl lg:text-3xl font-playfair text-foreground leading-tight">Record a Conversation</h2>
       
       <div className="mt-4 bg-white shadow sm:rounded-lg">
         <div className="px-4 py-5 sm:p-6">
