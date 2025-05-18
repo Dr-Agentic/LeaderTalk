@@ -28,7 +28,7 @@ interface SubscriptionPlan {
 export default function RevenueCatSubscription() {
   const { toast } = useToast();
   const auth = useAuth();
-  const user = auth.user as User | undefined;
+  const user = auth.userData as User | undefined;
   const [loading, setLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [availablePackages, setAvailablePackages] = useState<any[]>([]);
@@ -38,9 +38,12 @@ export default function RevenueCatSubscription() {
   });
 
   // Get subscription plans from our database
-  const { data: plansData, isLoading: isPlansLoading } = useQuery({
-    queryKey: ['/api/subscription-plans'],
-    queryFn: getQueryFn(),
+  interface SubscriptionPlansResponse {
+    plans: SubscriptionPlan[];
+  }
+
+  const { data: plansData, isLoading: isPlansLoading } = useQuery<SubscriptionPlansResponse>({
+    queryKey: ['/api/subscription-plans']
   });
   
   const plans: SubscriptionPlan[] = plansData?.plans || [];
@@ -84,11 +87,7 @@ export default function RevenueCatSubscription() {
   // Mutation to update the user's subscription in our database
   const updateSubscriptionMutation = useMutation({
     mutationFn: async (planCode: string) => {
-      return apiRequest({
-        url: '/api/users/subscription',
-        method: 'POST',
-        data: { planCode },
-      });
+      return apiRequest('POST', '/api/users/subscription', { planCode });
     },
     onSuccess: () => {
       toast({
