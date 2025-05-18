@@ -345,8 +345,7 @@ export default function CurrentCycleUsageChart() {
             <div className="mt-4 flex items-center text-sm text-muted-foreground">
               <Info className="h-4 w-4 mr-2" />
               <span>
-                Used {totalWords.toLocaleString()} words in {monthYear}
-                {isCurrentMonth && ` (${usagePercentage}% of your ${wordLimit.toLocaleString()} word limit)`}
+                {chartData.length > 0 ? `Showing ${chartData.length} recording session${chartData.length !== 1 ? 's' : ''} for ${monthYear}` : `No recordings in ${monthYear}`}
               </span>
             </div>
           </div>
