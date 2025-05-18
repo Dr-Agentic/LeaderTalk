@@ -210,16 +210,25 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getCurrentWordUsage(userId: number): Promise<number> {
-    // Get all word usage entries for this user
-    const allEntries = await db.select()
-      .from(userWordUsage)
-      .where(eq(userWordUsage.userId, userId))
-      .orderBy(desc(userWordUsage.id));
+    // Get the current billing cycle
+    const now = new Date();
     
-    // If we have entries, return the word count from the most recent one
-    if (allEntries.length > 0) {
-      // Return the word count from the most recent entry
-      return allEntries[0].wordCount;
+    // Get all word usage entries for this user in the current billing cycle
+    const currentCycleEntries = await db.select()
+      .from(userWordUsage)
+      .where(
+        and(
+          eq(userWordUsage.userId, userId),
+          sql`${userWordUsage.cycleStartDate} <= ${now}`,
+          sql`${userWordUsage.cycleEndDate} >= ${now}`
+        )
+      );
+    
+    // If we have entries in the current cycle, sum all word counts
+    if (currentCycleEntries.length > 0) {
+      // Calculate the total word count for the current cycle
+      const totalWords = currentCycleEntries.reduce((sum, entry) => sum + entry.wordCount, 0);
+      return totalWords;
     }
     
     return 0;
