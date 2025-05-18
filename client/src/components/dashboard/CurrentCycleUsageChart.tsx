@@ -81,7 +81,8 @@ function prepareUsageDataByCycle(usageHistory, yearMonth) {
   // Transform to chart data format with running total
   const chartData = sortedEntries.map((entry, index) => {
     const entryDate = new Date(entry.createdAt);
-    const formattedDate = format(entryDate, 'MMM d');
+    // Use recording number instead of date for X-axis
+    const recordingNumber = `Rec ${index + 1}`;
     
     // Calculate running total by summing up to this point
     const runningTotal = sortedEntries
@@ -89,64 +90,39 @@ function prepareUsageDataByCycle(usageHistory, yearMonth) {
       .reduce((sum, e) => sum + e.wordCount, 0);
     
     return {
-      date: formattedDate,
+      date: recordingNumber, // Show "Rec 1", "Rec 2", etc. instead of date
       words: entry.wordCount,
       runningTotal: runningTotal,
-      timestamp: entryDate.getTime(), // Used for tooltip custom sorting
-      rawDate: entry.createdAt, // Keep the original date
-      fullDate: format(entryDate, 'MMMM d, yyyy')
+      timestamp: entryDate.getTime(),
+      rawDate: entry.createdAt,
+      fullDate: format(entryDate, 'MMMM d, yyyy'),
+      title: entry.title || `Recording ${index + 1}`
     };
   });
 
-  // If we have more than 10 entries, consolidate to avoid overcrowding
-  if (chartData.length > 10) {
-    // Group by date (day)
-    const groupedByDay = chartData.reduce((acc, item) => {
-      const key = item.date;
-      if (!acc[key]) {
-        acc[key] = {
-          date: key,
-          words: 0,
-          entries: 0,
-          latestTimestamp: item.timestamp,
-          rawDate: item.rawDate,
-          fullDate: item.fullDate
-        };
-      }
-      acc[key].words += item.words;
-      acc[key].entries += 1;
-      acc[key].latestTimestamp = Math.max(acc[key].latestTimestamp, item.timestamp);
-      return acc;
-    }, {});
-
-    // Convert back to array and sort by timestamp
-    const consolidatedData = Object.values(groupedByDay)
-      .sort((a, b) => a.latestTimestamp - b.latestTimestamp);
-
-    // Calculate running totals for consolidated data
-    let runningSum = 0;
-    const finalChartData = consolidatedData.map(item => {
-      runningSum += item.words;
+  // Only limit to the most recent 15 recordings if we have too many
+  let finalChartData = chartData;
+  if (chartData.length > 15) {
+    finalChartData = chartData.slice(chartData.length - 15);
+    
+    // Recalculate running totals for the limited data
+    let initialTotal = chartData.slice(0, chartData.length - 15)
+      .reduce((sum, entry) => sum + entry.words, 0);
+    
+    finalChartData = finalChartData.map((entry, index) => {
+      const newRunningTotal = initialTotal + finalChartData
+        .slice(0, index + 1)
+        .reduce((sum, e) => sum + e.words, 0);
+      
       return {
-        date: item.date,
-        words: item.words,
-        runningTotal: runningSum,
-        entries: item.entries,
-        rawDate: item.rawDate,
-        fullDate: item.fullDate
+        ...entry,
+        runningTotal: newRunningTotal
       };
     });
-
-    return {
-      chartData: finalChartData,
-      monthYear: format(monthStart, 'MMMM yyyy'),
-      dateRange: { start: monthStart, end: monthEnd },
-      totalWords
-    };
   }
 
   return {
-    chartData,
+    chartData: finalChartData,
     monthYear: format(monthStart, 'MMMM yyyy'),
     dateRange: { start: monthStart, end: monthEnd },
     totalWords
@@ -157,18 +133,14 @@ function CustomTooltip({ active, payload, label }) {
   if (active && payload && payload.length) {
     return (
       <div className="bg-background border rounded-md shadow-md p-3 text-sm">
-        <p className="font-medium">{payload[0].payload.fullDate || label}</p>
+        <p className="font-medium">{payload[0].payload.title || label}</p>
+        <p className="text-xs text-muted-foreground mb-1">{payload[0].payload.fullDate}</p>
         <p className="text-primary">
           Words recorded: {payload[0].payload.words.toLocaleString()}
         </p>
         <p className="text-muted-foreground">
-          Total this month: {payload[0].payload.runningTotal?.toLocaleString() || payload[0].payload.words.toLocaleString()} words
+          Total this cycle: {payload[0].payload.runningTotal?.toLocaleString() || payload[0].payload.words.toLocaleString()} words
         </p>
-        {payload[0].payload.entries > 1 && (
-          <p className="text-xs text-muted-foreground mt-1">
-            Combined from {payload[0].payload.entries} recordings
-          </p>
-        )}
       </div>
     );
   }
