@@ -26,7 +26,7 @@ import { Recording } from "../../../shared/schema";
 type SortOption = "date-desc" | "date-asc" | "rating-desc" | "rating-asc";
 
 export default function AllTranscripts() {
-  const [, navigate] = useLocation();
+  const [, setLocation] = useLocation();
   const [sortBy, setSortBy] = useState<SortOption>("date-desc");
   const [searchQuery, setSearchQuery] = useState("");
   
@@ -40,6 +40,11 @@ export default function AllTranscripts() {
   const filteredAndSortedRecordings = recordings 
     ? getFilteredAndSortedRecordings(recordings, sortBy, searchQuery)
     : [];
+    
+  // Navigation function
+  const navigate = (path: string) => {
+    setLocation(path);
+  };
   
   return (
     <AppLayout
@@ -284,13 +289,14 @@ function TranscriptCard({ recording }: { recording: Recording }) {
       </CardContent>
       
       <CardFooter className="bg-muted/50 flex justify-between">
-        <WouterLink 
-          href={`/transcript/${recording.id}`} 
-          className="text-sm font-medium text-primary hover:text-primary/80 flex items-center"
+        <Button 
+          variant="link"
+          className="text-sm font-medium text-primary hover:text-primary/80 flex items-center p-0"
+          onClick={() => navigate(`/transcript/${recording.id}`)}
         >
           View transcript
           <ChevronRight className="h-4 w-4 ml-1" />
-        </WouterLink>
+        </Button>
       </CardFooter>
     </Card>
   );
