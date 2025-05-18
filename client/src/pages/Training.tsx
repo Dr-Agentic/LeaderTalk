@@ -103,13 +103,11 @@ export default function Training() {
       backLabel="Back to Dashboard"
       pageTitle="Training"
     >
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold mt-2">Leadership Training</h1>
-          <p className="text-muted-foreground">
-            Improve your leadership communication skills through guided exercises
-          </p>
-        </div>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mt-2">Leadership Training</h1>
+        <p className="text-muted-foreground mb-6">
+          Improve your leadership communication skills through guided exercises
+        </p>
         
         {nextSituation && !nextSituation.completed && (
           <Button 
