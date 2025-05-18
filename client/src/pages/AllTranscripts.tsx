@@ -284,14 +284,15 @@ function TranscriptCard({ recording }: { recording: Recording }) {
       </CardContent>
       
       <CardFooter className="bg-muted/50 flex justify-between">
-        <Button 
-          variant="link"
-          className="text-sm font-medium text-primary hover:text-primary/80 flex items-center p-0"
-          onClick={() => navigate(`/transcript/${recording.id}`)}
-        >
-          View transcript
-          <ChevronRight className="h-4 w-4 ml-1" />
-        </Button>
+        <Link href={`/transcript/${recording.id}`}>
+          <Button 
+            variant="link"
+            className="text-sm font-medium text-primary hover:text-primary/80 flex items-center p-0"
+          >
+            View transcript
+            <ChevronRight className="h-4 w-4 ml-1" />
+          </Button>
+        </Link>
       </CardFooter>
     </Card>
   );
@@ -346,7 +347,9 @@ function EmptyState({ filter, query }: { filter?: string, query?: string }) {
         )}
       </p>
       
-      <Button onClick={() => navigate("/dashboard")} variant="outline" className="mt-4 mx-auto">Back to Dashboard</Button>
+      <Link href="/dashboard">
+        <Button variant="outline" className="mt-4 mx-auto">Back to Dashboard</Button>
+      </Link>
     </div>
   );
 }
