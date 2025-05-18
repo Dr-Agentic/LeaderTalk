@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import WordUsageStats from "@/components/dashboard/WordUsageStats";
+import CurrentCycleUsageChart from "@/components/dashboard/CurrentCycleUsageChart";
 import SubscriptionManager from "@/components/subscription/SubscriptionManager";
 import AppLayout from "@/components/AppLayout";
 import {
@@ -107,6 +108,9 @@ export default function Settings() {
         
         {/* Word usage stats for billing */}
         <WordUsageStats />
+        
+        {/* Current billing cycle usage chart */}
+        <CurrentCycleUsageChart />
         
         {/* Subscription Management */}
         <Card>
