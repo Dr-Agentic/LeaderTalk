@@ -23,9 +23,9 @@ export default function QuickActions({ recordingsCount, weeklyImprovement }) {
         </CardContent>
         <CardFooter className="bg-gray-50 px-card-inner py-3 border-t">
           <div>
-            <a href="#record-section" className="font-sans text-sm font-medium text-primary hover:text-blue-900 flex items-center">
+            <Link href="/recording" className="font-sans text-sm font-medium text-primary hover:text-blue-900 flex items-center">
               Start recording <span className="ml-1">&rarr;</span>
-            </a>
+            </Link>
           </div>
         </CardFooter>
       </Card>
