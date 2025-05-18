@@ -18,7 +18,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Loader2, UserX } from "lucide-react";
+import { Loader2, UserX, CreditCard } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 
 export default function Settings() {
@@ -119,8 +119,17 @@ export default function Settings() {
             <CardTitle>Subscription Management</CardTitle>
             <CardDescription>View and manage your subscription plan</CardDescription>
           </CardHeader>
-          <CardContent>
-            <SubscriptionManager />
+          <CardContent className="flex flex-col gap-4">
+            <p className="text-sm text-muted-foreground">
+              Manage your subscription plan, view billing information, and update payment methods.
+            </p>
+            <Button 
+              className="w-full sm:w-auto flex items-center gap-2" 
+              onClick={() => navigate('/subscription')}
+            >
+              <CreditCard className="h-4 w-4" />
+              Manage Subscription
+            </Button>
           </CardContent>
         </Card>
         
