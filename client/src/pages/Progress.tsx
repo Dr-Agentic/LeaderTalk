@@ -26,6 +26,7 @@ import {
   Cell,
 } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { Recording } from "@shared/schema";
 import AppLayout from "@/components/AppLayout";
@@ -63,6 +64,7 @@ interface PeriodData {
 
 export default function Progress() {
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [allRecordings, setAllRecordings] = useState<RecordingWithScore[]>([]);
   const [timeRanges, setTimeRanges] = useState<TimeRange[]>([
@@ -76,6 +78,11 @@ export default function Progress() {
     "week" | "month" | "quarter" | "year" | "alltime"
   >("month");
   const [recordingsCount, setRecordingsCount] = useState<10 | 20 | 50>(10);
+
+  // Navigation function
+  const navigate = (path: string) => {
+    setLocation(path);
+  };
 
   // Fetch recordings data
   useEffect(() => {
@@ -486,43 +493,18 @@ export default function Progress() {
   const getWeekNumber = (date: Date): number => {
     const d = new Date(date);
     d.setHours(0, 0, 0, 0);
-    d.setDate(d.getDate() + 3 - ((d.getDay() + 6) % 7));
-    const week1 = new Date(d.getFullYear(), 0, 4);
-    return (
-      1 +
-      Math.round(
-        ((d.getTime() - week1.getTime()) / 86400000 -
-          3 +
-          ((week1.getDay() + 6) % 7)) /
-          7,
-      )
+    d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+    const yearStart = new Date(d.getFullYear(), 0, 1);
+    const weekNumber = Math.ceil(
+      ((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7,
     );
+    return weekNumber;
   };
 
-  // Format period label based on the view type
-  const formatPeriodLabel = (
-    periodKey: string,
-    granularity: "day" | "week" | "month",
-  ): string => {
-    if (granularity === "day") {
-      const [year, month, day] = periodKey.split("-");
-      return new Date(
-        parseInt(year),
-        parseInt(month) - 1,
-        parseInt(day),
-      ).toLocaleDateString("en-US", { month: "short", day: "numeric" });
-    } else if (granularity === "week") {
-      const [year, weekNum] = periodKey.split("-W");
-      return `Week ${weekNum}`;
-    } else {
-      // month
-      const [year, month] = periodKey.split("-");
-      return new Date(
-        parseInt(year),
-        parseInt(month) - 1,
-        1,
-      ).toLocaleDateString("en-US", { month: "short", year: "numeric" });
-    }
+  // Format week as "Week N, YYYY"
+  const formatWeek = (date: Date): string => {
+    const weekNumber = getWeekNumber(date);
+    return `Week ${weekNumber}, ${date.getFullYear()}`;
   };
 
   // Get recording-based chart data
@@ -550,16 +532,14 @@ export default function Progress() {
     }));
   };
 
-  const [, setLocation] = useLocation();
-  
-  // Navigation function
-  const navigate = (path: string) => {
-    setLocation(path);
-  };
-
   if (isLoading || authLoading) {
     return (
-      <AppLayout showBackButton backTo="/dashboard" backLabel="Back to Dashboard" pageTitle="Your Progress">
+      <AppLayout 
+        showBackButton 
+        backTo="/dashboard" 
+        backLabel="Back to Dashboard"
+        pageTitle="Your Progress"
+      >
         <div className="flex items-center justify-center h-96">
           <Skeleton className="w-full h-80" />
         </div>
@@ -619,23 +599,37 @@ export default function Progress() {
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={timeBasedChartData}
-                    margin={{ top: 20, right: 30, left: 20, bottom: 90 }}
+                    margin={{
+                      top: 20,
+                      right: 30,
+                      left: 20,
+                      bottom: 50,
+                    }}
                   >
-                    <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                    <CartesianGrid strokeDasharray="3 3" />
                     <XAxis
                       dataKey="period"
-                      angle={-70}
+                      label={{
+                        value: "Time Period",
+                        position: "insideBottom",
+                        offset: -10,
+                        style: {
+                          textAnchor: "middle",
+                          fontSize: 12,
+                          fill: "#4B5563",
+                          fontWeight: 500,
+                          dy: 10,
+                        },
+                      }}
+                      tick={{ fontSize: 10, fill: "#4B5563" }}
+                      angle={-45}
                       textAnchor="end"
-                      tick={{ fontSize: 8, fill: "#4B5563" }}
-                      height={100}
-                      interval={0}
-                      tickMargin={35}
-                      scale="band"
+                      height={60}
                     />
                     <YAxis
                       domain={[0, 100]}
                       label={{
-                        value: "Average Score",
+                        value: "Score",
                         angle: -90,
                         position: "insideLeft",
                         style: {
@@ -643,53 +637,27 @@ export default function Progress() {
                           fontSize: 12,
                           fill: "#4B5563",
                           fontWeight: 500,
-                          dy: -10,
+                          dx: -10,
                         },
                       }}
-                      tick={{ fontSize: 10, fill: "#4B5563" }}
-                      width={50}
+                      ticks={[0, 20, 40, 60, 80, 100]}
                     />
                     <Tooltip
-                      formatter={(value, name, props) => {
-                        const entry = timeBasedChartData.find(
-                          (item) => item.period === props.payload.period,
-                        );
-
-                        if (entry?.isEmpty) {
-                          return ["No recordings", "Average Score"];
-                        }
-
-                        const recordingCount = entry?.count || 0;
-                        return [
-                          `${Number(value).toFixed(1)}`,
-                          "Average Score",
-                          `Based on ${recordingCount} ${recordingCount === 1 ? "recording" : "recordings"}`,
-                        ];
+                      formatter={(value: number, name: string) => {
+                        if (name === "score") return [`Score: ${value.toFixed(1)}`, "Score"];
+                        return [value, name];
                       }}
-                      labelFormatter={(label) =>
-                        label ? `Period: ${label}` : "Unknown Period"
-                      }
+                      labelFormatter={(label) => `Period: ${label}`}
                     />
-                    <Legend 
-                      verticalAlign="bottom"
-                      wrapperStyle={{
-                        paddingTop: 5,
-                        bottom: 20
-                      }}
-                    />
-                    <Bar
-                      dataKey="score"
-                      name="Leadership Score"
-                      fill="#6366F1"
-                      radius={[4, 4, 0, 0]}
-                      minPointSize={5}
-                      maxBarSize={50}
-                    >
+                    <Bar dataKey="score" name="Score">
                       {timeBasedChartData.map((entry, index) => (
                         <Cell
                           key={`cell-${index}`}
-                          fill={entry.isEmpty ? "#E5E7EB" : "#6366F1"}
-                          opacity={entry.isEmpty ? 0.5 : 1}
+                          fill={
+                            entry.isEmpty
+                              ? "#D1D5DB" // Gray for empty periods
+                              : getScoreColor(entry.score)
+                          }
                         />
                       ))}
                     </Bar>
@@ -697,23 +665,20 @@ export default function Progress() {
                 </ResponsiveContainer>
               </div>
             ) : (
-              <div className="text-center py-10 text-gray-500">
-                <p>
-                  No recordings found. Record conversations to see your
-                  progress.
-                </p>
+              <div className="text-center py-12 text-muted-foreground">
+                No recordings available for this time period.
               </div>
             )}
           </CardContent>
         </Card>
 
-        {/* Recording-Based Progress Chart */}
+        {/* Recent Recordings Progress */}
         <Card>
           <CardHeader>
             <div className="w-full mb-4">
-              <CardTitle className="text-xl">Recording-by-Recording Progress</CardTitle>
+              <CardTitle className="text-xl">Recent Recordings</CardTitle>
               <CardDescription>
-                Your leadership score changes across individual recordings
+                Your progress across your most recent recordings
               </CardDescription>
             </div>
             <div className="flex justify-end">
@@ -724,12 +689,12 @@ export default function Progress() {
                 }
               >
                 <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Select count" />
+                  <SelectValue placeholder="Number of recordings" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="10">Last 10</SelectItem>
-                  <SelectItem value="20">Last 20</SelectItem>
-                  <SelectItem value="50">Last 50</SelectItem>
+                  <SelectItem value="10">Last 10 recordings</SelectItem>
+                  <SelectItem value="20">Last 20 recordings</SelectItem>
+                  <SelectItem value="50">Last 50 recordings</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -740,9 +705,14 @@ export default function Progress() {
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart
                     data={recordingsChartData}
-                    margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
+                    margin={{
+                      top: 20,
+                      right: 30,
+                      left: 20,
+                      bottom: 50,
+                    }}
                   >
-                    <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                    <CartesianGrid strokeDasharray="3 3" />
                     <XAxis
                       dataKey="index"
                       label={{
@@ -771,180 +741,89 @@ export default function Progress() {
                           fontSize: 12,
                           fill: "#4B5563",
                           fontWeight: 500,
-                          dy: -10,
+                          dx: -10,
                         },
                       }}
-                      tick={{ fontSize: 10, fill: "#4B5563" }}
-                      width={50}
+                      ticks={[0, 20, 40, 60, 80, 100]}
                     />
                     <Tooltip
-                      formatter={(value) => [
-                        `${Number(value).toFixed(1)}`,
-                        "Score",
-                      ]}
-                      labelFormatter={(index) => {
-                        const recording =
-                          recordingsChartData[parseInt(index) - 1];
-                        // Check if recording exists before accessing properties
-                        if (recording) {
-                          return `Recording ${index}: ${recording.fullTitle || recording.name}\nDate: ${recording.date}`;
-                        }
-                        return `Recording ${index}`;
+                      formatter={(value: number, name: string) => {
+                        if (name === "score") return [`Score: ${value.toFixed(1)}`, "Score"];
+                        return [value, name];
                       }}
-                    />
-                    <Legend 
-                      verticalAlign="bottom"
-                      wrapperStyle={{
-                        paddingTop: 5,
-                        bottom: 20
+                      labelFormatter={(index, data) => {
+                        const record = data[0]?.payload;
+                        return record
+                          ? `${record.fullTitle} (${record.date})`
+                          : `Recording ${index}`;
                       }}
                     />
                     <Line
                       type="monotone"
                       dataKey="score"
-                      name="Leadership Score"
-                      stroke="#0EA5E9"
+                      name="Score"
+                      stroke="#3B82F6"
+                      activeDot={{ r: 8 }}
                       strokeWidth={2}
-                      dot={{
-                        fill: "#0EA5E9",
-                        r: 4,
-                        strokeWidth: 1,
-                        stroke: "#FFFFFF",
-                      }}
-                      activeDot={{ r: 6, strokeWidth: 2, stroke: "#FFFFFF" }}
-                      isAnimationActive={false}
                     />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
             ) : (
-              <div className="text-center py-10 text-gray-500">
-                <p>
-                  No recordings found. Record conversations to see your
-                  progress.
-                </p>
+              <div className="text-center py-12 text-muted-foreground">
+                No recordings available yet.
               </div>
             )}
           </CardContent>
         </Card>
 
-        {/* Summary Statistics */}
-        <Tabs defaultValue="7days" className="w-full">
-          <TabsList className="grid grid-cols-4 mb-6">
-            <TabsTrigger value="7days">Last 7 Days</TabsTrigger>
-            <TabsTrigger value="30days">Last 30 Days</TabsTrigger>
-            <TabsTrigger value="year">This Year</TabsTrigger>
-            <TabsTrigger value="alltime">All Time</TabsTrigger>
-          </TabsList>
-
-          {timeRanges.map((range, index) => (
-            <TabsContent
-              key={range.label}
-              value={["7days", "30days", "year", "alltime"][index]}
-            >
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Average Score</CardTitle>
-                    <CardDescription>
-                      Your average leadership score for this period
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-3xl font-bold text-center">
-                      {range.averageScore.toFixed(1)}%
-                    </div>
-                    <div className="text-sm text-center text-gray-500 mt-2">
-                      Based on {range.recordings.length} recordings
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Improvement</CardTitle>
-                    <CardDescription>
-                      Your progress compared to when you started
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div
-                      className={`text-3xl font-bold text-center ${range.improvement >= 0 ? "text-green-500" : "text-red-500"}`}
-                    >
-                      {range.improvement >= 0 ? "+" : ""}
-                      {range.improvement.toFixed(1)}%
-                    </div>
-                    <div className="text-sm text-center text-gray-500 mt-2">
-                      {range.improvement >= 0
-                        ? "You're improving! Keep up the good work."
-                        : "Slight decrease. Focus on improvement areas."}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Recordings</CardTitle>
-                    <CardDescription>
-                      Summary of your recordings in this period
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-3xl font-bold text-center">
-                      {range.recordings.length}
-                    </div>
-                    <div className="text-sm text-center text-gray-500 mt-2">
-                      {range.recordings.length > 0
-                        ? `Latest on ${formatDate(range.recordings[0].date)}`
-                        : "No recordings in this period"}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-          ))}
-        </Tabs>
-      </div>
-    </div>
-  );
-}
-
-function ProgressSkeleton() {
-  return (
-    <AppLayout showBackButton backTo="/dashboard" backLabel="Back to Dashboard" pageTitle="Your Progress">
-      <div className="mb-8">
-        <Skeleton className="h-5 w-96" />
-      </div>
-
-      <div className="grid grid-cols-1 gap-6">
-        <Card>
-          <CardHeader>
-            <Skeleton className="h-6 w-48 mb-2" />
-            <Skeleton className="h-4 w-72" />
-          </CardHeader>
-          <CardContent>
-            <Skeleton className="w-full h-80" />
-          </CardContent>
-        </Card>
-
+        {/* Summary Stats */}
         <div className="w-full">
-          <Skeleton className="h-10 w-full mb-6" />
+          <h2 className="text-xl font-bold mb-6">Time Period Breakdown</h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[1, 2, 3].map((i) => (
-              <Card key={i}>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {timeRanges.map((range) => (
+              <Card key={range.label}>
                 <CardHeader>
-                  <Skeleton className="h-6 w-32 mb-2" />
-                  <Skeleton className="h-4 w-48" />
+                  <CardTitle className="text-lg">{range.label}</CardTitle>
+                  <CardDescription>
+                    {range.recordings.length} recording
+                    {range.recordings.length !== 1 ? "s" : ""}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Skeleton className="h-20 w-full" />
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Average score:</span>
+                      <span className="font-medium">
+                        {range.averageScore.toFixed(1)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Improvement:</span>
+                      <span
+                        className={
+                          range.improvement > 0
+                            ? "text-green-600 font-medium"
+                            : range.improvement < 0
+                            ? "text-red-600 font-medium"
+                            : "font-medium"
+                        }
+                      >
+                        {range.improvement === 0
+                          ? "N/A"
+                          : `${range.improvement > 0 ? "+" : ""}${range.improvement.toFixed(
+                              1,
+                            )}%`}
+                      </span>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             ))}
           </div>
         </div>
       </div>
-    </div>
+    </AppLayout>
   );
 }
