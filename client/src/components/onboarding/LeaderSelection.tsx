@@ -60,41 +60,25 @@ export default function LeaderSelection({
   }, [currentSelections]);
   
   const toggleLeaderSelection = (leaderId: number) => {
+    // Create a fixed-size array to visualize the leader slots
     setSelectedLeaders(prev => {
+      // First, check if we're removing a leader
       if (prev.includes(leaderId)) {
-        // Always allow removing a leader
+        // Simply filter out the leader ID we want to remove
         return prev.filter(id => id !== leaderId);
       } else {
-        // Check if we're at the maximum allowed selections
+        // We're adding a leader - check if we have room
         if (prev.length >= MAX_SELECTIONS) {
           toast({
             title: "Maximum leaders reached",
-            description: `You can only select up to ${MAX_SELECTIONS} leaders total. Please remove a leader from "Your Current Inspirations" before adding a new one.`,
-            variant: "destructive",
+            description: `You can only select up to ${MAX_SELECTIONS} leaders total. Please remove a leader before adding a new one.`,
+            variant: "destructive", 
           });
           return prev;
         }
         
-        // If the array has fewer than MAX_SELECTIONS elements, we have room to add the new leader
-        // We need to determine the position to place it (first available position)
-        
-        // Create fixed array with null placeholders for all slots
-        const filledSlots = [...Array(MAX_SELECTIONS)].map((_, i) => {
-          // If we have a selection for this index, use it, otherwise null
-          return i < prev.length ? prev[i] : null;
-        });
-        
-        // Find the first null position
-        const firstEmptyIndex = filledSlots.findIndex(id => id === null);
-        
-        // Insert the new leader at the empty position
-        if (firstEmptyIndex !== -1) {
-          filledSlots[firstEmptyIndex] = leaderId;
-          // Return only the non-null values
-          return filledSlots.filter(id => id !== null) as number[];
-        }
-        
-        // Fallback case (should not happen if MAX_SELECTIONS is respected)
+        // Add the new leader to the end of the array
+        // When saving, the backend will place it in the correct position
         return [...prev, leaderId];
       }
     });

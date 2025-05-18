@@ -210,7 +210,7 @@ export default function LeadershipInspirations() {
                   famousPhrases: leader.famousPhrases || []
                 })) : []
               } 
-              currentSelections={userData?.selectedLeaders || []}
+              currentSelections={(userData?.selectedLeaders || []).filter((id): id is number => typeof id === 'number')}
               isSettingsPage={true}
               onComplete={() => {
                 // Force reload of the page after saving to show updated selections
