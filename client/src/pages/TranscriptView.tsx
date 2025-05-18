@@ -1,11 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation, useParams } from "wouter";
-import { useQuery } from "@tanstack/react-query";
-import { Loader2, MessageSquare } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Loader2, MessageSquare, ArrowLeft, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Progress } from "@/components/ui/progress";
 import { AnalysisInstance, Recording, AnalysisResult } from "../../../shared/schema";
 import { useAuth } from "../hooks/useAuth";
 import { useToast } from "../hooks/use-toast";
@@ -23,8 +24,13 @@ export default function TranscriptView() {
   const params = useParams<{ id: string }>();
   const recordingId = parseInt(params.id);
   const { userData } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   
   const [sessionError, setSessionError] = useState<string | null>(null);
+  const [pollingInterval, setPollingInterval] = useState<number>(1000);
+  const [progress, setProgress] = useState<number>(0);
+  const pollingRef = useRef<NodeJS.Timeout | null>(null);
   
   // Check session before loading data
   useEffect(() => {
@@ -43,6 +49,24 @@ export default function TranscriptView() {
     
     verifySession();
   }, [navigate]);
+  
+  // Animation effect for progress bar during analysis
+  useEffect(() => {
+    const progressInterval = setInterval(() => {
+      setProgress(prev => {
+        // Keep progress under 90% until analysis is complete
+        // This visual feedback shows that processing is happening but not complete
+        if (prev < 85) {
+          return prev + 1;
+        }
+        return prev;
+      });
+    }, 500);
+    
+    return () => {
+      clearInterval(progressInterval);
+    };
+  }, []);
   
   // Query for recording details including transcription and analysis
   const { data: recording, isLoading: recordingLoading } = useQuery<RecordingWithAnalysis>({
@@ -128,8 +152,47 @@ export default function TranscriptView() {
     leader => userData?.selectedLeaders?.includes(leader.id)
   ) || [];
   
+  // Set up polling for analysis results if not available yet
+  useEffect(() => {
+    // Clear any existing polling
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+    }
+    
+    // Only poll if we have a recording without analysis
+    if (recording && (!recording.analysis || Object.keys(recording.analysis).length === 0)) {
+      // Create a polling function that refreshes the data
+      const pollForAnalysis = () => {
+        console.log("Polling for analysis results...");
+        queryClient.invalidateQueries({ queryKey: ['/api/recordings', recordingId] });
+      };
+      
+      // Start polling
+      pollingRef.current = setInterval(pollForAnalysis, pollingInterval);
+      
+      // Log polling started
+      console.log(`Started polling for analysis results every ${pollingInterval}ms`);
+    } else if (recording && recording.analysis) {
+      // If we have analysis results, stop polling and set progress to 100%
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+        console.log("Analysis complete, stopped polling");
+      }
+      setProgress(100);
+    }
+    
+    // Cleanup function to clear the interval when component unmounts
+    return () => {
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+        console.log("Cleaned up polling interval");
+      }
+    };
+  }, [recording, recordingId, pollingInterval, queryClient]);
+  
   const isLoading = recordingLoading || leadersLoading;
   
+  // Handle initial loading state
   if (isLoading) {
     return (
       <AppLayout showBackButton backTo="/transcripts" backLabel="Back to All Transcripts">
@@ -140,6 +203,7 @@ export default function TranscriptView() {
     );
   }
   
+  // Handle case where recording is not found
   if (!recording) {
     return (
       <AppLayout showBackButton backTo="/transcripts" backLabel="Back to All Transcripts">
@@ -147,6 +211,56 @@ export default function TranscriptView() {
           <h1 className="text-2xl font-bold mb-4">Recording Not Found</h1>
           <p className="mb-6">The requested recording could not be found.</p>
         </div>
+      </AppLayout>
+    );
+  }
+  
+  // Handle case where recording exists but analysis is in progress
+  if (!recording.analysis || Object.keys(recording.analysis).length === 0) {
+    return (
+      <AppLayout showBackButton backTo="/dashboard" backLabel="Back to Dashboard">
+        <Card className="max-w-2xl mx-auto my-8 text-center">
+          <CardHeader>
+            <CardTitle>Analysis in Progress</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col items-center space-y-6">
+              <Loader2 className="h-16 w-16 animate-spin text-primary" />
+              
+              <div className="w-full max-w-md">
+                <Progress value={progress} className="mb-2" />
+                <p className="text-muted-foreground text-sm">
+                  Your recording is being analyzed by our AI. This usually takes less than a minute.
+                </p>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row gap-3 mt-6">
+                <Button 
+                  variant="outline"
+                  onClick={() => navigate('/dashboard')}
+                  className="flex items-center"
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Return to Dashboard
+                </Button>
+                
+                <Button 
+                  onClick={() => {
+                    queryClient.invalidateQueries({ queryKey: ['/api/recordings', recordingId] });
+                    toast({
+                      title: "Refreshing analysis status",
+                      description: "Checking for the latest results..."
+                    });
+                  }}
+                  className="flex items-center"
+                >
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Refresh Results
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </AppLayout>
     );
   }
