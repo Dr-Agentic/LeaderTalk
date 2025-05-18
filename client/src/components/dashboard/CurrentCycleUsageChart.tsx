@@ -2,27 +2,24 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
-import { Info } from "lucide-react";
+import { Info, ChevronLeft, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 
-// Transform user word usage data into a chart-friendly format
-// This specifically focuses on usage in the current billing cycle
-function prepareCurrentCycleData(usageHistory) {
+// Transform user word usage data into a chart-friendly format for a specific billing cycle
+function prepareCurrentCycleData(usageHistory, cycleNumber) {
   if (!usageHistory || !Array.isArray(usageHistory) || usageHistory.length === 0) {
     return [];
   }
 
-  // Get all entries for the current billing period (they should all have the same cycleNumber)
-  // First, find the latest cycle number
-  const latestCycleNumber = Math.max(...usageHistory.map(entry => entry.cycleNumber || 0));
-  
-  // Then filter entries with that cycle number
-  const currentCycleEntries = usageHistory.filter(entry => 
-    entry.cycleNumber === latestCycleNumber
+  // Filter entries with the specified cycle number
+  const cycleEntries = usageHistory.filter(entry => 
+    entry.cycleNumber === cycleNumber
   );
 
   // Sort entries by creation date
-  const sortedEntries = [...currentCycleEntries].sort((a, b) => {
+  const sortedEntries = [...cycleEntries].sort((a, b) => {
     return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
   });
 
