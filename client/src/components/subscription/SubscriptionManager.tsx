@@ -11,14 +11,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { formatDate, calculateSavings } from "@/lib/utils";
-import RevenueCatSubscription from "./RevenueCatSubscription";
 
 export default function SubscriptionManager() {
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">("monthly");
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [paymentProcessor, setPaymentProcessor] = useState<"legacy" | "revenuecat">("legacy");
 
   // Fetch all available subscription plans
   const { data: plansData, isLoading: isLoadingPlans } = useQuery({
@@ -127,48 +125,50 @@ export default function SubscriptionManager() {
           </TabsContent>
           
           <TabsContent value="legacy" className="mt-6">
-
-      {/* Billing Period Selector */}
-      <div className="flex justify-center mb-6">
-        <Tabs 
-          defaultValue="monthly" 
-          value={billingPeriod}
-          onValueChange={(value) => setBillingPeriod(value as "monthly" | "yearly")} 
-          className="w-full"
-        >
-          <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
-            <TabsTrigger value="monthly">Monthly</TabsTrigger>
-            <TabsTrigger value="yearly">Yearly (Save up to 30%)</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="monthly" className="mt-6">
-            <div className="grid gap-4 md:grid-cols-3">
-              {sortedPlans.map((plan) => (
-                <PlanCard
-                  key={plan.planCode}
-                  plan={plan}
-                  isCurrentPlan={currentPlan?.planCode === plan.planCode}
-                  isSelected={selectedPlan === plan.planCode}
-                  onSelect={() => setSelectedPlan(plan.planCode)}
-                  billingPeriod={billingPeriod}
-                />
-              ))}
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="yearly" className="mt-6">
-            <div className="grid gap-4 md:grid-cols-3">
-              {sortedPlans.map((plan) => (
-                <PlanCard
-                  key={plan.planCode}
-                  plan={plan}
-                  isCurrentPlan={currentPlan?.planCode === plan.planCode}
-                  isSelected={selectedPlan === plan.planCode}
-                  onSelect={() => setSelectedPlan(plan.planCode)}
-                  billingPeriod={billingPeriod}
-                  savingsPercentage={calculateSavings(plan.monthlyPrice, plan.yearlyPrice)}
-                />
-              ))}
+            {/* Billing Period Selector */}
+            <div className="flex justify-center mb-6">
+              <Tabs 
+                defaultValue="monthly" 
+                value={billingPeriod}
+                onValueChange={(value) => setBillingPeriod(value as "monthly" | "yearly")} 
+                className="w-full"
+              >
+                <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
+                  <TabsTrigger value="monthly">Monthly</TabsTrigger>
+                  <TabsTrigger value="yearly">Yearly (Save up to 30%)</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="monthly" className="mt-6">
+                  <div className="grid gap-4 md:grid-cols-3">
+                    {sortedPlans.map((plan) => (
+                      <PlanCard
+                        key={plan.planCode}
+                        plan={plan}
+                        isCurrentPlan={currentPlan?.planCode === plan.planCode}
+                        isSelected={selectedPlan === plan.planCode}
+                        onSelect={() => setSelectedPlan(plan.planCode)}
+                        billingPeriod={billingPeriod}
+                      />
+                    ))}
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="yearly" className="mt-6">
+                  <div className="grid gap-4 md:grid-cols-3">
+                    {sortedPlans.map((plan) => (
+                      <PlanCard
+                        key={plan.planCode}
+                        plan={plan}
+                        isCurrentPlan={currentPlan?.planCode === plan.planCode}
+                        isSelected={selectedPlan === plan.planCode}
+                        onSelect={() => setSelectedPlan(plan.planCode)}
+                        billingPeriod={billingPeriod}
+                        savingsPercentage={calculateSavings(plan.monthlyPrice, plan.yearlyPrice)}
+                      />
+                    ))}
+                  </div>
+                </TabsContent>
+              </Tabs>
             </div>
           </TabsContent>
         </Tabs>
