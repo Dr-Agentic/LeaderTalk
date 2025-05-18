@@ -65,14 +65,8 @@ export default function LeaderSelection({
         // Always allow removing a leader
         return prev.filter(id => id !== leaderId);
       } else {
-        // The actual total would be the unique combination of database selections and UI selections
-        const allSelectionsSet = new Set([...currentSelections, ...prev]);
-        
-        // Count the total unique selections
-        const totalUniqueSelections = allSelectionsSet.size;
-        
-        // Check if adding one more exceeds the maximum
-        if (totalUniqueSelections >= MAX_SELECTIONS) {
+        // Check if we're at the maximum allowed selections
+        if (prev.length >= MAX_SELECTIONS) {
           toast({
             title: "Maximum leaders reached",
             description: `You can only select up to ${MAX_SELECTIONS} leaders total. Please remove a leader from "Your Current Inspirations" before adding a new one.`,
@@ -81,22 +75,26 @@ export default function LeaderSelection({
           return prev;
         }
         
-        // Find the first empty slot by creating an array of length MAX_SELECTIONS 
-        // filled with the current selections, and padding with nulls for empty slots
-        const paddedLeaders = Array(MAX_SELECTIONS).fill(null);
-        prev.forEach((id, index) => {
-          paddedLeaders[index] = id;
+        // If the array has fewer than MAX_SELECTIONS elements, we have room to add the new leader
+        // We need to determine the position to place it (first available position)
+        
+        // Create fixed array with null placeholders for all slots
+        const filledSlots = [...Array(MAX_SELECTIONS)].map((_, i) => {
+          // If we have a selection for this index, use it, otherwise null
+          return i < prev.length ? prev[i] : null;
         });
         
-        // Find the first null position and insert the new leader there
-        const firstEmptyIndex = paddedLeaders.findIndex(id => id === null);
+        // Find the first null position
+        const firstEmptyIndex = filledSlots.findIndex(id => id === null);
         
+        // Insert the new leader at the empty position
         if (firstEmptyIndex !== -1) {
-          paddedLeaders[firstEmptyIndex] = leaderId;
-          return paddedLeaders.filter(id => id !== null);
+          filledSlots[firstEmptyIndex] = leaderId;
+          // Return only the non-null values
+          return filledSlots.filter(id => id !== null) as number[];
         }
         
-        // Fallback - add to the end if no empty slots found
+        // Fallback case (should not happen if MAX_SELECTIONS is respected)
         return [...prev, leaderId];
       }
     });

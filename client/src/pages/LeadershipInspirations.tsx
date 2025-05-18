@@ -28,6 +28,7 @@ export default function LeadershipInspirations() {
   const { userData } = useAuth();
   const { toast } = useToast();
   const [isRemovingLeader, setIsRemovingLeader] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0); // Add a refresh key to force re-render
   
   // Fetch leaders data and ensure it updates when user data changes
   const { data: leaders, isLoading: isLoadingLeaders } = useQuery({
@@ -37,14 +38,14 @@ export default function LeadershipInspirations() {
   // Force component to update when userData changes
   const [selectedLeaderIds, setSelectedLeaderIds] = useState<number[]>([]);
   
-  // Update the local state when userData changes
+  // Update the local state when userData changes or refresh is triggered
   useEffect(() => {
     if (userData?.selectedLeaders) {
       setSelectedLeaderIds([...userData.selectedLeaders]);
     } else {
       setSelectedLeaderIds([]);
     }
-  }, [userData]);
+  }, [userData, refreshKey]);
   
   // Function to handle leader removal
   const handleRemoveLeader = async (leaderId: number, leaderName: string) => {
@@ -70,6 +71,9 @@ export default function LeadershipInspirations() {
         
         // Immediately update local state for instant UI feedback
         setSelectedLeaderIds(newSelections);
+        
+        // Increment refresh key to force re-render with updated leaders
+        setRefreshKey(prevKey => prevKey + 1);
         
         // Force invalidate all user data queries to ensure UI updates
         await queryClient.invalidateQueries({ 
@@ -198,6 +202,10 @@ export default function LeadershipInspirations() {
               } 
               currentSelections={selectedLeaderIds}
               isSettingsPage={true}
+              onComplete={() => {
+                // Force refresh after saving selections
+                setRefreshKey(prevKey => prevKey + 1);
+              }}
             />
           </Card>
         </>
