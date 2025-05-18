@@ -15,10 +15,10 @@ export function H1({ children, className }: TypographyProps) {
   );
 }
 
-// H2 - Section Heading (Playfair Display)
+// H2 - Section Heading (Ancizar Sans)
 export function H2({ children, className }: TypographyProps) {
   return (
-    <h2 className={cn("text-2xl lg:text-3xl font-playfair text-foreground leading-tight", className)}>
+    <h2 className={cn("text-2xl lg:text-3xl font-ancizar text-foreground leading-tight", className)}>
       {children}
     </h2>
   );

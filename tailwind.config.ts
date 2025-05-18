@@ -10,6 +10,7 @@ export default {
         sans: ['Poppins', 'system-ui', 'sans-serif'],
         playfair: ['Playfair Display', 'Georgia', 'serif'],
         franklin: ['Libre Franklin', 'system-ui', 'sans-serif'],
+        ancizar: ['Ancizar Sans', 'system-ui', 'sans-serif'],
       },
       fontSize: {
         'heading-1': ['2.75rem', { lineHeight: '1.1', fontWeight: '700' }],
