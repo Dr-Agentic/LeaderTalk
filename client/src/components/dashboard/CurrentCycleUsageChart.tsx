@@ -12,13 +12,14 @@ function prepareCurrentCycleData(usageHistory) {
     return [];
   }
 
-  // Find the current billing cycle entries (filter by cycle dates)
-  const now = new Date();
-  const currentCycleEntries = usageHistory.filter(entry => {
-    const startDate = new Date(entry.cycleStartDate);
-    const endDate = new Date(entry.cycleEndDate);
-    return startDate <= now && endDate >= now;
-  });
+  // Get all entries for the current billing period (they should all have the same cycleNumber)
+  // First, find the latest cycle number
+  const latestCycleNumber = Math.max(...usageHistory.map(entry => entry.cycleNumber || 0));
+  
+  // Then filter entries with that cycle number
+  const currentCycleEntries = usageHistory.filter(entry => 
+    entry.cycleNumber === latestCycleNumber
+  );
 
   // Sort entries by creation date
   const sortedEntries = [...currentCycleEntries].sort((a, b) => {
