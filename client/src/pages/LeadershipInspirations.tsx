@@ -153,7 +153,7 @@ export default function LeadershipInspirations() {
               These are the leaders who currently inspire your communication style. You can select up to 3 leaders.
             </p>
             
-            <div className="grid grid-cols-3 gap-4 w-full max-w-3xl mx-auto">
+            <div className="grid grid-cols-3 gap-6 w-full max-w-3xl mx-auto">
               {/* Always render 3 fixed slots */}
               {[0, 1, 2].map((index) => {
                 // Get leader ID from the fixed-size array (could be null)
@@ -169,13 +169,13 @@ export default function LeadershipInspirations() {
                   <div 
                     key={index} 
                     className={`rounded-lg border ${hasLeader ? 'border-primary' : 'border-gray-200 bg-gray-50'} 
-                    p-4 flex flex-row items-center justify-center h-24 transition-all duration-200`}
+                    p-4 flex flex-col items-center h-36 transition-all duration-200`}
                   >
                     {hasLeader ? (
-                      <div className="flex items-center w-full">
+                      <>
                         {/* Leader photo */}
                         <div className="relative">
-                          <div className="w-16 h-16 rounded-full bg-gray-100 overflow-hidden">
+                          <div className="w-14 h-14 rounded-full bg-gray-100 overflow-hidden mb-3">
                             {selectedLeader.photoUrl ? (
                               <img 
                                 src={selectedLeader.photoUrl} 
@@ -190,33 +190,31 @@ export default function LeadershipInspirations() {
                           </div>
                           
                           <button 
-                            className="absolute -top-2 -right-2 bg-red-100 rounded-full w-6 h-6 flex items-center justify-center text-red-700 hover:bg-red-200 transition-colors"
+                            className="absolute -top-2 -right-2 bg-red-100 rounded-full w-5 h-5 flex items-center justify-center text-red-700 hover:bg-red-200 transition-colors"
                             onClick={() => toggleLeader(selectedLeader.id)}
                             aria-label={`Remove ${selectedLeader.name}`}
                           >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M18 6L6 18"></path>
                               <path d="M6 6L18 18"></path>
                             </svg>
                           </button>
                         </div>
                         
-                        {/* Leader name - centered vertically */}
-                        <div className="ml-4 flex-grow">
-                          <h3 className="font-medium text-center text-base">{selectedLeader.name}</h3>
-                        </div>
-                      </div>
+                        {/* Leader name */}
+                        <h3 className="font-medium text-center text-sm mt-1">{selectedLeader.name}</h3>
+                      </>
                     ) : (
-                      <div className="flex flex-col items-center justify-center w-full">
+                      <>
                         {/* Empty slot with grayed-out appearance */}
-                        <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center mb-2">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                        <div className="w-14 h-14 rounded-full bg-gray-200 flex items-center justify-center mb-3">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                             <circle cx="12" cy="7" r="4"></circle>
                           </svg>
                         </div>
                         <h3 className="font-medium text-gray-400 text-sm">Empty Slot</h3>
-                      </div>
+                      </>
                     )}
                   </div>
                 );
