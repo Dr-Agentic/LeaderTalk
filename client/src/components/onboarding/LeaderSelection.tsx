@@ -81,7 +81,22 @@ export default function LeaderSelection({
           return prev;
         }
         
-        // We're under the limit, so add the new leader
+        // Find the first empty slot by creating an array of length MAX_SELECTIONS 
+        // filled with the current selections, and padding with nulls for empty slots
+        const paddedLeaders = Array(MAX_SELECTIONS).fill(null);
+        prev.forEach((id, index) => {
+          paddedLeaders[index] = id;
+        });
+        
+        // Find the first null position and insert the new leader there
+        const firstEmptyIndex = paddedLeaders.findIndex(id => id === null);
+        
+        if (firstEmptyIndex !== -1) {
+          paddedLeaders[firstEmptyIndex] = leaderId;
+          return paddedLeaders.filter(id => id !== null);
+        }
+        
+        // Fallback - add to the end if no empty slots found
         return [...prev, leaderId];
       }
     });
@@ -122,7 +137,15 @@ export default function LeaderSelection({
         });
         
         // Invalidate the user data query to refresh the UI
-        queryClient.invalidateQueries({ queryKey: ['/api/users/me'] });
+        await queryClient.invalidateQueries({ queryKey: ['/api/users/me'] });
+        
+        // If in settings page, reload the page to show the updated leaders properly
+        if (isSettingsPage) {
+          // Short timeout to allow the toast to be seen
+          setTimeout(() => {
+            window.location.reload();
+          }, 500);
+        }
         
         // If onComplete callback is provided, call it
         if (onComplete) {
