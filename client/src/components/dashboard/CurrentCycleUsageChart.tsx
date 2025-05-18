@@ -89,9 +89,15 @@ function prepareUsageDataByCycle(usageHistory, yearMonth, recordingsMap = {}) {
       .slice(0, index + 1)
       .reduce((sum, e) => sum + e.wordCount, 0);
     
-    // Get the recording title from recordings map if available
-    const recording = recordingsMap[entry.recordingId];
-    const recordingTitle = recording ? recording.title : null;
+    // Find the matching recording by timestamp (looking within a 1-minute window)
+    const entryTimeKey = entryDate.toISOString().substring(0, 16); // YYYY-MM-DDTHH:MM
+    const matchingRecordings = recordingsMap[entryTimeKey] || [];
+    
+    // Get the first matching recording, if any
+    const recordingTitle = matchingRecordings.length > 0 ? matchingRecordings[0].title : null;
+    
+    // Number of days since start of month for this entry (for better display)
+    const dayOfMonth = entryDate.getDate();
     
     return {
       date: recordingNumber, // Show minimal or no label when many recordings
@@ -100,8 +106,9 @@ function prepareUsageDataByCycle(usageHistory, yearMonth, recordingsMap = {}) {
       timestamp: entryDate.getTime(),
       rawDate: entry.createdAt,
       fullDate: format(entryDate, 'MMMM d, yyyy'),
-      title: recordingTitle || entry.title || `Recording ${index + 1}`,
-      recordingName: recordingTitle || entry.title || `Recording ${index + 1}` // Use actual recording name from database when available
+      dayOfMonth: dayOfMonth,
+      title: recordingTitle || `Recording on ${format(entryDate, 'MMM d')} (${recordingNumber})`,
+      recordingName: recordingTitle || `Recording on ${format(entryDate, 'MMM d')} (${recordingNumber})`
     };
   });
 
@@ -182,14 +189,25 @@ export default function CurrentCycleUsageChart() {
       return;
     }
 
-    // Map recordings by ID for easy lookup
-    const recordingsMap = Array.isArray(recordingsData) ? recordingsData.reduce((map, rec) => {
-      map[rec.id] = rec;
-      return map;
-    }, {}) : {};
+    // Map recordings by date for easy lookup (using ISO string date format)
+    const recordingsMap = {};
+    if (Array.isArray(recordingsData)) {
+      recordingsData.forEach(rec => {
+        // Create keys based on recording date in ISO format (truncated to the minute)
+        // This helps match usage entries with recordings by timestamp
+        const recordedDate = new Date(rec.recordedAt);
+        const dateKey = recordedDate.toISOString().substring(0, 16); // YYYY-MM-DDTHH:MM
+        
+        // Store recording under this key
+        if (!recordingsMap[dateKey]) {
+          recordingsMap[dateKey] = [];
+        }
+        recordingsMap[dateKey].push(rec);
+      });
+    }
 
     // Get monthly totals
-    const monthlyTotals = prepareMonthlyUsageData(data.history, recordingsMap);
+    const monthlyTotals = prepareMonthlyUsageData(data.history);
     
     // Make sure we have at least 6 months of data for display
     const sixMonths = [];
