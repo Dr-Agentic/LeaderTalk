@@ -9,8 +9,7 @@ interface TypographyProps {
 // H1 - Main Heading (Libre Franklin)
 export function H1({ children, className }: TypographyProps) {
   return (
-    <h1 className={cn("text-3xl lg:text-4xl font-franklin font-extrabold tracking-tight text-foreground", className)}
-        style={{ fontFamily: 'Libre Franklin, system-ui, sans-serif' }}>
+    <h1 className={cn("text-3xl lg:text-4xl font-franklin font-extrabold tracking-tight text-foreground", className)}>
       {children}
     </h1>
   );
@@ -19,8 +18,7 @@ export function H1({ children, className }: TypographyProps) {
 // H2 - Section Heading (Playfair Display with enhanced styling)
 export function H2({ children, className }: TypographyProps) {
   return (
-    <h2 className={cn("text-2xl lg:text-3xl font-serif text-foreground font-playfair leading-tight", className)}
-        style={{ fontFamily: 'Playfair Display, Georgia, serif' }}>
+    <h2 className={cn("text-2xl lg:text-3xl font-serif text-foreground font-playfair leading-tight", className)}>
       {children}
     </h2>
   );
