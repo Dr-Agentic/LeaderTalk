@@ -204,7 +204,7 @@ export default function WordUsageStats() {
           </div>
 
           <div className="h-48 mt-6">
-            <p className="mb-2 text-sm font-medium">Usage History</p>
+            <p className="mb-2 text-sm font-medium">Calendar Monthly Usage</p>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={usageHistory}>
                 <XAxis 
