@@ -387,10 +387,13 @@ export default function CurrentCycleUsageChart() {
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
-            <div className="mt-1 flex items-center justify-center text-sm text-muted-foreground">
+            <div className="mt-1 mb-4 flex items-center justify-center text-sm text-muted-foreground">
               <Info className="h-4 w-4 mr-2" />
               <span>
-                {chartData.length > 0 ? `Showing ${chartData.length} recording session${chartData.length !== 1 ? 's' : ''} for ${monthYear}` : `No recordings in ${monthYear}`}
+                {chartData.length > 0 ? 
+                  `Showing ${chartData.length} recording session${chartData.length !== 1 ? 's' : ''} for the billing period ending ${data?.billingCycle?.endDate ? new Date(data.billingCycle.endDate).toLocaleDateString() : 'the current cycle'}` 
+                  : 
+                  `No recordings in the current billing period`}
               </span>
             </div>
           </div>
