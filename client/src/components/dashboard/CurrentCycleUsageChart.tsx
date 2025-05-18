@@ -81,8 +81,8 @@ function prepareUsageDataByCycle(usageHistory, yearMonth) {
   // Transform to chart data format with running total
   const chartData = sortedEntries.map((entry, index) => {
     const entryDate = new Date(entry.createdAt);
-    // Use recording number instead of date for X-axis
-    const recordingNumber = `Rec ${index + 1}`;
+    // Use empty string for X-axis when many recordings
+    const recordingNumber = sortedEntries.length > 30 ? '' : `${index + 1}`;
     
     // Calculate running total by summing up to this point
     const runningTotal = sortedEntries
@@ -90,36 +90,32 @@ function prepareUsageDataByCycle(usageHistory, yearMonth) {
       .reduce((sum, e) => sum + e.wordCount, 0);
     
     return {
-      date: recordingNumber, // Show "Rec 1", "Rec 2", etc. instead of date
+      date: recordingNumber, // Show minimal or no label when many recordings
       words: entry.wordCount,
       runningTotal: runningTotal,
       timestamp: entryDate.getTime(),
       rawDate: entry.createdAt,
       fullDate: format(entryDate, 'MMMM d, yyyy'),
-      title: entry.title || `Recording ${index + 1}`
+      title: entry.title || `Recording ${index + 1}`,
+      recordingName: entry.title // Use actual recording name from database when available
     };
   });
 
-  // Only limit to the most recent 15 recordings if we have too many
+  // We'll show all recordings, regardless of how many there are
+  // The X-axis labels will be suppressed when there are many recordings
   let finalChartData = chartData;
-  if (chartData.length > 15) {
-    finalChartData = chartData.slice(chartData.length - 15);
-    
-    // Recalculate running totals for the limited data
-    let initialTotal = chartData.slice(0, chartData.length - 15)
-      .reduce((sum, entry) => sum + entry.words, 0);
-    
-    finalChartData = finalChartData.map((entry, index) => {
-      const newRunningTotal = initialTotal + finalChartData
-        .slice(0, index + 1)
-        .reduce((sum, e) => sum + e.words, 0);
-      
-      return {
-        ...entry,
-        runningTotal: newRunningTotal
-      };
-    });
-  }
+  
+  // Adjust bar width based on number of recordings
+  const barWidth = finalChartData.length > 50 ? 5 : 
+                   finalChartData.length > 20 ? 12 : 
+                   finalChartData.length > 10 ? 20 : 40;
+                   
+  // Add a property indicating how many total recordings we have
+  finalChartData = finalChartData.map(entry => ({
+    ...entry,
+    totalRecordings: finalChartData.length,
+    barWidth: barWidth
+  }));
 
   return {
     chartData: finalChartData,
@@ -131,15 +127,18 @@ function prepareUsageDataByCycle(usageHistory, yearMonth) {
 
 function CustomTooltip({ active, payload, label }) {
   if (active && payload && payload.length) {
+    const entry = payload[0].payload;
+    const recordingTitle = entry.recordingName || `Recording ${label || ''}`;
+    
     return (
       <div className="bg-background border rounded-md shadow-md p-3 text-sm">
-        <p className="font-medium">{payload[0].payload.title || label}</p>
-        <p className="text-xs text-muted-foreground mb-1">{payload[0].payload.fullDate}</p>
+        <p className="font-medium">{recordingTitle}</p>
+        <p className="text-xs text-muted-foreground mb-1">{entry.fullDate}</p>
         <p className="text-primary">
-          Words recorded: {payload[0].payload.words.toLocaleString()}
+          Words recorded: {entry.words.toLocaleString()}
         </p>
         <p className="text-muted-foreground">
-          Total this cycle: {payload[0].payload.runningTotal?.toLocaleString() || payload[0].payload.words.toLocaleString()} words
+          Total this cycle: {entry.runningTotal?.toLocaleString() || entry.words.toLocaleString()} words
         </p>
       </div>
     );
