@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { Card } from "@/components/ui/card";
@@ -29,10 +29,22 @@ export default function LeadershipInspirations() {
   const { toast } = useToast();
   const [isRemovingLeader, setIsRemovingLeader] = useState(false);
   
-  // Fetch leaders data
+  // Fetch leaders data and ensure it updates when user data changes
   const { data: leaders, isLoading: isLoadingLeaders } = useQuery({
     queryKey: ['/api/leaders'],
   });
+  
+  // Force component to update when userData changes
+  const [selectedLeaderIds, setSelectedLeaderIds] = useState<number[]>([]);
+  
+  // Update the local state when userData changes
+  useEffect(() => {
+    if (userData?.selectedLeaders) {
+      setSelectedLeaderIds([...userData.selectedLeaders]);
+    } else {
+      setSelectedLeaderIds([]);
+    }
+  }, [userData]);
   
   // Function to handle leader removal
   const handleRemoveLeader = async (leaderId: number, leaderName: string) => {
@@ -96,8 +108,8 @@ export default function LeadershipInspirations() {
             <div className="flex flex-wrap justify-center gap-4">
               {/* Always render 3 fixed slots */}
               {[0, 1, 2].map((index) => {
-                // Get leader ID from the user's selections at this index position (if it exists)
-                const leaderId = userData?.selectedLeaders?.[index];
+                // Get leader ID from our local state which updates when userData changes
+                const leaderId = selectedLeaderIds[index];
                 const selectedLeader = Array.isArray(leaders) ? 
                   leaders.find(leader => leader.id === leaderId) : null;
                 
@@ -180,7 +192,7 @@ export default function LeadershipInspirations() {
                   famousPhrases: leader.famousPhrases || []
                 })) : []
               } 
-              currentSelections={userData?.selectedLeaders || []}
+              currentSelections={selectedLeaderIds}
               isSettingsPage={true}
             />
           </Card>
