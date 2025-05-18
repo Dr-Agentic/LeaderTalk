@@ -16,6 +16,7 @@ import Training from "@/pages/Training";
 import ModuleView from "@/pages/ModuleView";
 import SituationView from "@/pages/SituationView";
 import NextSituation from "@/pages/NextSituation";
+import Recording from "@/pages/Recording";
 import DebugLogs from "@/pages/DebugLogs";
 import { useEffect, useState } from "react";
 import { apiRequest } from "./lib/queryClient";
@@ -119,6 +120,9 @@ function Router() {
       {isAuthenticated && onboardingComplete && <Route path="/training/chapter/:chapterId/module/:moduleId" component={ModuleView} />}
       {isAuthenticated && onboardingComplete && <Route path="/training/chapter/:chapterId/module/:moduleId/situation/:id" component={SituationView} />}
       {isAuthenticated && onboardingComplete && <Route path="/training/chapter/:chapterId/next-situation" component={NextSituation} />}
+      
+      {/* Recording page */}
+      {isAuthenticated && onboardingComplete && <Route path="/recording" component={Recording} />}
       
       {/* Onboarding routes */}
       {isAuthenticated && !onboardingComplete && <Route path="/" component={Onboarding} />}
