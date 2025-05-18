@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { H2 } from "@/components/ui/typography";
 import {
   BarChart,
   Bar,
@@ -779,7 +780,7 @@ export default function Progress() {
 
         {/* Summary Stats */}
         <div className="w-full">
-          <h2 className="text-xl font-bold mb-6">Time Period Breakdown</h2>
+          <H2 className="mb-6">Time Period Breakdown</H2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {timeRanges.map((range) => (
