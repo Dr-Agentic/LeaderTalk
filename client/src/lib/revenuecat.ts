@@ -104,14 +104,14 @@ export async function getAvailableProducts() {
 // Get current subscription status
 export async function getCustomerInfo() {
   try {
-    if (typeof Purchases.getCustomerInfo === 'function') {
-      const customerInfo = await Purchases.getCustomerInfo() as RevenueCatCustomerInfo;
-      console.log('RevenueCat customer info:', customerInfo);
-      return customerInfo;
-    } else {
-      console.error('Purchases.getCustomerInfo is not available');
+    if (!window.Purchases) {
+      console.error('RevenueCat SDK not available');
       return null;
     }
+    
+    const customerInfo = await window.Purchases.getCustomerInfo() as RevenueCatCustomerInfo;
+    console.log('RevenueCat customer info:', customerInfo);
+    return customerInfo;
   } catch (error) {
     console.error('Error fetching customer info from RevenueCat:', error);
     return null;
@@ -121,19 +121,19 @@ export async function getCustomerInfo() {
 // Purchase a subscription package
 export async function purchasePackage(packageToPurchase: any) {
   try {
-    if (typeof Purchases.purchasePackage === 'function') {
-      const { customerInfo } = await Purchases.purchasePackage(packageToPurchase);
-      console.log('Purchase successful:', customerInfo);
-      
-      // Invalidate the subscription cache to reload user's entitlements
-      queryClient.invalidateQueries({ queryKey: ['/api/subscription-plans'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/users/me'] });
-      
-      return { success: true, customerInfo };
-    } else {
-      console.error('Purchases.purchasePackage is not available');
-      return { success: false, error: 'Purchase functionality not available' };
+    if (!window.Purchases) {
+      console.error('RevenueCat SDK not available');
+      return { success: false, error: 'RevenueCat SDK not available' };
     }
+    
+    const { customerInfo } = await window.Purchases.purchasePackage(packageToPurchase);
+    console.log('Purchase successful:', customerInfo);
+    
+    // Invalidate the subscription cache to reload user's entitlements
+    queryClient.invalidateQueries({ queryKey: ['/api/subscription-plans'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/users/me'] });
+    
+    return { success: true, customerInfo };
   } catch (error) {
     console.error('Error purchasing package:', error);
     return { success: false, error };
@@ -143,20 +143,19 @@ export async function purchasePackage(packageToPurchase: any) {
 // Check if user has an active subscription
 export async function checkSubscriptionStatus() {
   try {
-    if (typeof Purchases.getCustomerInfo === 'function') {
-      const customerInfo = await Purchases.getCustomerInfo() as RevenueCatCustomerInfo;
-      const activeSubscription = 
-        Object.values(customerInfo.entitlements.active).length > 0;
-      
-      return {
-        isSubscribed: activeSubscription,
-        plan: activeSubscription ? getPlanFromEntitlements(customerInfo.entitlements.active) : 'none',
-        customerInfo
-      };
-    } else {
-      console.error('Purchases.getCustomerInfo is not available');
+    if (!window.Purchases) {
+      console.error('RevenueCat SDK not available');
       return { isSubscribed: false, plan: 'none' };
     }
+    
+    const customerInfo = await window.Purchases.getCustomerInfo() as RevenueCatCustomerInfo;
+    const activeSubscription = Object.values(customerInfo.entitlements.active).length > 0;
+    
+    return {
+      isSubscribed: activeSubscription,
+      plan: activeSubscription ? getPlanFromEntitlements(customerInfo.entitlements.active) : 'none',
+      customerInfo
+    };
   } catch (error) {
     console.error('Error checking subscription status:', error);
     return { isSubscribed: false, plan: 'none', error };
@@ -174,18 +173,18 @@ function getPlanFromEntitlements(activeEntitlements: Record<string, any>) {
 // Restore purchases (useful for mobile platforms)
 export async function restorePurchases() {
   try {
-    if (typeof Purchases.restorePurchases === 'function') {
-      const customerInfo = await Purchases.restorePurchases();
-      
-      // Invalidate queries to refresh UI with restored purchases
-      queryClient.invalidateQueries({ queryKey: ['/api/subscription-plans'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/users/me'] });
-      
-      return { success: true, customerInfo };
-    } else {
-      console.error('Purchases.restorePurchases is not available');
-      return { success: false, error: 'Restore purchases functionality not available' };
+    if (!window.Purchases) {
+      console.error('RevenueCat SDK not available');
+      return { success: false, error: 'RevenueCat SDK not available' };
     }
+    
+    const customerInfo = await window.Purchases.restorePurchases();
+    
+    // Invalidate queries to refresh UI with restored purchases
+    queryClient.invalidateQueries({ queryKey: ['/api/subscription-plans'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/users/me'] });
+    
+    return { success: true, customerInfo };
   } catch (error) {
     console.error('Error restoring purchases:', error);
     return { success: false, error };

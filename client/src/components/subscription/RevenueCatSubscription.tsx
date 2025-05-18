@@ -28,7 +28,7 @@ interface SubscriptionPlan {
 export default function RevenueCatSubscription() {
   const { toast } = useToast();
   const auth = useAuth();
-  const user = auth?.user as User | undefined;
+  const user = auth.user as User | undefined;
   const [loading, setLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [availablePackages, setAvailablePackages] = useState<any[]>([]);
