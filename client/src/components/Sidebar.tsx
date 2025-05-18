@@ -92,7 +92,7 @@ function SidebarContent({ location }) {
   
   const navItems = [
     { name: "Dashboard", href: "/", icon: Home },
-    { name: "Record & Analyze", href: "#record-section", icon: Mic, scrollTo: true },
+    { name: "Record & Analyze", href: "/recording", icon: Mic },
     { name: "All Transcripts", href: "/transcripts", icon: FileText },
     { name: "My Progress", href: "/progress", icon: LineChart },
     { name: "Training Module", href: "/training", icon: GraduationCap },

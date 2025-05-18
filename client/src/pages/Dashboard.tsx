@@ -66,9 +66,10 @@ export default function Dashboard() {
                 className="mt-2 flex items-center" 
                 size="lg"
                 onClick={() => navigate('/recording')}
+                variant="gradient"
               >
                 <Mic className="mr-2 h-5 w-5" />
-                Go to Recording Page
+                Start Recording
               </Button>
             </CardContent>
           </Card>
