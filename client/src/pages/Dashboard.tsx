@@ -1,6 +1,7 @@
 import { Link, useLocation } from "wouter";
 import QuickActions from "@/components/dashboard/QuickActions";
 import AnalysisDisplay from "@/components/dashboard/AnalysisDisplay";
+import { QuoteDisplay } from "@/components/dashboard/QuoteDisplay";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -10,10 +11,12 @@ import { H1, H2, Lead, Paragraph } from "@/components/ui/typography";
 import AppLayout from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { useState, useEffect } from "react";
 
 export default function Dashboard() {
   const { toast } = useToast();
   const [, navigate] = useLocation();
+  const [showQuote, setShowQuote] = useState(true);
   
   const { data: recordingsData, isLoading: recordingsLoading } = useQuery({
     queryKey: ['/api/recordings'],
@@ -29,6 +32,17 @@ export default function Dashboard() {
     ? recordingsData[0] 
     : null;
     
+  // Auto-hide quote after 10 seconds
+  useEffect(() => {
+    if (showQuote) {
+      const timer = setTimeout(() => {
+        setShowQuote(false);
+      }, 10000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [showQuote]);
+    
   return (
     <AppLayout>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
@@ -43,6 +57,13 @@ export default function Dashboard() {
         <DashboardSkeleton />
       ) : (
         <>
+          {showQuote && (
+            <div className="transition-all duration-500 ease-in-out transform" 
+                 style={{ opacity: showQuote ? 1 : 0 }}>
+              <QuoteDisplay />
+            </div>
+          )}
+          
           <QuickActions 
             recordingsCount={recordingsData?.length || 0}
             weeklyImprovement={calculateWeeklyImprovement(recordingsData)}
