@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/AppLayout";
+import { H2 } from "@/components/ui/typography";
 
 // Interface to match the LeaderSelection component's expected format
 interface LeaderData {
@@ -87,7 +88,7 @@ export default function LeadershipInspirations() {
         <>
           {/* Current Selections Display */}
           <Card className="p-6 mb-8">
-            <h2 className="text-xl font-semibold mb-4">Your Current Inspirations</h2>
+            <H2 className="text-xl mb-4">Your Current Inspirations</H2>
             <p className="text-gray-600 mb-6">
               These are the leaders who currently inspire your communication style. You can select up to 3 leaders.
             </p>
@@ -153,7 +154,7 @@ export default function LeadershipInspirations() {
           
           {/* Leader Selection */}
           <Card className="p-6">
-            <h2 className="text-xl font-semibold mb-4">Available Leaders</h2>
+            <H2 className="text-xl mb-4">Available Leaders</H2>
             <p className="text-gray-600 mb-6">
               Select from our curated list of leaders to inspire your communication style.
             </p>
