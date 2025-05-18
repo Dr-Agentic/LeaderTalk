@@ -18,6 +18,7 @@ export default function SubscriptionManager() {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [paymentProcessor, setPaymentProcessor] = useState<"legacy" | "revenuecat">("legacy");
 
   // Fetch all available subscription plans
   const { data: plansData, isLoading: isLoadingPlans } = useQuery({
@@ -107,6 +108,25 @@ export default function SubscriptionManager() {
           )}
         </div>
       )}
+      
+      {/* Payment Provider Selection */}
+      <div className="flex justify-center mb-6">
+        <Tabs 
+          defaultValue="legacy" 
+          value={paymentProcessor}
+          onValueChange={(value) => setPaymentProcessor(value as "legacy" | "revenuecat")} 
+          className="w-full"
+        >
+          <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
+            <TabsTrigger value="legacy">Standard Payment</TabsTrigger>
+            <TabsTrigger value="revenuecat">RevenueCat Payment</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="revenuecat" className="mt-6">
+            <RevenueCatSubscription />
+          </TabsContent>
+          
+          <TabsContent value="legacy" className="mt-6">
 
       {/* Billing Period Selector */}
       <div className="flex justify-center mb-6">
