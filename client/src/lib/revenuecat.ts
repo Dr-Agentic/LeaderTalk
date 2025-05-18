@@ -1,119 +1,11 @@
-// Import RevenueCat SDK
 import { queryClient } from './queryClient';
 
-// Create a simple adapter for RevenueCat to avoid TypeScript errors
-class RevenueCatAdapter {
-  private static instance: RevenueCatAdapter;
-  private initialized = false;
-
-  private constructor() {}
-
-  static getInstance(): RevenueCatAdapter {
-    if (!RevenueCatAdapter.instance) {
-      RevenueCatAdapter.instance = new RevenueCatAdapter();
-    }
-    return RevenueCatAdapter.instance;
-  }
-
-  async configure(apiKey: string): Promise<boolean> {
-    try {
-      if (!apiKey) {
-        console.error('RevenueCat API key is missing');
-        return false;
-      }
-
-      // Use the global window object to access RevenueCat
-      if (typeof window !== 'undefined' && window.Purchases) {
-        await window.Purchases.configure({ 
-          apiKey, 
-          appUserID: undefined, 
-          observerMode: false 
-        });
-        this.initialized = true;
-        console.log('RevenueCat SDK initialized successfully');
-        return true;
-      } else {
-        console.error('RevenueCat SDK not available');
-        return false;
-      }
-    } catch (error) {
-      console.error('Failed to initialize RevenueCat', error);
-      return false;
-    }
-  }
-
-  async identify(userId: string): Promise<boolean> {
-    try {
-      if (!this.initialized || !window.Purchases) {
-        console.error('RevenueCat not initialized');
-        return false;
-      }
-      
-      await window.Purchases.identify(userId);
-      return true;
-    } catch (error) {
-      console.error('Error identifying user with RevenueCat:', error);
-      return false;
-    }
-  }
-
-  async getOfferings(): Promise<any> {
-    try {
-      if (!this.initialized || !window.Purchases) {
-        return { current: null, all: {} };
-      }
-      
-      return await window.Purchases.getOfferings();
-    } catch (error) {
-      console.error('Error fetching RevenueCat offerings:', error);
-      return { current: null, all: {} };
-    }
-  }
-
-  async getCustomerInfo(): Promise<any> {
-    try {
-      if (!this.initialized || !window.Purchases) {
-        return null;
-      }
-      
-      return await window.Purchases.getCustomerInfo();
-    } catch (error) {
-      console.error('Error fetching customer info from RevenueCat:', error);
-      return null;
-    }
-  }
-
-  async purchasePackage(packageToPurchase: any): Promise<any> {
-    try {
-      if (!this.initialized || !window.Purchases) {
-        return { success: false, error: 'RevenueCat not initialized' };
-      }
-      
-      const result = await window.Purchases.purchasePackage(packageToPurchase);
-      return { success: true, ...result };
-    } catch (error) {
-      console.error('Error purchasing package:', error);
-      return { success: false, error };
-    }
-  }
-
-  async restorePurchases(): Promise<any> {
-    try {
-      if (!this.initialized || !window.Purchases) {
-        return { success: false, error: 'RevenueCat not initialized' };
-      }
-      
-      const customerInfo = await window.Purchases.restorePurchases();
-      return { success: true, customerInfo };
-    } catch (error) {
-      console.error('Error restoring purchases:', error);
-      return { success: false, error };
-    }
+// Define a global window type that includes the Purchases object
+declare global {
+  interface Window {
+    Purchases: any;
   }
 }
-
-// Make the adapter globally available
-const RevenueCat = RevenueCatAdapter.getInstance();
 
 // RevenueCat configuration
 const RC_PUBLIC_SDK_KEY = import.meta.env.VITE_REVENUECAT_PUBLIC_KEY;
@@ -123,18 +15,19 @@ export async function initializeRevenueCat() {
   try {
     if (!RC_PUBLIC_SDK_KEY) {
       console.error('RevenueCat public SDK key is missing');
-      return;
+      return false;
     }
 
-    // Use any type to avoid TypeScript errors with the SDK
-    const config: any = {
+    if (!window.Purchases) {
+      console.error('RevenueCat SDK not available');
+      return false;
+    }
+
+    await window.Purchases.configure({
       apiKey: RC_PUBLIC_SDK_KEY,
-      appUserID: undefined, // Optional user ID
-      observerMode: false // Set to true to prevent making purchases
-    };
-    
-    // @ts-ignore - RevenueCat SDK typing issues
-    await Purchases.configure(config);
+      appUserID: undefined,
+      observerMode: false
+    });
     
     console.log('RevenueCat SDK initialized successfully');
     
@@ -144,8 +37,10 @@ export async function initializeRevenueCat() {
       await identifyUser(userId);
     }
     
+    return true;
   } catch (error) {
     console.error('Error initializing RevenueCat:', error);
+    return false;
   }
 }
 
@@ -175,15 +70,14 @@ interface RevenueCatOfferings {
 // Identify a user with RevenueCat for subscription tracking
 export async function identifyUser(userId: string) {
   try {
-    // Ensure Purchases.identify is properly typed
-    if (typeof Purchases.identify === 'function') {
-      await Purchases.identify(userId);
-      console.log('User identified with RevenueCat:', userId);
-      return true;
-    } else {
-      console.error('Purchases.identify is not available');
+    if (!window.Purchases) {
+      console.error('RevenueCat SDK not available');
       return false;
     }
+    
+    await window.Purchases.identify(userId);
+    console.log('User identified with RevenueCat:', userId);
+    return true;
   } catch (error) {
     console.error('Error identifying user with RevenueCat:', error);
     return false;
@@ -193,14 +87,14 @@ export async function identifyUser(userId: string) {
 // Get available products
 export async function getAvailableProducts() {
   try {
-    if (typeof Purchases.getOfferings === 'function') {
-      const offerings = await Purchases.getOfferings() as RevenueCatOfferings;
-      console.log('RevenueCat offerings:', offerings);
-      return offerings.current?.availablePackages || [];
-    } else {
-      console.error('Purchases.getOfferings is not available');
+    if (!window.Purchases) {
+      console.error('RevenueCat SDK not available');
       return [];
     }
+    
+    const offerings = await window.Purchases.getOfferings() as RevenueCatOfferings;
+    console.log('RevenueCat offerings:', offerings);
+    return offerings.current?.availablePackages || [];
   } catch (error) {
     console.error('Error fetching RevenueCat offerings:', error);
     return [];
