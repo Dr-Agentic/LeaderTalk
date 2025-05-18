@@ -1,11 +1,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import WordUsageStats from "@/components/dashboard/WordUsageStats";
 import CurrentCycleUsageChart from "@/components/dashboard/CurrentCycleUsageChart";
-import SubscriptionManager from "@/components/subscription/SubscriptionManager";
 import AppLayout from "@/components/AppLayout";
 import {
   AlertDialog,
@@ -25,6 +25,7 @@ export default function Settings() {
   const { userData } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, navigate] = useLocation();
   
   // Delete user account mutation - deletes all user data and the account itself
   const deleteUserMutation = useMutation({
