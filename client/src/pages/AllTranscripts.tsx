@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { BackButton } from "@/components/BackButton";
 import { formatDistanceToNow } from "date-fns";
+import AppLayout from "@/components/AppLayout";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -42,12 +43,14 @@ export default function AllTranscripts() {
     : [];
   
   return (
-    <div className="container mx-auto px-4 py-8">
-      <BackButton to="/dashboard" label="Back to Dashboard" />
-      
+    <AppLayout
+      showBackButton
+      backTo="/dashboard"
+      backLabel="Back to Dashboard"
+      pageTitle="All Transcripts"
+    >
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold">All Transcripts</h1>
           <p className="text-muted-foreground">
             {recordings?.length || 0} recording{recordings?.length !== 1 ? 's' : ''}
           </p>
@@ -154,7 +157,7 @@ export default function AllTranscripts() {
           )}
         </TabsContent>
       </Tabs>
-    </div>
+    </AppLayout>
   );
 }
 
