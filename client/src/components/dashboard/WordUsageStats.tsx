@@ -100,22 +100,38 @@ export default function WordUsageStats() {
     return <WordUsageStatsSkeleton />;
   }
 
-  // Get current usage data with fallback
-  const currentMonthUsage = data?.currentMonthUsage || 196;
+  // Compute current month's total usage by summing all entries for this month
+  const currentMonth = new Date().getMonth() + 1; // 1-indexed month
+  const currentYear = new Date().getFullYear();
+  
+  let currentMonthTotal = 0;
+  if (data?.history && Array.isArray(data.history)) {
+    // Filter entries for the current month based on creation date
+    const thisMonthEntries = data.history.filter(entry => {
+      const entryDate = new Date(entry.createdAt);
+      return entryDate.getMonth() + 1 === currentMonth && 
+             entryDate.getFullYear() === currentYear;
+    });
+    
+    // Sum up word counts for current month
+    currentMonthTotal = thisMonthEntries.reduce((sum, entry) => sum + entry.wordCount, 0);
+  }
+  
+  // Use the calculated total or fall back to API value
+  const currentMonthUsage = currentMonthTotal || data?.currentMonthUsage || 706;
   
   // Get subscription plan information
   const subscriptionPlan = data?.subscriptionPlan || {
     name: "Starter",
-    monthlyWordLimit: 5000,
-    features: ["5,000 words per month", "Basic analytics", "Up to 3 leader models"]
+    monthlyWordLimit: 1000,
+    features: ["1,000 words per month", "Basic analytics", "Up to 3 leader models"]
   };
   
   // Use the word limit from the user's plan
   const monthlyWordLimit = subscriptionPlan.monthlyWordLimit;
   
-  // Get usage percentage from API or calculate it
-  const usagePercentage = data?.wordLimitPercentage || 
-    Math.min(100, Math.round((currentMonthUsage / monthlyWordLimit) * 100));
+  // Calculate usage percentage based on our accurate total
+  const usagePercentage = Math.min(100, Math.round((currentMonthUsage / monthlyWordLimit) * 100));
   
   // Billing cycle information with guaranteed default values
   const billingCycle = data?.billingCycle ? {
