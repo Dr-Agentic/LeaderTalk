@@ -300,39 +300,40 @@ export default function CurrentCycleUsageChart() {
 
   return (
     <Card className="mb-6">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <div className="flex flex-col">
+      <CardHeader className="pb-1">
+        <div className="flex flex-col gap-1">
           <CardTitle className="text-2xl font-bold">Billing Cycle Recordings</CardTitle>
           {chartData.length > 0 && (
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-sm text-muted-foreground">
               {totalWords.toLocaleString()} words recorded in your billing cycle ({formattedDateRange})
             </p>
           )}
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1 bg-muted/50 rounded-md px-3 py-1.5">
-            <CalendarIcon className="h-4 w-4 text-primary" />
-            <span className="font-medium">Billing Period {data?.billingCycle?.cycleNumber || 1}</span>
-          </div>
-          <div className="flex space-x-1">
-            <Button 
-              variant="outline" 
-              size="icon" 
-              className="h-8 w-8" 
-              onClick={navigateToPreviousMonth}
-              disabled={!hasPreviousMonth}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button 
-              variant="outline" 
-              size="icon" 
-              className="h-8 w-8" 
-              onClick={navigateToNextMonth}
-              disabled={!hasNextMonth}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
+          
+          <div className="flex items-center justify-between mt-3">
+            <div className="flex items-center gap-1 bg-muted/50 rounded-md px-3 py-1.5">
+              <CalendarIcon className="h-4 w-4 text-primary" />
+              <span className="font-medium">Billing Period {data?.billingCycle?.cycleNumber || 1}</span>
+            </div>
+            <div className="flex space-x-1">
+              <Button 
+                variant="outline" 
+                size="icon" 
+                className="h-8 w-8" 
+                onClick={navigateToPreviousMonth}
+                disabled={!hasPreviousMonth}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant="outline" 
+                size="icon" 
+                className="h-8 w-8" 
+                onClick={navigateToNextMonth}
+                disabled={!hasNextMonth}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </div>
       </CardHeader>
