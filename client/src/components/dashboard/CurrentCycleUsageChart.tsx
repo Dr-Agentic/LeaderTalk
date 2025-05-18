@@ -319,7 +319,7 @@ export default function CurrentCycleUsageChart() {
               <BarChart 
                 data={chartData} 
                 margin={{ top: 20, right: 20, left: 10, bottom: 10 }}
-                barSize={40}
+                barSize={chartData[0]?.barWidth || 40}
               >
                 <XAxis
                   dataKey="date"
