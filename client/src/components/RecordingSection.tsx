@@ -147,11 +147,27 @@ export default function RecordingSection({ onRecordingComplete }: RecordingSecti
   };
   
   // Handle stop recording
+  // Generate a default recording title with current date and time
+  const generateDefaultTitle = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    
+    return `Recording-${year}-${month}-${day}-${hours}:${minutes}`;
+  };
+
   const handleStopRecording = async () => {
     try {
       await stopRecording();
       setIsRecording(false);
       setIsPaused(false);
+      
+      // Set a default title with date and time format
+      setRecordingTitle(generateDefaultTitle());
+      
       setShowTitleDialog(true);
     } catch (error) {
       toast({
