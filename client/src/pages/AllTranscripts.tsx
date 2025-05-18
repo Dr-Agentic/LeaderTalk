@@ -26,7 +26,7 @@ import { Recording } from "../../../shared/schema";
 type SortOption = "date-desc" | "date-asc" | "rating-desc" | "rating-asc";
 
 export default function AllTranscripts() {
-  const [, navigate] = useLocation();
+  const [, push] = useLocation();
   const [sortBy, setSortBy] = useState<SortOption>("date-desc");
   const [searchQuery, setSearchQuery] = useState("");
   
@@ -287,7 +287,7 @@ function TranscriptCard({ recording }: { recording: Recording }) {
         <Button 
           variant="link"
           className="text-sm font-medium text-primary hover:text-primary/80 flex items-center p-0"
-          onClick={() => navigate(`/transcript/${recording.id}`)}
+          onClick={() => push(`/transcript/${recording.id}`)}
         >
           View transcript
           <ChevronRight className="h-4 w-4 ml-1" />
