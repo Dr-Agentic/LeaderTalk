@@ -2,6 +2,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MenuIcon, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
+import { Link } from "wouter";
 
 interface AppHeaderProps {
   setSidebarOpen: (isOpen: boolean) => void;
@@ -54,8 +55,11 @@ export default function AppHeader({
             </Button>
           )}
           
-          {/* App title/logo - always show LeaderTalk */}
-          <h1 className="text-lg font-bold text-primary">LeaderTalk</h1>
+          {/* App logo - show new LeaderTalk logo */}
+          <Link href="/" className="flex items-center gap-2">
+            <img src="/assets/images/LeaderTalk.png" alt="LeaderTalk Logo" className="h-8 w-auto" />
+            <h1 className="text-lg font-bold text-primary">LeaderTalk</h1>
+          </Link>
         </div>
         
         {/* User profile icon */}
