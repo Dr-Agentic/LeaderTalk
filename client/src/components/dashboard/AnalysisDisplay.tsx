@@ -4,6 +4,7 @@ import CommunicationChart from "@/components/CommunicationChart";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { H2 } from "@/components/ui/typography";
 import { Lightbulb, CheckCircle, AlertCircle } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
@@ -40,7 +41,7 @@ export default function AnalysisDisplay({ recording, leaders }) {
   
   return (
     <div className="mt-8">
-      <h2 className="text-lg font-medium text-gray-900">Last Analysis</h2>
+      <H2>Last Analysis</H2>
       
       <Card className="mt-4">
         <CardHeader className="px-4 py-5 sm:px-6 flex flex-col sm:flex-row sm:justify-between sm:items-center">
