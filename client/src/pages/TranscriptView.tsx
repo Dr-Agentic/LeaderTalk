@@ -245,6 +245,15 @@ export default function TranscriptView() {
                 </Button>
                 
                 <Button 
+                  variant="outline"
+                  onClick={() => navigate('/recording')}
+                  className="flex items-center"
+                >
+                  <MessageSquare className="mr-2 h-4 w-4" />
+                  Start New Recording
+                </Button>
+                
+                <Button 
                   onClick={() => {
                     queryClient.invalidateQueries({ queryKey: ['/api/recordings', recordingId] });
                     toast({
