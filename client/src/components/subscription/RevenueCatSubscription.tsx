@@ -12,6 +12,7 @@ import {
   restorePurchases
 } from '@/lib/revenuecat';
 import { useAuth } from '@/hooks/useAuth';
+import type { User } from '@shared/schema';
 
 interface SubscriptionPlan {
   id: number;
@@ -26,7 +27,8 @@ interface SubscriptionPlan {
 
 export default function RevenueCatSubscription() {
   const { toast } = useToast();
-  const { user } = useAuth();
+  const auth = useAuth();
+  const user = auth.user as User | undefined;
   const [loading, setLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [availablePackages, setAvailablePackages] = useState<any[]>([]);

@@ -26,9 +26,9 @@ export async function updateUserSubscription(req: Request, res: Response) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
 
-    // Update the user with the new subscription plan ID
+    // Update the user with the new subscription plan code
     const updatedUser = await storage.updateUser(userId, {
-      subscriptionPlanId: plan.id,
+      subscriptionPlan: planCode,
       subscriptionUpdatedAt: new Date(),
     });
 
