@@ -5,8 +5,6 @@ import AppLayout from "@/components/AppLayout";
 import RecordingSection from "@/components/RecordingSection";
 import { H1, H2 } from "@/components/ui/typography";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
 
 export default function Recording() {
   const [, navigate] = useLocation();
@@ -20,19 +18,13 @@ export default function Recording() {
   };
   
   return (
-    <AppLayout>
+    <AppLayout 
+      showBackButton={true}
+      backTo="/dashboard"
+      backLabel="Back to Dashboard"
+      pageTitle="Record a Conversation"
+    >
       <div className="container mx-auto py-6">
-        <div className="flex items-center mb-6">
-          <Button 
-            variant="ghost" 
-            className="mr-2" 
-            onClick={() => navigate('/dashboard')}
-          >
-            <ArrowLeft className="h-4 w-4 mr-1" />
-            Back to Dashboard
-          </Button>
-        </div>
-        
         <H1>Record a Conversation</H1>
         <p className="text-muted-foreground mt-2 mb-6">
           Record your conversations to get AI-powered insights on your communication style.
