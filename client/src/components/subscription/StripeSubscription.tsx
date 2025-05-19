@@ -131,6 +131,7 @@ export default function StripeSubscription() {
   const { data: plansData, isLoading, error } = useQuery({
     queryKey: ["/api/subscription-plans"],
     enabled: isStripeAvailable,
+    select: (data) => data?.plans || [],
   });
   
   // Create payment intent mutation
@@ -212,8 +213,7 @@ export default function StripeSubscription() {
   // Determine if showing plan selection or payment form
   const isSelectingPlan = !clientSecret;
   
-  // Make sure we have valid plan data
-  const plans = Array.isArray(plansData?.plans) ? plansData.plans : [];
+  // Plans data is already properly formatted through the select function
   
   return (
     <div className="space-y-6">
@@ -227,7 +227,7 @@ export default function StripeSubscription() {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {plans.map((plan: PlanDetails) => (
+            {plansData?.map((plan: PlanDetails) => (
               <Card 
                 key={plan.id} 
                 className={`cursor-pointer transition-all ${
