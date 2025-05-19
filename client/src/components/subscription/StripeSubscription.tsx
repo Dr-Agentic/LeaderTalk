@@ -129,7 +129,7 @@ export default function StripeSubscription() {
   
   // Fetch available subscription plans
   const { data: plansData, isLoading, error } = useQuery({
-    queryKey: ["/api/subscription/plans"],
+    queryKey: ["/api/subscription-plans"],
     enabled: isStripeAvailable,
   });
   
@@ -212,6 +212,9 @@ export default function StripeSubscription() {
   // Determine if showing plan selection or payment form
   const isSelectingPlan = !clientSecret;
   
+  // Make sure we have valid plan data
+  const plans = Array.isArray(plansData?.plans) ? plansData.plans : [];
+  
   return (
     <div className="space-y-6">
       {isSelectingPlan ? (
@@ -224,7 +227,7 @@ export default function StripeSubscription() {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {plansData?.plans.map((plan: PlanDetails) => (
+            {plans.map((plan: PlanDetails) => (
               <Card 
                 key={plan.id} 
                 className={`cursor-pointer transition-all ${
@@ -242,7 +245,7 @@ export default function StripeSubscription() {
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2 text-sm">
-                    {plan.features.map((feature, index) => (
+                    {Array.isArray(plan.features) && plan.features.map((feature, index) => (
                       <li key={index} className="flex items-start">
                         <CheckCircle className="h-4 w-4 text-primary mr-2 shrink-0 mt-0.5" />
                         <span>{feature}</span>

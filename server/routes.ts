@@ -29,12 +29,11 @@ import { importLeadersFromFile } from "./import-leaders";
 import { 
   createSubscription, 
   verifyPaymentStatus, 
-  handleStripeWebhook, 
-  handleRevenueCatWebhook 
+  handleStripeWebhook
 } from "./stripe";
 import { updateLeaderImages } from "./update-leader-images";
 import { importTrainingData } from "./import-training-data";
-import { updateUserSubscription } from "./subscription";
+import { updateUserSubscription, handleRevenueCatWebhook } from "./subscription";
 import { z } from "zod";
 import { ZodError } from "zod";
 
@@ -2498,19 +2497,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Stripe API Endpoints
+  // Payment API Endpoints
 
-  // Create a Stripe subscription payment intent
+  // Stripe endpoints
   app.post('/api/create-subscription', requireAuth, createSubscription);
-
-  // Verify payment status
   app.get('/api/payment-status/:paymentIntentId', requireAuth, verifyPaymentStatus);
-
-  // Stripe webhook for handling events (payment completion, etc.)
   app.post('/api/webhooks/stripe', express.raw({ type: 'application/json' }), handleStripeWebhook);
-
-  // RevenueCat webhook for handling in-app purchase events
+  
+  // RevenueCat endpoint
   app.post('/api/webhooks/revenuecat', express.json(), handleRevenueCatWebhook);
+  
+  // Standard subscription endpoint
+  app.post('/api/update-subscription-plan', requireAuth, updateUserSubscription);
 
   const httpServer = createServer(app);
   return httpServer;
