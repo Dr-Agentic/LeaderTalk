@@ -134,16 +134,22 @@ export default function StripeSubscription() {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   
   // Fetch available subscription plans
-  const { data: plansData, isLoading, error } = useQuery({
+  const { data: plansData, isLoading, error } = useQuery<PlansResponse>({
     queryKey: ["/api/subscription-plans"],
     enabled: isStripeAvailable,
   });
   
   // Extract plans from the API response
-  const plans = plansData && Array.isArray(plansData.plans) ? plansData.plans : [];
+  const plans = plansData?.plans || [];
+  
+  interface SubscriptionResponse {
+    success: boolean;
+    clientSecret?: string;
+    error?: string;
+  }
   
   // Create payment intent mutation
-  const createPaymentMutation = useMutation({
+  const createPaymentMutation = useMutation<SubscriptionResponse, Error, string>({
     mutationFn: async (planCode: string) => {
       const response = await apiRequest("POST", "/api/create-subscription", { planCode });
       return response.json();
