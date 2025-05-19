@@ -16,7 +16,7 @@ if (!process.env.STRIPE_SECRET_KEY) {
 // Initialize Stripe with the secret key
 const secretKey = process.env.STRIPE_SECRET_KEY || '';
 const stripe = new Stripe(secretKey, {
-  apiVersion: "2023-10-16", // Using a known stable API version
+  apiVersion: "2025-04-30.basil", // Updated to match expected version from the frontend
 });
 
 // Fetch products from Stripe API for display in the UI
