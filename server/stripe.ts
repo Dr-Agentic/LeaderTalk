@@ -34,14 +34,14 @@ export async function getStripeProducts(req: Request, res: Response) {
       const products = plans.map(plan => {
         const priceInCents = Math.round(parseFloat(plan.monthlyPriceUsd) * 100);
         return {
-          id: `prod_${plan.code}`,
+          id: `prod_${plan.planCode}`,
           name: plan.name,
           description: `${plan.name} - ${plan.monthlyWordLimit} words per month`,
           active: true,
-          features: plan.features ? plan.features.split(',').map(f => f.trim()) : [],
+          features: plan.features || [],
           prices: [{
-            id: `price_${plan.code}`,
-            product: `prod_${plan.code}`,
+            id: `price_${plan.planCode}`,
+            product: `prod_${plan.planCode}`,
             unit_amount: priceInCents,
             currency: 'usd',
             recurring: { interval: 'month' }
@@ -117,14 +117,14 @@ export async function getStripeProducts(req: Request, res: Response) {
       const products = plans.map(plan => {
         const priceInCents = Math.round(parseFloat(plan.monthlyPriceUsd) * 100);
         return {
-          id: `prod_${plan.code}`,
+          id: `prod_${plan.planCode}`,
           name: plan.name,
           description: `${plan.name} - ${plan.monthlyWordLimit} words per month`,
           active: true,
-          features: plan.features ? plan.features.split(',').map(f => f.trim()) : [],
+          features: plan.features || [],
           prices: [{
-            id: `price_${plan.code}`,
-            product: `prod_${plan.code}`,
+            id: `price_${plan.planCode}`,
+            product: `prod_${plan.planCode}`,
             unit_amount: priceInCents,
             currency: 'usd',
             recurring: { interval: 'month' }
