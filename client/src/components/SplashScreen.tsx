@@ -8,7 +8,7 @@ interface SplashScreenProps {
 
 export default function SplashScreen({ 
   onComplete, 
-  minDisplayTime = 2000 
+  minDisplayTime = 2500 
 }: SplashScreenProps) {
   const [isComplete, setIsComplete] = useState(false);
 
@@ -22,11 +22,11 @@ export default function SplashScreen({
   }, [minDisplayTime, onComplete]);
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-primary/5 z-50">
+    <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-primary/20 via-background to-primary/10 z-50">
       <div className="flex flex-col items-center">
         <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
+          initial={{ opacity: 0, scale: 0.8, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ 
             duration: 0.8, 
             ease: [0.22, 1, 0.36, 1] 
@@ -41,10 +41,24 @@ export default function SplashScreen({
         </motion.div>
         
         <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5, duration: 0.6 }}
+          className="mt-4 mb-8 text-center"
+        >
+          <h1 className="text-xl font-semibold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+            LeaderTalk
+          </h1>
+          <p className="text-muted-foreground mt-1 text-sm">
+            Talk Like the Leader You Aspire to Be
+          </p>
+        </motion.div>
+        
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.4, duration: 0.6 }}
-          className="mt-4"
+          transition={{ delay: 0.8, duration: 0.6 }}
+          className="mt-2"
         >
           <div className="flex space-x-2">
             <div className="w-2 h-2 rounded-full bg-primary animate-pulse" style={{ animationDelay: '0ms' }}></div>

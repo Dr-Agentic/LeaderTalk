@@ -22,11 +22,13 @@ import DebugLogs from "@/pages/DebugLogs";
 import { useEffect, useState } from "react";
 import { apiRequest } from "./lib/queryClient";
 import { logInfo, logError, logDebug } from "@/lib/debugLogger";
+import SplashScreen from "@/components/SplashScreen";
 
 function Router() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [onboardingComplete, setOnboardingComplete] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
+  const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -88,6 +90,17 @@ function Router() {
     checkAuth();
   }, [isAuthenticated]);
 
+  // Handle splash screen completion
+  const handleSplashComplete = () => {
+    setShowSplash(false);
+  };
+
+  // Show splash screen initially
+  if (showSplash) {
+    return <SplashScreen onComplete={handleSplashComplete} />;
+  }
+
+  // Show loading spinner after splash screen if still loading
   if (loading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
