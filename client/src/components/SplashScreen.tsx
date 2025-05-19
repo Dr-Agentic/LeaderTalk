@@ -31,7 +31,7 @@ export default function SplashScreen({
             duration: 0.8, 
             ease: [0.22, 1, 0.36, 1] 
           }}
-          className="w-40 h-40 md:w-48 md:h-48 mb-6"
+          className="w-40 h-40 md:w-48 md:h-48 mb-6 flex justify-center"
         >
           <img 
             src="/assets/LeaderTalk-NoLabel.png" 
@@ -44,12 +44,12 @@ export default function SplashScreen({
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.6 }}
-          className="mt-4 mb-8 text-center"
+          className="mt-4 mb-8 text-center w-full"
         >
-          <h1 className="text-xl font-semibold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+          <h1 className="text-xl md:text-2xl font-semibold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
             LeaderTalk
           </h1>
-          <p className="text-muted-foreground mt-1 text-sm">
+          <p className="text-muted-foreground mt-1 text-sm md:text-base">
             Talk Like the Leader You Aspire to Be
           </p>
         </motion.div>
