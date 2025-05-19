@@ -2493,6 +2493,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Stripe API Endpoints
+
+  // Create a Stripe subscription payment intent
+  app.post('/api/create-subscription', requireAuth, createSubscription);
+
+  // Verify payment status
+  app.get('/api/payment-status/:paymentIntentId', requireAuth, verifyPaymentStatus);
+
+  // Stripe webhook for handling events (payment completion, etc.)
+  app.post('/api/webhooks/stripe', express.raw({ type: 'application/json' }), handleStripeWebhook);
+
+  // RevenueCat webhook for handling in-app purchase events
+  app.post('/api/webhooks/revenuecat', express.json(), handleRevenueCatWebhook);
+
   const httpServer = createServer(app);
   return httpServer;
 }

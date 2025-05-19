@@ -1,14 +1,15 @@
-import Stripe from 'stripe';
-import { Request, Response } from 'express';
-import { dbStorage as storage } from './dbStorage';
+import { Request, Response } from "express";
+import Stripe from "stripe";
+import { storage } from "./storage";
 
-// Initialize Stripe with the secret key
+// Validate that Stripe secret key is available
 if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
+  console.warn("Missing STRIPE_SECRET_KEY environment variable");
 }
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2023-10-16',
+// Initialize Stripe client
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
+  apiVersion: "2023-10-16", // Use the latest available API version
 });
 
 // Create a subscription payment intent
@@ -16,37 +17,47 @@ export async function createSubscription(req: Request, res: Response) {
   try {
     const userId = req.session.userId;
     if (!userId) {
-      return res.status(401).json({ success: false, message: 'Unauthorized' });
+      return res.status(401).json({ 
+        success: false, 
+        error: "Authentication required" 
+      });
     }
 
     const { planCode } = req.body;
+    
     if (!planCode) {
-      return res.status(400).json({ success: false, message: 'Plan code is required' });
+      return res.status(400).json({ 
+        success: false, 
+        error: "Plan code is required" 
+      });
     }
-
+    
     // Get the user
     const user = await storage.getUser(userId);
     if (!user) {
-      return res.status(404).json({ success: false, message: 'User not found' });
+      return res.status(404).json({ 
+        success: false, 
+        error: "User not found" 
+      });
     }
-
+    
     // Get the subscription plan
     const plan = await storage.getSubscriptionPlanByCode(planCode);
     if (!plan) {
-      return res.status(404).json({ success: false, message: 'Subscription plan not found' });
+      return res.status(404).json({ 
+        success: false, 
+        error: "Subscription plan not found" 
+      });
     }
 
-    // Convert price to cents
-    const amount = parseInt(plan.monthlyPriceUsd) * 100;
-    if (isNaN(amount) || amount <= 0) {
-      return res.status(400).json({ success: false, message: 'Invalid subscription price' });
-    }
-
-    // Create or get customer
+    // Convert price to cents (Stripe uses smallest currency unit)
+    const priceCents = Math.round(parseFloat(plan.monthlyPriceUsd) * 100);
+    
+    // Check if the user already has a Stripe customer ID
     let customerId = user.stripeCustomerId;
     
     if (!customerId) {
-      // Create a new customer
+      // Create a new Stripe customer
       const customer = await stripe.customers.create({
         email: user.email,
         name: user.username,
@@ -57,7 +68,7 @@ export async function createSubscription(req: Request, res: Response) {
       
       customerId = customer.id;
       
-      // Update user with Stripe customer ID
+      // Update the user with the new Stripe customer ID
       await storage.updateUser(userId, {
         stripeCustomerId: customerId,
       });
@@ -65,200 +76,40 @@ export async function createSubscription(req: Request, res: Response) {
 
     // Create a payment intent
     const paymentIntent = await stripe.paymentIntents.create({
-      amount,
-      currency: 'usd',
+      amount: priceCents,
+      currency: "usd",
       customer: customerId,
       metadata: {
-        userId: user.id.toString(),
+        userId: userId.toString(),
         planCode,
+        planName: plan.name,
       },
       automatic_payment_methods: {
         enabled: true,
       },
     });
 
-    return res.status(200).json({
+    // Return client secret to the frontend
+    res.json({
+      success: true,
       clientSecret: paymentIntent.client_secret,
-      planCode,
+      planDetails: {
+        name: plan.name,
+        amount: priceCents / 100,
+        currency: "USD",
+        description: `${plan.name} Plan - ${plan.wordLimit} words per month`,
+      },
     });
-  } catch (error: any) {
-    console.error('Error creating subscription:', error);
-    return res.status(500).json({
+  } catch (error) {
+    console.error("Error creating subscription:", error);
+    res.status(500).json({
       success: false,
-      message: error.message || 'An error occurred while creating the subscription',
+      error: "Failed to create subscription payment",
     });
   }
 }
 
-// Handle Stripe webhook events
-export async function handleStripeWebhook(req: Request, res: Response) {
-  const signature = req.headers['stripe-signature'] as string;
-  
-  // In production, you should verify the webhook signature
-  // using a webhook secret from your Stripe dashboard
-  // const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
-  
-  try {
-    let event = req.body;
-    
-    // If you have a webhook secret, verify the signature
-    // if (endpointSecret) {
-    //   event = stripe.webhooks.constructEvent(
-    //     req.body,
-    //     signature,
-    //     endpointSecret
-    //   );
-    // }
-    
-    // Handle the event
-    switch (event.type) {
-      case 'payment_intent.succeeded':
-        await handleSuccessfulPayment(event.data.object);
-        break;
-      case 'customer.subscription.created':
-      case 'customer.subscription.updated':
-        await handleSubscriptionUpdate(event.data.object);
-        break;
-      case 'customer.subscription.deleted':
-        await handleSubscriptionCancellation(event.data.object);
-        break;
-      default:
-        console.log(`Unhandled event type ${event.type}`);
-    }
-    
-    return res.status(200).json({ received: true });
-  } catch (error: any) {
-    console.error('Error handling Stripe webhook:', error);
-    return res.status(400).json({ success: false, message: error.message });
-  }
-}
-
-// Handle a successful payment
-async function handleSuccessfulPayment(paymentIntent: Stripe.PaymentIntent) {
-  try {
-    // Extract the metadata
-    const { userId, planCode } = paymentIntent.metadata;
-    
-    if (!userId || !planCode) {
-      console.error('Missing metadata in payment intent:', paymentIntent.id);
-      return;
-    }
-    
-    // Get the user
-    const user = await storage.getUser(parseInt(userId, 10));
-    if (!user) {
-      console.error('User not found:', userId);
-      return;
-    }
-    
-    // Get the subscription plan
-    const plan = await storage.getSubscriptionPlanByCode(planCode);
-    if (!plan) {
-      console.error('Subscription plan not found:', planCode);
-      return;
-    }
-    
-    // Calculate subscription expiration date (1 month from now)
-    const expirationDate = new Date();
-    expirationDate.setMonth(expirationDate.getMonth() + 1);
-    
-    // Update the user's subscription
-    await storage.updateUser(user.id, {
-      subscriptionPlan: planCode,
-      subscriptionUpdatedAt: new Date(),
-      subscriptionExpirationDate: expirationDate,
-    });
-    
-    console.log(`Subscription activated for user ${user.id}: ${planCode}`);
-  } catch (error) {
-    console.error('Error handling successful payment:', error);
-  }
-}
-
-// Handle subscription updates
-async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
-  try {
-    // Get the customer
-    const customerId = subscription.customer as string;
-    
-    // Find the user by Stripe customer ID
-    // Note: You need to add methods to find a user by stripeCustomerId in your storage
-    const users = await storage.getUserByStripeCustomerId(customerId);
-    if (!users || users.length === 0) {
-      console.error('User not found for Stripe customer:', customerId);
-      return;
-    }
-    
-    const user = users[0];
-    
-    // Determine plan code from Stripe product
-    const item = subscription.items.data[0];
-    const productId = item.price.product as string;
-    
-    // Get the product to determine the plan
-    const product = await stripe.products.retrieve(productId);
-    
-    let planCode = 'starter'; // Default
-    
-    // Extract plan code from product metadata or name
-    if (product.metadata.planCode) {
-      planCode = product.metadata.planCode;
-    } else if (product.name.toLowerCase().includes('pro')) {
-      planCode = 'pro';
-    } else if (product.name.toLowerCase().includes('executive')) {
-      planCode = 'executive';
-    }
-    
-    // Calculate expiration date
-    const expirationDate = new Date(subscription.current_period_end * 1000);
-    
-    // Update the user's subscription
-    await storage.updateUser(user.id, {
-      subscriptionPlan: planCode,
-      subscriptionUpdatedAt: new Date(),
-      subscriptionExpirationDate: expirationDate,
-      stripeSubscriptionId: subscription.id,
-    });
-    
-    console.log(`Subscription updated for user ${user.id} to ${planCode}`);
-  } catch (error) {
-    console.error('Error handling subscription update:', error);
-  }
-}
-
-// Handle subscription cancellations
-async function handleSubscriptionCancellation(subscription: Stripe.Subscription) {
-  try {
-    // Get the customer
-    const customerId = subscription.customer as string;
-    
-    // Find the user by Stripe customer ID
-    const users = await storage.getUserByStripeCustomerId(customerId);
-    if (!users || users.length === 0) {
-      console.error('User not found for Stripe customer:', customerId);
-      return;
-    }
-    
-    const user = users[0];
-    
-    // Get the default (free) subscription plan
-    const defaultPlan = await storage.getDefaultSubscriptionPlan();
-    
-    // Update the user's subscription to the default plan
-    await storage.updateUser(user.id, {
-      subscriptionPlan: defaultPlan.planCode,
-      subscriptionUpdatedAt: new Date(),
-      subscriptionExpirationDate: null,
-      stripeSubscriptionId: null, // Clear the subscription ID
-    });
-    
-    console.log(`Subscription cancelled for user ${user.id}, reverted to default plan`);
-  } catch (error) {
-    console.error('Error handling subscription cancellation:', error);
-  }
-}
-
-// Verify Stripe payment status (for client-side polling)
+// Verify payment status
 export async function verifyPaymentStatus(req: Request, res: Response) {
   try {
     const { paymentIntentId } = req.params;
@@ -266,22 +117,288 @@ export async function verifyPaymentStatus(req: Request, res: Response) {
     if (!paymentIntentId) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Payment intent ID is required' 
+        error: "Payment intent ID is required" 
       });
     }
     
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
     
-    return res.status(200).json({
-      success: true,
-      status: paymentIntent.status,
-      metadata: paymentIntent.metadata,
-    });
-  } catch (error: any) {
-    console.error('Error verifying payment status:', error);
-    return res.status(500).json({
+    if (paymentIntent.status === "succeeded") {
+      // Payment was successful
+      
+      // Get user and plan from metadata
+      const userId = parseInt(paymentIntent.metadata.userId || "0");
+      const planCode = paymentIntent.metadata.planCode;
+      
+      if (userId && planCode) {
+        // Update the user's subscription plan
+        await storage.updateUser(userId, {
+          subscriptionPlan: planCode,
+          lastPaymentDate: new Date(),
+        });
+      }
+      
+      return res.json({
+        success: true,
+        status: paymentIntent.status,
+        message: "Payment processed successfully",
+      });
+    } else if (paymentIntent.status === "processing") {
+      return res.json({
+        success: true,
+        status: paymentIntent.status,
+        message: "Payment is still processing",
+      });
+    } else {
+      return res.json({
+        success: false,
+        status: paymentIntent.status,
+        message: "Payment has not been completed",
+      });
+    }
+  } catch (error) {
+    console.error("Error verifying payment status:", error);
+    res.status(500).json({
       success: false,
-      message: error.message || 'An error occurred while verifying the payment status',
+      error: "Failed to verify payment status",
     });
+  }
+}
+
+// Handle Stripe webhook events
+export async function handleStripeWebhook(req: Request, res: Response) {
+  const signature = req.headers["stripe-signature"];
+  
+  if (!signature || !process.env.STRIPE_WEBHOOK_SECRET) {
+    return res.status(400).json({ 
+      success: false, 
+      error: "Missing stripe signature or webhook secret" 
+    });
+  }
+  
+  try {
+    const event = stripe.webhooks.constructEvent(
+      req.body,
+      signature,
+      process.env.STRIPE_WEBHOOK_SECRET
+    );
+    
+    // Handle different webhook events
+    switch (event.type) {
+      case "payment_intent.succeeded":
+        const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        await handleSuccessfulPayment(paymentIntent);
+        break;
+        
+      case "subscription.created":
+        const subscription = event.data.object as Stripe.Subscription;
+        await handleSubscriptionCreated(subscription);
+        break;
+        
+      case "subscription.updated":
+        const updatedSubscription = event.data.object as Stripe.Subscription;
+        await handleSubscriptionUpdated(updatedSubscription);
+        break;
+        
+      case "subscription.deleted":
+        const deletedSubscription = event.data.object as Stripe.Subscription;
+        await handleSubscriptionDeleted(deletedSubscription);
+        break;
+    }
+    
+    res.json({ received: true });
+  } catch (error) {
+    console.error("Error handling Stripe webhook:", error);
+    res.status(400).json({ 
+      success: false, 
+      error: "Webhook signature verification failed" 
+    });
+  }
+}
+
+// Handle RevenueCat webhook events
+export async function handleRevenueCatWebhook(req: Request, res: Response) {
+  try {
+    const event = req.body;
+    
+    if (!event || !event.type) {
+      return res.status(400).json({ 
+        success: false, 
+        error: "Invalid webhook payload" 
+      });
+    }
+    
+    // Handle different RevenueCat webhook events
+    switch (event.type) {
+      case "INITIAL_PURCHASE":
+      case "RENEWAL":
+        await handleRevenueCatPurchase(event);
+        break;
+        
+      case "CANCELLATION":
+        await handleRevenueCatCancellation(event);
+        break;
+    }
+    
+    res.json({ received: true });
+  } catch (error) {
+    console.error("Error handling RevenueCat webhook:", error);
+    res.status(500).json({ 
+      success: false, 
+      error: "Failed to process webhook" 
+    });
+  }
+}
+
+// Helper functions for webhook event handling
+
+async function handleSuccessfulPayment(paymentIntent: Stripe.PaymentIntent) {
+  try {
+    // Get user and plan from metadata
+    const userId = parseInt(paymentIntent.metadata.userId || "0");
+    const planCode = paymentIntent.metadata.planCode;
+    
+    if (userId && planCode) {
+      // Update the user's subscription plan
+      await storage.updateUser(userId, {
+        subscriptionPlan: planCode,
+        lastPaymentDate: new Date(),
+      });
+      
+      console.log(`Updated user ${userId} to plan ${planCode}`);
+    }
+  } catch (error) {
+    console.error("Error handling successful payment:", error);
+  }
+}
+
+async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
+  try {
+    // Get the customer ID
+    const customerId = subscription.customer as string;
+    
+    // Find users with this Stripe customer ID
+    const users = await storage.getUserByStripeCustomerId(customerId);
+    
+    if (users.length > 0) {
+      const user = users[0];
+      
+      // Update the user with the subscription ID
+      await storage.updateUser(user.id, {
+        stripeSubscriptionId: subscription.id,
+        // Calculate next billing date
+        nextBillingDate: new Date(subscription.current_period_end * 1000),
+      });
+      
+      console.log(`Created subscription ${subscription.id} for user ${user.id}`);
+    }
+  } catch (error) {
+    console.error("Error handling subscription creation:", error);
+  }
+}
+
+async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
+  try {
+    // Get the customer ID
+    const customerId = subscription.customer as string;
+    
+    // Find users with this Stripe customer ID
+    const users = await storage.getUserByStripeCustomerId(customerId);
+    
+    if (users.length > 0) {
+      const user = users[0];
+      
+      // Update the user's next billing date
+      await storage.updateUser(user.id, {
+        nextBillingDate: new Date(subscription.current_period_end * 1000),
+      });
+      
+      console.log(`Updated subscription ${subscription.id} for user ${user.id}`);
+    }
+  } catch (error) {
+    console.error("Error handling subscription update:", error);
+  }
+}
+
+async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
+  try {
+    // Get the customer ID
+    const customerId = subscription.customer as string;
+    
+    // Find users with this Stripe customer ID
+    const users = await storage.getUserByStripeCustomerId(customerId);
+    
+    if (users.length > 0) {
+      const user = users[0];
+      
+      // Downgrade the user to the free plan
+      await storage.updateUser(user.id, {
+        stripeSubscriptionId: null,
+        subscriptionPlan: "free", // Assuming "free" is the code for the free plan
+      });
+      
+      console.log(`Deleted subscription ${subscription.id} for user ${user.id}`);
+    }
+  } catch (error) {
+    console.error("Error handling subscription deletion:", error);
+  }
+}
+
+async function handleRevenueCatPurchase(event: any) {
+  try {
+    const { app_user_id, product_id } = event;
+    
+    if (!app_user_id || !product_id) {
+      console.error("Missing app_user_id or product_id in RevenueCat event");
+      return;
+    }
+    
+    // Map RevenueCat product ID to our plan code
+    // This is a simplistic mapping; in production you'd want this in a config or database
+    const planMapping: Record<string, string> = {
+      "revenuecat_pro": "pro",
+      "revenuecat_executive": "executive",
+    };
+    
+    const planCode = planMapping[product_id] || "free";
+    
+    // The app_user_id in RevenueCat should be set to our user ID
+    const userId = parseInt(app_user_id);
+    
+    if (userId) {
+      await storage.updateUser(userId, {
+        subscriptionPlan: planCode,
+        lastPaymentDate: new Date(),
+      });
+      
+      console.log(`Updated user ${userId} to plan ${planCode} via RevenueCat`);
+    }
+  } catch (error) {
+    console.error("Error handling RevenueCat purchase:", error);
+  }
+}
+
+async function handleRevenueCatCancellation(event: any) {
+  try {
+    const { app_user_id } = event;
+    
+    if (!app_user_id) {
+      console.error("Missing app_user_id in RevenueCat event");
+      return;
+    }
+    
+    // The app_user_id in RevenueCat should be set to our user ID
+    const userId = parseInt(app_user_id);
+    
+    if (userId) {
+      // Downgrade to free plan
+      await storage.updateUser(userId, {
+        subscriptionPlan: "free",
+      });
+      
+      console.log(`Downgraded user ${userId} to free plan due to RevenueCat cancellation`);
+    }
+  } catch (error) {
+    console.error("Error handling RevenueCat cancellation:", error);
   }
 }

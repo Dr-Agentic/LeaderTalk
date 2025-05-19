@@ -4,13 +4,14 @@ import AppLayout from "@/components/AppLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SubscriptionManager from "@/components/subscription/SubscriptionManager";
 import RevenueCatSubscription from "@/components/subscription/RevenueCatSubscription";
+import StripeSubscription from "@/components/subscription/StripeSubscription";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function Subscription() {
   const { userData } = useAuth();
   const [, navigate] = useLocation();
-  const [subscriptionMethod, setSubscriptionMethod] = useState<"standard" | "revenuecat">("standard");
+  const [subscriptionMethod, setSubscriptionMethod] = useState<"standard" | "revenuecat" | "stripe">("standard");
 
   return (
     <AppLayout
@@ -36,17 +37,24 @@ export default function Subscription() {
         <CardContent>
           <Tabs
             value={subscriptionMethod}
-            onValueChange={(value) => setSubscriptionMethod(value as "standard" | "revenuecat")}
+            onValueChange={(value) => setSubscriptionMethod(value as "standard" | "revenuecat" | "stripe")}
             className="w-full"
           >
             <TabsList className="mb-6">
               <TabsTrigger value="standard">Standard Billing</TabsTrigger>
+              <TabsTrigger value="stripe">Credit Card</TabsTrigger>
               <TabsTrigger value="revenuecat">In-App Purchase</TabsTrigger>
             </TabsList>
             
             <TabsContent value="standard">
               <div className="py-2">
                 <SubscriptionManager />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="stripe">
+              <div className="py-2">
+                <StripeSubscription />
               </div>
             </TabsContent>
             
