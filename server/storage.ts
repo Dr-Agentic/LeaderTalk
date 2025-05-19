@@ -13,6 +13,7 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   getUserByGoogleId(googleId: string): Promise<User | undefined>;
+  getUserByStripeCustomerId(stripeCustomerId: string): Promise<User[]>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, userData: UpdateUser): Promise<User | undefined>;
   
@@ -122,6 +123,10 @@ export class MemStorage implements IStorage {
 
   async getUserByGoogleId(googleId: string): Promise<User | undefined> {
     return Array.from(this.users.values()).find(user => user.googleId === googleId);
+  }
+  
+  async getUserByStripeCustomerId(stripeCustomerId: string): Promise<User[]> {
+    return Array.from(this.users.values()).filter(user => user.stripeCustomerId === stripeCustomerId);
   }
 
   async createUser(user: InsertUser): Promise<User> {
