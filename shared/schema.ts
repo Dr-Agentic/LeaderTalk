@@ -25,6 +25,10 @@ export const users = pgTable("users", {
   subscriptionUpdatedAt: timestamp("subscription_updated_at"),
   // When the subscription expires (if applicable)
   subscriptionExpirationDate: timestamp("subscription_expiration_date"),
+  // Stripe customer ID (for web payments)
+  stripeCustomerId: text("stripe_customer_id"),
+  // Stripe subscription ID (for web subscriptions)
+  stripeSubscriptionId: text("stripe_subscription_id"),
 });
 
 export const leaders = pgTable("leaders", {
