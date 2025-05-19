@@ -11,6 +11,7 @@ import TranscriptView from "@/pages/TranscriptView";
 import AllTranscripts from "@/pages/AllTranscripts";
 import Settings from "@/pages/Settings";
 import Subscription from "@/pages/Subscription";
+import StripeProducts from "@/pages/StripeProducts";
 import LeadershipInspirations from "@/pages/LeadershipInspirations";
 import Progress from "@/pages/Progress";
 import Training from "@/pages/Training";
@@ -123,6 +124,7 @@ function Router() {
       {isAuthenticated && onboardingComplete && <Route path="/progress" component={Progress} />}
       {isAuthenticated && onboardingComplete && <Route path="/settings" component={Settings} />}
       {isAuthenticated && onboardingComplete && <Route path="/subscription" component={Subscription} />}
+      {isAuthenticated && onboardingComplete && <Route path="/stripe-products" component={StripeProducts} />}
       {isAuthenticated && onboardingComplete && <Route path="/leadership-inspirations" component={LeadershipInspirations} />}
       
       {/* Training module routes */}

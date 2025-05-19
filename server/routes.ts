@@ -29,11 +29,14 @@ import { importLeadersFromFile } from "./import-leaders";
 import { 
   createSubscription, 
   verifyPaymentStatus, 
-  handleStripeWebhook
+  handleStripeWebhook,
+  handleRevenueCatWebhook,
+  getStripeProducts,
+  createStripeSubscription
 } from "./stripe";
 import { updateLeaderImages } from "./update-leader-images";
 import { importTrainingData } from "./import-training-data";
-import { updateUserSubscription, handleRevenueCatWebhook } from "./subscription";
+import { updateUserSubscription } from "./subscription";
 import { z } from "zod";
 import { ZodError } from "zod";
 
@@ -2503,6 +2506,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/create-subscription', requireAuth, createSubscription);
   app.get('/api/payment-status/:paymentIntentId', requireAuth, verifyPaymentStatus);
   app.post('/api/webhooks/stripe', express.raw({ type: 'application/json' }), handleStripeWebhook);
+  
+  // New Stripe Product API Endpoints
+  app.get('/api/stripe-products', requireAuth, getStripeProducts);
+  app.post('/api/create-stripe-subscription', requireAuth, createStripeSubscription);
   
   // RevenueCat endpoint
   app.post('/api/webhooks/revenuecat', express.json(), handleRevenueCatWebhook);
