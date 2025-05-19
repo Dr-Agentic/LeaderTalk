@@ -8,19 +8,73 @@ if (!process.env.STRIPE_SECRET_KEY) {
 }
 
 // Initialize Stripe client
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
-  apiVersion: "2023-10-16", // Use the latest available API version
+// Make sure we're using the secret key for server-side API calls
+if (!process.env.STRIPE_SECRET_KEY) {
+  console.error("STRIPE_SECRET_KEY is not defined! Stripe functionality will be limited.");
+}
+
+// Initialize Stripe with the secret key
+const secretKey = process.env.STRIPE_SECRET_KEY || '';
+const stripe = new Stripe(secretKey, {
+  apiVersion: "2023-10-16", // Using a known stable API version
 });
 
 // Fetch products from Stripe API for display in the UI
 export async function getStripeProducts(req: Request, res: Response) {
   try {
+    // Verify we have a valid secret key
+    if (!secretKey || secretKey.trim() === '') {
+      console.log("Missing Stripe secret key, using database subscription plans instead");
+      
+      // Fallback to getting subscription plans from our database
+      const plans = await storage.getSubscriptionPlans();
+      
+      // Convert the database plans to a format compatible with the Stripe Product API
+      // This allows our frontend to work without changes
+      const products = plans.map(plan => {
+        const priceInCents = Math.round(parseFloat(plan.monthlyPriceUsd) * 100);
+        return {
+          id: `prod_${plan.code}`,
+          name: plan.name,
+          description: `${plan.name} - ${plan.monthlyWordLimit} words per month`,
+          active: true,
+          features: plan.features ? plan.features.split(',').map(f => f.trim()) : [],
+          prices: [{
+            id: `price_${plan.code}`,
+            product: `prod_${plan.code}`,
+            unit_amount: priceInCents,
+            currency: 'usd',
+            recurring: { interval: 'month' }
+          }]
+        };
+      });
+      
+      // Sort by price (ascending)
+      products.sort((a, b) => {
+        const aPrice = a.prices[0]?.unit_amount || 0;
+        const bPrice = b.prices[0]?.unit_amount || 0;
+        return aPrice - bPrice;
+      });
+      
+      console.log(`Using ${products.length} subscription plans from database`);
+      
+      return res.json({
+        success: true,
+        products,
+        source: 'database' // Add metadata so frontend knows data source
+      });
+    }
+    
+    console.log("Fetching products from Stripe API...");
+    
     // Fetch active products from Stripe
     const products = await stripe.products.list({
       active: true,
-      expand: ['data.default_price'], // Include the default price
+      expand: ['data.default_price'] // Include the default price
     });
 
+    console.log(`Retrieved ${products.data.length} products from Stripe`);
+    
     // For each product, fetch all available prices
     const productsWithPrices = await Promise.all(
       products.data.map(async (product) => {
@@ -45,16 +99,66 @@ export async function getStripeProducts(req: Request, res: Response) {
         return aPrice - bPrice;
       });
 
+    console.log(`Returning ${validProducts.length} valid products with prices from Stripe`);
+    
     return res.json({
       success: true,
       products: validProducts,
+      source: 'stripe'
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error fetching Stripe products:", error);
-    return res.status(500).json({
-      success: false,
-      error: "Failed to fetch Stripe products",
-    });
+    
+    try {
+      // Fallback to database plans if Stripe API fails for any reason
+      console.log("Falling back to database subscription plans");
+      const plans = await storage.getSubscriptionPlans();
+      
+      const products = plans.map(plan => {
+        const priceInCents = Math.round(parseFloat(plan.monthlyPriceUsd) * 100);
+        return {
+          id: `prod_${plan.code}`,
+          name: plan.name,
+          description: `${plan.name} - ${plan.monthlyWordLimit} words per month`,
+          active: true,
+          features: plan.features ? plan.features.split(',').map(f => f.trim()) : [],
+          prices: [{
+            id: `price_${plan.code}`,
+            product: `prod_${plan.code}`,
+            unit_amount: priceInCents,
+            currency: 'usd',
+            recurring: { interval: 'month' }
+          }]
+        };
+      });
+      
+      products.sort((a, b) => {
+        const aPrice = a.prices[0]?.unit_amount || 0;
+        const bPrice = b.prices[0]?.unit_amount || 0;
+        return aPrice - bPrice;
+      });
+      
+      return res.json({
+        success: true,
+        products,
+        source: 'database',
+        note: 'Using database plans due to Stripe API error'
+      });
+    } catch (dbError) {
+      // If both Stripe and database fallback fail
+      console.error("Failed to fall back to database plans:", dbError);
+      
+      // Provide more detailed error for better troubleshooting
+      let errorMessage = "Failed to fetch subscription products";
+      if (error.type || error.code) {
+        errorMessage += `: ${error.message || "Unknown error"}`;
+      }
+      
+      return res.status(500).json({
+        success: false,
+        error: errorMessage
+      });
+    }
   }
 }
 
