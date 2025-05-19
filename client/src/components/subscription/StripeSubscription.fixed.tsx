@@ -26,11 +26,6 @@ type PlanDetails = {
   features: string[];
 };
 
-interface PlansResponse {
-  success: boolean;
-  plans: PlanDetails[];
-}
-
 function CheckoutForm({ planCode }: { planCode: string }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -140,7 +135,7 @@ export default function StripeSubscription() {
   });
   
   // Extract plans from the API response
-  const plans = plansData && Array.isArray(plansData.plans) ? plansData.plans : [];
+  const plans = Array.isArray(plansData?.plans) ? plansData?.plans : [];
   
   // Create payment intent mutation
   const createPaymentMutation = useMutation({
