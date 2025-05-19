@@ -29,6 +29,8 @@ export const users = pgTable("users", {
   stripeCustomerId: text("stripe_customer_id"),
   // Stripe subscription ID (for web subscriptions)
   stripeSubscriptionId: text("stripe_subscription_id"),
+  // Next billing date for subscriptions
+  nextBillingDate: timestamp("next_billing_date"),
 });
 
 export const leaders = pgTable("leaders", {
