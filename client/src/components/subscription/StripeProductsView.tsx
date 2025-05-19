@@ -43,6 +43,8 @@ interface StripeProductsResponse {
   success: boolean;
   products: StripeProduct[];
   error?: string;
+  source?: 'stripe' | 'database';
+  note?: string;
 }
 
 const CheckoutForm = ({ onSuccess }: { onSuccess: () => void }) => {
@@ -114,7 +116,7 @@ export default function StripeProductsView() {
   // Fetch Stripe products and prices
   const { data, isLoading, error } = useQuery<StripeProductsResponse>({
     queryKey: ["/api/stripe-products"],
-    enabled: isStripeAvailable,
+    enabled: true, // Always try to fetch products, we'll handle fallbacks in the component
   });
   
   // Create subscription mutation
@@ -163,7 +165,8 @@ export default function StripeProductsView() {
     refreshUserData();
   };
   
-  if (!isStripeAvailable) {
+  // We'll show a different message if Stripe isn't available but we have products from the database
+  if (!isStripeAvailable && (!data || !data.source || data.source !== 'database')) {
     return (
       <Alert className="bg-destructive/10 border-destructive">
         <AlertCircle className="h-5 w-5 text-destructive" />
@@ -204,10 +207,17 @@ export default function StripeProductsView() {
     return (
       <div className="space-y-6">
         <div className="mb-6">
-          <h3 className="text-lg font-medium mb-2">Stripe Products & Plans</h3>
+          <h3 className="text-lg font-medium mb-2">Subscription Plans</h3>
           <p className="text-muted-foreground">
             Choose a subscription plan that best fits your needs. All plans include access to AI-powered communication coaching.
           </p>
+          {data?.source === 'database' && (
+            <Alert className="mt-4 bg-blue-50 border-blue-200">
+              <AlertDescription>
+                <span className="font-semibold">Note:</span> Using plans from the LeaderTalk database. {data?.note}
+              </AlertDescription>
+            </Alert>
+          )}
         </div>
         
         <div className="grid gap-6 md:grid-cols-3">
@@ -224,39 +234,88 @@ export default function StripeProductsView() {
             if (!price) return null;
             
             const isSelected = selectedPriceId === price.id;
-            const wordLimit = product.metadata?.word_limit ? parseInt(product.metadata.word_limit, 10) : 0;
             
-            // Try to extract features from metadata
+            // Try to extract word limit from metadata or product name/description
+            let wordLimit = 0;
+            if (product.metadata?.word_limit) {
+              wordLimit = parseInt(product.metadata.word_limit, 10);
+            } else if (product.description?.toLowerCase().includes('word')) {
+              // Try to extract from description
+              const match = product.description.match(/(\d{1,3}(?:,\d{3})*)\s*words/i);
+              if (match) {
+                wordLimit = parseInt(match[1].replace(/,/g, ''), 10);
+              }
+            } else if (product.name.toLowerCase().includes('starter')) {
+              wordLimit = 5000; // Default word limits if we can guess from the name
+            } else if (product.name.toLowerCase().includes('pro')) {
+              wordLimit = 15000;
+            } else if (product.name.toLowerCase().includes('executive')) {
+              wordLimit = 50000;
+            }
+            
+            // Try to extract features from metadata or build defaults
             const features = [];
             if (wordLimit) {
               features.push(`${wordLimit.toLocaleString()} words per month`);
             }
             
-            // Add any additional features from metadata
+            // Try to read predefined features from metadata
             for (let i = 1; i <= 5; i++) {
               const feature = product.metadata[`feature_${i}`];
               if (feature) features.push(feature);
             }
             
+            // Add default features based on plan level if none were found
+            if (features.length <= 1) {
+              if (product.name.toLowerCase().includes('starter')) {
+                features.push('Basic communication analysis');
+                features.push('Single leader inspiration');
+                features.push('Email support');
+              } else if (product.name.toLowerCase().includes('pro')) {
+                features.push('Detailed communication analysis');
+                features.push('Up to 2 leader inspirations');
+                features.push('Email & chat support');
+                features.push('Historical data insights');
+              } else if (product.name.toLowerCase().includes('executive')) {
+                features.push('Advanced communication analysis');
+                features.push('Up to 3 leader inspirations');
+                features.push('Priority email & chat support');
+                features.push('Detailed historical insights');
+                features.push('Executive coaching features');
+              }
+            }
+            
             return (
               <Card 
                 key={product.id}
-                className={`border-2 ${isSelected ? 'border-primary' : 'border-border'} cursor-pointer transition-all hover:border-primary/70`}
+                className={`border-2 ${isSelected ? 'border-primary' : 'border-border'} cursor-pointer transition-all hover:border-primary/70 relative overflow-hidden`}
                 onClick={() => handleSelectPrice(price.id)}
               >
+                {/* Add a recommended badge for the Pro plan */}
+                {product.name.toLowerCase().includes('pro') && (
+                  <div className="absolute top-0 right-0 bg-primary text-white px-3 py-1 text-xs font-semibold transform translate-x-[15%] -translate-y-[15%] rotate-45">
+                    Popular
+                  </div>
+                )}
+                
                 <CardHeader>
-                  <CardTitle className="flex justify-between">
-                    {product.name}
+                  <CardTitle className="flex justify-between items-center">
+                    {product.name.replace('LeaderTalk ', '')}
                     {isSelected && <CheckCircle className="h-5 w-5 text-green-500" />}
                   </CardTitle>
                   <CardDescription>
-                    {product.description}
+                    {product.description || `${wordLimit.toLocaleString()} words per ${price.recurring?.interval || 'month'}`}
                   </CardDescription>
                   <div className="text-3xl font-bold mt-2">
                     ${(price.unit_amount / 100).toFixed(2)}
                     <span className="text-sm font-normal text-muted-foreground ml-1">
                       /{price.recurring?.interval || 'month'}
                     </span>
+                    {price.recurring?.interval === 'year' && (
+                      <div className="text-sm font-normal text-green-600 mt-1">
+                        Save {Math.round(100 - ((price.unit_amount / 12) / (monthlyPrice?.unit_amount || price.unit_amount) * 100))}% compared to monthly
+                      </div>
+                    )}
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -274,7 +333,7 @@ export default function StripeProductsView() {
                     variant={isSelected ? "default" : "outline"} 
                     className="w-full"
                   >
-                    {isSelected ? "Selected" : "Select"}
+                    {isSelected ? "Selected" : "Select Plan"}
                   </Button>
                 </CardFooter>
               </Card>
