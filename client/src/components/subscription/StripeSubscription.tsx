@@ -19,9 +19,10 @@ const isStripeAvailable = !!import.meta.env.VITE_STRIPE_PUBLIC_KEY;
 
 type PlanDetails = {
   id: number;
-  code: string;
+  planCode: string;
   name: string;
   monthlyPriceUsd: string;
+  monthlyWordLimit: number;
   features: string[];
 };
 
@@ -131,8 +132,10 @@ export default function StripeSubscription() {
   const { data: plansData, isLoading, error } = useQuery({
     queryKey: ["/api/subscription-plans"],
     enabled: isStripeAvailable,
-    select: (data) => data?.plans || [],
   });
+  
+  // Extract plans from the API response
+  const plans = Array.isArray(plansData?.plans) ? plansData?.plans : [];
   
   // Create payment intent mutation
   const createPaymentMutation = useMutation({
@@ -227,11 +230,11 @@ export default function StripeSubscription() {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {plansData?.map((plan: PlanDetails) => (
+            {plans.map((plan: PlanDetails) => (
               <Card 
                 key={plan.id} 
                 className={`cursor-pointer transition-all ${
-                  selectedPlan === plan.code 
+                  selectedPlan === plan.planCode 
                     ? "border-primary ring-2 ring-primary/20" 
                     : "hover:border-primary/50"
                 }`}
