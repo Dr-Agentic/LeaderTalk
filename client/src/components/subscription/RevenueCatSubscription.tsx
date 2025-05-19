@@ -48,10 +48,36 @@ export default function RevenueCatSubscription() {
   
   const plans: SubscriptionPlan[] = plansData?.plans || [];
 
-  // Fetch RevenueCat products when component mounts
+  // Check if SDK is available
+  const [sdkAvailable, setSdkAvailable] = useState<boolean>(false);
+  const [sdkType, setSdkType] = useState<'web' | 'mobile' | 'none'>('none');
+  
+  // Check for SDK availability on mount
+  useEffect(() => {
+    if (window.RevenueCat) {
+      setSdkAvailable(true);
+      setSdkType('web');
+      console.log('RevenueCat Web SDK detected');
+    } else if (window.Purchases) {
+      setSdkAvailable(true);
+      setSdkType('mobile');
+      console.log('RevenueCat Mobile SDK detected');
+    } else {
+      setSdkAvailable(false);
+      setSdkType('none');
+      console.log('No RevenueCat SDK detected');
+    }
+  }, []);
+  
+  // Initialize SDK and fetch products when available
   useEffect(() => {
     async function loadProducts() {
       try {
+        if (!sdkAvailable) {
+          console.error('RevenueCat SDK not available');
+          return;
+        }
+        
         setLoading(true);
         const packages = await getAvailableProducts();
         setAvailablePackages(packages);
@@ -79,10 +105,10 @@ export default function RevenueCatSubscription() {
       }
     }
     
-    if (user?.id) {
+    if (user?.id && sdkAvailable) {
       loadProducts();
     }
-  }, [user?.id, toast]);
+  }, [user?.id, sdkAvailable, toast]);
 
   // Mutation to update the user's subscription in our database
   const updateSubscriptionMutation = useMutation({
@@ -109,11 +135,20 @@ export default function RevenueCatSubscription() {
   // Handle purchase
   const handlePurchase = async (planCode: string) => {
     try {
+      if (!sdkAvailable) {
+        toast({
+          title: 'Error',
+          description: 'RevenueCat SDK is not available. Please try again later.',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
       setLoading(true);
       
       // Find the corresponding RevenueCat package
       const packageToPurchase = availablePackages.find(
-        pkg => pkg.identifier.includes(planCode)
+        pkg => pkg.identifier?.includes(planCode) || pkg.product?.identifier?.includes(planCode)
       );
       
       if (!packageToPurchase) {
@@ -124,6 +159,8 @@ export default function RevenueCatSubscription() {
         });
         return;
       }
+      
+      console.log(`Using ${sdkType} SDK for purchase`, packageToPurchase);
       
       // Process the purchase with RevenueCat
       const result = await purchasePackage(packageToPurchase);
@@ -149,7 +186,7 @@ export default function RevenueCatSubscription() {
       } else {
         toast({
           title: 'Purchase Failed',
-          description: 'There was an error processing your payment. Please try again.',
+          description: result.error?.message || 'There was an error processing your payment. Please try again.',
           variant: 'destructive',
         });
       }
@@ -168,7 +205,18 @@ export default function RevenueCatSubscription() {
   // Handle restore purchases
   const handleRestorePurchases = async () => {
     try {
+      if (!sdkAvailable) {
+        toast({
+          title: 'Error',
+          description: 'RevenueCat SDK is not available. Please try again later.',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
       setLoading(true);
+      console.log(`Using ${sdkType} SDK for restoring purchases`);
+      
       const result = await restorePurchases();
       
       if (result.success) {
@@ -199,7 +247,7 @@ export default function RevenueCatSubscription() {
       } else {
         toast({
           title: 'Restore Failed',
-          description: 'There was an error restoring your purchases. Please try again.',
+          description: result.error?.message || 'There was an error restoring your purchases. Please try again.',
           variant: 'destructive',
         });
       }
