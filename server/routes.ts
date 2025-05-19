@@ -26,10 +26,15 @@ import {
   insertSituationAttemptSchema, AttemptEvaluation
 } from "@shared/schema";
 import { importLeadersFromFile } from "./import-leaders";
+import { 
+  createSubscription, 
+  verifyPaymentStatus, 
+  handleStripeWebhook, 
+  handleRevenueCatWebhook 
+} from "./stripe";
 import { updateLeaderImages } from "./update-leader-images";
 import { importTrainingData } from "./import-training-data";
-import { updateUserSubscription, handleRevenueCatWebhook } from "./subscription";
-import { createSubscription, handleStripeWebhook, verifyPaymentStatus } from "./stripe";
+import { updateUserSubscription } from "./subscription";
 import { z } from "zod";
 import { ZodError } from "zod";
 
