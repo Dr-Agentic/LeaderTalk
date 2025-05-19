@@ -29,7 +29,8 @@ export default function AppHeader({
   
   return (
     <header className="sticky top-0 z-30 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="flex h-14 items-center px-4 justify-between">
+      <div className="flex h-14 items-center px-4 relative">
+        {/* Left side with controls */}
         <div className="flex items-center gap-2">
           {/* Mobile menu button */}
           <Button
@@ -54,8 +55,10 @@ export default function AppHeader({
               <span className="hidden sm:inline">{backLabel}</span>
             </Button>
           )}
-          
-          {/* App logo - show new LeaderTalk logo */}
+        </div>
+        
+        {/* Centered logo and title */}
+        <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center justify-center">
           <Link href="/" className="flex items-center gap-2">
             <img src="/assets/images/LeaderTalk.png" alt="LeaderTalk Logo" className="h-8 w-auto" />
             <h1 className="text-lg font-bold text-primary">LeaderTalk</h1>
@@ -63,7 +66,7 @@ export default function AppHeader({
         </div>
         
         {/* User profile icon */}
-        <div>
+        <div className="ml-auto">
           <Avatar className="h-8 w-8 cursor-pointer transition-opacity hover:opacity-80" onClick={() => navigate("/settings")}>
             <AvatarImage src={user?.photoUrl} alt={user?.username} />
             <AvatarFallback>{user?.username?.charAt(0).toUpperCase()}</AvatarFallback>
