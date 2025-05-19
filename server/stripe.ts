@@ -12,6 +12,145 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
   apiVersion: "2023-10-16", // Use the latest available API version
 });
 
+// Fetch products from Stripe API for display in the UI
+export async function getStripeProducts(req: Request, res: Response) {
+  try {
+    // Fetch active products from Stripe
+    const products = await stripe.products.list({
+      active: true,
+      expand: ['data.default_price'], // Include the default price
+    });
+
+    // For each product, fetch all available prices
+    const productsWithPrices = await Promise.all(
+      products.data.map(async (product) => {
+        const prices = await stripe.prices.list({
+          product: product.id,
+          active: true,
+        });
+
+        return {
+          ...product,
+          prices: prices.data,
+        };
+      })
+    );
+
+    // Filter out products without prices and sort by price (ascending)
+    const validProducts = productsWithPrices
+      .filter(product => product.prices.length > 0)
+      .sort((a, b) => {
+        const aPrice = a.prices[0]?.unit_amount || 0;
+        const bPrice = b.prices[0]?.unit_amount || 0;
+        return aPrice - bPrice;
+      });
+
+    return res.json({
+      success: true,
+      products: validProducts,
+    });
+  } catch (error) {
+    console.error("Error fetching Stripe products:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Failed to fetch Stripe products",
+    });
+  }
+}
+
+// Create a subscription directly with Stripe Products/Prices API
+export async function createStripeSubscription(req: Request, res: Response) {
+  try {
+    const userId = req.session.userId;
+    if (!userId) {
+      return res.status(401).json({ 
+        success: false, 
+        error: "Authentication required" 
+      });
+    }
+
+    const { priceId } = req.body;
+    
+    if (!priceId) {
+      return res.status(400).json({ 
+        success: false, 
+        error: "Price ID is required" 
+      });
+    }
+    
+    // Get the user
+    const user = await storage.getUser(userId);
+    if (!user) {
+      return res.status(404).json({ 
+        success: false, 
+        error: "User not found" 
+      });
+    }
+    
+    // Check if the user already has a Stripe customer ID
+    let customerId = user.stripeCustomerId;
+    
+    if (!customerId) {
+      // Create a new Stripe customer
+      const customer = await stripe.customers.create({
+        email: user.email,
+        name: user.username,
+        metadata: {
+          userId: user.id.toString(),
+        },
+      });
+      
+      customerId = customer.id;
+      
+      // Update the user with the new Stripe customer ID
+      await storage.updateUser(userId, {
+        stripeCustomerId: customerId,
+      });
+    }
+
+    // Fetch the price from Stripe to get product details
+    const price = await stripe.prices.retrieve(priceId, {
+      expand: ['product'],
+    });
+
+    // Create a subscription
+    const subscription = await stripe.subscriptions.create({
+      customer: customerId,
+      items: [{ price: priceId }],
+      payment_behavior: 'default_incomplete',
+      expand: ['latest_invoice.payment_intent'],
+      metadata: {
+        userId: userId.toString(),
+        priceId: priceId,
+        productId: (price.product as Stripe.Product).id,
+        productName: (price.product as Stripe.Product).name,
+      },
+    });
+
+    const invoice = subscription.latest_invoice as Stripe.Invoice;
+    const paymentIntent = invoice.payment_intent as Stripe.PaymentIntent;
+
+    // Return client secret to the frontend
+    res.json({
+      success: true,
+      clientSecret: paymentIntent.client_secret,
+      subscriptionId: subscription.id,
+      productDetails: {
+        name: (price.product as Stripe.Product).name,
+        amount: price.unit_amount ? price.unit_amount / 100 : 0,
+        currency: price.currency.toUpperCase(),
+        interval: price.recurring?.interval || 'month',
+      },
+    });
+  } catch (error) {
+    console.error("Error creating Stripe subscription:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to create subscription",
+    });
+  }
+}
+
 // Create a subscription payment intent
 export async function createSubscription(req: Request, res: Response) {
   try {
