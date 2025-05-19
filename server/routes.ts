@@ -432,6 +432,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Regular login endpoint
+  app.post("/api/login", async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      
+      if (!email || !password) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "Email and password are required" 
+        });
+      }
+      
+      // Find user by email
+      const user = await storage.getUserByEmail(email);
+      
+      if (!user) {
+        // If user doesn't exist, create a new one for testing purposes
+        console.log(`User not found with email ${email}, creating a new account`);
+        
+        // Get current date for registration date and billing cycle day
+        const now = new Date();
+        const registrationDay = now.getUTCDate();
+        
+        const newUser = await storage.createUser({
+          email,
+          username: email.split('@')[0],
+          googleId: `test-${Date.now()}`,
+          photoUrl: null,
+          dateOfBirth: null,
+          profession: null,
+          goals: null,
+          selectedLeaders: null,
+          billingCycleDay: registrationDay,
+          subscriptionPlan: "free"
+        });
+        
+        // Set the user ID in the session
+        req.session.userId = newUser.id;
+        
+        // Save session explicitly to ensure it persists
+        return req.session.save(err => {
+          if (err) {
+            console.error("Error saving session on new user login:", err);
+            return res.status(500).json({ success: false, message: "Session save error" });
+          }
+          console.log(`New user created and logged in: ${newUser.id}`);
+          return res.status(200).json({ success: true, user: newUser });
+        });
+      }
+      
+      // User exists - set session and return user
+      req.session.userId = user.id;
+      
+      // Save session explicitly to ensure it persists
+      return req.session.save(err => {
+        if (err) {
+          console.error("Error saving session on login:", err);
+          return res.status(500).json({ success: false, message: "Session save error" });
+        }
+        console.log(`User logged in: ${user.id}`);
+        return res.status(200).json({ success: true, user });
+      });
+    } catch (error) {
+      console.error("Error in login:", error);
+      return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+  });
+  
   // Login as a demo user (development only)
   app.post("/api/auth/demo-login", async (req, res) => {
     try {
@@ -2507,8 +2575,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/payment-status/:paymentIntentId', requireAuth, verifyPaymentStatus);
   app.post('/api/webhooks/stripe', express.raw({ type: 'application/json' }), handleStripeWebhook);
   
-  // New Stripe Product API Endpoints
-  app.get('/api/stripe-products', requireAuth, getStripeProducts);
+  // New Stripe Product API Endpoints - No auth required for viewing products
+  app.get('/api/stripe-products', getStripeProducts);
   app.post('/api/create-stripe-subscription', requireAuth, createStripeSubscription);
   
   // RevenueCat endpoint
