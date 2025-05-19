@@ -139,8 +139,8 @@ export default function StripeSubscription() {
     enabled: isStripeAvailable,
   });
   
-  // Extract plans from the API response
-  const plans = plansData?.plans || [];
+  // Extract plans from the API response, ensuring we properly handle the structure
+  const plans = (plansData && Array.isArray(plansData.plans)) ? plansData.plans : [];
   
   interface SubscriptionResponse {
     success: boolean;

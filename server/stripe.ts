@@ -284,10 +284,11 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
       const user = users[0];
       
       // Update the user with the subscription ID and next billing date
+      // Use the actual billing period end from Stripe
+      const nextBillingTimestamp = subscription.current_period_end * 1000; // Convert to milliseconds
       await storage.updateUser(user.id, {
         stripeSubscriptionId: subscription.id,
-        // Calculate next billing date
-        nextBillingDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+        nextBillingDate: new Date(nextBillingTimestamp),
       });
       
       console.log(`Created subscription ${subscription.id} for user ${user.id}`);
@@ -308,9 +309,10 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
     if (users.length > 0) {
       const user = users[0];
       
-      // Update the user's next billing date
+      // Update the user's next billing date using the actual period end from Stripe
+      const nextBillingTimestamp = subscription.current_period_end * 1000; // Convert to milliseconds
       await storage.updateUser(user.id, {
-        nextBillingDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+        nextBillingDate: new Date(nextBillingTimestamp),
       });
       
       console.log(`Updated subscription ${subscription.id} for user ${user.id}`);
