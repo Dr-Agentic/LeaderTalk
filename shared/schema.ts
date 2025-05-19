@@ -209,6 +209,7 @@ export type AttemptEvaluation = {
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
+  nextBillingDate: true,
 });
 
 export const updateUserSchema = createInsertSchema(users).omit({
