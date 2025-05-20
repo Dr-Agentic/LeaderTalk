@@ -156,11 +156,35 @@ const CheckoutForm = ({ onSuccess }: { onSuccess: () => void }) => {
 
 export default function Subscription() {
   const { userData } = useAuth();
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
   const [selectedPriceId, setSelectedPriceId] = useState<string>("");
   const [selectedPlan, setSelectedPlan] = useState<StripeProduct | null>(null);
   const [clientSecret, setClientSecret] = useState<string>("");
+  const [subscriptionSuccess, setSubscriptionSuccess] = useState<boolean>(false);
+  const [redirectCountdown, setRedirectCountdown] = useState<number>(5);
   const { toast } = useToast();
+  
+  // Check for success parameter in URL
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    if (searchParams.get('success') === 'true') {
+      setSubscriptionSuccess(true);
+      
+      // Auto redirect to dashboard after countdown
+      const timer = setInterval(() => {
+        setRedirectCountdown((prev) => {
+          const newCount = prev - 1;
+          if (newCount <= 0) {
+            clearInterval(timer);
+            navigate('/dashboard');
+          }
+          return newCount;
+        });
+      }, 1000);
+      
+      return () => clearInterval(timer);
+    }
+  }, [navigate]);
 
   // Get Stripe products
   const { data, isLoading, error } = useQuery<StripeProductsResponse>({
@@ -220,23 +244,54 @@ export default function Subscription() {
 
   return (
     <AppLayout
-      showBackButton
+      showBackButton={!subscriptionSuccess}
       backTo="/settings"
       backLabel="Back to Settings"
-      pageTitle="Subscription Management"
+      pageTitle={subscriptionSuccess ? "Subscription Confirmed" : "Subscription Management"}
     >
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight mb-2">Subscription Management</h1>
-        <p className="text-muted-foreground">
-          Manage your subscription plan and billing details
-        </p>
-      </div>
+      {subscriptionSuccess ? (
+        <div className="max-w-md mx-auto text-center">
+          <div className="mb-6 flex flex-col items-center">
+            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+              <CheckCircle className="h-8 w-8 text-primary" />
+            </div>
+            <h1 className="text-2xl font-bold tracking-tight mb-2">Subscription Confirmed!</h1>
+            <p className="text-muted-foreground">
+              Thank you for your subscription. Your payment was successful.
+            </p>
+          </div>
+          
+          <Card className="mb-6">
+            <CardContent className="py-6">
+              <div className="text-center mb-4">
+                <p className="mb-2">You will be redirected to the dashboard in:</p>
+                <p className="text-3xl font-bold text-primary">{redirectCountdown}</p>
+              </div>
+              
+              <Button 
+                className="w-full" 
+                onClick={() => navigate('/dashboard')}
+              >
+                Go to Dashboard Now
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      ) : (
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold tracking-tight mb-2">Subscription Management</h1>
+          <p className="text-muted-foreground">
+            Manage your subscription plan and billing details
+          </p>
+        </div>
+      )}
 
-      <Card className="mb-6">
-        <CardHeader className="pb-3">
-          <CardTitle>Choose Your Plan</CardTitle>
-        </CardHeader>
-        <CardContent>
+      {!subscriptionSuccess && (
+        <Card className="mb-6">
+          <CardHeader className="pb-3">
+            <CardTitle>Choose Your Plan</CardTitle>
+          </CardHeader>
+          <CardContent>
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
