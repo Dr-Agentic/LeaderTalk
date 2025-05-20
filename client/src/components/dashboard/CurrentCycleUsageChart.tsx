@@ -188,8 +188,13 @@ export default function CurrentCycleUsageChart() {
   // Process the data to get monthly usage and details for the selected month
   useEffect(() => {
     if (!data || !data.history || !Array.isArray(data.history) || !recordingsData) {
+      console.log("Missing data for chart:", { data, recordingsData });
       return;
     }
+    console.log("Data available for chart:", { 
+      historyLength: data.history?.length,
+      recordingsLength: Array.isArray(recordingsData) ? recordingsData.length : 0 
+    });
 
     // Map recordings by date for easy lookup (using ISO string date format)
     const recordingsMap = {};
