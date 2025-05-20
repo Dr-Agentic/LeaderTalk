@@ -123,23 +123,47 @@ export async function createStripeSubscription(req: Request, res: Response) {
     
     // Check if the user already has a Stripe customer ID
     let customerId = user.stripeCustomerId;
+    let customerNeedsCreation = !customerId;
     
-    if (!customerId) {
-      // Create a new Stripe customer
-      const customer = await stripe.customers.create({
-        email: user.email,
-        name: user.username,
-        metadata: {
-          userId: user.id.toString(),
-        },
-      });
-      
-      customerId = customer.id;
-      
-      // Update the user with the new Stripe customer ID
-      await storage.updateUser(userId, {
-        stripeCustomerId: customerId,
-      });
+    // If user has a customerId, verify it exists in Stripe
+    if (customerId) {
+      try {
+        // Verify the customer exists before attempting to create a subscription
+        const customerCheck = await stripe.customers.retrieve(customerId);
+        console.log(`Verified existing customer: ${customerCheck.id}`);
+      } catch (error) {
+        console.error("Customer verification failed, will create new customer:", error.message);
+        // Clear the invalid customer ID and create a new one
+        customerNeedsCreation = true;
+      }
+    }
+    
+    // Create a new customer if needed
+    if (customerNeedsCreation) {
+      try {
+        // Create a new Stripe customer
+        const customer = await stripe.customers.create({
+          email: user.email,
+          name: user.username,
+          metadata: {
+            userId: user.id.toString(),
+          },
+        });
+        
+        customerId = customer.id;
+        console.log(`Created new Stripe customer: ${customerId}`);
+        
+        // Update the user with the new Stripe customer ID
+        await storage.updateUser(userId, {
+          stripeCustomerId: customerId,
+        });
+      } catch (error) {
+        console.error("Error creating new customer:", error);
+        return res.status(500).json({
+          success: false,
+          error: "Failed to create customer in Stripe. Please try again later."
+        });
+      }
     }
 
     // Fetch the price from Stripe to get product details
@@ -147,20 +171,7 @@ export async function createStripeSubscription(req: Request, res: Response) {
       expand: ['product'],
     });
 
-    // Log the customer ID to verify it's correct
     console.log(`Creating subscription with Stripe customer ID: ${customerId}`);
-    
-    try {
-      // Verify the customer exists before attempting to create a subscription
-      const customerCheck = await stripe.customers.retrieve(customerId);
-      console.log(`Verified customer exists: ${customerCheck.id}`);
-    } catch (error) {
-      console.error("Customer verification failed:", error);
-      return res.status(500).json({
-        success: false,
-        error: "Unable to verify Stripe customer. Please contact support."
-      });
-    }
     
     // Create a subscription
     const subscription = await stripe.subscriptions.create({
