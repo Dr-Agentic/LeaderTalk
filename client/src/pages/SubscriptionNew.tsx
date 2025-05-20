@@ -449,18 +449,49 @@ export default function SubscriptionNew() {
                   // Skip products with no prices
                   if (!product.prices || product.prices.length === 0) return null;
                   
-                  // Get monthly price (prioritize monthly if both exist)
+                  // Get monthly and yearly prices
                   const monthlyPrice = product.prices.find(p => p.recurring?.interval === 'month');
                   const yearlyPrice = product.prices.find(p => p.recurring?.interval === 'year');
-                  const price = monthlyPrice || yearlyPrice;
                   
-                  if (!price) return null;
+                  // Skip products with no valid prices
+                  if (!monthlyPrice && !yearlyPrice) return null;
                   
-                  const priceAmount = price.unit_amount / 100;
                   const isPopular = product.name.toLowerCase().includes('pro');
                   
+                  // For each product, create cards for both monthly and yearly options if available
+                  const priceOptions = [];
+                  
+                  if (monthlyPrice) {
+                    const monthlyAmount = monthlyPrice.unit_amount / 100;
+                    priceOptions.push({
+                      id: monthlyPrice.id,
+                      interval: 'month',
+                      amount: monthlyAmount,
+                      displayAmount: `$${monthlyAmount.toFixed(2)}/month`,
+                      priceObj: monthlyPrice
+                    });
+                  }
+                  
+                  if (yearlyPrice) {
+                    const yearlyAmount = yearlyPrice.unit_amount / 100;
+                    const monthlyEquivalent = yearlyAmount / 12;
+                    // Calculate percentage savings compared to monthly
+                    const savingsPercent = monthlyPrice ? 
+                      Math.round(100 - ((yearlyAmount / 12) / (monthlyPrice.unit_amount / 100) * 100)) : 0;
+                    
+                    priceOptions.push({
+                      id: yearlyPrice.id,
+                      interval: 'year',
+                      amount: yearlyAmount,
+                      displayAmount: `$${yearlyAmount.toFixed(2)}/year`,
+                      monthlyEquivalent: `$${monthlyEquivalent.toFixed(2)}/month`,
+                      savings: savingsPercent > 0 ? `Save ${savingsPercent}%` : '',
+                      priceObj: yearlyPrice
+                    });
+                  }
+                  
                   return (
-                    <Card key={product.id} className={`overflow-hidden border-2 ${selectedPriceId === price.id ? 'border-primary' : 'border-border'} relative`}>
+                    <Card key={product.id} className={`overflow-hidden border-2 border-border relative`}>
                       {isPopular && (
                         <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-3 py-1 text-xs font-medium rounded-bl-md">
                           Popular
@@ -468,36 +499,38 @@ export default function SubscriptionNew() {
                       )}
                       <CardHeader className="bg-muted/50 pb-4">
                         <CardTitle className="text-lg">{product.name}</CardTitle>
-                        <div className="mt-1">
-                          <span className="text-2xl font-bold">${priceAmount.toFixed(2)}</span>
-                          <span className="text-muted-foreground">/{price.recurring?.interval}</span>
-                          {price.recurring?.interval === 'year' && (
-                            <div className="text-xs mt-1 text-muted-foreground">
-                              ${(priceAmount / 12).toFixed(2)} per month
-                            </div>
-                          )}
-                          {yearlyPrice && monthlyPrice && (
-                            <div className="text-xs mt-1">
-                              <div className="flex items-center gap-2">
-                                <span className="text-muted-foreground">Monthly</span>
-                                <div className="h-4 w-8 rounded-full bg-muted-foreground/20 flex items-center px-0.5">
-                                  <div className="h-3 w-3 rounded-full bg-primary"></div>
-                                </div>
-                                <span className="text-muted-foreground">Annual (save 16%)</span>
-                              </div>
-                            </div>
-                          )}
-                        </div>
+                        <p className="text-sm mt-1 mb-2">{product.description}</p>
                       </CardHeader>
                       <CardContent className="pt-4">
-                        <p className="text-sm mb-4">{product.description}</p>
-                        <Button 
-                          className="w-full mt-6" 
-                          variant={isPopular ? "default" : "outline"}
-                          onClick={() => createSubscription(price, product)}
-                        >
-                          {priceAmount === 0 ? 'Current Plan' : `Select ${product.name}`}
-                        </Button>
+                        <div className="space-y-4">
+                          {priceOptions.map((option) => (
+                            <div 
+                              key={option.id} 
+                              className={`p-3 rounded-lg border-2 ${selectedPriceId === option.id ? 'border-primary' : 'border-muted'}`}
+                            >
+                              <div className="flex justify-between items-center mb-1">
+                                <span className="font-medium">{option.interval === 'month' ? 'Monthly' : 'Annual'}</span>
+                                {option.savings && (
+                                  <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full font-medium">
+                                    {option.savings}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="font-bold text-lg">{option.displayAmount}</div>
+                              {option.monthlyEquivalent && (
+                                <div className="text-xs text-muted-foreground">{option.monthlyEquivalent} billed annually</div>
+                              )}
+                              <Button 
+                                className="w-full mt-3" 
+                                variant={isPopular ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => createSubscription(option.priceObj, product)}
+                              >
+                                Select
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
                       </CardContent>
                     </Card>
                   );
