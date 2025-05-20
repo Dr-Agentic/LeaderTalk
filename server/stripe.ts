@@ -14,9 +14,10 @@ if (!process.env.STRIPE_SECRET_KEY) {
 }
 
 // Initialize Stripe with the secret key
-const secretKey = process.env.STRIPE_SECRET_KEY || '';
+// Ensure the secret key is properly trimmed to avoid invalid characters
+const secretKey = process.env.STRIPE_SECRET_KEY ? process.env.STRIPE_SECRET_KEY.trim() : '';
 const stripe = new Stripe(secretKey, {
-  apiVersion: "2023-10-16" as any, // Standard stable version with type cast to avoid TS error
+  apiVersion: "2023-10-16", // Standard stable version
 });
 
 // Fetch products from Stripe API for display in the UI
@@ -32,6 +33,9 @@ export async function getStripeProducts(req: Request, res: Response) {
     }
     
     console.log("Fetching products from Stripe API...");
+    
+    // Log the first few characters of the key for debugging (never log the full key)
+    console.log(`Using Stripe key starting with: ${secretKey.substring(0, 4)}...`);
     
     // Fetch active products from Stripe
     const products = await stripe.products.list({
