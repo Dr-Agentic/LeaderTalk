@@ -1,7 +1,8 @@
 import { useLocation } from "wouter";
 import AppLayout from "@/components/AppLayout";
 import { useQuery } from "@tanstack/react-query";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
@@ -241,11 +242,69 @@ export default function Subscription() {
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
           ) : error ? (
-            <Alert variant="destructive">
-              <AlertDescription>
-                Could not load subscription plans. Please try again later.
-              </AlertDescription>
-            </Alert>
+            <div>
+              <Alert className="mb-6">
+                <AlertTitle>Subscription Service Unavailable</AlertTitle>
+                <AlertDescription>
+                  We couldn't connect to our payment service. Here are our subscription plans:
+                </AlertDescription>
+              </Alert>
+              
+              <div className="grid gap-6 md:grid-cols-3">
+                {[
+                  {
+                    id: "starter",
+                    name: "Starter",
+                    description: "Perfect for exploring LeaderTalk's capabilities",
+                    price: 0,
+                    interval: "month",
+                    features: ["5,000 words per month", "Basic analysis", "1 leader model"]
+                  },
+                  {
+                    id: "pro",
+                    name: "Pro",
+                    description: "Ideal for regular users who want enhanced capabilities",
+                    price: 9.99,
+                    interval: "month",
+                    features: ["15,000 words per month", "Detailed analysis", "Up to 3 leader models", "Priority support"]
+                  },
+                  {
+                    id: "executive",
+                    name: "Executive",
+                    description: "For professionals who need comprehensive solutions",
+                    price: 29.99,
+                    interval: "month",
+                    features: ["50,000 words per month", "Premium analytics", "Unlimited leader models", "24/7 priority support"]
+                  }
+                ].map(plan => (
+                  <Card key={plan.id} className="overflow-hidden border-2 border-border">
+                    <CardHeader className="bg-muted/50 pb-4">
+                      <CardTitle className="text-lg">{plan.name}</CardTitle>
+                      <div className="mt-1">
+                        <span className="text-2xl font-bold">${plan.price}</span>
+                        <span className="text-muted-foreground">/{plan.interval}</span>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-4">
+                      <p className="text-sm mb-4">{plan.description}</p>
+                      <ul className="text-sm space-y-2 mb-6">
+                        {plan.features.map((feature, i) => (
+                          <li key={i} className="flex items-center">
+                            <svg className="w-4 h-4 mr-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                            {feature}
+                          </li>
+                        ))}
+                      </ul>
+                      <Button className="w-full">
+                        {plan.price === 0 ? 'Current Plan' : 'Contact Support'}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
           ) : selectedPlan ? (
             <div className="max-w-md mx-auto">
               <h3 className="font-medium text-lg mb-4">Selected Plan Details</h3>
