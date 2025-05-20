@@ -57,8 +57,10 @@ function prepareUsageDataByCycle(usageHistory, yearMonth, recordingsMap = {}) {
 
   // Filter entries within the specified month
   const monthEntries = usageHistory.filter(entry => {
-    const entryDate = new Date(entry.createdAt);
-    return entryDate >= monthStart && entryDate <= monthEnd;
+    // Use createdAt or updatedAt depending on what's available in the database structure
+    const dateToUse = entry.createdAt || entry.updatedAt || entry.date || '';
+    const entryDate = new Date(dateToUse);
+    return !isNaN(entryDate.getTime()) && entryDate >= monthStart && entryDate <= monthEnd;
   });
   
   if (monthEntries.length === 0) {
