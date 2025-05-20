@@ -13,7 +13,10 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
 // Load Stripe outside of component render
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || "");
+// Ensure we have a valid Stripe key before initializing
+const stripeKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
+console.log("Initializing Stripe with key:", stripeKey ? "Key exists" : "No key found");
+const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
 
 // Define types for Stripe products
 interface StripePrice {
@@ -102,16 +105,31 @@ const CheckoutForm = ({ onSuccess }: { onSuccess: () => void }) => {
 
   return (
     <form onSubmit={handleSubmit}>
-      <PaymentElement 
-        className="mb-6" 
-        onReady={handleReady}
-        options={{
-          layout: {
-            type: 'tabs',
-            defaultCollapsed: false,
-          }
-        }}
-      />
+      <div className="mb-4">
+        <p className="text-sm text-muted-foreground mb-2">Complete your payment information below</p>
+      </div>
+      
+      <div className="border rounded-md p-4 mb-6 bg-muted/30">
+        <PaymentElement 
+          className="mb-3" 
+          onReady={handleReady}
+          options={{
+            layout: {
+              type: 'tabs',
+              defaultCollapsed: false,
+            }
+          }}
+          onLoadError={(event) => {
+            console.log("Payment element error:", event);
+            toast({
+              title: "Payment Form Error",
+              description: `Error loading payment form: ${event.error.message}`,
+              variant: "destructive"
+            });
+          }}
+        />
+      </div>
+      
       <Button 
         type="submit" 
         disabled={!stripe || isProcessing || !paymentElementReady} 
@@ -139,6 +157,7 @@ export default function Subscription() {
   const { userData } = useAuth();
   const [, navigate] = useLocation();
   const [selectedPriceId, setSelectedPriceId] = useState<string>("");
+  const [selectedPlan, setSelectedPlan] = useState<StripeProduct | null>(null);
   const [clientSecret, setClientSecret] = useState<string>("");
   const { toast } = useToast();
 
@@ -148,38 +167,53 @@ export default function Subscription() {
   });
 
   // Create subscription mutation
-  const createSubscription = async (priceId: string) => {
+  const createSubscription = async (price: StripePrice, product: StripeProduct) => {
     try {
-      setSelectedPriceId(priceId);
+      setSelectedPriceId(price.id);
+      setSelectedPlan(product);
       
       toast({
-        title: "Processing",
-        description: "Setting up payment details...",
+        title: "Plan Selected",
+        description: `You've selected the ${product.name} plan.`,
       });
       
-      const response = await apiRequest("POST", "/api/create-stripe-subscription", { priceId });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to create subscription");
-      }
-      
-      const data = await response.json();
-      
-      if (data.success && data.clientSecret) {
-        console.log("Received client secret, setting up checkout form");
-        setClientSecret(data.clientSecret);
-      } else {
-        throw new Error(data.error || "No client secret returned");
+      try {
+        // Only attempt to get a client secret if we have valid Stripe keys
+        if (stripePromise) {
+          toast({
+            title: "Processing",
+            description: "Setting up payment details...",
+          });
+          
+          const response = await apiRequest("POST", "/api/create-stripe-subscription", { priceId: price.id });
+          
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Failed to create subscription");
+          }
+          
+          const data = await response.json();
+          
+          if (data.success && data.clientSecret) {
+            console.log("Received client secret, setting up checkout form");
+            setClientSecret(data.clientSecret);
+          } else {
+            throw new Error(data.error || "No client secret returned");
+          }
+        }
+      } catch (error: any) {
+        console.error("Subscription error:", error);
+        // Don't show error toast, just display plan details
       }
     } catch (error: any) {
-      console.error("Subscription error:", error);
+      console.error("Error selecting plan:", error);
       toast({
-        title: "Payment Setup Failed",
-        description: error.message || "Could not set up payment process. Please try again.",
+        title: "Selection Failed",
+        description: "Could not select this plan. Please try again.",
         variant: "destructive",
       });
       setSelectedPriceId("");
+      setSelectedPlan(null);
     }
   };
 
@@ -212,35 +246,82 @@ export default function Subscription() {
                 Could not load subscription plans. Please try again later.
               </AlertDescription>
             </Alert>
-          ) : clientSecret ? (
+          ) : selectedPlan ? (
             <div className="max-w-md mx-auto">
-              <h3 className="font-medium text-lg mb-4">Complete Your Payment</h3>
-              <Elements 
-                stripe={stripePromise} 
-                options={{ 
-                  clientSecret,
-                  appearance: {
-                    theme: 'stripe',
-                    variables: {
-                      colorPrimary: '#0070f3',
-                    }
-                  }
-                }}
-              >
-                <CheckoutForm onSuccess={() => {
-                  setClientSecret("");
-                  setSelectedPriceId("");
-                }} />
-              </Elements>
+              <h3 className="font-medium text-lg mb-4">Selected Plan Details</h3>
+              
+              <div className="rounded-lg border p-6 mb-6 bg-card">
+                <div className="flex justify-between items-center mb-4">
+                  <h4 className="text-lg font-semibold">{selectedPlan.name}</h4>
+                  {selectedPlan.prices[0]?.unit_amount && (
+                    <div className="text-lg font-bold">
+                      ${(selectedPlan.prices[0].unit_amount / 100).toFixed(2)}
+                      <span className="text-sm text-muted-foreground ml-1">
+                        /{selectedPlan.prices[0].recurring?.interval || 'month'}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                
+                <div className="space-y-2 mb-4">
+                  <p className="text-sm">{selectedPlan.description}</p>
+                </div>
+                
+                {clientSecret && stripePromise ? (
+                  <>
+                    <Separator className="my-4" />
+                    <h4 className="font-medium mb-4">Complete Your Payment</h4>
+                    <Elements 
+                      stripe={stripePromise} 
+                      options={{ 
+                        clientSecret,
+                        appearance: {
+                          theme: 'stripe',
+                          variables: {
+                            colorPrimary: '#0070f3',
+                            fontFamily: 'system-ui, sans-serif',
+                            borderRadius: '8px',
+                          }
+                        }
+                      }}
+                    >
+                      <CheckoutForm onSuccess={() => {
+                        setClientSecret("");
+                        setSelectedPriceId("");
+                        setSelectedPlan(null);
+                      }} />
+                    </Elements>
+                    
+                    <div className="mt-6 text-sm text-muted-foreground">
+                      <p>Having trouble with payment? Please ensure your payment method is valid.</p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <Alert className="mb-4">
+                      <AlertTitle>Subscription Not Available</AlertTitle>
+                      <AlertDescription>
+                        The payment system is currently unavailable. Please try again later or contact support.
+                      </AlertDescription>
+                    </Alert>
+                    
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Subscription details will be stored in your account once payment is complete.
+                    </p>
+                  </>
+                )}
+              </div>
+              
               <Button 
                 variant="outline" 
-                className="w-full mt-4"
+                className="w-full"
                 onClick={() => {
                   setClientSecret("");
                   setSelectedPriceId("");
+                  setSelectedPlan(null);
                 }}
               >
-                Cancel and Select Different Plan
+                Back to Plan Selection
               </Button>
             </div>
           ) : (
@@ -263,10 +344,7 @@ export default function Subscription() {
                       <p className="text-sm mb-4">{product.description}</p>
                       <Button 
                         className="w-full" 
-                        onClick={() => {
-                          setSelectedPriceId(price.id);
-                          createSubscription(price.id);
-                        }}
+                        onClick={() => createSubscription(price, product)}
                       >
                         Select Plan
                       </Button>
