@@ -108,23 +108,36 @@ export default function Subscription() {
   // Create subscription mutation
   const createSubscription = async (priceId: string) => {
     try {
+      setSelectedPriceId(priceId);
+      
+      toast({
+        title: "Processing",
+        description: "Setting up payment details...",
+      });
+      
       const response = await apiRequest("POST", "/api/create-stripe-subscription", { priceId });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to create subscription");
+      }
+      
       const data = await response.json();
+      
       if (data.success && data.clientSecret) {
+        console.log("Received client secret, setting up checkout form");
         setClientSecret(data.clientSecret);
       } else {
-        toast({
-          title: "Error",
-          description: data.error || "Could not create subscription",
-          variant: "destructive",
-        });
+        throw new Error(data.error || "No client secret returned");
       }
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Subscription error:", error);
       toast({
-        title: "Error",
-        description: "Failed to start subscription process",
+        title: "Payment Setup Failed",
+        description: error.message || "Could not set up payment process. Please try again.",
         variant: "destructive",
       });
+      setSelectedPriceId("");
     }
   };
 
@@ -158,9 +171,36 @@ export default function Subscription() {
               </AlertDescription>
             </Alert>
           ) : clientSecret ? (
-            <Elements stripe={stripePromise} options={{ clientSecret }}>
-              <CheckoutForm onSuccess={() => setClientSecret("")} />
-            </Elements>
+            <div className="max-w-md mx-auto">
+              <h3 className="font-medium text-lg mb-4">Complete Your Payment</h3>
+              <Elements 
+                stripe={stripePromise} 
+                options={{ 
+                  clientSecret,
+                  appearance: {
+                    theme: 'stripe',
+                    variables: {
+                      colorPrimary: '#0070f3',
+                    }
+                  }
+                }}
+              >
+                <CheckoutForm onSuccess={() => {
+                  setClientSecret("");
+                  setSelectedPriceId("");
+                }} />
+              </Elements>
+              <Button 
+                variant="outline" 
+                className="w-full mt-4"
+                onClick={() => {
+                  setClientSecret("");
+                  setSelectedPriceId("");
+                }}
+              >
+                Cancel and Select Different Plan
+              </Button>
+            </div>
           ) : (
             <div className="grid gap-6 md:grid-cols-3">
               {data?.products.filter(p => p.active && p.prices.length > 0).map(product => {
