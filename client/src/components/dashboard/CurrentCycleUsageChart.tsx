@@ -260,7 +260,9 @@ export default function CurrentCycleUsageChart() {
   }
 
   const { allMonths, currentMonthData } = monthlyData;
-  const { chartData, monthYear, dateRange, totalWords } = currentMonthData;
+  // Important: Add console log to see what's actually in currentMonthData 
+  console.log("currentMonthData:", currentMonthData);
+  const { chartData = [], monthYear, dateRange, totalWords } = currentMonthData;
   
   const wordLimit = data?.subscriptionPlan?.monthlyWordLimit || 1000;
   
@@ -353,8 +355,8 @@ export default function CurrentCycleUsageChart() {
         </div>
       </CardHeader>
       <CardContent className="pt-3 pb-5">
-        {chartData.length > 0 ? (
-          <div className="h-72">
+        {chartData && chartData.length > 0 ? (
+          <div className="h-72 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart 
                 data={chartData} 
