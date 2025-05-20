@@ -1,16 +1,132 @@
-import { useState } from "react";
 import { useLocation } from "wouter";
 import AppLayout from "@/components/AppLayout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import SubscriptionManager from "@/components/subscription/SubscriptionManager";
-import RevenueCatSubscription from "@/components/subscription/RevenueCatSubscription";
-import StripeSubscription from "@/components/subscription/StripeSubscription";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useQuery } from "@tanstack/react-query";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { loadStripe } from '@stripe/stripe-js';
+import { useState } from "react";
+import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+
+// Load Stripe outside of component render
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || "");
+
+// Define types for Stripe products
+interface StripePrice {
+  id: string;
+  unit_amount: number;
+  recurring: {
+    interval: string;
+  };
+  currency: string;
+}
+
+interface StripeProduct {
+  id: string;
+  name: string;
+  description: string;
+  active: boolean;
+  prices: StripePrice[];
+}
+
+interface StripeProductsResponse {
+  success: boolean;
+  products: StripeProduct[];
+  source: 'stripe' | 'database';
+}
+
+// Payment form component
+const CheckoutForm = ({ onSuccess }: { onSuccess: () => void }) => {
+  const stripe = useStripe();
+  const elements = useElements();
+  const { toast } = useToast();
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!stripe || !elements) return;
+
+    setIsProcessing(true);
+    const { error } = await stripe.confirmPayment({
+      elements,
+      confirmParams: {
+        return_url: `${window.location.origin}/subscription?success=true`,
+      },
+      redirect: 'if_required',
+    });
+
+    setIsProcessing(false);
+    
+    if (error) {
+      toast({
+        title: "Payment Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Payment Successful",
+        description: "Your subscription has been updated",
+      });
+      onSuccess();
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <PaymentElement className="mb-6" />
+      <Button type="submit" disabled={!stripe || isProcessing} className="w-full">
+        {isProcessing ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Processing...
+          </>
+        ) : (
+          "Subscribe Now"
+        )}
+      </Button>
+    </form>
+  );
+};
 
 export default function Subscription() {
   const { userData } = useAuth();
   const [, navigate] = useLocation();
+  const [selectedPriceId, setSelectedPriceId] = useState<string>("");
+  const [clientSecret, setClientSecret] = useState<string>("");
+  const { toast } = useToast();
+
+  // Get Stripe products
+  const { data, isLoading, error } = useQuery<StripeProductsResponse>({
+    queryKey: ["/api/stripe-products"],
+  });
+
+  // Create subscription mutation
+  const createSubscription = async (priceId: string) => {
+    try {
+      const response = await apiRequest("POST", "/api/create-stripe-subscription", { priceId });
+      const data = await response.json();
+      if (data.success && data.clientSecret) {
+        setClientSecret(data.clientSecret);
+      } else {
+        toast({
+          title: "Error",
+          description: data.error || "Could not create subscription",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to start subscription process",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <AppLayout
@@ -28,15 +144,56 @@ export default function Subscription() {
 
       <Card className="mb-6">
         <CardHeader className="pb-3">
-          <CardTitle>Stripe Payment Integration</CardTitle>
-          <CardDescription>
-            Choose your subscription plan and pay securely with Stripe
-          </CardDescription>
+          <CardTitle>Choose Your Plan</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="py-2">
-            <StripeSubscription />
-          </div>
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : error ? (
+            <Alert variant="destructive">
+              <AlertDescription>
+                Could not load subscription plans. Please try again later.
+              </AlertDescription>
+            </Alert>
+          ) : clientSecret ? (
+            <Elements stripe={stripePromise} options={{ clientSecret }}>
+              <CheckoutForm onSuccess={() => setClientSecret("")} />
+            </Elements>
+          ) : (
+            <div className="grid gap-6 md:grid-cols-3">
+              {data?.products.filter(p => p.active && p.prices.length > 0).map(product => {
+                const price = product.prices[0];
+                const isMonthly = price.recurring?.interval === 'month';
+                const amount = price.unit_amount / 100;
+                
+                return (
+                  <Card key={product.id} className={`overflow-hidden border-2 ${selectedPriceId === price.id ? 'border-primary' : 'border-border'}`}>
+                    <CardHeader className="bg-muted/50 pb-4">
+                      <CardTitle className="text-lg">{product.name}</CardTitle>
+                      <div className="mt-1">
+                        <span className="text-2xl font-bold">${amount}</span>
+                        <span className="text-muted-foreground">/{isMonthly ? 'month' : 'year'}</span>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-4">
+                      <p className="text-sm mb-4">{product.description}</p>
+                      <Button 
+                        className="w-full" 
+                        onClick={() => {
+                          setSelectedPriceId(price.id);
+                          createSubscription(price.id);
+                        }}
+                      >
+                        Select Plan
+                      </Button>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
         </CardContent>
       </Card>
 
