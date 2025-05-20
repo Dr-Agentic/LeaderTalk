@@ -147,6 +147,21 @@ export async function createStripeSubscription(req: Request, res: Response) {
       expand: ['product'],
     });
 
+    // Log the customer ID to verify it's correct
+    console.log(`Creating subscription with Stripe customer ID: ${customerId}`);
+    
+    try {
+      // Verify the customer exists before attempting to create a subscription
+      const customerCheck = await stripe.customers.retrieve(customerId);
+      console.log(`Verified customer exists: ${customerCheck.id}`);
+    } catch (error) {
+      console.error("Customer verification failed:", error);
+      return res.status(500).json({
+        success: false,
+        error: "Unable to verify Stripe customer. Please contact support."
+      });
+    }
+    
     // Create a subscription
     const subscription = await stripe.subscriptions.create({
       customer: customerId,
