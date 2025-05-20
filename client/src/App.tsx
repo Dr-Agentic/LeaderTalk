@@ -123,8 +123,8 @@ function Router() {
       {isAuthenticated && onboardingComplete && <Route path="/transcripts" component={AllTranscripts} />}
       {isAuthenticated && onboardingComplete && <Route path="/progress" component={Progress} />}
       {isAuthenticated && onboardingComplete && <Route path="/settings" component={Settings} />}
-      {isAuthenticated && onboardingComplete && <Route path="/subscription" component={Subscription} />}
-      {isAuthenticated && onboardingComplete && <Route path="/subscription/new" component={Subscription} />}
+      {isAuthenticated && onboardingComplete && <Route path="/subscription" component={SubscriptionPage} />}
+      {isAuthenticated && onboardingComplete && <Route path="/subscription/new" component={SubscriptionPage} />}
       {isAuthenticated && onboardingComplete && <Route path="/stripe-products" component={StripeProducts} />}
       {isAuthenticated && onboardingComplete && <Route path="/leadership-inspirations" component={LeadershipInspirations} />}
       
