@@ -12,7 +12,8 @@ import {
   Settings,
   X,
   FileText,
-  GraduationCap
+  GraduationCap,
+  CreditCard
 } from "lucide-react";
 
 export default function Sidebar({ sidebarOpen, setSidebarOpen, user }) {
@@ -97,25 +98,7 @@ function SidebarContent({ location }) {
     { name: "My Progress", href: "/progress", icon: LineChart },
     { name: "Training Module", href: "/training", icon: GraduationCap },
     { name: "Leadership Inspirations", href: "/leadership-inspirations", icon: UserRound },
-    { name: "Manage Subscription", href: "/subscription", icon: () => (
-      <svg 
-        xmlns="http://www.w3.org/2000/svg" 
-        viewBox="0 0 24 24" 
-        width="24" 
-        height="24" 
-        fill="none" 
-        stroke="currentColor" 
-        strokeWidth="2" 
-        strokeLinecap="round" 
-        strokeLinejoin="round"
-        className="h-5 w-5"
-      >
-        <rect width="20" height="14" x="2" y="5" rx="2" />
-        <line x1="2" x2="22" y1="10" y2="10" />
-        <line x1="7" x2="7" y1="15" y2="15" />
-        <line x1="12" x2="12" y1="15" y2="15" />
-      </svg>
-    ) },
+    { name: "Manage Subscription", href: "/subscription", icon: CreditCard },
     { name: "Settings", href: "/settings", icon: Settings },
   ];
   
