@@ -31,12 +31,12 @@ export default function SplashScreen({
             duration: 0.8, 
             ease: [0.22, 1, 0.36, 1] 
           }}
-          className="w-40 h-40 md:w-48 md:h-48 mb-6 flex justify-center"
+          className="w-40 md:w-48 mb-6 flex justify-center items-center"
         >
           <img 
             src="/assets/LeaderTalk-NoLabel.png" 
             alt="LeaderTalk" 
-            className="w-full h-full"
+            className="w-full h-auto object-contain"
           />
         </motion.div>
         
