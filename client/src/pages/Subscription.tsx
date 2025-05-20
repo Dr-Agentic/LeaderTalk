@@ -45,45 +45,87 @@ const CheckoutForm = ({ onSuccess }: { onSuccess: () => void }) => {
   const elements = useElements();
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [paymentElementReady, setPaymentElementReady] = useState(false);
+
+  // Handle element ready state
+  const handleReady = () => {
+    setPaymentElementReady(true);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!stripe || !elements) return;
+    
+    if (!stripe || !elements || !paymentElementReady) {
+      toast({
+        title: "Payment not ready",
+        description: "Please wait for the payment form to load completely",
+        variant: "destructive"
+      });
+      return;
+    }
 
     setIsProcessing(true);
-    const { error } = await stripe.confirmPayment({
-      elements,
-      confirmParams: {
-        return_url: `${window.location.origin}/subscription?success=true`,
-      },
-      redirect: 'if_required',
-    });
-
-    setIsProcessing(false);
     
-    if (error) {
+    try {
+      const { error } = await stripe.confirmPayment({
+        elements,
+        confirmParams: {
+          return_url: `${window.location.origin}/subscription?success=true`,
+        },
+        redirect: 'if_required',
+      });
+
+      if (error) {
+        toast({
+          title: "Payment Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Payment Successful",
+          description: "Your subscription has been updated",
+        });
+        onSuccess();
+      }
+    } catch (err: any) {
+      console.error("Payment error:", err);
       toast({
-        title: "Payment Failed",
-        description: error.message,
+        title: "Payment Error",
+        description: err.message || "An unexpected error occurred",
         variant: "destructive",
       });
-    } else {
-      toast({
-        title: "Payment Successful",
-        description: "Your subscription has been updated",
-      });
-      onSuccess();
+    } finally {
+      setIsProcessing(false);
     }
   };
 
   return (
     <form onSubmit={handleSubmit}>
-      <PaymentElement className="mb-6" />
-      <Button type="submit" disabled={!stripe || isProcessing} className="w-full">
+      <PaymentElement 
+        className="mb-6" 
+        onReady={handleReady}
+        options={{
+          layout: {
+            type: 'tabs',
+            defaultCollapsed: false,
+          }
+        }}
+      />
+      <Button 
+        type="submit" 
+        disabled={!stripe || isProcessing || !paymentElementReady} 
+        className="w-full"
+      >
         {isProcessing ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             Processing...
+          </>
+        ) : !paymentElementReady ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Loading Payment Form...
           </>
         ) : (
           "Subscribe Now"
