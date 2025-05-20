@@ -347,7 +347,7 @@ export default function CurrentCycleUsageChart() {
           </div>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-3 pb-5">
         {chartData.length > 0 ? (
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
@@ -389,9 +389,9 @@ export default function CurrentCycleUsageChart() {
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
-            <div className="mt-1 mb-4 flex items-center justify-center text-sm text-muted-foreground">
-              <Info className="h-4 w-4 mr-2" />
-              <span>
+            <div className="mt-2 mb-4 flex items-center justify-center text-sm text-muted-foreground">
+              <Info className="h-4 w-4 mr-2 flex-shrink-0" />
+              <span className="text-center">
                 {chartData.length > 0 ? 
                   `Showing ${chartData.length} recording session${chartData.length !== 1 ? 's' : ''} for the billing period ending ${data?.billingCycle?.endDate ? new Date(data.billingCycle.endDate).toLocaleDateString() : 'the current cycle'}` 
                   : 
