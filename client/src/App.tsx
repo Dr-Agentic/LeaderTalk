@@ -10,7 +10,7 @@ import DirectLogin from "@/pages/DirectLogin";
 import TranscriptView from "@/pages/TranscriptView";
 import AllTranscripts from "@/pages/AllTranscripts";
 import Settings from "@/pages/Settings";
-import Subscription from "@/pages/Subscription";
+import Subscription from "@/pages/SubscriptionNew";
 import StripeProducts from "@/pages/StripeProducts";
 import LeadershipInspirations from "@/pages/LeadershipInspirations";
 import Progress from "@/pages/Progress";
