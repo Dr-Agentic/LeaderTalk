@@ -131,14 +131,6 @@ export default function Settings() {
                 <CreditCard className="h-4 w-4" />
                 Manage Subscription
               </Button>
-              <Button 
-                variant="outline"
-                className="w-full sm:w-auto flex items-center gap-2" 
-                onClick={() => navigate('/stripe-products')}
-              >
-                <CreditCard className="h-4 w-4" />
-                View Stripe Products
-              </Button>
             </div>
           </CardContent>
         </Card>
