@@ -24,44 +24,10 @@ export async function getStripeProducts(req: Request, res: Response) {
   try {
     // Verify we have a valid secret key
     if (!secretKey || secretKey.trim() === '') {
-      console.log("Missing Stripe secret key, using database subscription plans instead");
-      
-      // Fallback to getting subscription plans from our database
-      const plans = await storage.getSubscriptionPlans();
-      
-      // Convert the database plans to a format compatible with the Stripe Product API
-      // This allows our frontend to work without changes
-      const products = plans.map(plan => {
-        const priceInCents = Math.round(parseFloat(plan.monthlyPriceUsd) * 100);
-        return {
-          id: `prod_${plan.planCode}`,
-          name: plan.name,
-          description: `${plan.name} - ${plan.monthlyWordLimit} words per month`,
-          active: true,
-          features: plan.features || [],
-          prices: [{
-            id: `price_${plan.planCode}`,
-            product: `prod_${plan.planCode}`,
-            unit_amount: priceInCents,
-            currency: 'usd',
-            recurring: { interval: 'month' }
-          }]
-        };
-      });
-      
-      // Sort by price (ascending)
-      products.sort((a, b) => {
-        const aPrice = a.prices[0]?.unit_amount || 0;
-        const bPrice = b.prices[0]?.unit_amount || 0;
-        return aPrice - bPrice;
-      });
-      
-      console.log(`Using ${products.length} subscription plans from database`);
-      
-      return res.json({
-        success: true,
-        products,
-        source: 'database' // Add metadata so frontend knows data source
+      console.log("Missing Stripe secret key");
+      return res.status(500).json({
+        success: false,
+        error: "Stripe API key is not configured. Please contact the administrator."
       });
     }
     
@@ -109,56 +75,16 @@ export async function getStripeProducts(req: Request, res: Response) {
   } catch (error: any) {
     console.error("Error fetching Stripe products:", error);
     
-    try {
-      // Fallback to database plans if Stripe API fails for any reason
-      console.log("Falling back to database subscription plans");
-      const plans = await storage.getSubscriptionPlans();
-      
-      const products = plans.map(plan => {
-        const priceInCents = Math.round(parseFloat(plan.monthlyPriceUsd) * 100);
-        return {
-          id: `prod_${plan.planCode}`,
-          name: plan.name,
-          description: `${plan.name} - ${plan.monthlyWordLimit} words per month`,
-          active: true,
-          features: plan.features || [],
-          prices: [{
-            id: `price_${plan.planCode}`,
-            product: `prod_${plan.planCode}`,
-            unit_amount: priceInCents,
-            currency: 'usd',
-            recurring: { interval: 'month' }
-          }]
-        };
-      });
-      
-      products.sort((a, b) => {
-        const aPrice = a.prices[0]?.unit_amount || 0;
-        const bPrice = b.prices[0]?.unit_amount || 0;
-        return aPrice - bPrice;
-      });
-      
-      return res.json({
-        success: true,
-        products,
-        source: 'database',
-        note: 'Using database plans due to Stripe API error'
-      });
-    } catch (dbError) {
-      // If both Stripe and database fallback fail
-      console.error("Failed to fall back to database plans:", dbError);
-      
-      // Provide more detailed error for better troubleshooting
-      let errorMessage = "Failed to fetch subscription products";
-      if (error.type || error.code) {
-        errorMessage += `: ${error.message || "Unknown error"}`;
-      }
-      
-      return res.status(500).json({
-        success: false,
-        error: errorMessage
-      });
+    // Provide detailed error for better troubleshooting
+    let errorMessage = "Failed to fetch subscription products from Stripe";
+    if (error.type || error.code) {
+      errorMessage += `: ${error.message || "Unknown error"}`;
     }
+    
+    return res.status(500).json({
+      success: false,
+      error: errorMessage
+    });
   }
 }
 

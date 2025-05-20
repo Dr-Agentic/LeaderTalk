@@ -11,7 +11,6 @@ import { useAuth } from "@/hooks/useAuth";
 export default function Subscription() {
   const { userData } = useAuth();
   const [, navigate] = useLocation();
-  const [subscriptionMethod, setSubscriptionMethod] = useState<"standard" | "revenuecat" | "stripe">("standard");
 
   return (
     <AppLayout
@@ -29,41 +28,15 @@ export default function Subscription() {
 
       <Card className="mb-6">
         <CardHeader className="pb-3">
-          <CardTitle>Select Subscription Provider</CardTitle>
+          <CardTitle>Stripe Payment Integration</CardTitle>
           <CardDescription>
-            Choose how you would like to manage your subscription
+            Choose your subscription plan and pay securely with Stripe
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs
-            value={subscriptionMethod}
-            onValueChange={(value) => setSubscriptionMethod(value as "standard" | "revenuecat" | "stripe")}
-            className="w-full"
-          >
-            <TabsList className="mb-6">
-              <TabsTrigger value="standard">Standard Billing</TabsTrigger>
-              <TabsTrigger value="stripe">Credit Card</TabsTrigger>
-              <TabsTrigger value="revenuecat">In-App Purchase</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="standard">
-              <div className="py-2">
-                <SubscriptionManager />
-              </div>
-            </TabsContent>
-
-            <TabsContent value="stripe">
-              <div className="py-2">
-                <StripeSubscription />
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="revenuecat">
-              <div className="py-2">
-                <RevenueCatSubscription />
-              </div>
-            </TabsContent>
-          </Tabs>
+          <div className="py-2">
+            <StripeSubscription />
+          </div>
         </CardContent>
       </Card>
 
