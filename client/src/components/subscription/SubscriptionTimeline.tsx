@@ -115,9 +115,9 @@ export default function SubscriptionTimeline({ data: propData, className = "" }:
     } else if (data.subscription.metadata?.words) {
       wordLimit = parseInt(data.subscription.metadata.words);
     } else {
-      // Fallback based on plan name
-      wordLimit = planCode.toLowerCase().includes('starter') ? 500 : 
-                  planCode.toLowerCase().includes('pro') ? 15000 : 50000;
+      // No fallback value - we only want to show the actual value from Stripe
+      console.warn("No word limit found in subscription data");
+      wordLimit = null; // Will display N/A if no word limit is available
     }
   } else if (data.planCode) {
     // Alternative data structure
@@ -193,7 +193,7 @@ export default function SubscriptionTimeline({ data: propData, className = "" }:
                 )}
               </p>
               <p className="text-sm text-muted-foreground mt-1">
-                <span className="font-medium">{wordLimit.toLocaleString()}</span> words per month
+                <span className="font-medium">{wordLimit ? wordLimit.toLocaleString() : "N/A"}</span> words per month
               </p>
               {cancelAtPeriodEnd && (
                 <p className="text-xs mt-1 text-destructive-foreground">
