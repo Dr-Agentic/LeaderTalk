@@ -2420,19 +2420,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       });
       
-      // Calculate usage percentage based on the user's subscription plan
-      const wordLimitPercentage = subscriptionPlan 
-        ? Math.min(100, Math.round((currentUsage / subscriptionPlan.monthlyWordLimit) * 100))
+      // Use the Stripe word limit if available, otherwise fall back to database plan
+      let finalWordLimit = stripeWordLimit > 0 ? stripeWordLimit : (subscriptionPlan ? subscriptionPlan.monthlyWordLimit : 0);
+      
+      // Calculate usage percentage based on the word limit
+      const wordLimitPercentage = finalWordLimit > 0
+        ? Math.min(100, Math.round((currentUsage / finalWordLimit) * 100))
         : 0;
       
       console.log("Returning word usage data:", {
         currentUsage,
         cycleStartDate,
         cycleEndDate,
-        subscriptionPlan: subscriptionPlan ? {
-          name: subscriptionPlan.name,
-          monthlyWordLimit: subscriptionPlan.monthlyWordLimit
-        } : null
+        stripeWordLimit,
+        databaseWordLimit: subscriptionPlan ? subscriptionPlan.monthlyWordLimit : 0,
+        finalWordLimit,
+        wordLimitPercentage
       });
       
       // Ensure we always have valid dates
@@ -2457,6 +2460,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         daysRemaining
       });
       
+      // Use Stripe word limit if available, otherwise fall back to database plan
+      // Create a modified subscription plan based on accurate Stripe data
+      const modifiedSubscriptionPlan = subscriptionPlan ? {
+        id: subscriptionPlan.id,
+        name: subscriptionPlan.name,
+        planCode: subscriptionPlan.planCode,
+        // Use Stripe data if available, otherwise use database value
+        monthlyWordLimit: finalWordLimit,
+        monthlyPriceUsd: subscriptionPlan.monthlyPriceUsd,
+        yearlyPriceUsd: subscriptionPlan.yearlyPriceUsd,
+        features: subscriptionPlan.features ? 
+          typeof subscriptionPlan.features === 'string' ? 
+            JSON.parse(subscriptionPlan.features) : 
+            subscriptionPlan.features 
+          : null,
+        isDefault: subscriptionPlan.isDefault || false
+      } : null;
+      
       // Log the full JSON response for debugging
       const responseData = {
         currentMonthUsage: currentUsage,
@@ -2468,20 +2489,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           daysRemaining,
           cycleNumber: currentCycle?.cycleNumber || 1
         },
-        subscriptionPlan: subscriptionPlan ? {
-          id: subscriptionPlan.id,
-          name: subscriptionPlan.name,
-          planCode: subscriptionPlan.planCode,
-          monthlyWordLimit: subscriptionPlan.monthlyWordLimit,
-          monthlyPriceUsd: subscriptionPlan.monthlyPriceUsd,
-          yearlyPriceUsd: subscriptionPlan.yearlyPriceUsd,
-          features: subscriptionPlan.features ? 
-            typeof subscriptionPlan.features === 'string' ? 
-              JSON.parse(subscriptionPlan.features) : 
-              subscriptionPlan.features 
-            : null,
-          isDefault: subscriptionPlan.isDefault || false
-        } : null
+        // Use our modified subscription plan with corrected word limit
+        subscriptionPlan: modifiedSubscriptionPlan
       };
       
       console.log("Full API response:", JSON.stringify(responseData, null, 2));
@@ -2496,13 +2505,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           daysRemaining,
           cycleNumber: currentCycle?.cycleNumber || 1
         },
-        subscriptionPlan: subscriptionPlan ? {
-          id: subscriptionPlan.id,
-          name: subscriptionPlan.name,
-          planCode: subscriptionPlan.planCode,
-          monthlyWordLimit: subscriptionPlan.monthlyWordLimit,
-          monthlyPrice: subscriptionPlan.monthlyPriceUsd,
-          yearlyPrice: subscriptionPlan.yearlyPriceUsd,
+        // Use our modified subscription plan with corrected word limit
+        subscriptionPlan: modifiedSubscriptionPlan ? {
+          id: modifiedSubscriptionPlan.id,
+          name: modifiedSubscriptionPlan.name,
+          planCode: modifiedSubscriptionPlan.planCode,
+          monthlyWordLimit: modifiedSubscriptionPlan.monthlyWordLimit,
+          monthlyPrice: modifiedSubscriptionPlan.monthlyPriceUsd,
+          yearlyPrice: modifiedSubscriptionPlan.yearlyPriceUsd,
           features: (() => {
             // Default features if we encounter parsing issues
             const defaultFeatures = [
