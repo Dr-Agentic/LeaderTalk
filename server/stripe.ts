@@ -269,8 +269,10 @@ export async function getCurrentSubscription(req: Request, res: Response) {
           productImage: product.images && product.images.length > 0 ? product.images[0] : null,
           // Include product metadata
           metadata: product.metadata || {},
-          // Extract word limit from metadata with case-insensitive search
-          wordLimit: getWordLimitFromMetadata(product)
+          // Extract word limit directly from the Words metadata field or use fallbacks
+          wordLimit: product.metadata?.Words ? parseInt(product.metadata.Words) : 
+            (product.name.toLowerCase().includes('starter') ? 5000 : 
+             product.name.toLowerCase().includes('pro') ? 15000 : 50000)
         }
       });
     } catch (subError) {
