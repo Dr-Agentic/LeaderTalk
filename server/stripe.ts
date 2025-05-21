@@ -129,6 +129,9 @@ export async function getCurrentSubscription(req: Request, res: Response) {
             plan: "starter",
             planId: starterProduct.id,
             isFree: true,
+            // Original subscription start date
+            startDate: subscription.start_date ? new Date(subscription.start_date * 1000) : new Date(),
+            // Current billing period
             currentPeriodStart: new Date(subscription.current_period_start * 1000),
             currentPeriodEnd: new Date(subscription.current_period_end * 1000),
             cancelAtPeriodEnd: subscription.cancel_at_period_end,
@@ -170,6 +173,8 @@ export async function getCurrentSubscription(req: Request, res: Response) {
       // Format the response with detailed subscription timing information
       // Ensure we set Content-Type header explicitly to avoid any potential rendering issues
       res.setHeader('Content-Type', 'application/json');
+      console.log("Subscription start date from Stripe:", subscription.start_date ? new Date(subscription.start_date * 1000) : "not found");
+      
       return res.status(200).json({
         success: true,
         subscription: {
@@ -179,7 +184,7 @@ export async function getCurrentSubscription(req: Request, res: Response) {
           planId: product.id,
           isFree: price.unit_amount === 0,
           // Original start date of subscription
-          startDate: subscription.start_date ? new Date(subscription.start_date * 1000) : null,
+          startDate: subscription.start_date ? new Date(subscription.start_date * 1000) : new Date(),
           // Current billing period
           currentPeriodStart: new Date(subscription.current_period_start * 1000),
           currentPeriodEnd: new Date(subscription.current_period_end * 1000),

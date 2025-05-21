@@ -60,7 +60,6 @@ export default function SubscriptionTimeline() {
   }
 
   // Extract subscription data safely, handling different possible structures
-  let subscription = {};
   let planCode = '';
   let subscriptionStartDate = new Date();
   let currentPeriodStart = new Date();
@@ -69,26 +68,30 @@ export default function SubscriptionTimeline() {
   let interval = 'month';
   let cancelAtPeriodEnd = false;
   
+  console.log("Raw subscription data:", data);
+  
   // Handle different possible data structures from our API
   if (data.subscription) {
-    subscription = data.subscription;
-    planCode = subscription.plan || '';
+    planCode = data.subscription.plan || '';
     
-    if (subscription.startDate) {
-      subscriptionStartDate = new Date(subscription.startDate);
+    // Get the original subscription start date from Stripe
+    if (data.subscription.startDate) {
+      subscriptionStartDate = new Date(data.subscription.startDate);
+      console.log("Found subscription start date:", subscriptionStartDate);
     }
     
-    if (subscription.currentPeriodStart) {
-      currentPeriodStart = new Date(subscription.currentPeriodStart);
+    // Current billing period
+    if (data.subscription.currentPeriodStart) {
+      currentPeriodStart = new Date(data.subscription.currentPeriodStart);
     }
     
-    if (subscription.currentPeriodEnd) {
-      currentPeriodEnd = new Date(subscription.currentPeriodEnd);
+    if (data.subscription.currentPeriodEnd) {
+      currentPeriodEnd = new Date(data.subscription.currentPeriodEnd);
     }
     
-    amount = subscription.amount || 0;
-    interval = subscription.interval || 'month';
-    cancelAtPeriodEnd = subscription.cancelAtPeriodEnd || false;
+    amount = data.subscription.amount || 0;
+    interval = data.subscription.interval || 'month';
+    cancelAtPeriodEnd = data.subscription.cancelAtPeriodEnd || false;
   } else if (data.planCode) {
     // Alternative data structure
     planCode = data.planCode;
@@ -124,7 +127,7 @@ export default function SubscriptionTimeline() {
               <Calendar className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h4 className="text-sm font-medium">Subscription Start Date</h4>
+              <h4 className="text-sm font-medium">Subscription Created</h4>
               <p className="text-sm text-muted-foreground">
                 You first subscribed on <span className="font-medium">{formatDate(subscriptionStartDate)}</span>
               </p>
@@ -137,22 +140,9 @@ export default function SubscriptionTimeline() {
               <Clock className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h4 className="text-sm font-medium">Current Billing Period</h4>
+              <h4 className="text-sm font-medium">Current Billing Cycle</h4>
               <p className="text-sm text-muted-foreground">
                 From <span className="font-medium">{formatDate(currentPeriodStart)}</span> to <span className="font-medium">{formatDate(currentPeriodEnd)}</span>
-              </p>
-            </div>
-          </div>
-          
-          {/* Next renewal */}
-          <div className="flex items-start space-x-3">
-            <div className="bg-primary/10 p-2 rounded-full">
-              <TimerReset className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <h4 className="text-sm font-medium">Next Renewal</h4>
-              <p className="text-sm text-muted-foreground">
-                Your subscription will renew on <span className="font-medium text-primary">{formatDate(currentPeriodEnd)}</span>
               </p>
               {daysRemaining > 0 && (
                 <p className="text-xs mt-1">
