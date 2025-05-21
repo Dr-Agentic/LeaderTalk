@@ -51,9 +51,16 @@ interface SubscriptionResponse {
     plan: string;
     planId?: string;
     isFree: boolean;
+    // Original start date
+    startDate?: Date | null;
+    // Current billing period
     currentPeriodStart: Date | null;
     currentPeriodEnd: Date | null;
+    // Next renewal information
+    nextRenewalDate?: Date | null;
+    nextRenewalTimestamp?: number;
     cancelAtPeriodEnd: boolean;
+    // Payment details
     amount?: number;
     currency?: string;
     interval?: string;
@@ -373,6 +380,16 @@ export default function SubscriptionNew() {
                      userData.subscriptionPlan === 'executive' ? '50,000' : '5,000'} words/month
                   </span>
                 </div>
+                
+                {/* Subscription Start Date */}
+                {subscriptionData?.success && subscriptionData.subscription.startDate && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Subscription Started:</span>
+                    <span className="font-medium">
+                      {new Date(subscriptionData.subscription.startDate).toLocaleDateString()}
+                    </span>
+                  </div>
+                )}
                 
                 {/* Billing Cycle */}
                 <div className="flex justify-between">
