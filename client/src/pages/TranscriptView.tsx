@@ -375,45 +375,85 @@ function TranscriptWithHighlighting({ transcription, analysis }: TranscriptProps
     return <p className="whitespace-pre-line">{transcription}</p>;
   }
   
-  // Function to highlight text
+  // Function to highlight text using string search approach
   const getColoredTranscript = () => {
-    let result = transcription;
-    
-    // First, we need to sort all instances by the length of their text (longest first)
-    // This prevents shorter matches from breaking longer ones
+    // Collect all instances that need highlighting
     const allInstances = [
       ...positiveInstances.map((i) => ({ ...i, type: 'positive' as const })),
       ...negativeInstances.map((i) => ({ ...i, type: 'negative' as const })),
       ...passiveInstances.map((i) => ({ ...i, type: 'passive' as const }))
-    ].sort((a, b) => b.text.length - a.text.length);
+    ];
     
-    // Map of instance text to type
-    const instanceMap = new Map();
-    allInstances.forEach(instance => {
-      instanceMap.set(instance.text, instance.type);
-    });
+    // Create an array to hold all segments with their positions
+    const segments: {
+      start: number;
+      end: number;
+      text: string;
+      type: 'positive' | 'negative' | 'passive' | 'normal';
+    }[] = [];
     
-    // Create HTML with spans for highlighting
+    // Find all occurrences of each instance in the transcript
     for (const instance of allInstances) {
       const { text, type } = instance;
       if (!text || typeof text !== 'string') continue;
       
-      // Escape regex special characters
-      const escapedText = text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      let position = 0;
+      while (position < transcription.length) {
+        const foundIndex = transcription.indexOf(text, position);
+        if (foundIndex === -1) break; // No more occurrences
+        
+        segments.push({
+          start: foundIndex,
+          end: foundIndex + text.length,
+          text,
+          type
+        });
+        
+        position = foundIndex + 1; // Start searching from the next position
+      }
+    }
+    
+    // Sort segments by their starting position
+    segments.sort((a, b) => a.start - b.start);
+    
+    // Handle overlapping segments by keeping only non-overlapping ones
+    const filteredSegments: typeof segments = [];
+    let lastEnd = 0;
+    
+    for (const segment of segments) {
+      if (segment.start >= lastEnd) {
+        filteredSegments.push(segment);
+        lastEnd = segment.end;
+      }
+    }
+    
+    // Build the final HTML by adding normal text between highlighted segments
+    let result = '';
+    let currentPosition = 0;
+    
+    for (const segment of filteredSegments) {
+      // Add normal text before this segment
+      if (segment.start > currentPosition) {
+        result += transcription.substring(currentPosition, segment.start);
+      }
       
-      // Create CSS class based on type
+      // Add highlighted segment
       let cssClass = '';
-      if (type === 'positive') {
+      if (segment.type === 'positive') {
         cssClass = 'bg-green-100 text-green-800 px-1 rounded';
-      } else if (type === 'negative') {
+      } else if (segment.type === 'negative') {
         cssClass = 'bg-red-100 text-red-800 px-1 rounded';
-      } else if (type === 'passive') {
+      } else if (segment.type === 'passive') {
         cssClass = 'bg-gray-100 text-gray-800 px-1 rounded';
       }
       
-      // Replace text with highlighted version
-      const regex = new RegExp(escapedText, 'g');
-      result = result.replace(regex, `<span class="${cssClass}">${text}</span>`);
+      result += `<span class="${cssClass}">${segment.text}</span>`;
+      currentPosition = segment.end;
+    }
+    
+    // Add any remaining normal text after the last segment
+    if (currentPosition < transcription.length) {
+      result += transcription.substring(currentPosition);
     }
     
     return result;
