@@ -39,10 +39,17 @@ export default function RecordingSection({ onRecordingComplete }: RecordingSecti
     queryKey: ['/api/users/word-usage'],
     refetchOnWindowFocus: true,
     staleTime: 1000 * 60 * 5, // 5 minutes
+    onSuccess: (data) => {
+      console.log('Word usage data received:', data);
+      console.log(`Word limit check: ${data.currentUsage} >= ${data.wordLimit} = ${data.hasExceededLimit}`);
+    }
   });
   
-  // Determine if user has exceeded their word limit
-  const hasExceededWordLimit = wordUsageData?.hasExceededLimit || false;
+  // Determine if user has exceeded their word limit based on total usage
+  // We also directly check the numbers as a fallback in case the flag is wrong
+  const hasExceededWordLimit = 
+    (wordUsageData?.hasExceededLimit || false) || 
+    (wordUsageData?.currentUsage >= wordUsageData?.wordLimit);
   
   const { toast } = useToast();
   const timerRef = useRef<number | null>(null);
