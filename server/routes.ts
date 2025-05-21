@@ -2322,7 +2322,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get the current billing cycle for additional information
       const currentCycle = await storage.getCurrentBillingCycle(req.session.userId!);
       
-      // Get the user's subscription plan
+      // Get the word limit from Stripe using the central utility function
+      let stripeWordLimit = 0;
+      let stripeWordLimitError = null;
+      
+      try {
+        if (user.stripeCustomerId && user.stripeSubscriptionId) {
+          stripeWordLimit = await getUserSubscriptionWordLimit(req.session.userId!);
+          console.log("Got word limit from Stripe:", stripeWordLimit);
+        }
+      } catch (error) {
+        console.error("Error getting word limit from Stripe:", error);
+        stripeWordLimitError = error.message;
+      }
+      
+      // As a fallback, get the user's subscription plan from the database
       let subscriptionPlan = null;
       if (user.subscriptionPlan) {
         subscriptionPlan = await storage.getSubscriptionPlanByCode(user.subscriptionPlan);
