@@ -32,7 +32,8 @@ import {
   handleStripeWebhook,
   handleRevenueCatWebhook,
   getStripeProducts,
-  createStripeSubscription
+  createStripeSubscription,
+  getCurrentSubscription
 } from "./stripe";
 import { updateLeaderImages } from "./update-leader-images";
 import { importTrainingData } from "./import-training-data";

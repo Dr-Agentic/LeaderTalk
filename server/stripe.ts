@@ -20,6 +20,81 @@ const stripe = new Stripe(secretKey, {
   apiVersion: "2023-10-16", // Standard stable version
 });
 
+// Get active subscription details for the current user
+export async function getCurrentSubscription(req: Request, res: Response) {
+  try {
+    // Get the logged-in user ID from the session
+    const userId = req.session.userId;
+    if (!userId) {
+      return res.status(401).json({ 
+        success: false, 
+        error: "Authentication required" 
+      });
+    }
+    
+    // Retrieve the user from the database
+    const user = await storage.getUser(userId);
+    if (!user) {
+      return res.status(404).json({ 
+        success: false, 
+        error: "User not found" 
+      });
+    }
+    
+    // Check if the user has a Stripe subscription ID
+    if (!user.stripeSubscriptionId) {
+      // User is on the free (starter) plan
+      return res.status(200).json({
+        success: true,
+        subscription: {
+          plan: "starter",
+          status: "active",
+          isFree: true,
+          currentPeriodStart: null,
+          currentPeriodEnd: null,
+          cancelAtPeriodEnd: false
+        }
+      });
+    }
+    
+    // User has a subscription ID, so fetch the details from Stripe
+    const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId, {
+      expand: ['items.data.price.product']
+    });
+    
+    // Get the product details from the subscription
+    const item = subscription.items.data[0];
+    const price = item.price;
+    const product = price.product as Stripe.Product;
+    
+    // Format the response
+    return res.status(200).json({
+      success: true,
+      subscription: {
+        id: subscription.id,
+        status: subscription.status,
+        plan: product.name.toLowerCase(),
+        planId: product.id,
+        isFree: false,
+        currentPeriodStart: new Date(subscription.current_period_start * 1000),
+        currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+        cancelAtPeriodEnd: subscription.cancel_at_period_end,
+        amount: price.unit_amount ? price.unit_amount / 100 : 0,
+        currency: price.currency,
+        interval: price.recurring?.interval || 'month',
+        productImage: product.images && product.images.length > 0 ? product.images[0] : null
+      }
+    });
+    
+  } catch (error) {
+    console.error("Error fetching subscription:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Failed to retrieve subscription details"
+    });
+  }
+}
+
 // Fetch products from Stripe API for display in the UI
 export async function getStripeProducts(req: Request, res: Response) {
   try {

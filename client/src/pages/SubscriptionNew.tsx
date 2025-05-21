@@ -33,6 +33,7 @@ interface StripeProduct {
   description: string;
   active: boolean;
   prices: StripePrice[];
+  images?: string[];
 }
 
 interface StripeProductsResponse {
