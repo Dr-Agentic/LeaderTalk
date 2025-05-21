@@ -189,9 +189,9 @@ export default function WordUsageStats() {
                 <h4 className="text-sm font-medium">Subscription Renewal</h4>
                 {/* Always display a renewal date */}
                 <p className="text-sm text-muted-foreground">
-                  Your word count will reset on <span className="font-medium text-primary">{formatDate(billingCycle.endDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])}</span>
+                  Your word count will reset on <span className="font-medium text-primary">{billingCycle.endDate ? formatDate(billingCycle.endDate) : "N/A"}</span>
                 </p>
-                {billingCycle.daysRemaining > 0 && (
+                {billingCycle.daysRemaining && (
                   <p className="text-sm mt-1">
                     <span className="font-medium">{billingCycle.daysRemaining}</span> days remaining in this cycle
                   </p>
