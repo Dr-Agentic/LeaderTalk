@@ -39,57 +39,119 @@ function getDaysBetween(startDate: Date, endDate: Date): number {
   return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 }
 
-// Component to display fresh subscription information
-function FreshSubscriptionInfo() {
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['/api/current-subscription'],
-    retry: 2,
-    retryDelay: 1000,
+// Simple component with direct API call and detailed logging
+function DirectSubscriptionInfo() {
+  // Using state to store and expose exactly what's happening
+  const [subscriptionState, setSubscriptionState] = useState({
+    isLoading: true,
+    error: null as string | null,
+    planCode: 'Starter', 
+    startDate: 'Not available',
+    periodStart: 'Not available',
+    periodEnd: 'Not available',
+    amount: 0,
+    interval: 'month',
+    wordLimit: 500, // Default to exactly 500 for Starter plan
+    cancelAtPeriodEnd: false,
+    rawData: null as any
   });
   
-  if (isLoading) {
+  // Direct API call with no dependencies on other components
+  useEffect(() => {
+    console.log("[SUBSCRIPTION PAGE] Making direct API call to /api/current-subscription");
+    
+    const fetchSubscription = async () => {
+      try {
+        const response = await fetch('/api/current-subscription');
+        console.log("[SUBSCRIPTION PAGE] API response status:", response.status);
+        
+        if (!response.ok) {
+          throw new Error(`API returned status ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log("[SUBSCRIPTION PAGE] Subscription data:", data);
+        
+        if (!data || !data.success || !data.subscription) {
+          throw new Error("Invalid data structure returned from API");
+        }
+        
+        const { subscription } = data;
+        
+        // Log the important details from the subscription object
+        console.log("[SUBSCRIPTION PAGE] Plan code:", subscription.plan);
+        console.log("[SUBSCRIPTION PAGE] Start date:", subscription.startDate);
+        console.log("[SUBSCRIPTION PAGE] Current period:", subscription.currentPeriodStart, "to", subscription.currentPeriodEnd);
+        console.log("[SUBSCRIPTION PAGE] Word limit:", subscription.wordLimit || (subscription.metadata?.Words ? subscription.metadata.Words : "Not found"));
+        
+        // Extract the word limit with special care
+        let wordLimit = 500; // Default to 500 for Starter plan
+        if (subscription.wordLimit) {
+          wordLimit = subscription.wordLimit;
+          console.log("[SUBSCRIPTION PAGE] Using wordLimit field:", wordLimit);
+        } else if (subscription.metadata?.Words) {
+          wordLimit = parseInt(subscription.metadata.Words);
+          console.log("[SUBSCRIPTION PAGE] Using metadata.Words field:", wordLimit);
+        }
+        
+        setSubscriptionState({
+          isLoading: false,
+          error: null,
+          planCode: subscription.plan || 'Starter',
+          startDate: formatDate(subscription.startDate),
+          periodStart: formatDate(subscription.currentPeriodStart),
+          periodEnd: formatDate(subscription.currentPeriodEnd),
+          amount: subscription.amount || 0,
+          interval: subscription.interval || 'month',
+          wordLimit,
+          cancelAtPeriodEnd: subscription.cancelAtPeriodEnd || false,
+          rawData: data
+        });
+      } catch (error) {
+        console.error("[SUBSCRIPTION PAGE] Error fetching subscription:", error);
+        setSubscriptionState(prev => ({
+          ...prev,
+          isLoading: false,
+          error: error?.message || "Failed to load subscription details"
+        }));
+      }
+    };
+    
+    fetchSubscription();
+  }, []);
+  
+  // Show loading state
+  if (subscriptionState.isLoading) {
     return (
       <div className="space-y-4">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="flex items-start space-x-3">
-            <Skeleton className="h-10 w-10 rounded-full" />
-            <div className="space-y-2 flex-1">
-              <Skeleton className="h-4 w-32" />
-              <Skeleton className="h-3 w-full" />
-            </div>
-          </div>
-        ))}
+        <div className="flex items-center justify-center py-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary mr-2" />
+          <p>Loading subscription details...</p>
+        </div>
       </div>
     );
   }
   
-  if (error || !data || !data.success) {
+  // Show error state
+  if (subscriptionState.error) {
     return (
-      <div className="text-sm text-muted-foreground">
-        Unable to load subscription details. Please try again later.
-      </div>
+      <Alert variant="destructive">
+        <AlertTitle>Could not load subscription</AlertTitle>
+        <AlertDescription>
+          {subscriptionState.error}. Using default Starter plan with 500 words limit.
+        </AlertDescription>
+      </Alert>
     );
   }
-  
-  const { subscription } = data;
-  
-  // Extract subscription details
-  const planCode = subscription.plan || '';
-  const subscriptionStartDate = subscription.startDate ? new Date(subscription.startDate) : new Date();
-  const currentPeriodStart = subscription.currentPeriodStart ? new Date(subscription.currentPeriodStart) : new Date();
-  const currentPeriodEnd = subscription.currentPeriodEnd ? new Date(subscription.currentPeriodEnd) : new Date();
-  const amount = subscription.amount || 0;
-  const interval = subscription.interval || 'month';
-  const cancelAtPeriodEnd = subscription.cancelAtPeriodEnd || false;
-  const wordLimit = subscription.wordLimit || (subscription.metadata?.Words ? parseInt(subscription.metadata.Words) : null);
   
   // Calculate days remaining
   const today = new Date();
-  const daysRemaining = getDaysBetween(today, currentPeriodEnd);
+  const endDate = new Date(subscriptionState.periodEnd);
+  const daysRemaining = getDaysBetween(today, endDate);
   
   return (
     <div className="space-y-4">
-      {/* Original start date */}
+      {/* Subscription start date */}
       <div className="flex items-start space-x-3">
         <div className="bg-primary/10 p-2 rounded-full">
           <Calendar className="h-5 w-5 text-primary" />
@@ -97,7 +159,7 @@ function FreshSubscriptionInfo() {
         <div>
           <h4 className="text-sm font-medium">Subscription Created</h4>
           <p className="text-sm text-muted-foreground">
-            You first subscribed on <span className="font-medium">{formatDate(subscriptionStartDate)}</span>
+            You first subscribed on <span className="font-medium">{subscriptionState.startDate}</span>
           </p>
         </div>
       </div>
@@ -110,7 +172,7 @@ function FreshSubscriptionInfo() {
         <div>
           <h4 className="text-sm font-medium">Current Billing Cycle</h4>
           <p className="text-sm text-muted-foreground">
-            From <span className="font-medium">{formatDate(currentPeriodStart)}</span> to <span className="font-medium">{formatDate(currentPeriodEnd)}</span>
+            From <span className="font-medium">{subscriptionState.periodStart}</span> to <span className="font-medium">{subscriptionState.periodEnd}</span>
           </p>
           {daysRemaining > 0 && (
             <p className="text-xs mt-1">
@@ -128,21 +190,33 @@ function FreshSubscriptionInfo() {
         <div>
           <h4 className="text-sm font-medium">Plan Information</h4>
           <p className="text-sm text-muted-foreground">
-            <span className="font-medium capitalize">{planCode || 'Starter'}</span> Plan
-            {amount > 0 && (
-              <> - ${amount}/{interval}</>
+            <span className="font-medium capitalize">{subscriptionState.planCode}</span> Plan
+            {subscriptionState.amount > 0 && (
+              <> - ${subscriptionState.amount}/{subscriptionState.interval}</>
             )}
           </p>
           <p className="text-sm text-muted-foreground mt-1">
-            <span className="font-medium">{wordLimit ? wordLimit.toLocaleString() : "N/A"}</span> words per month
+            <span className="font-medium">{subscriptionState.wordLimit.toLocaleString()}</span> words per month
           </p>
-          {cancelAtPeriodEnd && (
+          {subscriptionState.cancelAtPeriodEnd && (
             <p className="text-xs mt-1 text-destructive-foreground">
               Your subscription will not renew after the current period ends
             </p>
           )}
         </div>
       </div>
+      
+      {/* Debug info (only in development) */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="mt-4 p-3 border border-dashed border-gray-300 rounded text-xs">
+          <details>
+            <summary className="cursor-pointer font-medium">Debug Information</summary>
+            <pre className="mt-2 whitespace-pre-wrap">
+              {JSON.stringify(subscriptionState.rawData, null, 2)}
+            </pre>
+          </details>
+        </div>
+      )}
     </div>
   );
 }
@@ -438,16 +512,16 @@ export default function Subscription() {
 
       {!subscriptionSuccess && (
         <div>
-          {/* Current Subscription Information - Direct Copy from Settings Page */}
+          {/* Current Subscription Information */}
           <div className="mb-8">
             <h2 className="text-xl font-semibold tracking-tight mb-4">Current Subscription</h2>
             <Card className="mb-4">
               <CardHeader>
-                <CardTitle>Subscription Timeline</CardTitle>
+                <CardTitle>Current Plan Information</CardTitle>
               </CardHeader>
               <CardContent>
-                {/* Fetch the subscription data separately to ensure fresh data */}
-                <FreshSubscriptionInfo />
+                {/* Direct API call for current subscription data */}
+                <DirectSubscriptionInfo />
               </CardContent>
             </Card>
           </div>
