@@ -342,7 +342,7 @@ export default function Subscription() {
                     description: "Perfect for exploring LeaderTalk's capabilities",
                     price: 0,
                     interval: "month",
-                    features: ["5,000 words per month", "Basic analysis", "1 leader model"]
+                    features: ["500 words per month", "Basic analysis", "1 leader model"]
                   },
                   {
                     id: "pro",
