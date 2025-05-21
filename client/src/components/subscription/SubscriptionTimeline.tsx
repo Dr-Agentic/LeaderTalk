@@ -28,15 +28,30 @@ function getDaysBetween(startDate: Date, endDate: Date): number {
   return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 }
 
-export default function SubscriptionTimeline() {
-  // Fetch subscription information
-  const { data, isLoading, error } = useQuery({
+interface SubscriptionTimelineProps {
+  data?: any;
+  className?: string;
+}
+
+export default function SubscriptionTimeline({ data: propData, className = "" }: SubscriptionTimelineProps) {
+  // Fetch subscription information if not provided via props
+  const { data: fetchedData, isLoading: queryLoading, error: queryError } = useQuery({
     queryKey: ['/api/current-subscription'],
     retry: 2,
     retryDelay: 1000,
+    // Skip the query if data is provided via props
+    enabled: !propData,
   });
 
-  console.log("Subscription data:", data);
+  // Use prop data if provided, otherwise use fetched data
+  const data = propData || fetchedData;
+  const isLoading = !propData && queryLoading;
+  const error = !propData && queryError;
+  
+  // Use consistent console logging for debugging
+  if (data) {
+    console.log("Subscription data:", data);
+  }
 
   if (isLoading) {
     return <SubscriptionTimelineSkeleton />;
@@ -126,7 +141,7 @@ export default function SubscriptionTimeline() {
   const daysRemaining = getDaysBetween(today, currentPeriodEnd);
   
   return (
-    <Card>
+    <Card className={className}>
       <CardHeader>
         <CardTitle>Subscription Timeline</CardTitle>
       </CardHeader>
