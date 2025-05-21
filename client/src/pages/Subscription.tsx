@@ -12,6 +12,7 @@ import { useState, useEffect } from "react";
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import SubscriptionTimeline from "@/components/subscription/SubscriptionTimeline";
 
 // Load Stripe outside of component render
 // Ensure we have a valid Stripe key before initializing
@@ -288,6 +289,9 @@ export default function Subscription() {
 
       {!subscriptionSuccess && (
         <div>
+          {/* Subscription Timeline - shows when subscription started and renewal information */}
+          <SubscriptionTimeline className="mb-6" />
+          
           <Card className="mb-6">
             <CardHeader className="pb-3">
               <CardTitle>Choose Your Plan</CardTitle>
