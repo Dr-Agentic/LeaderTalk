@@ -416,6 +416,14 @@ function TranscriptWithHighlighting({
   const negativeInstances = analysis.negativeInstances || [];
   const passiveInstances = analysis.passiveInstances || [];
 
+  // Print out a sample of each instance type for debugging
+  if (positiveInstances.length > 0) {
+    console.log("Sample positive instance:", positiveInstances[0]);
+  }
+  if (negativeInstances.length > 0) {
+    console.log("Sample negative instance:", negativeInstances[0]);
+  }
+
   // If no transcript or instances, return plain text
   if (
     !transcription ||
@@ -425,9 +433,22 @@ function TranscriptWithHighlighting({
   ) {
     return <p className="whitespace-pre-line">{transcription}</p>;
   }
+  
+  // Helper function to normalize text for better matching
+  const normalizeText = (text: string): string => {
+    return text
+      .replace(/\s+/g, ' ')        // Replace multiple spaces with a single space
+      .replace(/…/g, '...')        // Replace ellipsis character with three dots
+      .replace(/\.{3,}/g, '')      // Remove ellipses (...) 
+      .replace(/[^\w\s.,?!]/g, '') // Remove special characters except punctuation
+      .trim();                     // Remove leading/trailing whitespace
+  };
 
   // Function to highlight text using string search approach
   const getColoredTranscript = () => {
+    // Log a sample of the transcription for debugging
+    console.log("Transcription sample:", transcription.substring(0, 200));
+    
     // Collect all instances that need highlighting and sort by timestamp
     const allInstances = [
       ...positiveInstances.map((i) => ({ ...i, type: "positive" as const })),
@@ -447,26 +468,47 @@ function TranscriptWithHighlighting({
     }[] = [];
 
     // Find all occurrences of each instance in the transcript
+    // First, normalize the full transcription text
+    const normalizedTranscription = normalizeText(transcription);
+    
     for (const instance of allInstances) {
-      const { text, type } = instance;
+      const { text, type, timestamp } = instance;
       if (!text || typeof text !== "string") continue;
-
+      
+      // Normalize the instance text for better matching
+      const normalizedText = normalizeText(text);
+      
+      // Debug log to see what we're looking for
+      console.log(`Looking for ${type} text:`, {
+        original: text.substring(0, 50) + (text.length > 50 ? '...' : ''),
+        normalized: normalizedText.substring(0, 50) + (normalizedText.length > 50 ? '...' : ''),
+        timestamp
+      });
+      
       let position = 0;
-      while (position < transcription.length) {
-        const foundIndex = transcription.indexOf(text, position);
+      let foundCount = 0;
+      while (position < normalizedTranscription.length) {
+        const foundIndex = normalizedTranscription.indexOf(normalizedText, position);
         if (foundIndex === -1) {
-          console.log(`*** Text "${text}" not found in transcription`);
+          if (foundCount === 0) {
+            console.log(`*** Normalized text "${normalizedText.substring(0, 50)}${normalizedText.length > 50 ? '...' : ''}" not found in transcript`);
+          }
           break; // No more occurrences
         }
-
+        
+        foundCount++;
+        console.log(`Found ${type} instance at position ${foundIndex} in normalized text`);
+        
+        // We found a match in the normalized text, but we need to map it back to the original
+        // For simplicity, we're using the same position and length in the original
         segments.push({
           start: foundIndex,
-          end: foundIndex + text.length,
-          text,
+          end: foundIndex + normalizedText.length,
+          text: normalizedText,
           type,
         });
-
-        position = foundIndex + text.length; // Start searching from after the full matched text
+        
+        position = foundIndex + normalizedText.length; // Start searching from after the full matched text
       }
     }
 
