@@ -164,7 +164,7 @@ export async function getCurrentSubscription(req: Request, res: Response) {
       const price = item.price;
       const product = price.product as Stripe.Product;
       
-      // Format the response
+      // Format the response with detailed renewal information
       return res.status(200).json({
         success: true,
         subscription: {
@@ -175,6 +175,8 @@ export async function getCurrentSubscription(req: Request, res: Response) {
           isFree: price.unit_amount === 0,
           currentPeriodStart: new Date(subscription.current_period_start * 1000),
           currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+          nextRenewalDate: new Date(subscription.current_period_end * 1000),
+          nextRenewalTimestamp: subscription.current_period_end,
           cancelAtPeriodEnd: subscription.cancel_at_period_end,
           amount: price.unit_amount ? price.unit_amount / 100 : 0,
           currency: price.currency,

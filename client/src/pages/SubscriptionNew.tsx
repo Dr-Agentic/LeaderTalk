@@ -393,17 +393,17 @@ export default function SubscriptionNew() {
                 </div>
                 
                 {/* Next Renewal */}
-                {(subscriptionData?.success && subscriptionData.subscription.currentPeriodEnd) || userData.nextBillingDate ? (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Next Renewal:</span>
-                    <span className="font-medium">
-                      {subscriptionData?.success && subscriptionData.subscription.currentPeriodEnd ? 
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Next Renewal:</span>
+                  <span className="font-medium">
+                    {subscriptionData?.success && subscriptionData.subscription.nextRenewalDate ? 
+                      new Date(subscriptionData.subscription.nextRenewalDate).toLocaleDateString() :
+                      subscriptionData?.success && subscriptionData.subscription.currentPeriodEnd ? 
                         new Date(subscriptionData.subscription.currentPeriodEnd).toLocaleDateString() :
                         userData.nextBillingDate ? 
                           new Date(userData.nextBillingDate).toLocaleDateString() : 'N/A'}
-                    </span>
-                  </div>
-                ) : null}
+                  </span>
+                </div>
                 
                 {/* Subscription ID */}
                 {subscriptionData?.success && subscriptionData.subscription.id && (
