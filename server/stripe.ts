@@ -4,12 +4,16 @@ import { storage } from "./storage";
 
 /**
  * Helper function to extract word limit from a product metadata
- * Handles different case variations (words, Words, WORDS) and fallback values
+ * Handles different case variations (words, Words, WORDS)
+ * Throws an error if no valid metadata is found
  */
 function getWordLimitFromMetadata(product: Stripe.Product): number {
-  if (!product || !product.metadata) {
-    console.log("No product metadata found, using fallback value");
-    return getDefaultWordLimit(product.name);
+  if (!product) {
+    throw new Error("Product data is missing");
+  }
+  
+  if (!product.metadata) {
+    throw new Error("Product metadata is missing");
   }
   
   // Log full product details for debugging
@@ -43,8 +47,7 @@ function getWordLimitFromMetadata(product: Stripe.Product): number {
   }
   
   // If we get here, no valid word limit was found in metadata
-  console.log("No valid word limit found in metadata, using fallback value");
-  return getDefaultWordLimit(product.name);
+  throw new Error(`No valid word limit found in metadata for product ${product.name} (${product.id})`);
 }
 
 /**
@@ -225,14 +228,17 @@ export async function getCurrentSubscription(req: Request, res: Response) {
     
     // User has a subscription ID, so fetch the details from Stripe
     try {
+      // First, retrieve the subscription without deep expansion
       const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId, {
-        expand: ['items.data.price.product']
+        expand: ['items.data.price'] // Less deep expansion to avoid the error
       });
       
-      // Get the product details from the subscription
+      // Get the price ID from the subscription
       const item = subscription.items.data[0];
-      const price = item.price;
-      const product = price.product as Stripe.Product;
+      const price = item.price as Stripe.Price;
+      
+      // Then separately fetch the product to get its metadata
+      const product = await stripe.products.retrieve(price.product as string);
       
       // Debug product information to see what metadata is available
       console.log("Stripe product details:");
