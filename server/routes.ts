@@ -604,64 +604,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const currentUsage = await storage.getCurrentWordUsage(userId);
       console.log("Current word usage:", currentUsage);
       
-      // Get word limit from Stripe subscription data for this user
+      // Get word limit from Stripe subscription data using our centralized utility
       let wordLimit = 0; // Default to 0, we'll display as "N/A" if we can't determine the limit
+      let errorMessage = null;
       
-      if (user.stripeCustomerId) {
-        try {
-          // Initialize Stripe with secret key
-          const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-            apiVersion: "2023-10-16" as any, // TypeScript doesn't recognize the newer API version 
-          });
-          
-          // Get the user's active Stripe subscription with less nesting to avoid API limits
-          const subscriptions = await stripe.subscriptions.list({
-            customer: user.stripeCustomerId,
-            status: "active",
-            expand: ["data.items.data.price"], // Less deep expansion to avoid the error
-          });
-          
-          console.log(`Found ${subscriptions.data.length} active subscriptions for customer`);
-          
-          // If a subscription exists, get the word limit from product metadata
-          if (subscriptions.data.length > 0) {
-            const subscription = subscriptions.data[0];
-            const price = subscription.items.data[0].price as Stripe.Price;
-            
-            // Separately fetch the product to get its metadata
-            const product = await stripe.products.retrieve(price.product as string);
-            
-            console.log("Product metadata:", product?.metadata);
-            
-            if (product && product.metadata) {
-              // Look for word limit in metadata with different case variations
-              const wordLimitMetadata = 
-                product.metadata.words ||
-                product.metadata.Words ||
-                product.metadata.WORDS;
-              
-              if (wordLimitMetadata) {
-                const parsedLimit = parseInt(wordLimitMetadata, 10);
-                if (!isNaN(parsedLimit)) {
-                  wordLimit = parsedLimit;
-                  console.log("Found word limit in Stripe metadata:", wordLimit);
-                }
-              } else {
-                console.error("No word limit found in product metadata:", product.metadata);
-                // Let the API return 0 which the client will display as "N/A"
-              }
-            } else {
-              console.error("Product has no metadata");
-            }
-          } else {
-            console.log("No active subscriptions found for this customer");
-          }
-        } catch (stripeError) {
-          console.error("Error fetching subscription data from Stripe:", stripeError);
-          // Return the error to the client instead of using a fallback
-          return res.status(503).json({ 
-            error: "Unable to retrieve subscription data", 
-            message: "Service temporarily unavailable" 
+      try {
+        // Import the word limit utility
+        const { getUserSubscriptionWordLimit } = require('./utils/stripeWordLimits');
+        
+        if (user.stripeCustomerId) {
+          // Get the word limit from our centralized function
+          wordLimit = await getUserSubscriptionWordLimit(userId);
+          console.log("Found word limit using centralized utility:", wordLimit);
+        } else {
+          console.log("User has no Stripe customer ID");
+          errorMessage = "User has no active subscription";
+        }
+      } catch (stripeError) {
+        console.error("Error fetching subscription data from Stripe:", stripeError);
+        errorMessage = stripeError.message || "Unable to retrieve subscription data";
+        
+        // Return a structured error to the client
+        if (stripeError.code === 'rate_limit_exceeded') {
+          return res.status(429).json({
+            error: "Rate limit exceeded",
+            message: "Too many requests to subscription service",
+            retryAfter: 30 // Suggest retry after 30 seconds
           });
         }
       }
@@ -678,7 +646,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         currentUsage,
         wordLimit,
         usagePercentage,
-        hasExceededLimit
+        hasExceededLimit,
+        error: errorMessage // Include any error message from Stripe API calls
       };
       
       console.log("Sending word usage data:", responseData);
