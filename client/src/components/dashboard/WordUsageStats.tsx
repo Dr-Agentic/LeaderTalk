@@ -117,14 +117,14 @@ export default function WordUsageStats() {
     currentMonthTotal = thisMonthEntries.reduce((sum, entry) => sum + entry.wordCount, 0);
   }
   
-  // Use the calculated total or fall back to API value
-  const currentMonthUsage = currentMonthTotal || data?.currentMonthUsage || 706;
+  // Use the API value without fallbacks to ensure accurate representation
+  const currentMonthUsage = data?.currentMonthUsage || 0;
   
-  // Get subscription plan information
+  // Get subscription plan information from the API without fallbacks
   const subscriptionPlan = data?.subscriptionPlan || {
-    name: "Starter",
-    monthlyWordLimit: 1000,
-    features: ["1,000 words per month", "Basic analytics", "Up to 3 leader models"]
+    name: "Unknown",
+    monthlyWordLimit: undefined,
+    features: []
   };
   
   // Use the word limit from the user's plan
@@ -133,17 +133,17 @@ export default function WordUsageStats() {
   // Calculate usage percentage based on our accurate total, but handle case when word limit is 0 or undefined
   const usagePercentage = monthlyWordLimit ? Math.min(100, Math.round((currentMonthUsage / monthlyWordLimit) * 100)) : 0;
   
-  // Billing cycle information with guaranteed default values
+  // Billing cycle information without default values to ensure we show actual data
   const billingCycle = data?.billingCycle ? {
-    startDate: data.billingCycle.startDate || '',
-    endDate: data.billingCycle.endDate || '',
-    daysRemaining: data.billingCycle.daysRemaining || 30,
-    cycleNumber: data.billingCycle.cycleNumber || 1
+    startDate: data.billingCycle.startDate || undefined,
+    endDate: data.billingCycle.endDate || undefined,
+    daysRemaining: data.billingCycle.daysRemaining,
+    cycleNumber: data.billingCycle.cycleNumber
   } : {
-    startDate: '',
-    endDate: '',
-    daysRemaining: 30,
-    cycleNumber: 1
+    startDate: undefined,
+    endDate: undefined,
+    daysRemaining: undefined,
+    cycleNumber: undefined
   };
 
   // Generate history data for the past 6 months
@@ -197,7 +197,7 @@ export default function WordUsageStats() {
                   </p>
                 )}
                 <p className="text-xs mt-2 text-muted-foreground">
-                  Based on {subscriptionPlan.name} plan ({subscriptionPlan.monthlyWordLimit.toLocaleString()} words monthly)
+                  Based on {subscriptionPlan.name} plan ({subscriptionPlan.monthlyWordLimit ? subscriptionPlan.monthlyWordLimit.toLocaleString() : "N/A"} words monthly)
                 </p>
               </div>
             </div>
