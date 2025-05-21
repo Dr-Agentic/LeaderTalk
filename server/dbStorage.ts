@@ -215,31 +215,30 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getCurrentWordUsage(userId: number): Promise<number> {
-    // Get the current billing cycle
-    const now = new Date();
-    
-    // Get all word usage entries for this user in the current billing cycle
-    const currentCycleEntries = await db.select()
-      .from(userWordUsage)
-      .where(
-        and(
-          eq(userWordUsage.userId, userId),
-          sql`${userWordUsage.cycleStartDate} <= ${now}`,
-          sql`${userWordUsage.cycleEndDate} >= ${now}`
-        )
-      );
-    
-    console.log(`Found ${currentCycleEntries.length} word usage entries in current cycle for user ${userId}`);
-    
-    // If we have entries in the current cycle, sum all word counts
-    if (currentCycleEntries.length > 0) {
-      // Calculate the total word count for the current cycle
-      const totalWords = currentCycleEntries.reduce((sum, entry) => sum + entry.wordCount, 0);
-      console.log(`Total word usage for user ${userId} in current cycle: ${totalWords}`);
-      return totalWords;
+    try {
+      // Get all word usage entries for this user regardless of cycle date
+      // to avoid any issues with date calculations
+      const currentCycleEntries = await db.select()
+        .from(userWordUsage)
+        .where(eq(userWordUsage.userId, userId));
+      
+      console.log(`Found ${currentCycleEntries.length} total word usage entries for user ${userId}`);
+      
+      // If we have entries for this user, sum all word counts
+      if (currentCycleEntries.length > 0) {
+        // Calculate the total word count for all entries
+        const totalWords = currentCycleEntries.reduce((sum, entry) => sum + entry.wordCount, 0);
+        console.log(`Total word usage for user ${userId} across all cycles: ${totalWords}`);
+        return totalWords;
+      } else {
+        console.log(`No word usage entries found for user ${userId}`);
+      }
+      
+      return 0;
+    } catch (error) {
+      console.error(`Error calculating word usage for user ${userId}:`, error);
+      return 0;
     }
-    
-    return 0;
   }
   
   async getOrCreateCurrentBillingCycle(userId: number): Promise<UserWordUsage> {

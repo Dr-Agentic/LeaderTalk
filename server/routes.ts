@@ -1,4 +1,4 @@
-import express, { Express, Request, Response } from "express";
+import express, { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { db } from "./db";
@@ -10,9 +10,10 @@ import fs from "fs";
 import path from "path";
 import os from "os";
 import crypto from "crypto";
-import { eq, desc, inArray } from "drizzle-orm";
+import { eq, desc, inArray, and, sql } from "drizzle-orm";
 import { fileURLToPath } from "url";
 import cors from "cors";
+import Stripe from "stripe";
 
 // Get the directory path for our project
 const __filename = fileURLToPath(import.meta.url);
