@@ -306,12 +306,10 @@ export default function Subscription() {
       {!subscriptionSuccess && (
         <div>
           {/* Current Subscription Information */}
-          {subscriptionData?.success && (
-            <div className="mb-8">
-              <h2 className="text-xl font-semibold tracking-tight mb-4">Current Subscription</h2>
-              <SubscriptionTimeline data={subscriptionData} className="mb-4" />
-            </div>
-          )}
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold tracking-tight mb-4">Current Subscription</h2>
+            <SubscriptionTimeline className="mb-4" />
+          </div>
           
           {/* Plan Selection */}
           <div className="mt-10 pt-6 border-t border-border">
