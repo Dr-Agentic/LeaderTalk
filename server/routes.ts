@@ -605,7 +605,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Current word usage:", currentUsage);
       
       // Get word limit from Stripe subscription data for this user
-      let wordLimit = 500; // Default starter plan limit
+      let wordLimit = 0; // Default to 0, we'll display as "N/A" if we can't determine the limit
       
       if (user.stripeCustomerId) {
         try {

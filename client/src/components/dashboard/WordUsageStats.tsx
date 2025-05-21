@@ -130,8 +130,8 @@ export default function WordUsageStats() {
   // Use the word limit from the user's plan
   const monthlyWordLimit = subscriptionPlan.monthlyWordLimit;
   
-  // Calculate usage percentage based on our accurate total
-  const usagePercentage = Math.min(100, Math.round((currentMonthUsage / monthlyWordLimit) * 100));
+  // Calculate usage percentage based on our accurate total, but handle case when word limit is 0 or undefined
+  const usagePercentage = monthlyWordLimit ? Math.min(100, Math.round((currentMonthUsage / monthlyWordLimit) * 100)) : 0;
   
   // Billing cycle information with guaranteed default values
   const billingCycle = data?.billingCycle ? {
@@ -165,7 +165,7 @@ export default function WordUsageStats() {
             </div>
             <div className="text-right">
               <span className="font-medium">{currentMonthUsage.toLocaleString()}</span>
-              <span className="text-muted-foreground"> / {monthlyWordLimit.toLocaleString()} words</span>
+              <span className="text-muted-foreground"> / {monthlyWordLimit ? monthlyWordLimit.toLocaleString() : "N/A"} words</span>
             </div>
           </div>
           
