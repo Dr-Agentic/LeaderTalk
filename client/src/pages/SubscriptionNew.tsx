@@ -498,6 +498,15 @@ export default function SubscriptionNew() {
                         </div>
                       )}
                       <CardHeader className="bg-muted/50 pb-4">
+                        {product.images && product.images.length > 0 && (
+                          <div className="flex justify-center mb-3">
+                            <img 
+                              src={product.images[0]} 
+                              alt={`${product.name} plan`} 
+                              className="h-12 w-auto object-contain"
+                            />
+                          </div>
+                        )}
                         <CardTitle className="text-lg">{product.name}</CardTitle>
                         <p className="text-sm mt-1 mb-2">{product.description}</p>
                       </CardHeader>
