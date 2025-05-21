@@ -580,6 +580,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Get user word usage with data from Stripe (word limit)
+  app.get("/api/users/word-usage", async (req, res) => {
+    console.log("===== WORD USAGE REQUEST =====");
+    // Check if user is authenticated
+    if (!req.session.userId) {
+      console.log("No userId in session - unauthorized access");
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    
+    try {
+      const userId = req.session.userId;
+      console.log("Looking up word usage for user ID:", userId);
+      
+      const user = await storage.getUser(userId);
+      if (!user) {
+        console.log("User not found for word usage check");
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Get current word usage from database
+      const currentUsage = await storage.getCurrentWordUsage(userId);
+      console.log("Current word usage:", currentUsage);
+      
+      // Get word limit from Stripe subscription data for this user
+      let wordLimit = 500; // Default starter plan limit
+      
+      if (user.stripeCustomerId) {
+        try {
+          // Initialize Stripe with secret key
+          const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+            apiVersion: "2023-10-16" as any, // TypeScript doesn't recognize the newer API version 
+          });
+          
+          // Get the user's active Stripe subscription
+          const subscriptions = await stripe.subscriptions.list({
+            customer: user.stripeCustomerId,
+            status: "active",
+            expand: ["data.items.data.price.product"],
+          });
+          
+          console.log(`Found ${subscriptions.data.length} active subscriptions for customer`);
+          
+          // If a subscription exists, get the word limit from product metadata
+          if (subscriptions.data.length > 0) {
+            const subscription = subscriptions.data[0];
+            const product = subscription.items.data[0].price.product as Stripe.Product;
+            
+            console.log("Product metadata:", product?.metadata);
+            
+            if (product && product.metadata) {
+              // Look for word limit in metadata with different case variations
+              const wordLimitMetadata = 
+                product.metadata.words ||
+                product.metadata.Words ||
+                product.metadata.WORDS;
+              
+              if (wordLimitMetadata) {
+                const parsedLimit = parseInt(wordLimitMetadata, 10);
+                if (!isNaN(parsedLimit)) {
+                  wordLimit = parsedLimit;
+                  console.log("Found word limit in Stripe metadata:", wordLimit);
+                }
+              }
+            }
+          }
+        } catch (stripeError) {
+          console.error("Error fetching subscription data from Stripe:", stripeError);
+          // Continue with default word limit if Stripe fails
+        }
+      }
+      
+      // Calculate usage percentage
+      const usagePercentage = wordLimit > 0 ? Math.min(100, (currentUsage / wordLimit) * 100) : 100;
+      console.log("Usage percentage:", usagePercentage);
+      
+      const responseData = {
+        currentUsage,
+        wordLimit,
+        usagePercentage,
+        hasExceededLimit: currentUsage >= wordLimit
+      };
+      
+      console.log("Sending word usage data:", responseData);
+      console.log("===== END WORD USAGE REQUEST =====");
+      
+      return res.json(responseData);
+    } catch (error) {
+      console.error("Error fetching user word usage:", error);
+      console.log("===== END WORD USAGE REQUEST (ERROR) =====");
+      return res.status(500).json({ message: "Server error" });
+    }
+  });
+  
   // Delete all records for the current user (for testing purposes)
   app.post("/api/users/delete-records", requireAuth, async (req, res) => {
     try {

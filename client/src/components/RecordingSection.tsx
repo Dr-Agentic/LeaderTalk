@@ -11,6 +11,8 @@ import { useMicrophonePermission } from "@/hooks/useMicrophonePermission";
 import { apiRequest } from "@/lib/queryClient";
 import { H2, Paragraph } from "@/components/ui/typography";
 import { Mic, Pause, Play, OctagonMinus, AlertCircle } from "lucide-react";
+import { checkWordLimit, WordLimitExceededMessage } from "@/lib/wordLimitChecker";
+import { useQuery } from "@tanstack/react-query";
 
 interface RecordingSectionProps {
   onRecordingComplete: (recording: any) => void;
@@ -26,6 +28,16 @@ export default function RecordingSection({ onRecordingComplete }: RecordingSecti
   const [showTitleDialog, setShowTitleDialog] = useState(false);
   const [recordingTitle, setRecordingTitle] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  
+  // Query for checking word limits from Stripe
+  const { data: wordUsageData, isLoading: isCheckingWordLimit } = useQuery({
+    queryKey: ['/api/users/word-usage'],
+    refetchOnWindowFocus: true,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+  
+  // Determine if user has exceeded their word limit
+  const hasExceededWordLimit = wordUsageData?.hasExceededLimit || false;
   
   const { toast } = useToast();
   const timerRef = useRef<number | null>(null);
@@ -103,6 +115,16 @@ export default function RecordingSection({ onRecordingComplete }: RecordingSecti
   const handleStartRecording = async () => {
     if (isRecording) {
       return; // Already recording, do nothing
+    }
+    
+    // Check if the user has exceeded their word limit
+    if (hasExceededWordLimit) {
+      toast({
+        title: "Word limit exceeded",
+        description: "You've reached your monthly word limit. Please upgrade your subscription to continue.",
+        variant: "destructive",
+      });
+      return;
     }
     
     try {
