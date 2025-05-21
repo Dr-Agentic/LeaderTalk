@@ -290,7 +290,9 @@ export default function Subscription() {
       {!subscriptionSuccess && (
         <div>
           {/* Subscription Timeline - shows when subscription started and renewal information */}
-          <SubscriptionTimeline className="mb-6" />
+          {subscriptionData?.success && (
+            <SubscriptionTimeline data={subscriptionData} className="mb-6" />
+          )}
           
           <Card className="mb-6">
             <CardHeader className="pb-3">
