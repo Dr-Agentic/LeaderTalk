@@ -11,7 +11,7 @@ import { useMicrophonePermission } from "@/hooks/useMicrophonePermission";
 import { apiRequest } from "@/lib/queryClient";
 import { H2, Paragraph } from "@/components/ui/typography";
 import { Mic, Pause, Play, OctagonMinus, AlertCircle } from "lucide-react";
-import { checkWordLimit, WordLimitExceededMessage } from "@/lib/wordLimitChecker";
+import { WordLimitExceededMessage } from "@/components/WordLimitMessages";
 import { useQuery } from "@tanstack/react-query";
 
 interface RecordingSectionProps {
@@ -427,23 +427,34 @@ export default function RecordingSection({ onRecordingComplete }: RecordingSecti
       
       <div className="mt-4 bg-white shadow sm:rounded-lg">
         <div className="px-4 py-5 sm:p-6">
+          {/* Show word limit exceeded warning if needed */}
+          {hasExceededWordLimit && (
+            <WordLimitExceededMessage />
+          )}
+          
           <div className="text-center py-6">
-            {/* Recording Button */}
+            {/* Recording Button - Disabled when word limit is exceeded */}
             <button
               className={`inline-flex items-center justify-center h-32 w-32 rounded-full ${
                 isRecording
                   ? isPaused
                     ? "bg-yellow-500 text-white"
                     : "bg-red-600 text-white"
-                  : "bg-red-100 text-red-600 hover:bg-red-200"
+                  : hasExceededWordLimit
+                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                    : "bg-red-100 text-red-600 hover:bg-red-200"
               } mb-4 border-2 ${
                 isRecording
                   ? isPaused
                     ? "border-yellow-600"
                     : "border-red-700"
-                  : "border-red-200"
+                  : hasExceededWordLimit
+                    ? "border-gray-300"
+                    : "border-red-200"
               } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500`}
-              onClick={!isRecording ? handleStartRecording : () => {}}
+              onClick={!isRecording && !hasExceededWordLimit ? handleStartRecording : () => {}}
+              disabled={hasExceededWordLimit}
+              title={hasExceededWordLimit ? "Word limit exceeded. Please upgrade your subscription to continue." : "Start recording"}
             >
               <Mic className="h-12 w-12" />
             </button>
