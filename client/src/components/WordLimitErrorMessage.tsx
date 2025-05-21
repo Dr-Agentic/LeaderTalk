@@ -22,12 +22,12 @@ export const WordLimitErrorMessage: React.FC<WordLimitErrorProps> = ({ errorMess
         <p className="mb-2">{errorMessage}</p>
         <p className="mb-4">This is a temporary issue with our subscription service. You can try again later or contact support if this persists.</p>
         <div className="flex space-x-2">
-          <Button variant="outline" asChild>
+          <Button variant="primary" asChild className="bg-primary text-white hover:bg-primary/90">
             <Link to="/subscription">
               Upgrade Subscription
             </Link>
           </Button>
-          <Button variant="ghost" onClick={() => window.location.reload()}>
+          <Button variant="outline" onClick={() => window.location.reload()}>
             Try Again
           </Button>
         </div>

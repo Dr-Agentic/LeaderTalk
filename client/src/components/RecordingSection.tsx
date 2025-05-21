@@ -51,16 +51,16 @@ export default function RecordingSection({
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
-  // Calculate word usage data from the API response, with no fallbacks
-  const currentUsage = wordUsageData?.currentUsage || 0;
-  const wordLimit = wordUsageData?.wordLimit || 0;
+  // Use API response values directly without fallbacks
+  // This ensures we only use values when they are actually available
+  const currentUsage = wordUsageData?.currentUsage;
+  const wordLimit = wordUsageData?.wordLimit;
   
-  // If wordLimit is 0, it means we couldn't determine the user's word limit from Stripe
-  // In this case, display a warning but still let them record (server will handle this)
-  const hasWordLimitData = wordLimit > 0;
+  // Only consider word limit data valid if loaded and greater than 0
+  const hasWordLimitData = !isCheckingWordLimit && wordLimit !== undefined && wordLimit > 0;
   
   // Calculate if limit exceeded only if we have valid limit data
-  const hasExceededWordLimit = hasWordLimitData ? currentUsage >= wordLimit : false;
+  const hasExceededWordLimit = hasWordLimitData && currentUsage !== undefined ? currentUsage >= wordLimit : false;
 
   const { toast } = useToast();
   const timerRef = useRef<number | null>(null);
@@ -498,22 +498,35 @@ export default function RecordingSection({
 
       <div className="mt-4 bg-white shadow sm:rounded-lg">
         <div className="px-4 py-5 sm:p-6">
-          {/* Show Stripe API error message if present */}
-          {wordUsageData?.error && (
-            <WordLimitErrorMessage errorMessage={wordUsageData.error} />
+          {/* Show loading state while checking word limit */}
+          {isCheckingWordLimit && (
+            <div className="flex justify-center items-center py-4">
+              <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" 
+                   aria-label="Loading word usage data"/>
+            </div>
           )}
 
-          {/* Show word limit exceeded warning if needed */}
-          {hasExceededWordLimit && !wordUsageData?.error && (
-            <WordLimitExceededMessage 
-              currentUsage={currentUsage}
-              wordLimit={wordLimit}
-            />
-          )}
-          
-          {/* Show subscription error message if we couldn't get word limit data */}
-          {!hasWordLimitData && !isCheckingWordLimit && !hasExceededWordLimit && !wordUsageData?.error && (
-            <SubscriptionErrorMessage />
+          {/* When loading is complete, show appropriate messages */}
+          {!isCheckingWordLimit && (
+            <>
+              {/* Show Stripe API error message if present */}
+              {wordUsageData?.error && (
+                <WordLimitErrorMessage errorMessage={wordUsageData.error} />
+              )}
+
+              {/* Show word limit exceeded warning if needed */}
+              {hasExceededWordLimit && !wordUsageData?.error && (
+                <WordLimitExceededMessage 
+                  currentUsage={currentUsage}
+                  wordLimit={wordLimit}
+                />
+              )}
+              
+              {/* Show subscription error message if we couldn't get word limit data */}
+              {!hasWordLimitData && !hasExceededWordLimit && !wordUsageData?.error && (
+                <SubscriptionErrorMessage />
+              )}
+            </>
           )}
 
           <div className="text-center py-6">
