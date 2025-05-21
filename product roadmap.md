@@ -1,0 +1,8 @@
+- Create a dev postgres instance so that we do not interfere with the production deployment.
+- Need to make sure that when the user exceeds the quota, user is redirected to the subscription page gracefully
+- Finalize the subscription workflow.
+  - User starts with a Starter Subscription, which give a 1000 word credits.
+  - User upgrades to exec monthly or yearly. Receives eg 30,000 word credits per month
+  - User welcomed to the executive circle and starts benefiting from the app
+  - User may stop subscription at any time --> Subscription management.
+  - 
