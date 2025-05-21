@@ -8,6 +8,7 @@ export interface WordUsageData {
   wordLimit: number;
   usagePercentage: number;
   hasExceededLimit: boolean;
+  error?: string | null; // Added to capture any API errors
 }
 
 /**
