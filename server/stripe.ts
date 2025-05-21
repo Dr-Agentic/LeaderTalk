@@ -165,6 +165,8 @@ export async function getCurrentSubscription(req: Request, res: Response) {
       const product = price.product as Stripe.Product;
       
       // Format the response with detailed subscription timing information
+      // Ensure we set Content-Type header explicitly to avoid any potential rendering issues
+      res.setHeader('Content-Type', 'application/json');
       return res.status(200).json({
         success: true,
         subscription: {
