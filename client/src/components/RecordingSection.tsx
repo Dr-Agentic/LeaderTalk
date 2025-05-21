@@ -498,11 +498,23 @@ export default function RecordingSection({
 
       <div className="mt-4 bg-white shadow sm:rounded-lg">
         <div className="px-4 py-5 sm:p-6">
+          {/* Show Stripe API error message if present */}
+          {wordUsageData?.error && (
+            <WordLimitErrorMessage errorMessage={wordUsageData.error} />
+          )}
+
           {/* Show word limit exceeded warning if needed */}
-          {hasExceededWordLimit && <WordLimitExceededMessage />}
+          {hasExceededWordLimit && !wordUsageData?.error && (
+            <WordLimitExceededMessage 
+              currentUsage={currentUsage}
+              wordLimit={wordLimit}
+            />
+          )}
           
           {/* Show subscription error message if we couldn't get word limit data */}
-          {!hasWordLimitData && !isCheckingWordLimit && !hasExceededWordLimit && <SubscriptionErrorMessage />}
+          {!hasWordLimitData && !isCheckingWordLimit && !hasExceededWordLimit && !wordUsageData?.error && (
+            <SubscriptionErrorMessage />
+          )}
 
           <div className="text-center py-6">
             {/* Recording Button - Disabled when word limit is exceeded */}
