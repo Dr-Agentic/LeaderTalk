@@ -420,7 +420,7 @@ export default function CurrentCycleUsageChart() {
       </CardHeader>
       <CardContent className="pt-3 pb-5">
         {chartData && chartData.length > 0 ? (
-          <div className="w-full">
+          <div className="h-88 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={chartData}
