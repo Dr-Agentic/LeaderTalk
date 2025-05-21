@@ -463,8 +463,25 @@ function TranscriptWithHighlighting({
     // Helper function to clean text for searching
     const cleanTextForSearch = (text: string): string => {
       if (!text) return '';
-      // Convert to lowercase and remove trailing ellipses
-      return text.toLowerCase().replace(/[.…]{3,}\s*$/g, '').trim();
+      
+      // Convert to lowercase
+      let cleanedText = text.toLowerCase().trim();
+      
+      // If the text is long enough and ends with ellipses, create a version without them
+      // This makes our search more flexible with or without ellipses
+      if (cleanedText.length > 10 && /[.…]{3,}\s*$/g.test(cleanedText)) {
+        // Log original and without ellipses for debugging
+        const withoutEllipses = cleanedText.replace(/[.…]{3,}\s*$/g, '').trim();
+        console.log("Text has ellipses, searching for both versions:", {
+          with: cleanedText.substring(0, 30) + (cleanedText.length > 30 ? "..." : ""),
+          without: withoutEllipses.substring(0, 30) + (withoutEllipses.length > 30 ? "..." : "")
+        });
+        
+        // Keep the version with ellipses as they may be part of the text
+        return cleanedText;
+      }
+      
+      return cleanedText;
     };
     
     // Find all occurrences of each instance in the transcript
