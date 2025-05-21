@@ -30,7 +30,12 @@ export default function RecordingSection({ onRecordingComplete }: RecordingSecti
   const [isProcessing, setIsProcessing] = useState(false);
   
   // Query for checking word limits from Stripe
-  const { data: wordUsageData, isLoading: isCheckingWordLimit } = useQuery({
+  const { data: wordUsageData, isLoading: isCheckingWordLimit } = useQuery<{
+    currentUsage: number;
+    wordLimit: number;
+    usagePercentage: number;
+    hasExceededLimit: boolean;
+  }>({
     queryKey: ['/api/users/word-usage'],
     refetchOnWindowFocus: true,
     staleTime: 1000 * 60 * 5, // 5 minutes
