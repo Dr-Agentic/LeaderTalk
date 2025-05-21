@@ -229,10 +229,13 @@ export class DatabaseStorage implements IStorage {
         )
       );
     
+    console.log(`Found ${currentCycleEntries.length} word usage entries in current cycle for user ${userId}`);
+    
     // If we have entries in the current cycle, sum all word counts
     if (currentCycleEntries.length > 0) {
       // Calculate the total word count for the current cycle
       const totalWords = currentCycleEntries.reduce((sum, entry) => sum + entry.wordCount, 0);
+      console.log(`Total word usage for user ${userId} in current cycle: ${totalWords}`);
       return totalWords;
     }
     

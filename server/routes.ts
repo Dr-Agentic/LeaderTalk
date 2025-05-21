@@ -655,11 +655,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const usagePercentage = wordLimit > 0 ? Math.min(100, (currentUsage / wordLimit) * 100) : 100;
       console.log("Usage percentage:", usagePercentage);
       
+      // Explicitly log if the limit is exceeded
+      const hasExceededLimit = currentUsage >= wordLimit;
+      console.log(`Word limit exceeded: ${hasExceededLimit} (${currentUsage} >= ${wordLimit})`);
+      
       const responseData = {
         currentUsage,
         wordLimit,
         usagePercentage,
-        hasExceededLimit: currentUsage >= wordLimit
+        hasExceededLimit
       };
       
       console.log("Sending word usage data:", responseData);
