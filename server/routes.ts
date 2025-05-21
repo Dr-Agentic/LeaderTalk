@@ -14,6 +14,7 @@ import { eq, desc, inArray, and, sql } from "drizzle-orm";
 import { fileURLToPath } from "url";
 import cors from "cors";
 import Stripe from "stripe";
+import { getUserSubscriptionWordLimit } from "./utils/stripeWordLimits";
 
 // Get the directory path for our project
 const __filename = fileURLToPath(import.meta.url);
@@ -609,9 +610,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let errorMessage = null;
       
       try {
-        // Import the word limit utility
-        const { getUserSubscriptionWordLimit } = require('./utils/stripeWordLimits');
-        
+        // Use the imported function from the top of the file
         if (user.stripeCustomerId) {
           // Get the word limit from our centralized function
           wordLimit = await getUserSubscriptionWordLimit(userId);
