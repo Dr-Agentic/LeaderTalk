@@ -2450,6 +2450,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // API endpoint to get current user's subscription details
+  app.get('/api/current-subscription', requireAuth, async (req, res) => {
+    // Set explicit content type to ensure proper JSON response
+    res.setHeader('Content-Type', 'application/json');
+    
+    // Call the subscription handler function from stripe.ts
+    return getCurrentSubscription(req, res);
+  });
+
   // API endpoint to get all subscription plans
   app.get('/api/subscription-plans', async (req, res) => {
     try {
