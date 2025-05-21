@@ -271,7 +271,7 @@ export async function getCurrentSubscription(req: Request, res: Response) {
           metadata: product.metadata || {},
           // Extract word limit directly from the Words metadata field or use fallbacks
           wordLimit: product.metadata?.Words ? parseInt(product.metadata.Words) : 
-            (product.name.toLowerCase().includes('starter') ? 5000 : 
+            (product.name.toLowerCase().includes('starter') ? 500 : 
              product.name.toLowerCase().includes('pro') ? 15000 : 50000)
         }
       });

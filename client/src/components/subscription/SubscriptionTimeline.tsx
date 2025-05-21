@@ -115,8 +115,9 @@ export default function SubscriptionTimeline({ data: propData, className = "" }:
     } else if (data.subscription.metadata?.words) {
       wordLimit = parseInt(data.subscription.metadata.words);
     } else {
-      // Fallback based on plan name - starter should be 500 words, not 5000
-      wordLimit = planCode === 'starter' ? 500 : planCode === 'pro' ? 15000 : 50000;
+      // Fallback based on plan name
+      wordLimit = planCode.toLowerCase().includes('starter') ? 500 : 
+                  planCode.toLowerCase().includes('pro') ? 15000 : 50000;
     }
   } else if (data.planCode) {
     // Alternative data structure
