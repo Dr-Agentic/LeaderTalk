@@ -2,6 +2,70 @@ import { Request, Response } from "express";
 import Stripe from "stripe";
 import { storage } from "./storage";
 
+/**
+ * Helper function to extract word limit from a product metadata
+ * Handles different case variations (words, Words, WORDS) and fallback values
+ */
+function getWordLimitFromMetadata(product: Stripe.Product): number {
+  if (!product || !product.metadata) {
+    console.log("No product metadata found, using fallback value");
+    return getDefaultWordLimit(product.name);
+  }
+  
+  // Log full product details for debugging
+  console.log("Checking product metadata for word limit:");
+  console.log("- Product name:", product.name);
+  console.log("- Product metadata:", product.metadata);
+  
+  // Check for different case variations of "words" in metadata
+  const metadata = product.metadata;
+  
+  // Check for "Words" (proper case as shown in metadata)
+  if (metadata.Words) {
+    const wordLimit = parseInt(metadata.Words);
+    if (!isNaN(wordLimit)) {
+      console.log(`Found word limit in metadata 'Words':`, wordLimit);
+      return wordLimit;
+    }
+  }
+  
+  // Case-insensitive check for any variation of "words" in metadata keys
+  for (const key of Object.keys(metadata)) {
+    if (key.toLowerCase() === 'words') {
+      const value = metadata[key];
+      console.log(`Found word limit in metadata key '${key}':`, value);
+      
+      const wordLimit = parseInt(value);
+      if (!isNaN(wordLimit)) {
+        return wordLimit;
+      }
+    }
+  }
+  
+  // If we get here, no valid word limit was found in metadata
+  console.log("No valid word limit found in metadata, using fallback value");
+  return getDefaultWordLimit(product.name);
+}
+
+/**
+ * Get default word limit based on plan name
+ */
+function getDefaultWordLimit(productName: string): number {
+  const planName = (productName || '').toLowerCase();
+  
+  if (planName.includes('starter')) {
+    return 5000;
+  } else if (planName.includes('pro')) {
+    return 15000;
+  } else if (planName.includes('executive')) {
+    return 50000;
+  }
+  
+  // Default fallback
+  console.log(`Unknown plan name "${productName}", using default word limit of 5000`);
+  return 5000;
+}
+
 // Validate that Stripe secret key is available
 if (!process.env.STRIPE_SECRET_KEY) {
   console.warn("Missing STRIPE_SECRET_KEY environment variable");
@@ -170,6 +234,12 @@ export async function getCurrentSubscription(req: Request, res: Response) {
       const price = item.price;
       const product = price.product as Stripe.Product;
       
+      // Debug product information to see what metadata is available
+      console.log("Stripe product details:");
+      console.log("- Name:", product.name);
+      console.log("- ID:", product.id);
+      console.log("- Metadata:", product.metadata);
+      
       // Format the response with detailed subscription timing information
       // Ensure we set Content-Type header explicitly to avoid any potential rendering issues
       res.setHeader('Content-Type', 'application/json');
@@ -199,8 +269,8 @@ export async function getCurrentSubscription(req: Request, res: Response) {
           productImage: product.images && product.images.length > 0 ? product.images[0] : null,
           // Include product metadata
           metadata: product.metadata || {},
-          // Extract word limit directly if available
-          wordLimit: product.metadata?.words ? parseInt(product.metadata.words) : (product.name.toLowerCase() === 'starter' ? 5000 : product.name.toLowerCase() === 'pro' ? 15000 : 50000)
+          // Extract word limit from metadata with case-insensitive search
+          wordLimit: getWordLimitFromMetadata(product)
         }
       });
     } catch (subError) {
