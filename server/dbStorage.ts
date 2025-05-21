@@ -337,23 +337,93 @@ export class DatabaseStorage implements IStorage {
     }
   }
   
-  // Subscription plan operations
+  // Subscription plan operations - NOW DEPRECATED! USE STRIPE API INSTEAD
   async getSubscriptionPlans(): Promise<SubscriptionPlan[]> {
-    return db.select().from(subscriptionPlans).orderBy(subscriptionPlans.monthlyWordLimit);
+    console.error("⛔️ DEPRECATED: getSubscriptionPlans() called - use Stripe API instead");
+    console.trace("Stack trace for deprecated method call");
+    
+    // Default plans that match Stripe for development
+    const hardcodedPlans: SubscriptionPlan[] = [
+      {
+        id: 1,
+        planCode: "starter",
+        name: "Starter",
+        monthlyWordLimit: 500, // Updated to match Stripe
+        monthlyPriceUsd: "0",
+        yearlyPriceUsd: "0",
+        features: ["500 words per month", "Basic analytics", "Up to 3 leader models"],
+        isDefault: true,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        id: 2,
+        planCode: "pro",
+        name: "Pro",
+        monthlyWordLimit: 15000,
+        monthlyPriceUsd: "9.99",
+        yearlyPriceUsd: "99",
+        features: ["15,000 words per month", "Advanced analytics", "Up to 5 leader models", "Priority support"],
+        isDefault: false,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        id: 3,
+        planCode: "executive",
+        name: "Executive",
+        monthlyWordLimit: 50000,
+        monthlyPriceUsd: "29",
+        yearlyPriceUsd: "199",
+        features: ["50,000 words per month", "Premium analytics", "Unlimited leader models", "24/7 priority support", "Custom leader models"],
+        isDefault: false,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+    ];
+    
+    // For backward compatibility, still return the plans from DB but log the warning
+    const plans = await db.select().from(subscriptionPlans).orderBy(subscriptionPlans.monthlyWordLimit);
+    return plans.length > 0 ? plans : hardcodedPlans;
   }
   
   async getSubscriptionPlan(id: number): Promise<SubscriptionPlan | undefined> {
+    console.error("⛔️ DEPRECATED: getSubscriptionPlan() called - use Stripe API instead");
+    console.trace("Stack trace for deprecated method call");
+    
     const result = await db.select().from(subscriptionPlans).where(eq(subscriptionPlans.id, id));
     return result[0];
   }
   
   async getSubscriptionPlanByCode(planCode: string): Promise<SubscriptionPlan | undefined> {
+    console.error("⛔️ DEPRECATED: getSubscriptionPlanByCode() called - use Stripe API instead");
+    console.trace("Stack trace for deprecated method call");
+    
+    // Default plans for starter to ensure consistency
+    if (planCode.toLowerCase() === "starter") {
+      return {
+        id: 1,
+        planCode: "starter",
+        name: "Starter",
+        monthlyWordLimit: 500, // Updated to match Stripe
+        monthlyPriceUsd: "0",
+        yearlyPriceUsd: "0",
+        features: ["500 words per month", "Basic analytics", "Up to 3 leader models"],
+        isDefault: true,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+    }
+    
     const result = await db.select().from(subscriptionPlans).where(eq(subscriptionPlans.planCode, planCode));
     return result[0];
   }
   
   async createSubscriptionPlan(plan: InsertSubscriptionPlan): Promise<SubscriptionPlan> {
-    // If this plan is set as default, unset any existing default plans
+    console.error("⛔️ DEPRECATED: createSubscriptionPlan() called - use Stripe API instead");
+    console.trace("Stack trace for deprecated method call");
+    
+    // Still execute for backward compatibility
     if (plan.isDefault) {
       await db.update(subscriptionPlans).set({ isDefault: false }).where(eq(subscriptionPlans.isDefault, true));
     }
@@ -363,7 +433,10 @@ export class DatabaseStorage implements IStorage {
   }
   
   async updateSubscriptionPlan(id: number, data: UpdateSubscriptionPlan): Promise<SubscriptionPlan | undefined> {
-    // If this plan is being set as default, unset any existing default plans
+    console.error("⛔️ DEPRECATED: updateSubscriptionPlan() called - use Stripe API instead");
+    console.trace("Stack trace for deprecated method call");
+    
+    // Still execute for backward compatibility
     if (data.isDefault) {
       await db.update(subscriptionPlans).set({ isDefault: false }).where(eq(subscriptionPlans.isDefault, true));
     }
@@ -373,57 +446,31 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getDefaultSubscriptionPlan(): Promise<SubscriptionPlan> {
-    // Get the default plan, or the lowest tier if no default is set
-    const defaultPlan = await db.select().from(subscriptionPlans).where(eq(subscriptionPlans.isDefault, true));
+    console.error("⛔️ DEPRECATED: getDefaultSubscriptionPlan() called - use Stripe API instead");
+    console.trace("Stack trace for deprecated method call");
     
-    if (defaultPlan.length > 0) {
-      return defaultPlan[0];
-    }
-    
-    // If no default plan, return the plan with the lowest tier (usually free)
-    const allPlans = await this.getSubscriptionPlans();
-    return allPlans[0]; // First plan after sorting by word limit
+    // Return the Starter plan with 500 words to match Stripe
+    return {
+      id: 1,
+      planCode: "starter",
+      name: "Starter",
+      monthlyWordLimit: 500, // Updated to match Stripe
+      monthlyPriceUsd: "0",
+      yearlyPriceUsd: "0",
+      features: ["500 words per month", "Basic analytics", "Up to 3 leader models"],
+      isDefault: true,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
   }
   
-  // Initialize default subscription plans
+  // Initialize default subscription plans - DEPRECATED
   async initializeSubscriptionPlans(): Promise<void> {
-    const existingPlans = await db.select().from(subscriptionPlans);
+    console.error("⛔️ DEPRECATED: initializeSubscriptionPlans() called - use Stripe API instead");
+    console.trace("Stack trace for deprecated method call");
     
-    if (existingPlans.length === 0) {
-      const defaultPlans = [
-        {
-          planCode: "starter",
-          name: "Starter",
-          monthlyWordLimit: 5000,
-          monthlyPriceUsd: 0,
-          yearlyPriceUsd: 0,
-          features: ["5,000 words per month", "Basic analytics", "Up to 3 leader models"],
-          isDefault: true
-        },
-        {
-          planCode: "pro",
-          name: "Pro",
-          monthlyWordLimit: 15000,
-          monthlyPriceUsd: 9.99,
-          yearlyPriceUsd: 99,
-          features: ["15,000 words per month", "Advanced analytics", "Up to 5 leader models", "Priority support"],
-          isDefault: false
-        },
-        {
-          planCode: "executive",
-          name: "Executive",
-          monthlyWordLimit: 50000,
-          monthlyPriceUsd: 29,
-          yearlyPriceUsd: 199,
-          features: ["50,000 words per month", "Premium analytics", "Unlimited leader models", "24/7 priority support", "Custom leader models"],
-          isDefault: false
-        }
-      ];
-      
-      for (const plan of defaultPlans) {
-        await this.createSubscriptionPlan(plan);
-      }
-    }
+    // No-op - we're not initializing plans from the database anymore
+    console.log("Subscription plans should be managed in Stripe, not the database");
   }
 }
 
