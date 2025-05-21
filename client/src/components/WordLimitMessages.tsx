@@ -106,7 +106,7 @@ export const PostAnalysisLimitMessage: React.FC = () => {
           <div className="mt-6 flex space-x-4">
             <a
               href="/subscription"
-              className="inline-flex items-center rounded-md bg-amber-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+              className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
             >
               Upgrade Now
             </a>
