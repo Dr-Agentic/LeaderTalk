@@ -192,6 +192,15 @@ export default function Subscription() {
     queryKey: ["/api/current-subscription"],
   });
   
+  // Debug current subscription data
+  useEffect(() => {
+    if (subscriptionData) {
+      console.log("Current subscription data:", subscriptionData);
+      console.log("Subscription success state:", subscriptionSuccess);
+      console.log("Has success property:", subscriptionData?.success);
+    }
+  }, [subscriptionData, subscriptionSuccess]);
+  
   // Get Stripe products
   const { data, isLoading, error } = useQuery<StripeProductsResponse>({
     queryKey: ["/api/stripe-products"],
