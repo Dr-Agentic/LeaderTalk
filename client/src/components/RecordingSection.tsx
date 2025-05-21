@@ -18,7 +18,7 @@ import { useMicrophonePermission } from "@/hooks/useMicrophonePermission";
 import { apiRequest } from "@/lib/queryClient";
 import { H2, Paragraph } from "@/components/ui/typography";
 import { Mic, Pause, Play, OctagonMinus, AlertCircle } from "lucide-react";
-import { WordLimitExceededMessage } from "@/components/WordLimitMessages";
+import { WordLimitExceededMessage, SubscriptionErrorMessage } from "@/components/WordLimitMessages";
 import { useQuery } from "@tanstack/react-query";
 import { WordUsageData } from "@/lib/wordLimitChecker";
 
@@ -499,6 +499,9 @@ export default function RecordingSection({
         <div className="px-4 py-5 sm:p-6">
           {/* Show word limit exceeded warning if needed */}
           {hasExceededWordLimit && <WordLimitExceededMessage />}
+          
+          {/* Show subscription error message if we couldn't get word limit data */}
+          {!hasWordLimitData && !isCheckingWordLimit && !hasExceededWordLimit && <SubscriptionErrorMessage />}
 
           <div className="text-center py-6">
             {/* Recording Button - Disabled when word limit is exceeded */}
