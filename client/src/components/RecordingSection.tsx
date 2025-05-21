@@ -38,7 +38,8 @@ export default function RecordingSection({ onRecordingComplete }: RecordingSecti
   });
   
   // Determine if user has exceeded their word limit based on total usage
-  const hasExceededWordLimit = wordUsageData?.hasExceededLimit || false;
+  // Only treat as exceeded if we have a valid word limit (greater than 0)
+  const hasExceededWordLimit = wordUsageData?.wordLimit ? wordUsageData?.hasExceededLimit : false;
   
   const { toast } = useToast();
   const timerRef = useRef<number | null>(null);
