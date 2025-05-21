@@ -3,7 +3,15 @@ import React from "react";
 /**
  * Component to display when the word limit is exceeded
  */
-export const WordLimitExceededMessage: React.FC = () => {
+interface WordLimitExceededProps {
+  currentUsage?: number;
+  wordLimit?: number;
+}
+
+export const WordLimitExceededMessage: React.FC<WordLimitExceededProps> = ({ 
+  currentUsage, 
+  wordLimit 
+}) => {
   return (
     <div className="rounded-lg bg-amber-50 p-4 border border-amber-200 mt-4">
       <div className="flex items-start">
@@ -16,7 +24,10 @@ export const WordLimitExceededMessage: React.FC = () => {
           <h3 className="text-sm font-medium text-amber-800">Word limit exceeded</h3>
           <div className="mt-2 text-sm text-amber-700">
             <p>
-              You've reached your monthly word limit. To continue analyzing conversations, 
+              {currentUsage !== undefined && wordLimit !== undefined ? 
+                `You've used ${currentUsage} words of your ${wordLimit} monthly word limit.` :
+                "You've reached your monthly word limit."
+              } To continue analyzing conversations, 
               please upgrade your subscription.
             </p>
           </div>
