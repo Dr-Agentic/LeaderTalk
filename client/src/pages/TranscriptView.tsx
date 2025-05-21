@@ -436,12 +436,8 @@ function TranscriptWithHighlighting({
   
   // Helper function to normalize text for better matching
   const normalizeText = (text: string): string => {
-    return text
-      .replace(/\s+/g, ' ')        // Replace multiple spaces with a single space
-      .replace(/…/g, '...')        // Replace ellipsis character with three dots
-      .replace(/\.{3,}/g, '')      // Remove ellipses (...) 
-      .replace(/[^\w\s.,?!]/g, '') // Remove special characters except punctuation
-      .trim();                     // Remove leading/trailing whitespace
+    // Just remove trailing ellipses (... or …)
+    return text.replace(/[.…]{3,}\s*$/g, '').trim();
   };
 
   // Function to highlight text using string search approach
