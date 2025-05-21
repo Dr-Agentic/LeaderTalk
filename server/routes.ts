@@ -614,11 +614,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             apiVersion: "2023-10-16" as any, // TypeScript doesn't recognize the newer API version 
           });
           
-          // Get the user's active Stripe subscription
+          // Get the user's active Stripe subscription with less nesting to avoid API limits
           const subscriptions = await stripe.subscriptions.list({
             customer: user.stripeCustomerId,
             status: "active",
-            expand: ["data.items.data.price.product"],
+            expand: ["data.items.data.price"], // Less deep expansion to avoid the error
           });
           
           console.log(`Found ${subscriptions.data.length} active subscriptions for customer`);
@@ -626,7 +626,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // If a subscription exists, get the word limit from product metadata
           if (subscriptions.data.length > 0) {
             const subscription = subscriptions.data[0];
-            const product = subscription.items.data[0].price.product as Stripe.Product;
+            const price = subscription.items.data[0].price as Stripe.Price;
+            
+            // Separately fetch the product to get its metadata
+            const product = await stripe.products.retrieve(price.product as string);
             
             console.log("Product metadata:", product?.metadata);
             
@@ -643,12 +646,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   wordLimit = parsedLimit;
                   console.log("Found word limit in Stripe metadata:", wordLimit);
                 }
+              } else {
+                console.error("No word limit found in product metadata:", product.metadata);
+                // Let the API return 0 which the client will display as "N/A"
               }
+            } else {
+              console.error("Product has no metadata");
             }
+          } else {
+            console.log("No active subscriptions found for this customer");
           }
         } catch (stripeError) {
           console.error("Error fetching subscription data from Stripe:", stripeError);
-          // Continue with default word limit if Stripe fails
+          // Return the error to the client instead of using a fallback
+          return res.status(503).json({ 
+            error: "Unable to retrieve subscription data", 
+            message: "Service temporarily unavailable" 
+          });
         }
       }
       

@@ -40,23 +40,26 @@ export default function RecordingSection({
   const [isProcessing, setIsProcessing] = useState(false);
 
   // Query for checking word limits using the consistent wordLimitChecker API
-  const { data: wordUsageData, isLoading: isCheckingWordLimit } =
-    useQuery<WordUsageData>({
-      queryKey: ["/api/users/word-usage"],
-      refetchOnWindowFocus: true,
-      staleTime: 1000 * 60 * 5, // 5 minutes
-    });
+  const { 
+    data: wordUsageData, 
+    isLoading: isCheckingWordLimit,
+    error: wordLimitError 
+  } = useQuery<WordUsageData>({
+    queryKey: ["/api/users/word-usage"],
+    refetchOnWindowFocus: true,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
 
-  // Determine if user has exceeded their word limit based on total usage
-  // Default to 500 words for Starter plan when Stripe data is unavailable
-  const fallbackWordLimit = 500;
+  // Calculate word usage data from the API response, with no fallbacks
   const currentUsage = wordUsageData?.currentUsage || 0;
-  const effectiveWordLimit = (wordUsageData?.wordLimit && wordUsageData.wordLimit > 0) 
-    ? wordUsageData.wordLimit 
-    : fallbackWordLimit;
+  const wordLimit = wordUsageData?.wordLimit || 0;
   
-  // Calculate if limit exceeded using either the valid limit from API or the fallback
-  const hasExceededWordLimit = currentUsage >= effectiveWordLimit;
+  // If wordLimit is 0, it means we couldn't determine the user's word limit from Stripe
+  // In this case, display a warning but still let them record (server will handle this)
+  const hasWordLimitData = wordLimit > 0;
+  
+  // Calculate if limit exceeded only if we have valid limit data
+  const hasExceededWordLimit = hasWordLimitData ? currentUsage >= wordLimit : false;
 
   const { toast } = useToast();
   const timerRef = useRef<number | null>(null);
