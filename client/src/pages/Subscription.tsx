@@ -293,7 +293,7 @@ export default function Subscription() {
           {subscriptionData?.success && (
             <div className="mb-8">
               <h2 className="text-xl font-semibold tracking-tight mb-4">Current Subscription</h2>
-              <SubscriptionTimeline data={subscriptionData} />
+              <SubscriptionTimeline data={subscriptionData} className="mb-4" />
             </div>
           )}
           

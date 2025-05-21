@@ -207,9 +207,9 @@ export default function SubscriptionTimeline({ data: propData, className = "" }:
   );
 }
 
-function SubscriptionTimelineSkeleton() {
+function SubscriptionTimelineSkeleton({ className }: { className?: string }) {
   return (
-    <Card>
+    <Card className={className}>
       <CardHeader>
         <CardTitle>
           <Skeleton className="h-6 w-48" />
