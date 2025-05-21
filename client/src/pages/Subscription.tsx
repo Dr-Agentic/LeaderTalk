@@ -187,6 +187,11 @@ export default function Subscription() {
     }
   }, [navigate]);
 
+  // Get current subscription details
+  const { data: subscriptionData } = useQuery({
+    queryKey: ["/api/current-subscription"],
+  });
+  
   // Get Stripe products
   const { data, isLoading, error } = useQuery<StripeProductsResponse>({
     queryKey: ["/api/stripe-products"],
