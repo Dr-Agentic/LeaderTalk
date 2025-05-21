@@ -289,16 +289,22 @@ export default function Subscription() {
 
       {!subscriptionSuccess && (
         <div>
-          {/* Subscription Timeline - shows when subscription started and renewal information */}
+          {/* Current Subscription Information */}
           {subscriptionData?.success && (
-            <SubscriptionTimeline data={subscriptionData} className="mb-6" />
+            <div className="mb-8">
+              <h2 className="text-xl font-semibold tracking-tight mb-4">Current Subscription</h2>
+              <SubscriptionTimeline data={subscriptionData} />
+            </div>
           )}
           
-          <Card className="mb-6">
-            <CardHeader className="pb-3">
-              <CardTitle>Choose Your Plan</CardTitle>
-            </CardHeader>
-            <CardContent>
+          {/* Plan Selection */}
+          <div className="mt-10 pt-6 border-t border-border">
+            <h2 className="text-xl font-semibold tracking-tight mb-4">Change Subscription Plan</h2>
+            <Card className="mb-6">
+              <CardHeader className="pb-3">
+                <CardTitle>Choose Your Plan</CardTitle>
+              </CardHeader>
+              <CardContent>
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
