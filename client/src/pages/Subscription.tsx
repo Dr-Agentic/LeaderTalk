@@ -5,14 +5,147 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, CheckCircle } from "lucide-react";
+import { Loader2, CheckCircle, Calendar, Clock, LayoutDashboard } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { loadStripe } from '@stripe/stripe-js';
 import { useState, useEffect } from "react";
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import SubscriptionTimeline from "@/components/subscription/SubscriptionTimeline";
+import { Skeleton } from "@/components/ui/skeleton";
+
+// Format date to a readable format
+function formatDate(date: string | Date | null) {
+  if (!date) return 'Not available';
+  
+  try {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    return new Intl.DateTimeFormat('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    }).format(dateObj);
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return 'Invalid date';
+  }
+}
+
+// Calculate days between dates
+function getDaysBetween(startDate: Date, endDate: Date): number {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const diffTime = Math.abs(end.getTime() - start.getTime());
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+}
+
+// Component to display fresh subscription information
+function FreshSubscriptionInfo() {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['/api/current-subscription'],
+    retry: 2,
+    retryDelay: 1000,
+  });
+  
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="flex items-start space-x-3">
+            <Skeleton className="h-10 w-10 rounded-full" />
+            <div className="space-y-2 flex-1">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-3 w-full" />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  
+  if (error || !data || !data.success) {
+    return (
+      <div className="text-sm text-muted-foreground">
+        Unable to load subscription details. Please try again later.
+      </div>
+    );
+  }
+  
+  const { subscription } = data;
+  
+  // Extract subscription details
+  const planCode = subscription.plan || '';
+  const subscriptionStartDate = subscription.startDate ? new Date(subscription.startDate) : new Date();
+  const currentPeriodStart = subscription.currentPeriodStart ? new Date(subscription.currentPeriodStart) : new Date();
+  const currentPeriodEnd = subscription.currentPeriodEnd ? new Date(subscription.currentPeriodEnd) : new Date();
+  const amount = subscription.amount || 0;
+  const interval = subscription.interval || 'month';
+  const cancelAtPeriodEnd = subscription.cancelAtPeriodEnd || false;
+  const wordLimit = subscription.wordLimit || (subscription.metadata?.Words ? parseInt(subscription.metadata.Words) : null);
+  
+  // Calculate days remaining
+  const today = new Date();
+  const daysRemaining = getDaysBetween(today, currentPeriodEnd);
+  
+  return (
+    <div className="space-y-4">
+      {/* Original start date */}
+      <div className="flex items-start space-x-3">
+        <div className="bg-primary/10 p-2 rounded-full">
+          <Calendar className="h-5 w-5 text-primary" />
+        </div>
+        <div>
+          <h4 className="text-sm font-medium">Subscription Created</h4>
+          <p className="text-sm text-muted-foreground">
+            You first subscribed on <span className="font-medium">{formatDate(subscriptionStartDate)}</span>
+          </p>
+        </div>
+      </div>
+      
+      {/* Current billing period */}
+      <div className="flex items-start space-x-3">
+        <div className="bg-primary/10 p-2 rounded-full">
+          <Clock className="h-5 w-5 text-primary" />
+        </div>
+        <div>
+          <h4 className="text-sm font-medium">Current Billing Cycle</h4>
+          <p className="text-sm text-muted-foreground">
+            From <span className="font-medium">{formatDate(currentPeriodStart)}</span> to <span className="font-medium">{formatDate(currentPeriodEnd)}</span>
+          </p>
+          {daysRemaining > 0 && (
+            <p className="text-xs mt-1">
+              <span className="font-medium">{daysRemaining}</span> days remaining
+            </p>
+          )}
+        </div>
+      </div>
+      
+      {/* Plan information */}
+      <div className="flex items-start space-x-3">
+        <div className="bg-primary/10 p-2 rounded-full">
+          <LayoutDashboard className="h-5 w-5 text-primary" />
+        </div>
+        <div>
+          <h4 className="text-sm font-medium">Plan Information</h4>
+          <p className="text-sm text-muted-foreground">
+            <span className="font-medium capitalize">{planCode || 'Starter'}</span> Plan
+            {amount > 0 && (
+              <> - ${amount}/{interval}</>
+            )}
+          </p>
+          <p className="text-sm text-muted-foreground mt-1">
+            <span className="font-medium">{wordLimit ? wordLimit.toLocaleString() : "N/A"}</span> words per month
+          </p>
+          {cancelAtPeriodEnd && (
+            <p className="text-xs mt-1 text-destructive-foreground">
+              Your subscription will not renew after the current period ends
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // Load Stripe outside of component render
 // Ensure we have a valid Stripe key before initializing
@@ -305,10 +438,18 @@ export default function Subscription() {
 
       {!subscriptionSuccess && (
         <div>
-          {/* Current Subscription Information */}
+          {/* Current Subscription Information - Direct Copy from Settings Page */}
           <div className="mb-8">
             <h2 className="text-xl font-semibold tracking-tight mb-4">Current Subscription</h2>
-            <SubscriptionTimeline className="mb-4" />
+            <Card className="mb-4">
+              <CardHeader>
+                <CardTitle>Subscription Timeline</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {/* Fetch the subscription data separately to ensure fresh data */}
+                <FreshSubscriptionInfo />
+              </CardContent>
+            </Card>
           </div>
           
           {/* Plan Selection */}
