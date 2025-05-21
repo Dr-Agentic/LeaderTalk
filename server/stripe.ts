@@ -43,54 +43,163 @@ export async function getCurrentSubscription(req: Request, res: Response) {
     
     // Check if the user has a Stripe subscription ID
     if (!user.stripeSubscriptionId) {
-      // User is on the free (starter) plan
-      return res.status(200).json({
-        success: true,
-        subscription: {
-          plan: "starter",
-          status: "active",
-          isFree: true,
-          currentPeriodStart: null,
-          currentPeriodEnd: null,
-          cancelAtPeriodEnd: false
+      console.log(`User ${userId} has no Stripe subscription, creating a default Starter subscription`);
+      
+      try {
+        // Create or get the customer in Stripe
+        let customerId = user.stripeCustomerId;
+        
+        // If user doesn't have a Stripe customer ID, create one
+        if (!customerId) {
+          // Create a new Stripe customer
+          const customer = await stripe.customers.create({
+            email: user.email,
+            name: user.username,
+            metadata: {
+              userId: user.id.toString(),
+            },
+          });
+          
+          customerId = customer.id;
+          
+          // Update the user with their new Stripe customer ID
+          await storage.updateUser(user.id, {
+            stripeCustomerId: customerId
+          });
+          
+          console.log(`Created new Stripe customer for user ${userId}: ${customerId}`);
         }
-      });
+        
+        // Fetch all products to find the Starter plan
+        const products = await stripe.products.list({
+          active: true,
+          expand: ['data.default_price']
+        });
+        
+        // Find the Starter (free) plan
+        const starterProduct = products.data.find(p => 
+          p.name.toLowerCase().includes('starter') || 
+          (p.default_price && (p.default_price as Stripe.Price).unit_amount === 0)
+        );
+        
+        if (!starterProduct || !starterProduct.default_price) {
+          console.log("No Starter plan found in Stripe, returning temporary free plan data");
+          // If we can't find a starter product, return temporary free plan data
+          return res.status(200).json({
+            success: true,
+            subscription: {
+              plan: "starter",
+              status: "active",
+              isFree: true,
+              currentPeriodStart: null,
+              currentPeriodEnd: null,
+              cancelAtPeriodEnd: false
+            }
+          });
+        }
+        
+        const priceId = (starterProduct.default_price as Stripe.Price).id;
+        
+        // Create a subscription for the user with the Starter plan
+        const subscription = await stripe.subscriptions.create({
+          customer: customerId,
+          items: [{ price: priceId }],
+          metadata: {
+            userId: user.id.toString()
+          }
+        });
+        
+        // Update the user with their new subscription ID
+        await storage.updateUser(user.id, {
+          stripeSubscriptionId: subscription.id,
+          subscriptionPlan: "starter"
+        });
+        
+        console.log(`Created default Starter subscription for user ${userId}: ${subscription.id}`);
+        
+        // Format and return the new subscription
+        return res.status(200).json({
+          success: true,
+          subscription: {
+            id: subscription.id,
+            status: subscription.status,
+            plan: "starter",
+            planId: starterProduct.id,
+            isFree: true,
+            currentPeriodStart: new Date(subscription.current_period_start * 1000),
+            currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+            cancelAtPeriodEnd: subscription.cancel_at_period_end,
+            amount: 0,
+            currency: (starterProduct.default_price as Stripe.Price).currency,
+            interval: (starterProduct.default_price as Stripe.Price).recurring?.interval || 'month',
+            productImage: starterProduct.images && starterProduct.images.length > 0 ? starterProduct.images[0] : null
+          }
+        });
+        
+      } catch (error) {
+        console.error("Error creating default subscription:", error);
+        // Fall back to returning basic subscription data if subscription creation fails
+        return res.status(200).json({
+          success: true,
+          subscription: {
+            plan: "starter",
+            status: "active",
+            isFree: true,
+            currentPeriodStart: null,
+            currentPeriodEnd: null,
+            cancelAtPeriodEnd: false
+          }
+        });
+      }
     }
     
     // User has a subscription ID, so fetch the details from Stripe
-    const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId, {
-      expand: ['items.data.price.product']
-    });
-    
-    // Get the product details from the subscription
-    const item = subscription.items.data[0];
-    const price = item.price;
-    const product = price.product as Stripe.Product;
-    
-    // Format the response
-    return res.status(200).json({
-      success: true,
-      subscription: {
-        id: subscription.id,
-        status: subscription.status,
-        plan: product.name.toLowerCase(),
-        planId: product.id,
-        isFree: false,
-        currentPeriodStart: new Date(subscription.current_period_start * 1000),
-        currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-        cancelAtPeriodEnd: subscription.cancel_at_period_end,
-        amount: price.unit_amount ? price.unit_amount / 100 : 0,
-        currency: price.currency,
-        interval: price.recurring?.interval || 'month',
-        productImage: product.images && product.images.length > 0 ? product.images[0] : null
-      }
-    });
+    try {
+      const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId, {
+        expand: ['items.data.price.product']
+      });
+      
+      // Get the product details from the subscription
+      const item = subscription.items.data[0];
+      const price = item.price;
+      const product = price.product as Stripe.Product;
+      
+      // Format the response
+      return res.status(200).json({
+        success: true,
+        subscription: {
+          id: subscription.id,
+          status: subscription.status,
+          plan: product.name.toLowerCase(),
+          planId: product.id,
+          isFree: price.unit_amount === 0,
+          currentPeriodStart: new Date(subscription.current_period_start * 1000),
+          currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+          cancelAtPeriodEnd: subscription.cancel_at_period_end,
+          amount: price.unit_amount ? price.unit_amount / 100 : 0,
+          currency: price.currency,
+          interval: price.recurring?.interval || 'month',
+          productImage: product.images && product.images.length > 0 ? product.images[0] : null
+        }
+      });
+    } catch (subError) {
+      console.error(`Error retrieving subscription ${user.stripeSubscriptionId}:`, subError);
+      
+      // The subscription ID in our database is invalid or the subscription was deleted in Stripe
+      // Clear the invalid subscription ID and recursively call this function to create a new one
+      await storage.updateUser(user.id, {
+        stripeSubscriptionId: null
+      });
+      
+      // Call this function again to create a new subscription
+      return getCurrentSubscription(req, res);
+    }
     
   } catch (error) {
-    console.error("Error fetching subscription:", error);
+    console.error("Error in subscription handling:", error);
     return res.status(500).json({
       success: false,
-      error: "Failed to retrieve subscription details"
+      error: "Failed to retrieve or create subscription details"
     });
   }
 }
