@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import WordUsageStats from "@/components/dashboard/WordUsageStats";
 import CurrentCycleUsageChart from "@/components/dashboard/CurrentCycleUsageChart";
+import SubscriptionTimeline from "@/components/subscription/SubscriptionTimeline";
 import AppLayout from "@/components/AppLayout";
 import {
   AlertDialog,
@@ -106,6 +107,9 @@ export default function Settings() {
             </div>
           </CardContent>
         </Card>
+        
+        {/* Subscription Timeline showing start date and renewal information */}
+        <SubscriptionTimeline />
         
         {/* Word usage stats for billing */}
         <WordUsageStats />
