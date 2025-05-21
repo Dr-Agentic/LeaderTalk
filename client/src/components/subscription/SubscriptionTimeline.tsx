@@ -67,6 +67,7 @@ export default function SubscriptionTimeline() {
   let amount = 0;
   let interval = 'month';
   let cancelAtPeriodEnd = false;
+  let wordLimit = 0;
   
   console.log("Raw subscription data:", data);
   
@@ -92,6 +93,16 @@ export default function SubscriptionTimeline() {
     amount = data.subscription.amount || 0;
     interval = data.subscription.interval || 'month';
     cancelAtPeriodEnd = data.subscription.cancelAtPeriodEnd || false;
+    
+    // Get word limit from metadata or directly from wordLimit field
+    if (data.subscription.wordLimit) {
+      wordLimit = data.subscription.wordLimit;
+    } else if (data.subscription.metadata?.words) {
+      wordLimit = parseInt(data.subscription.metadata.words);
+    } else {
+      // Fallback based on plan name
+      wordLimit = planCode === 'starter' ? 5000 : planCode === 'pro' ? 15000 : 50000;
+    }
   } else if (data.planCode) {
     // Alternative data structure
     planCode = data.planCode;
@@ -164,6 +175,9 @@ export default function SubscriptionTimeline() {
                 {amount > 0 && (
                   <> - ${amount}/{interval}</>
                 )}
+              </p>
+              <p className="text-sm text-muted-foreground mt-1">
+                <span className="font-medium">{wordLimit.toLocaleString()}</span> words per month
               </p>
               {cancelAtPeriodEnd && (
                 <p className="text-xs mt-1 text-destructive-foreground">

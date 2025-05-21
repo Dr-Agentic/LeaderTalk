@@ -196,7 +196,11 @@ export async function getCurrentSubscription(req: Request, res: Response) {
           amount: price.unit_amount ? price.unit_amount / 100 : 0,
           currency: price.currency,
           interval: price.recurring?.interval || 'month',
-          productImage: product.images && product.images.length > 0 ? product.images[0] : null
+          productImage: product.images && product.images.length > 0 ? product.images[0] : null,
+          // Include product metadata
+          metadata: product.metadata || {},
+          // Extract word limit directly if available
+          wordLimit: product.metadata?.words ? parseInt(product.metadata.words) : (product.name.toLowerCase() === 'starter' ? 5000 : product.name.toLowerCase() === 'pro' ? 15000 : 50000)
         }
       });
     } catch (subError) {
