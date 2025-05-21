@@ -434,16 +434,14 @@ function TranscriptWithHighlighting({
     return <p className="whitespace-pre-line">{transcription}</p>;
   }
   
-  // Helper function to normalize text for better matching
-  const normalizeText = (text: string): string => {
-    // Just remove trailing ellipses (... or …)
-    return text.replace(/[.…]{3,}\s*$/g, '').trim();
-  };
-
-  // Function to highlight text using string search approach
+  // Function to highlight text using case-insensitive search with lowercase comparison
   const getColoredTranscript = () => {
+    // Keep the original transcript and create a lowercase version for matching
+    const transcriptOriginal = transcription;
+    const transcriptLowercase = transcription.toLowerCase();
+    
     // Log a sample of the transcription for debugging
-    console.log("Transcription sample:", transcription.substring(0, 200));
+    console.log("Transcription sample:", transcriptOriginal.substring(0, 200));
     
     // Collect all instances that need highlighting and sort by timestamp
     const allInstances = [
@@ -455,84 +453,116 @@ function TranscriptWithHighlighting({
       return (a.timestamp || 0) - (b.timestamp || 0);
     });
 
-    // Create an array to hold all segments with their positions
-    const segments: {
+    // Create a mapping array to hold all segments with their positions
+    const analysisMapping: {
       start: number;
       end: number;
-      text: string;
-      type: "positive" | "negative" | "passive" | "normal";
+      type: "positive" | "negative" | "passive";
     }[] = [];
 
-    // Find all occurrences of each instance in the transcript
-    // First, normalize the full transcription text
-    const normalizedTranscription = normalizeText(transcription);
+    // Helper function to clean text for searching
+    const cleanTextForSearch = (text: string): string => {
+      if (!text) return '';
+      // Convert to lowercase and remove trailing ellipses
+      return text.toLowerCase().replace(/[.…]{3,}\s*$/g, '').trim();
+    };
     
+    // Find all occurrences of each instance in the transcript
     for (const instance of allInstances) {
       const { text, type, timestamp } = instance;
       if (!text || typeof text !== "string") continue;
       
-      // Normalize the instance text for better matching
-      const normalizedText = normalizeText(text);
+      // Clean the instance text for searching
+      const cleanedText = cleanTextForSearch(text);
+      
+      // Skip very short segments (likely to cause false positives)
+      if (cleanedText.length < 5) continue;
       
       // Debug log to see what we're looking for
       console.log(`Looking for ${type} text:`, {
         original: text.substring(0, 50) + (text.length > 50 ? '...' : ''),
-        normalized: normalizedText.substring(0, 50) + (normalizedText.length > 50 ? '...' : ''),
+        cleaned: cleanedText.substring(0, 50) + (cleanedText.length > 50 ? '...' : ''),
+        length: cleanedText.length,
         timestamp
       });
       
       let position = 0;
       let foundCount = 0;
-      while (position < normalizedTranscription.length) {
-        const foundIndex = normalizedTranscription.indexOf(normalizedText, position);
+      
+      // Search in the lowercase transcript
+      while (position < transcriptLowercase.length) {
+        const foundIndex = transcriptLowercase.indexOf(cleanedText, position);
         if (foundIndex === -1) {
           if (foundCount === 0) {
-            console.log(`*** Normalized text "${normalizedText.substring(0, 50)}${normalizedText.length > 50 ? '...' : ''}" not found in transcript`);
+            console.log(`*** Text "${cleanedText.substring(0, 50)}${cleanedText.length > 50 ? '...' : ''}" not found in transcript`);
           }
           break; // No more occurrences
         }
         
         foundCount++;
-        console.log(`Found ${type} instance at position ${foundIndex} in normalized text`);
+        console.log(`Found ${type} instance at position ${foundIndex} (${transcriptOriginal.substring(foundIndex, foundIndex + 20)}...)`);
         
-        // We found a match in the normalized text, but we need to map it back to the original
-        // For simplicity, we're using the same position and length in the original
-        segments.push({
+        // Add the mapping entry with the position in the original transcript
+        analysisMapping.push({
           start: foundIndex,
-          end: foundIndex + normalizedText.length,
-          text: normalizedText,
+          end: foundIndex + cleanedText.length,
           type,
         });
         
-        position = foundIndex + normalizedText.length; // Start searching from after the full matched text
+        // Move past this instance to find the next one
+        position = foundIndex + cleanedText.length;
       }
     }
 
-    // Sort segments by their starting position
-    segments.sort((a, b) => a.start - b.start);
+    // Sort mapping by starting position
+    analysisMapping.sort((a, b) => a.start - b.start);
 
-    // Handle overlapping segments by keeping only non-overlapping ones
-    const filteredSegments: typeof segments = [];
-    let lastEnd = 0;
-
-    for (const segment of segments) {
-      if (segment.start >= lastEnd) {
-        filteredSegments.push(segment);
-        lastEnd = segment.end;
+    // Handle overlapping segments to ensure proper HTML structure
+    const resolveOverlaps = (segments: typeof analysisMapping): typeof analysisMapping => {
+      if (segments.length <= 1) return segments;
+      
+      const result: typeof analysisMapping = [segments[0]];
+      
+      for (let i = 1; i < segments.length; i++) {
+        const current = segments[i];
+        const previous = result[result.length - 1];
+        
+        // Check for overlap
+        if (current.start < previous.end) {
+          // Case 1: Current segment starts inside previous but extends beyond it
+          if (current.end > previous.end) {
+            // Add a new segment for the non-overlapping part
+            result.push({
+              start: previous.end,
+              end: current.end,
+              type: current.type
+            });
+          }
+          // Case 2: Current is fully contained within previous - skip it
+        } else {
+          // No overlap, add as is
+          result.push(current);
+        }
       }
-    }
-
-    // Build the final HTML by adding normal text between highlighted segments
-    let result = "";
-    let currentPosition = 0;
-
-    for (const segment of filteredSegments) {
-      // Add normal text before this segment
-      if (segment.start > currentPosition) {
-        result += transcription.substring(currentPosition, segment.start);
-      }
-
-      // Add highlighted segment
+      
+      return result;
+    };
+    
+    // Resolve any overlapping segments
+    const resolvedMapping = resolveOverlaps(analysisMapping);
+    
+    // Build the final HTML by inserting spans at the appropriate positions
+    // We'll insert from end to start to avoid position shifts
+    const segmentsReversed = [...resolvedMapping].reverse();
+    
+    // Start with the original transcript
+    let result = transcriptOriginal;
+    
+    for (const segment of segmentsReversed) {
+      // Get the text to highlight from the original transcript
+      const originalText = transcriptOriginal.substring(segment.start, segment.end);
+      
+      // Create the highlighted span based on type
       let cssClass = "";
       if (segment.type === "positive") {
         cssClass = "bg-green-100 text-green-800 px-1 rounded";
@@ -541,16 +571,17 @@ function TranscriptWithHighlighting({
       } else if (segment.type === "passive") {
         cssClass = "bg-gray-100 text-gray-800 px-1 rounded";
       }
-
-      result += `<span class="${cssClass}">${segment.text}</span>`;
-      currentPosition = segment.end;
+      
+      // Replace the text with the highlighted version
+      const highlightedText = `<span class="${cssClass}">${originalText}</span>`;
+      
+      // Insert the highlighted text at the correct position
+      result = 
+        result.substring(0, segment.start) + 
+        highlightedText + 
+        result.substring(segment.end);
     }
-
-    // Add any remaining normal text after the last segment
-    if (currentPosition < transcription.length) {
-      result += transcription.substring(currentPosition);
-    }
-
+    
     return result;
   };
 
