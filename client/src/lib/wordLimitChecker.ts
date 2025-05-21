@@ -26,13 +26,16 @@ export const checkWordLimit = async (): Promise<WordUsageData> => {
   }
   
   const data = await response.json();
+  console.log("[DEBUG] Word usage data from API:", data);
   
+  // Return the full data object including any error messages from the API
   // If the server returns a wordLimit of 0, we'll show that directly
   // This is a valid response indicating that we couldn't determine the limit
   return {
     currentUsage: data.currentUsage,
     wordLimit: data.wordLimit,
     usagePercentage: data.usagePercentage,
-    hasExceededLimit: data.hasExceededLimit
+    hasExceededLimit: data.hasExceededLimit,
+    error: data.error // Include any error passed from the server
   };
 };

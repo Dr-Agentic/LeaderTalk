@@ -19,6 +19,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { H2, Paragraph } from "@/components/ui/typography";
 import { Mic, Pause, Play, OctagonMinus, AlertCircle } from "lucide-react";
 import { WordLimitExceededMessage, SubscriptionErrorMessage } from "@/components/WordLimitMessages";
+import WordLimitErrorMessage from "@/components/WordLimitErrorMessage";
 import { useQuery } from "@tanstack/react-query";
 import { WordUsageData } from "@/lib/wordLimitChecker";
 
