@@ -322,21 +322,97 @@ export default function SubscriptionNew() {
           <CardHeader className="pb-3 bg-muted/30">
             <div className="flex justify-between items-center">
               <CardTitle className="text-lg">Your Current Plan</CardTitle>
-              <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
-                Active
-              </span>
+              {subscriptionData?.success && (
+                <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                  subscriptionData.subscription.status === 'active' 
+                    ? 'bg-green-100 text-green-800' 
+                    : 'bg-amber-100 text-amber-800'
+                }`}>
+                  {subscriptionData.subscription.status.charAt(0).toUpperCase() + 
+                  subscriptionData.subscription.status.slice(1)}
+                </span>
+              )}
             </div>
           </CardHeader>
           <CardContent className="pt-4">
             <div className="flex gap-4 items-center mb-4">
+              {subscriptionData?.success && subscriptionData.subscription.productImage && (
+                <div className="w-12 h-12 flex-shrink-0">
+                  <img 
+                    src={subscriptionData.subscription.productImage} 
+                    alt={`${subscriptionData.subscription.plan} plan`}
+                    className="h-full w-auto object-contain"
+                  />
+                </div>
+              )}
               <div>
                 <h3 className="text-xl font-semibold capitalize">
-                  {userData.subscriptionPlan || "Starter"} Plan
+                  {(subscriptionData?.success && subscriptionData.subscription.plan) || 
+                   userData.subscriptionPlan || "Starter"} Plan
                 </h3>
-                {userData.nextBillingDate && (
+                {!subscriptionData?.success?.subscription?.isFree && 
+                 subscriptionData?.success?.subscription?.amount && (
                   <p className="text-muted-foreground">
-                    Renews: {new Date(userData.nextBillingDate).toLocaleDateString()}
+                    ${subscriptionData.subscription.amount.toFixed(2)}/
+                    {subscriptionData.subscription.interval || 'month'}
                   </p>
+                )}
+              </div>
+            </div>
+            
+            {/* Subscription Details Section */}
+            <div className="p-3 mt-2 rounded-md bg-muted/30">
+              <p className="text-sm font-medium mb-2">Subscription Details</p>
+              <div className="space-y-2 text-sm">
+                {/* Word Limit */}
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Word Limit:</span>
+                  <span className="font-medium">
+                    {userData.subscriptionPlan === 'starter' ? '5,000' : 
+                     userData.subscriptionPlan === 'pro' ? '15,000' : 
+                     userData.subscriptionPlan === 'executive' ? '50,000' : '5,000'} words/month
+                  </span>
+                </div>
+                
+                {/* Billing Cycle */}
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Billing Cycle:</span>
+                  <span className="font-medium">
+                    {subscriptionData?.success && subscriptionData.subscription.currentPeriodEnd ? (
+                      <span>
+                        {subscriptionData.subscription.currentPeriodStart ? 
+                          new Date(subscriptionData.subscription.currentPeriodStart).toLocaleDateString() : ''} - {' '}
+                        {new Date(subscriptionData.subscription.currentPeriodEnd).toLocaleDateString()}
+                      </span>
+                    ) : userData.nextBillingDate ? (
+                      <span>Until {new Date(userData.nextBillingDate).toLocaleDateString()}</span>
+                    ) : (
+                      <span>Monthly</span>
+                    )}
+                  </span>
+                </div>
+                
+                {/* Next Renewal */}
+                {(subscriptionData?.success && subscriptionData.subscription.currentPeriodEnd) || userData.nextBillingDate ? (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Next Renewal:</span>
+                    <span className="font-medium">
+                      {subscriptionData?.success && subscriptionData.subscription.currentPeriodEnd ? 
+                        new Date(subscriptionData.subscription.currentPeriodEnd).toLocaleDateString() :
+                        userData.nextBillingDate ? 
+                          new Date(userData.nextBillingDate).toLocaleDateString() : 'N/A'}
+                    </span>
+                  </div>
+                ) : null}
+                
+                {/* Subscription ID */}
+                {subscriptionData?.success && subscriptionData.subscription.id && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Subscription ID:</span>
+                    <span className="font-medium text-xs opacity-70">
+                      {subscriptionData.subscription.id.substring(0, 8)}...
+                    </span>
+                  </div>
                 )}
               </div>
             </div>
