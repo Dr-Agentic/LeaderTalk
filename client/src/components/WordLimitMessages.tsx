@@ -24,7 +24,7 @@ export const WordLimitExceededMessage: React.FC = () => {
             <div className="-mx-2 -my-1.5 flex">
               <a
                 href="/subscription"
-                className="rounded-md bg-amber-50 px-3 py-1.5 text-sm font-medium text-amber-800 hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2 focus:ring-offset-amber-50"
+                className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
               >
                 Upgrade Subscription
               </a>
