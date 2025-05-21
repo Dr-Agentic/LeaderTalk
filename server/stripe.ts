@@ -22,6 +22,9 @@ const stripe = new Stripe(secretKey, {
 
 // Get active subscription details for the current user
 export async function getCurrentSubscription(req: Request, res: Response) {
+  // Ensure proper JSON content type
+  res.setHeader('Content-Type', 'application/json');
+  
   try {
     // Get the logged-in user ID from the session
     const userId = req.session.userId;

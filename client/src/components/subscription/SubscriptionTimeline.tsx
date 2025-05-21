@@ -32,13 +32,19 @@ export default function SubscriptionTimeline() {
   // Fetch subscription information
   const { data, isLoading, error } = useQuery({
     queryKey: ['/api/current-subscription'],
+    retry: 2,
+    retryDelay: 1000,
   });
+
+  console.log("Subscription data:", data);
 
   if (isLoading) {
     return <SubscriptionTimelineSkeleton />;
   }
 
-  if (error || !data?.success) {
+  // Improved error handling with fallback
+  if (error || !data) {
+    console.error("Subscription error:", error);
     return (
       <Card>
         <CardHeader>
@@ -53,14 +59,53 @@ export default function SubscriptionTimeline() {
     );
   }
 
-  const subscription = data.subscription;
+  // Extract subscription data safely, handling different possible structures
+  let subscription = {};
+  let planCode = '';
+  let subscriptionStartDate = new Date();
+  let currentPeriodStart = new Date();
+  let currentPeriodEnd = new Date();
+  let amount = 0;
+  let interval = 'month';
+  let cancelAtPeriodEnd = false;
   
-  // Default to current date if no start date is available
-  const subscriptionStartDate = subscription.startDate ? new Date(subscription.startDate) : new Date();
-  
-  // Current billing period
-  const currentPeriodStart = subscription.currentPeriodStart ? new Date(subscription.currentPeriodStart) : new Date();
-  const currentPeriodEnd = subscription.currentPeriodEnd ? new Date(subscription.currentPeriodEnd) : new Date();
+  // Handle different possible data structures from our API
+  if (data.subscription) {
+    subscription = data.subscription;
+    planCode = subscription.plan || '';
+    
+    if (subscription.startDate) {
+      subscriptionStartDate = new Date(subscription.startDate);
+    }
+    
+    if (subscription.currentPeriodStart) {
+      currentPeriodStart = new Date(subscription.currentPeriodStart);
+    }
+    
+    if (subscription.currentPeriodEnd) {
+      currentPeriodEnd = new Date(subscription.currentPeriodEnd);
+    }
+    
+    amount = subscription.amount || 0;
+    interval = subscription.interval || 'month';
+    cancelAtPeriodEnd = subscription.cancelAtPeriodEnd || false;
+  } else if (data.planCode) {
+    // Alternative data structure
+    planCode = data.planCode;
+    
+    if (data.billingCycle?.startDate) {
+      subscriptionStartDate = new Date(data.billingCycle.startDate);
+      currentPeriodStart = new Date(data.billingCycle.startDate);
+    }
+    
+    if (data.billingCycle?.endDate) {
+      currentPeriodEnd = new Date(data.billingCycle.endDate);
+    }
+    
+    if (data.subscriptionPlan) {
+      amount = parseFloat(data.subscriptionPlan.monthlyPriceUsd) || 0;
+    }
+  }
   
   // Calculate days remaining
   const today = new Date();
@@ -125,12 +170,12 @@ export default function SubscriptionTimeline() {
             <div>
               <h4 className="text-sm font-medium">Plan Information</h4>
               <p className="text-sm text-muted-foreground">
-                <span className="font-medium capitalize">{subscription.plan}</span> Plan
-                {!subscription.isFree && subscription.amount && (
-                  <> - ${subscription.amount}/{subscription.interval || 'month'}</>
+                <span className="font-medium capitalize">{planCode || 'Starter'}</span> Plan
+                {amount > 0 && (
+                  <> - ${amount}/{interval}</>
                 )}
               </p>
-              {subscription.cancelAtPeriodEnd && (
+              {cancelAtPeriodEnd && (
                 <p className="text-xs mt-1 text-destructive-foreground">
                   Your subscription will not renew after the current period ends
                 </p>
