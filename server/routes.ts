@@ -2578,6 +2578,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // New Stripe Product API Endpoints - No auth required for viewing products
   app.get('/api/stripe-products', getStripeProducts);
+  app.get('/api/current-subscription', requireAuth, getCurrentSubscription);
   app.post('/api/create-stripe-subscription', requireAuth, createStripeSubscription);
   
   // RevenueCat endpoint

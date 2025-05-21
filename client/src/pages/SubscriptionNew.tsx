@@ -42,6 +42,25 @@ interface StripeProductsResponse {
   source: 'stripe' | 'database';
 }
 
+// Define interface for subscription data
+interface SubscriptionResponse {
+  success: boolean;
+  subscription: {
+    id?: string;
+    status: string;
+    plan: string;
+    planId?: string;
+    isFree: boolean;
+    currentPeriodStart: Date | null;
+    currentPeriodEnd: Date | null;
+    cancelAtPeriodEnd: boolean;
+    amount?: number;
+    currency?: string;
+    interval?: string;
+    productImage?: string | null;
+  };
+}
+
 // Payment form component
 const CheckoutForm = ({ onSuccess = () => {} }: { onSuccess?: () => void }) => {
   const stripe = useStripe();
@@ -178,6 +197,12 @@ export default function SubscriptionNew() {
     }
   }, [navigate]);
 
+  // Get current subscription details
+  const { data: subscriptionData, isLoading: subscriptionLoading } = useQuery<SubscriptionResponse>({
+    queryKey: ["/api/current-subscription"],
+    enabled: !!userData // Only run if user is logged in
+  });
+
   // Get Stripe products
   const { data, isLoading, error } = useQuery<StripeProductsResponse>({
     queryKey: ["/api/stripe-products"],
@@ -291,6 +316,34 @@ export default function SubscriptionNew() {
         </p>
       </div>
 
+      {/* Current Subscription Summary */}
+      {userData && (
+        <Card className="mb-6 overflow-hidden">
+          <CardHeader className="pb-3 bg-muted/30">
+            <div className="flex justify-between items-center">
+              <CardTitle className="text-lg">Your Current Plan</CardTitle>
+              <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                Active
+              </span>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <div className="flex gap-4 items-center mb-4">
+              <div>
+                <h3 className="text-xl font-semibold capitalize">
+                  {userData.subscriptionPlan || "Starter"} Plan
+                </h3>
+                {userData.nextBillingDate && (
+                  <p className="text-muted-foreground">
+                    Renews: {new Date(userData.nextBillingDate).toLocaleDateString()}
+                  </p>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      
       <Card className="mb-6">
         <CardHeader className="pb-3">
           <CardTitle>Choose Your Plan</CardTitle>
