@@ -13,6 +13,7 @@ import { H2, Paragraph } from "@/components/ui/typography";
 import { Mic, Pause, Play, OctagonMinus, AlertCircle } from "lucide-react";
 import { WordLimitExceededMessage } from "@/components/WordLimitMessages";
 import { useQuery } from "@tanstack/react-query";
+import { WordUsageData } from "@/lib/wordLimitChecker";
 
 interface RecordingSectionProps {
   onRecordingComplete: (recording: any) => void;
