@@ -301,14 +301,7 @@ export default function Subscription() {
         </div>
       )}
 
-      {/* Debug section - will be hidden in production */}
-      <div className="bg-muted p-4 mb-4 rounded-md">
-        <h3 className="font-medium mb-2">Debug Info:</h3>
-        <p>subscriptionSuccess: {String(subscriptionSuccess)}</p>
-        <p>subscriptionData exists: {String(!!subscriptionData)}</p>
-        <p>subscriptionData has success property: {String(!!subscriptionData?.success)}</p>
-        {subscriptionData && <pre className="text-xs mt-2 bg-background p-2 rounded overflow-auto max-h-32">{JSON.stringify(subscriptionData, null, 2)}</pre>}
-      </div>
+      {/* Debug section is now hidden in production */}
 
       {!subscriptionSuccess && (
         <div>

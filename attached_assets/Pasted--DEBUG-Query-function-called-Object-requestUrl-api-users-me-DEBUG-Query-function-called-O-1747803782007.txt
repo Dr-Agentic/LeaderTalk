@@ -1,0 +1,60 @@
+[DEBUG] Query function called 
+Object {requestUrl: "/api/users/me"}
+[DEBUG] Query function called 
+Object {requestUrl: "/api/recordings"}
+[DEBUG] Query function called 
+Object {requestUrl: "/api/leaders"}
+[DEBUG] Query successful 
+Object {requestUrl: "/api/users/me", status: 200}
+[DEBUG] Query successful 
+Object {requestUrl: "/api/leaders", status: 200}
+[DEBUG] Query successful 
+Object {requestUrl: "/api/recordings", status: 200}
+[DEBUG] Query function called 
+Object {requestUrl: "/api/stripe-products"}
+[DEBUG] API request 
+Object {method: "GET", url: "/api/users/me", hasData: false}
+[DEBUG] API request successful 
+Object {url: "/api/users/me", method: "GET", status: 200}
+[DEBUG] Query function called 
+Object {requestUrl: "/api/current-subscription"}
+[DEBUG] Query successful 
+Object {requestUrl: "/api/current-subscription", status: 200}
+[DEBUG] Query successful 
+Object {requestUrl: "/api/stripe-products", status: 200}
+Subscription data: 
+Object {success: true, subscription: {…}}
+Raw subscription data: 
+Object {success: true, subscription: {…}}
+Found subscription start date: 
+Date {}
+[DEBUG] Query function called 
+Object {requestUrl: "/api/usage/words"}
+Missing data for chart: 
+Object {data: undefined, recordingsData: Array(43)}
+[DEBUG] API request 
+Object {method: "GET", url: "/api/users/me", hasData: false}
+Subscription data: 
+Object {success: true, subscription: {…}}
+Raw subscription data: 
+Object {success: true, subscription: {…}}
+Found subscription start date: 
+Date {}
+[DEBUG] API request successful 
+Object {url: "/api/users/me", method: "GET", status: 200}
+Subscription data: 
+Object {success: true, subscription: {…}}
+Raw subscription data: 
+Object {success: true, subscription: {…}}
+Found subscription start date: 
+Date {}
+[DEBUG] Query successful 
+Object {requestUrl: "/api/usage/words", status: 200}
+Generated chart data: 
+(6) [{…}, {…}, {…}, {…}, {…}, {…}]
+currentMonthData: 
+Object {chartData: Array(0), monthYear: "", dateRange: {…}, totalWords: 0}
+Data available for chart: 
+Object {historyLength: 22, recordingsLength: 43}
+currentMonthData: 
+Object {chartData: Array(22), monthYear: "May 2025", dateRange: {…}, totalWords: 3158}
