@@ -428,12 +428,15 @@ function TranscriptWithHighlighting({
 
   // Function to highlight text using string search approach
   const getColoredTranscript = () => {
-    // Collect all instances that need highlighting
+    // Collect all instances that need highlighting and sort by timestamp
     const allInstances = [
       ...positiveInstances.map((i) => ({ ...i, type: "positive" as const })),
       ...negativeInstances.map((i) => ({ ...i, type: "negative" as const })),
       ...passiveInstances.map((i) => ({ ...i, type: "passive" as const })),
-    ];
+    ].sort((a, b) => {
+      // Sort by timestamp if available, otherwise keep original order
+      return (a.timestamp || 0) - (b.timestamp || 0);
+    });
 
     // Create an array to hold all segments with their positions
     const segments: {
@@ -463,7 +466,7 @@ function TranscriptWithHighlighting({
           type,
         });
 
-        position = foundIndex + 1; // Start searching from the next position
+        position = foundIndex + text.length; // Start searching from after the full matched text
       }
     }
 
