@@ -609,62 +609,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let wordLimit = 0; // Default to 0, we'll display as "N/A" if we can't determine the limit
       let errorMessage = null;
       
+      console.log(`🔍 Starting word usage check for user ${userId}`);
+      console.log(`User subscription status: stripeCustomerId=${user.stripeCustomerId}, stripeSubscriptionId=${user.stripeSubscriptionId}`);
+      
       try {
         // Check if user has Stripe subscription - if not, initialize one automatically
-        console.log(`Checking user subscription status: stripeCustomerId=${user.stripeCustomerId}, stripeSubscriptionId=${user.stripeSubscriptionId}`);
-        
         if (!user.stripeCustomerId || !user.stripeSubscriptionId) {
           console.log(`🔄 AUTOMATIC SUBSCRIPTION INITIALIZATION TRIGGERED (Word Usage Check)`);
           console.log(`📊 User ${userId} (${user.email}) needs subscription setup for word usage check`);
           
-          try {
-            // Import and use the getCurrentSubscription function to initialize subscription
-            const { getCurrentSubscription } = await import('./stripe.js');
-            
-            // Create a mock request/response to trigger subscription initialization
-            const mockReq = { session: { userId } };
-            let subscriptionCreated = false;
-            
-            const mockRes = {
-              setHeader: () => {},
-              status: (code: number) => ({
-                json: (data: any) => {
-                  if (code === 200 && data.success) {
-                    subscriptionCreated = true;
-                    console.log(`✅ Subscription initialized successfully for user ${userId}`);
-                  }
-                  return mockRes;
-                }
-              }),
+          // Import and use the getCurrentSubscription function to initialize subscription
+          const { getCurrentSubscription } = await import('./stripe.js');
+          
+          // Create a mock request/response to trigger subscription initialization
+          const mockReq = { session: { userId } };
+          let subscriptionData = null;
+          
+          const mockRes = {
+            setHeader: () => {},
+            status: (code: number) => ({
               json: (data: any) => {
-                if (data.success) {
-                  subscriptionCreated = true;
+                console.log(`📋 Mock response status ${code}, data:`, data);
+                if (code === 200 && data.success) {
+                  subscriptionData = data;
                   console.log(`✅ Subscription initialized successfully for user ${userId}`);
                 }
                 return mockRes;
               }
-            };
-            
+            }),
+            json: (data: any) => {
+              console.log(`📋 Mock response data:`, data);
+              if (data.success) {
+                subscriptionData = data;
+                console.log(`✅ Subscription initialized successfully for user ${userId}`);
+              }
+              return mockRes;
+            }
+          };
+          
+          try {
             // Trigger subscription initialization
+            console.log(`🚀 Triggering subscription initialization for user ${userId}`);
             await getCurrentSubscription(mockReq as any, mockRes as any);
             
-            if (subscriptionCreated) {
+            if (subscriptionData && subscriptionData.success) {
+              console.log(`🔄 Refreshing user data after subscription creation`);
               // Refresh user data after subscription creation
               const updatedUser = await storage.getUser(userId);
+              console.log(`📊 Updated user data:`, {
+                stripeCustomerId: updatedUser?.stripeCustomerId,
+                stripeSubscriptionId: updatedUser?.stripeSubscriptionId
+              });
+              
               if (updatedUser?.stripeCustomerId) {
+                console.log(`🎯 Getting word limit for updated user`);
                 wordLimit = await getUserSubscriptionWordLimit(userId);
-                console.log("Found word limit after initialization:", wordLimit);
+                console.log(`📈 Found word limit after initialization: ${wordLimit}`);
+                
+                // Clear any previous error message since we successfully initialized
+                errorMessage = null;
+              } else {
+                console.log(`❌ User still has no Stripe customer ID after initialization`);
+                errorMessage = "Failed to initialize subscription";
               }
+            } else {
+              console.log(`❌ Subscription initialization failed - no success response`);
+              errorMessage = "Unable to create subscription";
             }
             
           } catch (initError) {
-            console.error("Error during automatic subscription initialization:", initError);
+            console.error("❌ Error during automatic subscription initialization:", initError);
             errorMessage = "Unable to initialize subscription";
           }
         } else {
           // User has existing subscription
+          console.log(`✅ User has existing subscription, getting word limit`);
           wordLimit = await getUserSubscriptionWordLimit(userId);
-          console.log("Found word limit using centralized utility:", wordLimit);
+          console.log("📈 Found word limit using centralized utility:", wordLimit);
         }
       } catch (stripeError) {
         console.error("Error fetching subscription data from Stripe:", stripeError);
