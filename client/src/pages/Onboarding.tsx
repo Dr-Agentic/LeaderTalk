@@ -49,6 +49,17 @@ export default function Onboarding() {
             const userData = await res.json();
             console.log("User data received:", userData);
             
+            // Check if this is a forced onboarding test
+            const forceOnboarding = sessionStorage.getItem('forceOnboarding') === 'true';
+            if (forceOnboarding) {
+              console.log("Force onboarding detected - starting from welcome step");
+              sessionStorage.removeItem('forceOnboarding'); // Clean up
+              setStep(1); // Start from the beginning
+              setUser(userData);
+              setIsRedirecting(false);
+              return;
+            }
+            
             // Determine which step to show based on completed onboarding steps
             if (!userData.dateOfBirth || !userData.profession || !userData.goals) {
               // Start at personal info step (welcome is skipped)
