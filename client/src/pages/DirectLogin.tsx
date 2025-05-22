@@ -205,27 +205,11 @@ export default function DirectLogin() {
         console.log("Force onboarding detected - will reset user data first");
         logInfo("Force onboarding detected - will reset user data first");
         
-        try {
-          console.log("Resetting user data to trigger onboarding...");
-          const resetResponse = await apiRequest('PATCH', '/api/users/me', {
-            dateOfBirth: null,
-            profession: null,
-            goals: null,
-            selectedLeaders: null,
-            preferredLeadershipStyle: null,
-          });
-          
-          if (resetResponse.ok) {
-            console.log("User data reset successfully!");
-          } else {
-            console.log("Reset failed, but continuing to onboarding");
-          }
-        } catch (resetError) {
-          console.error("Error resetting user data:", resetError);
-          console.log("Reset failed, but continuing to onboarding");
-        }
+        // Skip the data reset for now - just redirect directly to onboarding
+        // The onboarding component will handle the incomplete data gracefully
+        console.log("Skipping data reset - redirecting directly to onboarding");
         
-        // Clean up and redirect to onboarding
+        // Clean up and redirect to onboarding immediately
         sessionStorage.removeItem('forceOnboarding');
         console.log("Redirecting to onboarding...");
         window.location.href = "/onboarding";
