@@ -577,7 +577,4 @@ export class DatabaseStorage implements IStorage {
 // Export a singleton instance
 export const dbStorage = new DatabaseStorage();
 
-// Initialize default subscription plans
-dbStorage.initializeSubscriptionPlans().catch(err => {
-  console.error('Failed to initialize subscription plans:', err);
-});
+// Subscription plans are now managed in Stripe - no database initialization needed
