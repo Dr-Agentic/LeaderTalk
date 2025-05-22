@@ -200,40 +200,41 @@ export default function DirectLogin() {
       console.log("Google sign-in completed successfully", user);
       logInfo("Google sign-in completed successfully in UI component");
       
-      // Handle force onboarding IMMEDIATELY after authentication
+      // Handle force onboarding after authentication
       if (user && forceOnboarding) {
-        console.log("Force onboarding detected - resetting user data immediately");
-        logInfo("Force onboarding detected - resetting user data immediately");
+        console.log("Force onboarding detected - will reset user data and redirect to onboarding");
+        logInfo("Force onboarding detected - will reset user data and redirect to onboarding");
         
-        try {
-          const resetResponse = await apiRequest('PATCH', '/api/users/me', {
-            dateOfBirth: null,
-            profession: null,
-            goals: null,
-            selectedLeaders: null,
-            preferredLeadershipStyle: null,
-          });
-          
-          if (resetResponse.ok) {
-            console.log("User data reset successfully, redirecting to onboarding...");
-            logInfo("User data reset successfully, redirecting to onboarding");
+        // Give the session a moment to be properly established after authentication
+        setTimeout(async () => {
+          try {
+            console.log("Attempting to reset user data...");
+            const resetResponse = await apiRequest('PATCH', '/api/users/me', {
+              dateOfBirth: null,
+              profession: null,
+              goals: null,
+              selectedLeaders: null,
+              preferredLeadershipStyle: null,
+            });
+            
+            if (resetResponse.ok) {
+              console.log("User data reset successfully, redirecting to onboarding...");
+              logInfo("User data reset successfully, redirecting to onboarding");
+            } else {
+              console.log("Reset API call failed, but still going to onboarding");
+            }
+          } catch (resetError) {
+            console.error("Error resetting user data:", resetError);
+            console.log("Reset failed, but still going to onboarding");
+          } finally {
+            // Always go to onboarding regardless of reset success/failure
             sessionStorage.removeItem('forceOnboarding'); // Clean up
+            console.log("Redirecting to onboarding...");
             window.location.href = "/onboarding";
-            return; // Exit immediately
-          } else {
-            console.error("Failed to reset user data, but still going to onboarding");
-            sessionStorage.removeItem('forceOnboarding'); // Clean up
-            window.location.href = "/onboarding";
-            return; // Exit immediately
           }
-        } catch (resetError) {
-          console.error("Error resetting user data:", resetError);
-          logError("Error resetting user data", { error: resetError });
-          // Still go to onboarding even if reset fails
-          sessionStorage.removeItem('forceOnboarding'); // Clean up
-          window.location.href = "/onboarding";
-          return; // Exit immediately
-        }
+        }, 1000); // 1 second delay to allow session to stabilize
+        
+        return; // Exit immediately to prevent normal flow
       }
       
       // Normal routing logic for non-force onboarding users
