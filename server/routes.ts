@@ -2429,7 +2429,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           wordLimit = await getUserSubscriptionWordLimit(userId);
           
           // Get billing cycle dates from Stripe
-          const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+          const { default: Stripe } = await import('stripe');
+          const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
           const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
           
           billingCycleStart = new Date(subscription.current_period_start * 1000).toISOString().split('T')[0];

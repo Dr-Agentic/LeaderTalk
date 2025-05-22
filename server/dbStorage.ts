@@ -229,14 +229,32 @@ export class DatabaseStorage implements IStorage {
       // Get billing cycle dates from Stripe if user has a subscription
       if (user.stripeCustomerId && user.stripeSubscriptionId) {
         try {
-          const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+          const Stripe = (await import('stripe')).default;
+          const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+            apiVersion: "2023-10-16",
+          });
           const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
           
-          // Use Stripe's current_period_start and current_period_end
+          // Debug: Show raw Stripe timestamps
+          console.log(`🔍 Raw Stripe timestamps for user ${userId}:`);
+          console.log(`   current_period_start: ${subscription.current_period_start} (raw)`);
+          console.log(`   current_period_end: ${subscription.current_period_end} (raw)`);
+          
+          // Test both with and without *1000 conversion
+          const startWithMultiplier = new Date(subscription.current_period_start * 1000);
+          const endWithMultiplier = new Date(subscription.current_period_end * 1000);
+          const startWithoutMultiplier = new Date(subscription.current_period_start);
+          const endWithoutMultiplier = new Date(subscription.current_period_end);
+          
+          console.log(`🔍 Date conversions:`);
+          console.log(`   With *1000: ${startWithMultiplier.toISOString()} to ${endWithMultiplier.toISOString()}`);
+          console.log(`   Without *1000: ${startWithoutMultiplier.toISOString()} to ${endWithoutMultiplier.toISOString()}`);
+          
+          // Use Stripe's current_period_start and current_period_end (Stripe uses Unix timestamps)
           billingCycleStart = new Date(subscription.current_period_start * 1000);
           billingCycleEnd = new Date(subscription.current_period_end * 1000);
           
-          console.log(`📅 Using Stripe billing cycle for user ${userId}: ${billingCycleStart.toISOString()} to ${billingCycleEnd.toISOString()}`);
+          console.log(`📅 Final billing cycle for user ${userId}: ${billingCycleStart.toISOString()} to ${billingCycleEnd.toISOString()}`);
         } catch (stripeError) {
           console.error(`Error fetching Stripe billing cycle for user ${userId}:`, stripeError);
           // Fall back to registration-based billing cycle
@@ -262,6 +280,27 @@ export class DatabaseStorage implements IStorage {
         );
       
       console.log(`📊 Found ${currentCycleEntries.length} word usage entries for user ${userId} in current billing cycle`);
+      
+      // Debug: Show the first few database entries to see their date format
+      if (currentCycleEntries.length > 0) {
+        console.log(`🔍 Sample database entries (first 3):`);
+        currentCycleEntries.slice(0, 3).forEach((entry, index) => {
+          console.log(`   Entry ${index + 1}: cycleStartDate=${entry.cycleStartDate}, wordCount=${entry.wordCount}, createdAt=${entry.createdAt}`);
+        });
+      }
+      
+      // Also get ALL entries for this user to see the full picture
+      const allUserEntries = await db.select()
+        .from(userWordUsage)
+        .where(eq(userWordUsage.userId, userId));
+      
+      console.log(`🔍 Total entries for user ${userId}: ${allUserEntries.length}`);
+      if (allUserEntries.length > 0) {
+        console.log(`🔍 Sample ALL entries (first 3):`);
+        allUserEntries.slice(0, 3).forEach((entry, index) => {
+          console.log(`   All Entry ${index + 1}: cycleStartDate=${entry.cycleStartDate}, wordCount=${entry.wordCount}, createdAt=${entry.createdAt}`);
+        });
+      }
       
       if (currentCycleEntries.length > 0) {
         const totalWords = currentCycleEntries.reduce((sum, entry) => sum + entry.wordCount, 0);
