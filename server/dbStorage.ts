@@ -216,29 +216,88 @@ export class DatabaseStorage implements IStorage {
   
   async getCurrentWordUsage(userId: number): Promise<number> {
     try {
-      // Get all word usage entries for this user regardless of cycle date
-      // to avoid any issues with date calculations
+      // First, get the user to determine their Stripe subscription billing cycle
+      const user = await this.getUser(userId);
+      if (!user) {
+        console.log(`User ${userId} not found`);
+        return 0;
+      }
+
+      let billingCycleStart: Date;
+      let billingCycleEnd: Date;
+
+      // Get billing cycle dates from Stripe if user has a subscription
+      if (user.stripeCustomerId && user.stripeSubscriptionId) {
+        try {
+          const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+          const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
+          
+          // Use Stripe's current_period_start and current_period_end
+          billingCycleStart = new Date(subscription.current_period_start * 1000);
+          billingCycleEnd = new Date(subscription.current_period_end * 1000);
+          
+          console.log(`📅 Using Stripe billing cycle for user ${userId}: ${billingCycleStart.toISOString()} to ${billingCycleEnd.toISOString()}`);
+        } catch (stripeError) {
+          console.error(`Error fetching Stripe billing cycle for user ${userId}:`, stripeError);
+          // Fall back to registration-based billing cycle
+          billingCycleStart = this.calculateUserBillingCycleStart(user);
+          billingCycleEnd = this.calculateUserBillingCycleEnd(billingCycleStart);
+        }
+      } else {
+        // Fall back to registration-based billing cycle
+        billingCycleStart = this.calculateUserBillingCycleStart(user);
+        billingCycleEnd = this.calculateUserBillingCycleEnd(billingCycleStart);
+        console.log(`📅 Using registration-based billing cycle for user ${userId}: ${billingCycleStart.toISOString()} to ${billingCycleEnd.toISOString()}`);
+      }
+
+      // Get word usage entries that fall within the current billing cycle
       const currentCycleEntries = await db.select()
         .from(userWordUsage)
-        .where(eq(userWordUsage.userId, userId));
+        .where(
+          and(
+            eq(userWordUsage.userId, userId),
+            sql`${userWordUsage.cycleStartDate} >= ${billingCycleStart}`,
+            sql`${userWordUsage.cycleStartDate} < ${billingCycleEnd}`
+          )
+        );
       
-      console.log(`Found ${currentCycleEntries.length} total word usage entries for user ${userId}`);
+      console.log(`📊 Found ${currentCycleEntries.length} word usage entries for user ${userId} in current billing cycle`);
       
-      // If we have entries for this user, sum all word counts
       if (currentCycleEntries.length > 0) {
-        // Calculate the total word count for all entries
         const totalWords = currentCycleEntries.reduce((sum, entry) => sum + entry.wordCount, 0);
-        console.log(`Total word usage for user ${userId} across all cycles: ${totalWords}`);
+        console.log(`📈 Total word usage for user ${userId} in current billing cycle: ${totalWords}`);
         return totalWords;
       } else {
-        console.log(`No word usage entries found for user ${userId}`);
+        console.log(`📊 No word usage entries found for user ${userId} in current billing cycle`);
+        return 0;
       }
-      
-      return 0;
     } catch (error) {
-      console.error(`Error calculating word usage for user ${userId}:`, error);
+      console.error(`❌ Error calculating current billing cycle word usage for user ${userId}:`, error);
       return 0;
     }
+  }
+
+  private calculateUserBillingCycleStart(user: User): Date {
+    const now = new Date();
+    const registrationDate = new Date(user.createdAt);
+    const billingDay = user.billingCycleDay || registrationDate.getDate();
+    
+    const cycleStart = new Date(now.getFullYear(), now.getMonth(), billingDay, 0, 0, 0, 0);
+    
+    // If we're past the billing day this month, use this month's billing day
+    // If we're before the billing day, use last month's billing day
+    if (now.getDate() < billingDay) {
+      cycleStart.setMonth(cycleStart.getMonth() - 1);
+    }
+    
+    return cycleStart;
+  }
+
+  private calculateUserBillingCycleEnd(cycleStart: Date): Date {
+    const cycleEnd = new Date(cycleStart);
+    cycleEnd.setMonth(cycleEnd.getMonth() + 1);
+    cycleEnd.setTime(cycleEnd.getTime() - 1); // End of day before next cycle
+    return cycleEnd;
   }
   
   async getOrCreateCurrentBillingCycle(userId: number): Promise<UserWordUsage> {

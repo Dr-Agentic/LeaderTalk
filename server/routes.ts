@@ -2404,6 +2404,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // New endpoint for billing cycle-based word usage (replaces calendar month logic)
+  app.get("/api/usage/billing-cycle", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId!;
+      console.log(`🔍 Getting billing cycle word usage for user ${userId}`);
+      
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Get current billing cycle word usage (now properly calculated from Stripe)
+      const currentBillingCycleUsage = await storage.getCurrentWordUsage(userId);
+      
+      // Get word limit from Stripe subscription
+      let wordLimit = 0;
+      let billingCycleStart: string = '';
+      let billingCycleEnd: string = '';
+      
+      if (user.stripeCustomerId && user.stripeSubscriptionId) {
+        try {
+          // Get word limit from Stripe
+          wordLimit = await getUserSubscriptionWordLimit(userId);
+          
+          // Get billing cycle dates from Stripe
+          const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+          const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
+          
+          billingCycleStart = new Date(subscription.current_period_start * 1000).toISOString().split('T')[0];
+          billingCycleEnd = new Date(subscription.current_period_end * 1000).toISOString().split('T')[0];
+          
+          console.log(`📅 Stripe billing cycle: ${billingCycleStart} to ${billingCycleEnd}`);
+          console.log(`📊 Current usage: ${currentBillingCycleUsage} / ${wordLimit} words`);
+          
+        } catch (stripeError) {
+          console.error('Error fetching Stripe data:', stripeError);
+          // Fall back to database plan
+          const subscriptionPlan = await storage.getSubscriptionPlanByCode(user.subscriptionPlan) || 
+                                   await storage.getDefaultSubscriptionPlan();
+          wordLimit = subscriptionPlan.monthlyWordLimit;
+        }
+      } else {
+        // User has no Stripe subscription, use database plan
+        const subscriptionPlan = await storage.getSubscriptionPlanByCode(user.subscriptionPlan) || 
+                                 await storage.getDefaultSubscriptionPlan();
+        wordLimit = subscriptionPlan.monthlyWordLimit;
+      }
+
+      // Calculate usage percentage
+      const usagePercentage = wordLimit > 0 ? Math.min(100, Math.round((currentBillingCycleUsage / wordLimit) * 100)) : 0;
+      
+      // Calculate days remaining in billing cycle
+      let daysRemaining = 0;
+      if (billingCycleEnd) {
+        const endDate = new Date(billingCycleEnd);
+        const now = new Date();
+        daysRemaining = Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      }
+
+      const responseData = {
+        currentUsage: currentBillingCycleUsage,
+        wordLimit,
+        usagePercentage,
+        hasExceededLimit: currentBillingCycleUsage >= wordLimit,
+        billingCycle: {
+          startDate: billingCycleStart,
+          endDate: billingCycleEnd,
+          daysRemaining: Math.max(0, daysRemaining)
+        }
+      };
+
+      console.log(`✅ Returning billing cycle data:`, responseData);
+      return res.json(responseData);
+      
+    } catch (error) {
+      console.error("Error fetching billing cycle word usage:", error);
+      return res.status(500).json({ message: "Server error" });
+    }
+  });
+
   // Endpoint to get user's word usage statistics for billing
   app.get("/api/usage/words", requireAuth, async (req, res) => {
     try {

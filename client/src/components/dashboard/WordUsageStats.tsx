@@ -92,58 +92,33 @@ function formatDate(dateString: string) {
 }
 
 export default function WordUsageStats() {
+  // Use the new billing cycle endpoint for accurate calculations
   const { data, isLoading } = useQuery({
-    queryKey: ['/api/usage/words'],
+    queryKey: ['/api/usage/billing-cycle'],
   });
 
   if (isLoading) {
     return <WordUsageStatsSkeleton />;
   }
 
-  // Compute current month's total usage by summing all entries for this month
-  const currentMonth = new Date().getMonth() + 1; // 1-indexed month
-  const currentYear = new Date().getFullYear();
+  // Get billing cycle data directly from server (no client-side calculations needed)
+  const currentBillingCycleUsage = data?.currentUsage || 0;
+  const wordLimit = data?.wordLimit || 0;
+  const usagePercentage = data?.usagePercentage || 0;
+  const hasExceededLimit = data?.hasExceededLimit || false;
   
-  let currentMonthTotal = 0;
-  if (data?.history && Array.isArray(data.history)) {
-    // Filter entries for the current month based on creation date
-    const thisMonthEntries = data.history.filter(entry => {
-      const entryDate = new Date(entry.createdAt);
-      return entryDate.getMonth() + 1 === currentMonth && 
-             entryDate.getFullYear() === currentYear;
-    });
-    
-    // Sum up word counts for current month
-    currentMonthTotal = thisMonthEntries.reduce((sum, entry) => sum + entry.wordCount, 0);
-  }
-  
-  // Use the API value without fallbacks to ensure accurate representation
-  const currentMonthUsage = data?.currentMonthUsage || 0;
-  
-  // Get subscription plan information from the API without fallbacks
-  const subscriptionPlan = data?.subscriptionPlan || {
-    name: "Unknown",
-    monthlyWordLimit: undefined,
-    features: []
-  };
-  
-  // Use the word limit from the user's plan
-  const monthlyWordLimit = subscriptionPlan.monthlyWordLimit;
-  
-  // Calculate usage percentage based on our accurate total, but handle case when word limit is 0 or undefined
-  const usagePercentage = monthlyWordLimit ? Math.min(100, Math.round((currentMonthUsage / monthlyWordLimit) * 100)) : 0;
-  
-  // Billing cycle information without default values to ensure we show actual data
-  const billingCycle = data?.billingCycle ? {
-    startDate: data.billingCycle.startDate || undefined,
-    endDate: data.billingCycle.endDate || undefined,
-    daysRemaining: data.billingCycle.daysRemaining,
-    cycleNumber: data.billingCycle.cycleNumber
-  } : {
+  // Get billing cycle information from server
+  const billingCycle = data?.billingCycle || {
     startDate: undefined,
     endDate: undefined,
-    daysRemaining: undefined,
-    cycleNumber: undefined
+    daysRemaining: 0
+  };
+  
+  // For backward compatibility with existing UI, create a subscription plan object
+  const subscriptionPlan = {
+    name: "Starter", // We'll get this from Stripe data later
+    monthlyWordLimit: wordLimit,
+    features: []
   };
 
   // Generate history data for the past 6 months
