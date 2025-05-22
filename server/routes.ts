@@ -2435,24 +2435,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
           const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
           
-          billingCycleStart = new Date(subscription.current_period_start * 1000).toISOString().split('T')[0];
-          billingCycleEnd = new Date(subscription.current_period_end * 1000).toISOString().split('T')[0];
+          // Convert Stripe Unix timestamps to JavaScript dates
+          const startDate = new Date(subscription.current_period_start * 1000);
+          const endDate = new Date(subscription.current_period_end * 1000);
+          
+          // Validate dates before converting to ISO string
+          if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+            throw new Error(`Invalid Stripe timestamps: start=${subscription.current_period_start}, end=${subscription.current_period_end}`);
+          }
+          
+          billingCycleStart = startDate.toISOString().split('T')[0];
+          billingCycleEnd = endDate.toISOString().split('T')[0];
           
           console.log(`📅 Stripe billing cycle: ${billingCycleStart} to ${billingCycleEnd}`);
           console.log(`📊 Current usage: ${currentBillingCycleUsage} / ${wordLimit} words`);
           
         } catch (stripeError) {
           console.error('Error fetching Stripe data:', stripeError);
-          // Fall back to database plan
-          const subscriptionPlan = await storage.getSubscriptionPlanByCode(user.subscriptionPlan) || 
-                                   await storage.getDefaultSubscriptionPlan();
-          wordLimit = subscriptionPlan.monthlyWordLimit;
+          // Use default word limit when Stripe fails
+          wordLimit = 500; // Default Starter plan limit
         }
       } else {
-        // User has no Stripe subscription, use database plan
-        const subscriptionPlan = await storage.getSubscriptionPlanByCode(user.subscriptionPlan) || 
-                                 await storage.getDefaultSubscriptionPlan();
-        wordLimit = subscriptionPlan.monthlyWordLimit;
+        // User has no Stripe subscription, use default limit
+        wordLimit = 500; // Default Starter plan limit
       }
 
       // Calculate usage percentage
@@ -2516,16 +2521,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         stripeWordLimitError = error.message;
       }
       
-      // As a fallback, get the user's subscription plan from the database
-      let subscriptionPlan = null;
-      if (user.subscriptionPlan) {
-        subscriptionPlan = await storage.getSubscriptionPlanByCode(user.subscriptionPlan);
-      }
-      
-      // If no plan is assigned or found, use the default plan
-      if (!subscriptionPlan) {
-        subscriptionPlan = await storage.getDefaultSubscriptionPlan();
-      }
+      // Use default subscription plan data
+      const subscriptionPlan = {
+        id: 1,
+        name: "Starter",
+        planCode: "starter",
+        monthlyWordLimit: 500,
+        monthlyPriceUsd: "0",
+        yearlyPriceUsd: "0",
+        features: ["500 words per month", "Basic analytics", "Up to 3 leader models"],
+        isDefault: true
+      };
       
       // Calculate days remaining in current cycle
       let daysRemaining = 0;
