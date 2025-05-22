@@ -184,6 +184,7 @@ export default function DirectLogin() {
       logDebug("Attempting Google sign-in with config", configInfo);
       
       console.log("Starting Google sign-in popup...");
+      console.log("Force onboarding checkbox is:", forceOnboarding);
       logInfo("Google sign-in process initiated from UI");
       
       // Use the popup authentication
