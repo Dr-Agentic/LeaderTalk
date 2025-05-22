@@ -611,6 +611,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       try {
         // Check if user has Stripe subscription - if not, initialize one automatically
+        console.log(`Checking user subscription status: stripeCustomerId=${user.stripeCustomerId}, stripeSubscriptionId=${user.stripeSubscriptionId}`);
+        
         if (!user.stripeCustomerId || !user.stripeSubscriptionId) {
           console.log(`🔄 AUTOMATIC SUBSCRIPTION INITIALIZATION TRIGGERED (Word Usage Check)`);
           console.log(`📊 User ${userId} (${user.email}) needs subscription setup for word usage check`);
