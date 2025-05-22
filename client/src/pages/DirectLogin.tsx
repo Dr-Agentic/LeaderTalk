@@ -200,9 +200,45 @@ export default function DirectLogin() {
       console.log("Google sign-in completed successfully", user);
       logInfo("Google sign-in completed successfully in UI component");
       
-      // Redirect to dashboard or onboarding based on user data
+      // Handle force onboarding IMMEDIATELY after authentication
+      if (user && forceOnboarding) {
+        console.log("Force onboarding detected - resetting user data immediately");
+        logInfo("Force onboarding detected - resetting user data immediately");
+        
+        try {
+          const resetResponse = await apiRequest('PATCH', '/api/users/me', {
+            dateOfBirth: null,
+            profession: null,
+            goals: null,
+            selectedLeaders: null,
+            preferredLeadershipStyle: null,
+          });
+          
+          if (resetResponse.ok) {
+            console.log("User data reset successfully, redirecting to onboarding...");
+            logInfo("User data reset successfully, redirecting to onboarding");
+            sessionStorage.removeItem('forceOnboarding'); // Clean up
+            window.location.href = "/onboarding";
+            return; // Exit immediately
+          } else {
+            console.error("Failed to reset user data, but still going to onboarding");
+            sessionStorage.removeItem('forceOnboarding'); // Clean up
+            window.location.href = "/onboarding";
+            return; // Exit immediately
+          }
+        } catch (resetError) {
+          console.error("Error resetting user data:", resetError);
+          logError("Error resetting user data", { error: resetError });
+          // Still go to onboarding even if reset fails
+          sessionStorage.removeItem('forceOnboarding'); // Clean up
+          window.location.href = "/onboarding";
+          return; // Exit immediately
+        }
+      }
+      
+      // Normal routing logic for non-force onboarding users
       if (user) {
-        logDebug("Checking user onboarding status");
+        logDebug("Checking user onboarding status for normal flow");
         // Check if we need to show onboarding (no selected leaders, etc)
         const userResponse = await apiRequest('GET', '/api/users/me');
         
@@ -213,10 +249,10 @@ export default function DirectLogin() {
             hasDateOfBirth: !!userData.dateOfBirth,
             hasProfession: !!userData.profession,
             hasGoals: !!userData.goals,
-            forceOnboarding: forceOnboarding
+            forceOnboarding: false
           });
           
-          // Check force onboarding FIRST, before any other logic
+          // This should never be reached if forceOnboarding was true
           if (forceOnboarding) {
             console.log("Force onboarding requested, resetting user data...");
             logInfo("Force onboarding requested, resetting user data");
