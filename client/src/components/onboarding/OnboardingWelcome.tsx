@@ -115,7 +115,7 @@ export default function OnboardingWelcome({ onComplete, googleProfile }: Onboard
           <Checkbox 
             id="testing-mode" 
             checked={isTestingMode}
-            onCheckedChange={setIsTestingMode}
+            onCheckedChange={(checked) => setIsTestingMode(checked === true)}
           />
           <label 
             htmlFor="testing-mode" 

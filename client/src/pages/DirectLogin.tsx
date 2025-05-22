@@ -6,10 +6,12 @@ import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { signInWithGoogle } from "@/firebase";
 import { logDebug, logError, logInfo, logWarn } from "@/lib/debugLogger";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export default function DirectLogin() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [forceOnboarding, setForceOnboarding] = useState(false);
 
   const handleDirectLogin = async () => {
     try {
@@ -201,11 +203,33 @@ export default function DirectLogin() {
             hasSelectedLeaders: !!userData.selectedLeaders,
             hasDateOfBirth: !!userData.dateOfBirth,
             hasProfession: !!userData.profession,
-            hasGoals: !!userData.goals
+            hasGoals: !!userData.goals,
+            forceOnboarding: forceOnboarding
           });
           
+          // If force onboarding is checked, reset user data and go to onboarding
+          if (forceOnboarding) {
+            console.log("Force onboarding requested, resetting user data...");
+            logInfo("Force onboarding requested, resetting user data");
+            
+            try {
+              await apiRequest('PATCH', '/api/users/me', {
+                dateOfBirth: null,
+                profession: null,
+                goals: null,
+                selectedLeaders: null,
+                preferredLeadershipStyle: null,
+              });
+              console.log("User data reset, redirecting to onboarding...");
+              window.location.href = "/onboarding";
+            } catch (resetError) {
+              console.error("Error resetting user data:", resetError);
+              // Still go to onboarding even if reset fails
+              window.location.href = "/onboarding";
+            }
+          }
           // If user doesn't have onboarding data, go to onboarding
-          if (!userData.selectedLeaders || !userData.dateOfBirth || !userData.profession || !userData.goals) {
+          else if (!userData.selectedLeaders || !userData.dateOfBirth || !userData.profession || !userData.goals) {
             console.log("User needs onboarding, redirecting to /onboarding...");
             logInfo("User needs onboarding, redirecting to /onboarding");
             window.location.href = "/onboarding";
@@ -268,6 +292,21 @@ export default function DirectLogin() {
             <p className="text-sm text-blue-700">
               Transform your leadership communication skills with personalized AI coaching.
             </p>
+          </div>
+
+          {/* Testing mode checkbox */}
+          <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg">
+            <Checkbox 
+              id="force-onboarding" 
+              checked={forceOnboarding}
+              onCheckedChange={(checked) => setForceOnboarding(checked === true)}
+            />
+            <label 
+              htmlFor="force-onboarding" 
+              className="text-sm text-gray-600 cursor-pointer"
+            >
+              Test onboarding flow (resets profile data)
+            </label>
           </div>
           
           <Button
