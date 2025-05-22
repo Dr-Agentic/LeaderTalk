@@ -5,7 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { auth } from "@/firebase";
-import LeaderSelection from "@/components/onboarding/LeaderSelection";
+import SimpleLeaderSelection from "@/components/onboarding/SimpleLeaderSelection";
 import OnboardingWelcome from "@/components/onboarding/OnboardingWelcome";
 import OnboardingPersonalInfo from "@/components/onboarding/OnboardingPersonalInfo";
 import OnboardingFeatures from "@/components/onboarding/OnboardingFeatures";
@@ -212,7 +212,7 @@ export default function Onboarding() {
             </div>
           </div>
         ) : (
-          <LeaderSelection 
+          <SimpleLeaderSelection 
             leaders={leaders}
             onComplete={() => setStep(4)}
           />

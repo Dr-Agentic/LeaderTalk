@@ -2,6 +2,9 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useState } from "react";
+import { apiRequest } from "@/lib/queryClient";
 
 interface OnboardingWelcomeProps {
   onComplete: () => void;
@@ -13,6 +16,26 @@ interface OnboardingWelcomeProps {
 }
 
 export default function OnboardingWelcome({ onComplete, googleProfile }: OnboardingWelcomeProps) {
+  const [isTestingMode, setIsTestingMode] = useState(false);
+
+  const handleContinue = async () => {
+    if (isTestingMode) {
+      // Reset user onboarding data for testing
+      try {
+        await apiRequest('PATCH', '/api/users/me', {
+          dateOfBirth: null,
+          profession: null,
+          goals: null,
+          selectedLeaders: null,
+          preferredLeadershipStyle: null,
+        });
+      } catch (error) {
+        console.error("Error resetting user data:", error);
+      }
+    }
+    onComplete();
+  };
+
   return (
     <div className="max-w-3xl mx-auto my-8 px-4">
       <Card className="bg-white p-8 rounded-lg shadow-md">
@@ -87,9 +110,24 @@ export default function OnboardingWelcome({ onComplete, googleProfile }: Onboard
           </div>
         </div>
         
+        {/* Testing mode checkbox */}
+        <div className="flex items-center justify-center space-x-2 mb-6 p-3 bg-gray-50 rounded-lg">
+          <Checkbox 
+            id="testing-mode" 
+            checked={isTestingMode}
+            onCheckedChange={setIsTestingMode}
+          />
+          <label 
+            htmlFor="testing-mode" 
+            className="text-sm text-gray-600 cursor-pointer"
+          >
+            Test onboarding again (resets your profile data)
+          </label>
+        </div>
+        
         <div className="flex justify-center">
           <Button 
-            onClick={onComplete} 
+            onClick={handleContinue} 
             className="px-6 py-6 text-lg gap-2"
           >
             Get Started <ArrowRight className="h-5 w-5" />
