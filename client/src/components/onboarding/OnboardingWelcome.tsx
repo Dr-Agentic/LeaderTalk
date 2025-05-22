@@ -36,8 +36,11 @@ export default function OnboardingWelcome({ onComplete, googleProfile }: Onboard
             {googleProfile?.displayName ? `Hi, ${googleProfile.firstName}!` : 'Welcome!'}
           </h2>
           
-          <p className="text-gray-600 mt-2 max-w-lg mx-auto">
-            Talk like the leader you aspire to be. LeaderTalk analyzes your communication and provides personalized coaching based on the world's greatest leaders.
+          <p className="text-gray-600 mt-2 max-w-lg mx-auto mb-1">
+            LeaderTalk analyzes your communication and provides personalized coaching based on the world's greatest leaders.
+          </p>
+          <p className="font-semibold text-lg bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Talk like the leader you aspire to be
           </p>
         </div>
         

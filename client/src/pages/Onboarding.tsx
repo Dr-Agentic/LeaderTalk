@@ -12,11 +12,11 @@ import OnboardingFeatures from "@/components/onboarding/OnboardingFeatures";
 
 export default function Onboarding() {
   const [step, setStep] = useState(1);
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<any>(null);
   const [isRedirecting, setIsRedirecting] = useState(true);
-  const [leaders, setLeaders] = useState([]);
+  const [leaders, setLeaders] = useState<any[]>([]);
   const [isLoadingLeaders, setIsLoadingLeaders] = useState(false);
-  const [googleProfile, setGoogleProfile] = useState(null);
+  const [googleProfile, setGoogleProfile] = useState<any>(null);
   const { toast } = useToast();
 
   // Check if user is already logged in and get Google profile data
@@ -36,9 +36,9 @@ export default function Onboarding() {
           // Store Google profile data
           setGoogleProfile({
             uid: firebaseUser.uid,
-            email: firebaseUser.email,
-            displayName: firebaseUser.displayName,
-            photoUrl: firebaseUser.photoURL,
+            email: firebaseUser.email || '',
+            displayName: firebaseUser.displayName || '',
+            photoUrl: firebaseUser.photoURL || '',
             firstName: firebaseUser.displayName?.split(' ')[0] || '',
             lastName: firebaseUser.displayName?.split(' ').slice(1).join(' ') || '',
           });
@@ -68,8 +68,8 @@ export default function Onboarding() {
             try {
               const createResponse = await apiRequest('POST', '/api/users', {
                 googleId: firebaseUser.uid,
-                email: firebaseUser.email,
-                username: firebaseUser.displayName || firebaseUser.email.split('@')[0],
+                email: firebaseUser.email || `user_${firebaseUser.uid}@example.com`,
+                username: firebaseUser.displayName || (firebaseUser.email ? firebaseUser.email.split('@')[0] : `User_${firebaseUser.uid.substring(0, 6)}`),
                 photoUrl: firebaseUser.photoURL || '',
               });
               
