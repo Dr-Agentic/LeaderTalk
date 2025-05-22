@@ -50,12 +50,20 @@ export default function Onboarding() {
             console.log("User data received:", userData);
             
             // Check if this is a forced onboarding test FIRST, before any other logic
-            const forceOnboarding = sessionStorage.getItem('forceOnboarding') === 'true';
-            console.log("Checking force onboarding flag:", forceOnboarding);
+            const forceOnboarding = userData.forceOnboarding === true;
+            console.log("Checking database force onboarding flag:", forceOnboarding);
             
             if (forceOnboarding) {
               console.log("Force onboarding detected - starting from welcome step");
-              sessionStorage.removeItem('forceOnboarding'); // Clean up
+              
+              // Reset the flag in the database so it doesn't persist
+              try {
+                await apiRequest('PATCH', '/api/users/me', { forceOnboarding: false });
+                console.log("Reset force onboarding flag in database");
+              } catch (error) {
+                console.log("Failed to reset flag, but continuing");
+              }
+              
               setStep(1); // Start from the beginning
               setUser(userData);
               setIsRedirecting(false);
