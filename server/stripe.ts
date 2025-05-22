@@ -113,7 +113,8 @@ export async function getCurrentSubscription(req: Request, res: Response) {
     
     // Check if the user has a Stripe subscription ID
     if (!user.stripeSubscriptionId) {
-      console.log(`User ${userId} has no Stripe subscription, creating a default Starter subscription`);
+      console.log(`🔄 AUTOMATIC SUBSCRIPTION INITIALIZATION TRIGGERED`);
+      console.log(`📊 User ${userId} (${user.email}) has no Stripe subscription, creating default Starter subscription`);
       
       try {
         // Create or get the customer in Stripe
@@ -121,6 +122,8 @@ export async function getCurrentSubscription(req: Request, res: Response) {
         
         // If user doesn't have a Stripe customer ID, create one
         if (!customerId) {
+          console.log(`🆕 Creating NEW Stripe customer for user ${userId} (${user.email})`);
+          
           // Create a new Stripe customer
           const customer = await stripe.customers.create({
             email: user.email,
@@ -137,7 +140,9 @@ export async function getCurrentSubscription(req: Request, res: Response) {
             stripeCustomerId: customerId
           });
           
-          console.log(`Created new Stripe customer for user ${userId}: ${customerId}`);
+          console.log(`✅ SUCCESS: Created new Stripe customer for user ${userId}: ${customerId}`);
+        } else {
+          console.log(`♻️  Using existing Stripe customer ID: ${customerId}`);
         }
         
         // Fetch all products to find the Starter plan
@@ -170,6 +175,8 @@ export async function getCurrentSubscription(req: Request, res: Response) {
         
         const priceId = (starterProduct.default_price as Stripe.Price).id;
         
+        console.log(`🔄 Creating default Starter subscription for user ${userId}...`);
+        
         // Create a subscription for the user with the Starter plan
         const subscription = await stripe.subscriptions.create({
           customer: customerId,
@@ -185,7 +192,10 @@ export async function getCurrentSubscription(req: Request, res: Response) {
           subscriptionPlan: "starter"
         });
         
-        console.log(`Created default Starter subscription for user ${userId}: ${subscription.id}`);
+        console.log(`🎉 SUBSCRIPTION INITIALIZATION COMPLETE!`);
+        console.log(`✅ Created default Starter subscription for user ${userId}: ${subscription.id}`);
+        console.log(`💡 User can now access recording features with their word limit allowance`);
+        console.log(`════════════════════════════════════════════════════════════════`);
         
         // Format and return the new subscription
         return res.status(200).json({

@@ -739,6 +739,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`Requested complete deletion of user account ID: ${userId}`);
       
+      // Get user data before deletion to access Stripe info
+      const [userToDelete] = await db.select().from(users).where(eq(users.id, userId));
+      
+      // Cancel Stripe subscription if user has one
+      if (userToDelete?.stripeSubscriptionId) {
+        console.log(`🚨 CANCELING STRIPE SUBSCRIPTION TO PREVENT BILLING`);
+        console.log(`📋 User ${userId} (${userToDelete.email}) has subscription: ${userToDelete.stripeSubscriptionId}`);
+        
+        try {
+          // Import stripe here to avoid circular dependency
+          const Stripe = require('stripe');
+          const stripe = new Stripe(process.env.STRIPE_SECRET_KEY?.trim() || '', {
+            apiVersion: '2023-10-16',
+          });
+          
+          // Cancel the subscription immediately
+          await stripe.subscriptions.cancel(userToDelete.stripeSubscriptionId);
+          
+          console.log(`✅ SUCCESS: Canceled Stripe subscription ${userToDelete.stripeSubscriptionId}`);
+          console.log(`💰 User will not be billed for future periods`);
+        } catch (stripeError) {
+          console.error(`❌ ERROR: Failed to cancel Stripe subscription:`, stripeError);
+          console.log(`⚠️  WARNING: User account will be deleted but subscription may remain active`);
+          // Continue with account deletion even if Stripe cancellation fails
+        }
+      } else {
+        console.log(`ℹ️  User has no active Stripe subscription to cancel`);
+      }
+      
       // Delete all recordings
       console.log('- Deleting recordings...');
       await db.delete(recordings)

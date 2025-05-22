@@ -138,34 +138,6 @@ export default function RecordingSection({
       return; // Already recording, do nothing
     }
 
-    // Check if we need to initialize subscription first
-    if (!isCheckingWordLimit && wordUsageData?.error === 'User has no active subscription') {
-      console.log("User has no subscription, initializing default subscription...");
-      try {
-        setIsProcessing(true);
-        
-        // Initialize the subscription synchronously
-        const response = await apiRequest('GET', '/api/current-subscription');
-        if (response.ok) {
-          // Refetch word usage data after subscription initialization
-          await refetchWordUsage();
-          console.log("Subscription initialized successfully");
-        } else {
-          throw new Error('Failed to initialize subscription');
-        }
-      } catch (error) {
-        console.error("Error initializing subscription:", error);
-        toast({
-          title: "Unable to initialize subscription",
-          description: "Please try again or contact support if this persists.",
-          variant: "destructive",
-        });
-        return;
-      } finally {
-        setIsProcessing(false);
-      }
-    }
-
     // Check if the user has exceeded their word limit
     if (hasExceededWordLimit) {
       toast({
