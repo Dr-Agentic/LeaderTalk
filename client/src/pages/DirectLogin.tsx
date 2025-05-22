@@ -202,39 +202,14 @@ export default function DirectLogin() {
       
       // Handle force onboarding after authentication
       if (user && forceOnboarding) {
-        console.log("Force onboarding detected - will reset user data and redirect to onboarding");
-        logInfo("Force onboarding detected - will reset user data and redirect to onboarding");
+        console.log("Force onboarding detected - redirecting immediately to onboarding");
+        logInfo("Force onboarding detected - redirecting immediately to onboarding");
         
-        // Give the session a moment to be properly established after authentication
-        setTimeout(async () => {
-          try {
-            console.log("Attempting to reset user data...");
-            const resetResponse = await apiRequest('PATCH', '/api/users/me', {
-              dateOfBirth: null,
-              profession: null,
-              goals: null,
-              selectedLeaders: null,
-              preferredLeadershipStyle: null,
-            });
-            
-            if (resetResponse.ok) {
-              console.log("User data reset successfully, redirecting to onboarding...");
-              logInfo("User data reset successfully, redirecting to onboarding");
-            } else {
-              console.log("Reset API call failed, but still going to onboarding");
-            }
-          } catch (resetError) {
-            console.error("Error resetting user data:", resetError);
-            console.log("Reset failed, but still going to onboarding");
-          } finally {
-            // Always go to onboarding regardless of reset success/failure
-            sessionStorage.removeItem('forceOnboarding'); // Clean up
-            console.log("Redirecting to onboarding...");
-            window.location.href = "/onboarding";
-          }
-        }, 1000); // 1 second delay to allow session to stabilize
-        
-        return; // Exit immediately to prevent normal flow
+        // Clean up and redirect immediately - don't wait for data reset
+        sessionStorage.removeItem('forceOnboarding');
+        console.log("Redirecting to onboarding NOW...");
+        window.location.href = "/onboarding";
+        return; // Exit immediately to prevent any other logic
       }
       
       // Normal routing logic for non-force onboarding users
