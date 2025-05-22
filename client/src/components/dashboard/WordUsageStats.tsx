@@ -139,8 +139,8 @@ export default function WordUsageStats() {
               <span className="font-medium">{subscriptionPlan.name} Plan</span>
             </div>
             <div className="text-right">
-              <span className="font-medium">{currentMonthUsage.toLocaleString()}</span>
-              <span className="text-muted-foreground"> / {monthlyWordLimit ? monthlyWordLimit.toLocaleString() : "N/A"} words</span>
+              <span className="font-medium">{currentBillingCycleUsage.toLocaleString()}</span>
+              <span className="text-muted-foreground"> / {wordLimit ? wordLimit.toLocaleString() : "N/A"} words</span>
             </div>
           </div>
           

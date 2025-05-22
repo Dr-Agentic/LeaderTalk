@@ -16,7 +16,8 @@ export interface WordUsageData {
  * @returns Promise with the word usage data
  */
 export const checkWordLimit = async (): Promise<WordUsageData> => {
-  const response = await apiRequest("GET", "/api/users/word-usage");
+  // Use the new billing cycle endpoint for accurate word limit checking
+  const response = await apiRequest("GET", "/api/usage/billing-cycle");
   
   // If response is not OK, throw an error
   if (!response.ok) {
