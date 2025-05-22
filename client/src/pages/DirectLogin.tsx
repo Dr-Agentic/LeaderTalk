@@ -264,30 +264,14 @@ export default function DirectLogin() {
         </div>
 
         <div className="space-y-6">
-          <div className="bg-amber-50 border-l-4 border-amber-400 p-4">
-            <p className="text-sm text-amber-700">
-              Try the app instantly with our demo mode or sign in with your Google account.
+          <div className="bg-blue-50 border-l-4 border-blue-400 p-4">
+            <p className="text-sm text-blue-700">
+              Transform your leadership communication skills with personalized AI coaching.
             </p>
           </div>
           
-          <Button 
-            id="demo-login-button"
-            size="lg"
-            className="w-full"
-            onClick={handleDirectLogin}
-            disabled={isLoading}
-          >
-            {isLoading ? "Logging in..." : "Log in as Demo User"}
-          </Button>
-          
-          <div className="relative flex items-center py-2">
-            <div className="flex-grow border-t border-gray-300"></div>
-            <span className="flex-shrink mx-3 text-gray-500 text-sm">or</span>
-            <div className="flex-grow border-t border-gray-300"></div>
-          </div>
-          
           <Button
-            variant="outline"
+            variant="default"
             size="lg"
             className="w-full flex items-center justify-center gap-2"
             onClick={handleGoogleSignIn}
@@ -305,12 +289,8 @@ export default function DirectLogin() {
               <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z" />
               <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z" />
             </svg>
-            Sign in with Google
+            {isLoading ? "Signing in..." : "Sign in with Google"}
           </Button>
-          
-          <div className="text-center text-xs text-slate-500 mt-2">
-            <p>No sign-up required for demo mode.</p>
-          </div>
         </div>
 
         <div className="text-center text-xs text-slate-500 mt-6 pt-2 border-t border-slate-200">

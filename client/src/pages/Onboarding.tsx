@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
-import GoogleSignUp from "@/components/onboarding/GoogleSignUp";
-import AdditionalInformation from "@/components/onboarding/AdditionalInformation";
-import LeaderSelection from "@/components/onboarding/LeaderSelection";
-import { handleRedirectResult } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { auth } from "@/firebase";
+import LeaderSelection from "@/components/onboarding/LeaderSelection";
+import OnboardingWelcome from "@/components/onboarding/OnboardingWelcome";
+import OnboardingPersonalInfo from "@/components/onboarding/OnboardingPersonalInfo";
+import OnboardingFeatures from "@/components/onboarding/OnboardingFeatures";
 
 export default function Onboarding() {
   const [step, setStep] = useState(1);
@@ -14,47 +16,69 @@ export default function Onboarding() {
   const [isRedirecting, setIsRedirecting] = useState(true);
   const [leaders, setLeaders] = useState([]);
   const [isLoadingLeaders, setIsLoadingLeaders] = useState(false);
+  const [googleProfile, setGoogleProfile] = useState(null);
   const { toast } = useToast();
 
-  // Handle Google redirect result
+  // Check if user is already logged in and get Google profile data
   useEffect(() => {
-    const checkAuth = async () => {
+    const checkLoginStatus = async () => {
       try {
-        const redirectUser = await handleRedirectResult();
-        if (redirectUser) {
-          // Check if user exists in database
-          try {
-            const userResponse = await apiRequest('GET', '/api/users/me');
-            const userData = await userResponse.json();
+        // Get the current Firebase user
+        const firebaseUser = auth.currentUser;
+        if (firebaseUser) {
+          console.log("Firebase user found:", {
+            uid: firebaseUser.uid,
+            email: firebaseUser.email,
+            displayName: firebaseUser.displayName,
+            hasPhotoUrl: !!firebaseUser.photoURL
+          });
+          
+          // Store Google profile data
+          setGoogleProfile({
+            uid: firebaseUser.uid,
+            email: firebaseUser.email,
+            displayName: firebaseUser.displayName,
+            photoUrl: firebaseUser.photoURL,
+            firstName: firebaseUser.displayName?.split(' ')[0] || '',
+            lastName: firebaseUser.displayName?.split(' ').slice(1).join(' ') || '',
+          });
+          
+          // Check if user exists in our database
+          const res = await apiRequest('GET', '/api/users/me');
+          if (res.ok) {
+            const userData = await res.json();
+            console.log("User data received:", userData);
             
-            // Determine which step to show
-            if (userData.dateOfBirth && userData.profession && userData.goals) {
-              if (userData.selectedLeaders) {
-                // User has completed all onboarding steps
-                window.location.href = '/';
-              } else {
-                // Has personal info but needs to select leaders
-                setStep(3);
-              }
-            } else {
-              // Needs to complete personal info
+            // Determine which step to show based on completed onboarding steps
+            if (!userData.dateOfBirth || !userData.profession || !userData.goals) {
+              // Start at personal info step (welcome is skipped)
+              console.log("User needs to complete personal info");
               setStep(2);
+            } else if (!userData.selectedLeaders || userData.selectedLeaders.length === 0) {
+              // Skip to leader selection
+              console.log("User needs to select leaders");
+              setStep(3);
+            } else {
+              // User has completed all required steps, go to dashboard
+              console.log("User fully onboarded, redirecting to dashboard");
+              window.location.href = '/dashboard';
             }
-          } catch (error) {
+          } else {
             // User needs to be created
             try {
               const createResponse = await apiRequest('POST', '/api/users', {
-                googleId: redirectUser.uid,
-                email: redirectUser.email,
-                username: redirectUser.displayName || redirectUser.email.split('@')[0],
-                photoUrl: redirectUser.photoURL || '',
+                googleId: firebaseUser.uid,
+                email: firebaseUser.email,
+                username: firebaseUser.displayName || firebaseUser.email.split('@')[0],
+                photoUrl: firebaseUser.photoURL || '',
               });
               
               if (createResponse.ok) {
-                setStep(2);
+                // Start with welcome step for new users
+                setStep(1);
                 toast({
                   title: "Account created",
-                  description: "Your account has been created successfully!",
+                  description: "Welcome to LeaderTalk! Let's get you set up.",
                 });
               }
             } catch (createError) {
@@ -63,87 +87,26 @@ export default function Onboarding() {
                 description: "There was an error creating your account. Please try again.",
                 variant: "destructive",
               });
+              // Send back to login
+              window.location.href = '/login';
             }
           }
-        }
-        
-        setUser(redirectUser);
-        setIsRedirecting(false);
-      } catch (error) {
-        console.error("Error handling redirect:", error);
-        setIsRedirecting(false);
-        toast({
-          title: "Authentication Error",
-          description: "There was an error with the authentication. Please try again.",
-          variant: "destructive",
-        });
-      }
-    };
-
-    checkAuth();
-  }, [toast]);
-
-  // Check if user is already logged in
-  useEffect(() => {
-    const checkLoginStatus = async () => {
-      try {
-        const res = await apiRequest('GET', '/api/users/me');
-        if (res.ok) {
-          const userData = await res.json();
-          console.log("User data received:", userData);
           
-          // Check if it's the demo user and update UI accordingly
-          if (userData.email === "demo@example.com") {
-            console.log("Demo user detected, setting up demo experience");
-            
-            // For demo users, make sure fields are properly initialized
-            if (!userData.dateOfBirth || !userData.profession || !userData.goals) {
-              // Demo user missing profile data - set to step 2
-              setStep(2);
-            } else if (!userData.selectedLeaders || userData.selectedLeaders.length === 0) {
-              // Demo user missing leader selections - set to step 3
-              setStep(3);
-            } else {
-              // Demo user fully onboarded - redirect to dashboard
-              console.log("Demo user fully onboarded, redirecting to dashboard");
-              window.location.href = '/dashboard';
-            }
-          } else {
-            // Regular user - normal flow
-            // Determine which step to show
-            if (userData.dateOfBirth && userData.profession && userData.goals) {
-              if (userData.selectedLeaders && userData.selectedLeaders.length > 0) {
-                // User has completed all onboarding steps
-                console.log("User fully onboarded, redirecting to dashboard");
-                window.location.href = '/dashboard';
-              } else {
-                // Has personal info but needs to select leaders
-                console.log("User needs to select leaders");
-                setStep(3);
-              }
-            } else {
-              // Needs to complete personal info
-              console.log("User needs to complete personal info");
-              setStep(2);
-            }
-          }
           setIsRedirecting(false);
         } else {
-          // Not logged in, stay on step 1 (login)
-          console.log("User not logged in, showing login page");
-          setStep(1);
-          setIsRedirecting(false);
+          // Not logged in, redirect to login
+          console.log("No Firebase user found, redirecting to login");
+          window.location.href = '/login';
         }
       } catch (error) {
         console.error("Error checking login status:", error);
-        // User is not logged in, stay on login page
-        setStep(1);
-        setIsRedirecting(false);
+        // Error occurred, redirect to login
+        window.location.href = '/login';
       }
     };
     
     checkLoginStatus();
-  }, []);
+  }, [toast]);
 
   // Load leaders for the selection step
   useEffect(() => {
@@ -185,47 +148,42 @@ export default function Onboarding() {
   }
 
   // Progress indicator
-  const renderProgressSteps = () => {
-    if (step === 1) return null; // Don't show on login page
+  const renderProgressIndicator = () => {
+    const totalSteps = 4;
+    const progress = (step / totalSteps) * 100;
     
     return (
-      <div className="max-w-4xl mx-auto pt-6 px-4">
-        <div className="flex items-center mb-8">
-          <div className={`rounded-full h-8 w-8 flex items-center justify-center ${step >= 2 ? 'bg-primary text-white' : 'bg-gray-200 text-gray-600'}`}>
-            1
-          </div>
-          <div className={`h-1 w-24 mx-2 ${step >= 3 ? 'bg-primary' : 'bg-gray-200'}`}></div>
-          <div className={`rounded-full h-8 w-8 flex items-center justify-center ${step >= 3 ? 'bg-primary text-white' : 'bg-gray-200 text-gray-600'}`}>
-            2
-          </div>
+      <div className="max-w-md mx-auto pt-6 px-4">
+        <div className="flex justify-between text-xs text-gray-500 mb-2">
+          <span>Step {step} of {totalSteps}</span>
+          <span>{Math.round(progress)}% Complete</span>
         </div>
-        <div className="flex text-sm mb-8">
-          <div className="flex-1 text-center">
-            <p className={step >= 2 ? 'text-primary font-medium' : 'text-gray-500'}>Personal Information</p>
-          </div>
-          <div className="flex-1 text-center">
-            <p className={step >= 3 ? 'text-primary font-medium' : 'text-gray-500'}>Leader Selection</p>
-          </div>
-        </div>
+        <Progress value={progress} className="h-2" />
       </div>
     );
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {renderProgressSteps()}
+      {renderProgressIndicator()}
       
-      {step === 1 && <GoogleSignUp />}
-      
-      {step === 2 && (
-        <AdditionalInformation 
-          onComplete={() => {
-            // After personal info, go to leader selection
-            setStep(3);
-          }}
+      {/* Step 1: Welcome Screen */}
+      {step === 1 && (
+        <OnboardingWelcome 
+          onComplete={() => setStep(2)}
+          googleProfile={googleProfile}
         />
       )}
       
+      {/* Step 2: Personal Information */}
+      {step === 2 && (
+        <OnboardingPersonalInfo 
+          onComplete={() => setStep(3)}
+          googleProfile={googleProfile}
+        />
+      )}
+      
+      {/* Step 3: Leader Selection */}
       {step === 3 && (
         isLoadingLeaders ? (
           <div className="max-w-4xl mx-auto my-10 bg-white p-8 rounded-lg shadow-md">
@@ -256,16 +214,22 @@ export default function Onboarding() {
         ) : (
           <LeaderSelection 
             leaders={leaders}
-            onComplete={() => {
-              // Completed all onboarding steps, go to dashboard
-              toast({
-                title: "Welcome to LeaderTalk!",
-                description: "Your profile is now complete. You can start improving your communication skills.",
-              });
-              window.location.href = '/dashboard';
-            }}
+            onComplete={() => setStep(4)}
           />
         )
+      )}
+      
+      {/* Step 4: Feature Overview & Get Started */}
+      {step === 4 && (
+        <OnboardingFeatures 
+          onComplete={() => {
+            toast({
+              title: "Welcome to LeaderTalk!",
+              description: "Your profile is now complete. You can start improving your communication skills.",
+            });
+            window.location.href = '/dashboard';
+          }}
+        />
       )}
     </div>
   );
