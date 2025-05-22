@@ -610,14 +610,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let errorMessage = null;
       
       try {
-        // Use the imported function from the top of the file
-        if (user.stripeCustomerId) {
-          // Get the word limit from our centralized function
+        // Check if user has Stripe subscription - if not, initialize one automatically
+        if (!user.stripeCustomerId || !user.stripeSubscriptionId) {
+          console.log(`🔄 AUTOMATIC SUBSCRIPTION INITIALIZATION TRIGGERED (Word Usage Check)`);
+          console.log(`📊 User ${userId} (${user.email}) needs subscription setup for word usage check`);
+          
+          try {
+            // Import and use the getCurrentSubscription function to initialize subscription
+            const { getCurrentSubscription } = await import('./stripe.js');
+            
+            // Create a mock request/response to trigger subscription initialization
+            const mockReq = { session: { userId } };
+            let subscriptionCreated = false;
+            
+            const mockRes = {
+              setHeader: () => {},
+              status: (code: number) => ({
+                json: (data: any) => {
+                  if (code === 200 && data.success) {
+                    subscriptionCreated = true;
+                    console.log(`✅ Subscription initialized successfully for user ${userId}`);
+                  }
+                  return mockRes;
+                }
+              }),
+              json: (data: any) => {
+                if (data.success) {
+                  subscriptionCreated = true;
+                  console.log(`✅ Subscription initialized successfully for user ${userId}`);
+                }
+                return mockRes;
+              }
+            };
+            
+            // Trigger subscription initialization
+            await getCurrentSubscription(mockReq as any, mockRes as any);
+            
+            if (subscriptionCreated) {
+              // Refresh user data after subscription creation
+              const updatedUser = await storage.getUser(userId);
+              if (updatedUser?.stripeCustomerId) {
+                wordLimit = await getUserSubscriptionWordLimit(userId);
+                console.log("Found word limit after initialization:", wordLimit);
+              }
+            }
+            
+          } catch (initError) {
+            console.error("Error during automatic subscription initialization:", initError);
+            errorMessage = "Unable to initialize subscription";
+          }
+        } else {
+          // User has existing subscription
           wordLimit = await getUserSubscriptionWordLimit(userId);
           console.log("Found word limit using centralized utility:", wordLimit);
-        } else {
-          console.log("User has no Stripe customer ID");
-          errorMessage = "User has no active subscription";
         }
       } catch (stripeError) {
         console.error("Error fetching subscription data from Stripe:", stripeError);
