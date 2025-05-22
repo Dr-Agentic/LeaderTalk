@@ -208,7 +208,7 @@ export default function DirectLogin() {
             forceOnboarding: forceOnboarding
           });
           
-          // If force onboarding is checked, reset user data and go to onboarding
+          // Check force onboarding FIRST, before any other logic
           if (forceOnboarding) {
             console.log("Force onboarding requested, resetting user data...");
             logInfo("Force onboarding requested, resetting user data");
@@ -221,16 +221,22 @@ export default function DirectLogin() {
                 selectedLeaders: null,
                 preferredLeadershipStyle: null,
               });
-              console.log("User data reset, redirecting to onboarding...");
+              console.log("User data reset successfully, redirecting to onboarding...");
+              logInfo("User data reset successfully, redirecting to onboarding");
               window.location.href = "/onboarding";
+              return; // Important: Exit early to prevent further logic
             } catch (resetError) {
               console.error("Error resetting user data:", resetError);
+              logError("Error resetting user data", { error: resetError });
               // Still go to onboarding even if reset fails
+              console.log("Reset failed but still redirecting to onboarding...");
               window.location.href = "/onboarding";
+              return; // Important: Exit early
             }
           }
-          // If user doesn't have onboarding data, go to onboarding
-          else if (!userData.selectedLeaders || !userData.dateOfBirth || !userData.profession || !userData.goals) {
+          
+          // Only check normal onboarding logic if force onboarding is NOT enabled
+          if (!userData.selectedLeaders || !userData.dateOfBirth || !userData.profession || !userData.goals) {
             console.log("User needs onboarding, redirecting to /onboarding...");
             logInfo("User needs onboarding, redirecting to /onboarding");
             window.location.href = "/onboarding";
