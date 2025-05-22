@@ -187,6 +187,14 @@ export default function DirectLogin() {
       console.log("Force onboarding checkbox is:", forceOnboarding);
       logInfo("Google sign-in process initiated from UI");
       
+      // Store the force onboarding flag in sessionStorage so other components can access it
+      if (forceOnboarding) {
+        sessionStorage.setItem('forceOnboarding', 'true');
+        console.log("Stored forceOnboarding flag in sessionStorage");
+      } else {
+        sessionStorage.removeItem('forceOnboarding');
+      }
+      
       // Use the popup authentication
       const user = await signInWithGoogle();
       console.log("Google sign-in completed successfully", user);
