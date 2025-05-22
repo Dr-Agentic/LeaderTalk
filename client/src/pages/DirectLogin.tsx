@@ -202,14 +202,25 @@ export default function DirectLogin() {
       
       // Handle force onboarding after authentication
       if (user && forceOnboarding) {
-        console.log("Force onboarding detected - will reset user data first");
-        logInfo("Force onboarding detected - will reset user data first");
+        console.log("Force onboarding detected - setting database flag");
+        logInfo("Force onboarding detected - setting database flag");
         
-        // Skip the data reset for now - just redirect directly to onboarding
-        // The onboarding component will handle the incomplete data gracefully
-        console.log("Skipping data reset - redirecting directly to onboarding");
+        try {
+          // Set the force onboarding flag in the database
+          const flagResponse = await apiRequest('PATCH', '/api/users/me', {
+            forceOnboarding: true
+          });
+          
+          if (flagResponse.ok) {
+            console.log("Force onboarding flag set successfully");
+          } else {
+            console.log("Failed to set flag, but continuing to onboarding");
+          }
+        } catch (error) {
+          console.log("Error setting flag, but continuing to onboarding");
+        }
         
-        // Clean up and redirect to onboarding immediately
+        // Clean up and redirect to onboarding
         sessionStorage.removeItem('forceOnboarding');
         console.log("Redirecting to onboarding...");
         window.location.href = "/onboarding";

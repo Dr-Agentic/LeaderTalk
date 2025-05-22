@@ -31,6 +31,8 @@ export const users = pgTable("users", {
   stripeSubscriptionId: text("stripe_subscription_id"),
   // Next billing date for subscriptions
   nextBillingDate: timestamp("next_billing_date"),
+  // Force onboarding flag for testing purposes
+  forceOnboarding: boolean("force_onboarding").default(false),
 });
 
 export const leaders = pgTable("leaders", {
