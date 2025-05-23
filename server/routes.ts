@@ -2523,8 +2523,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       return res.json(wordUsageData);
-      
-      if (billingCycle) {
+    } catch (error) {
+      console.error("Error fetching word usage statistics:", error);
+      return res.status(500).json({ message: "Failed to retrieve word usage data" });
+    }
+  });
+  
+  // API endpoint to get current user's subscription details
+  app.get('/api/current-subscription', requireAuth, async (req, res) => {
+    // Set explicit content type to ensure proper JSON response
+    res.setHeader('Content-Type', 'application/json');
+    
+    // Call the subscription handler function from stripe.ts
+    return getCurrentSubscription(req, res);
+  });
+
+  // Unused code - to be removed
+  const unused_old_code_start = () => {
+      if (false) {
         const now = new Date();
         const endDate = new Date(billingCycle.end);
         daysRemaining = Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
