@@ -28,23 +28,16 @@ export interface SubscriptionData {
 }
 
 /**
- * Centralized function to get subscription data for a user
- * This is the SINGLE SOURCE OF TRUTH for all subscription operations
+ * Pure Stripe API function to get subscription data by subscription ID
+ * This function only retrieves data from Stripe - no database operations
  */
-export async function getUserSubscription(userId: number): Promise<SubscriptionData> {
-  // Get user from database
-  const user = await storage.getUser(userId);
-  if (!user) {
-    throw new Error(`User ${userId} not found`);
-  }
-
-  // Check if user has Stripe subscription
-  if (!user.stripeCustomerId || !user.stripeSubscriptionId) {
-    throw new Error(`User ${userId} has no active Stripe subscription`);
+export async function getUserSubscription(stripeSubscriptionId: string): Promise<SubscriptionData> {
+  if (!stripeSubscriptionId) {
+    throw new Error('Stripe subscription ID is required');
   }
 
   // Fetch subscription from Stripe
-  const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId, {
+  const subscription = await stripe.subscriptions.retrieve(stripeSubscriptionId, {
     expand: ['items.data.price']
   });
 
