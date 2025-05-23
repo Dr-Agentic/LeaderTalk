@@ -36,13 +36,25 @@ export async function signInWithGoogle() {
     logInfo("Starting Google sign-in with popup");
     console.log("Auth state before popup:", auth.currentUser ? "User is signed in" : "No user");
     
-    // Configure provider to return to this exact URL to prevent redirect issues
+    // Configure provider for better popup experience
     provider.setCustomParameters({
-      prompt: 'select_account'
+      prompt: 'select_account',
+      // Ensure it opens as a popup, not redirect
+      display: 'popup'
     });
     
-    // Use popup instead of redirect to avoid cross-origin issues
+    // Use popup with specific size and position for better UX
     logDebug("Opening Google auth popup");
+    
+    // Check if popup blockers are enabled
+    const testPopup = window.open('', '_blank', 'width=1,height=1');
+    if (!testPopup || testPopup.closed) {
+      logWarn("Popup blocked - user needs to allow popups");
+      throw new Error('popup-blocked');
+    } else {
+      testPopup.close();
+    }
+    
     const result = await signInWithPopup(auth, provider);
     console.log("Popup authentication completed");
     logInfo("Google popup authentication completed");
@@ -125,6 +137,18 @@ export async function signInWithGoogle() {
       stack: error?.stack,
       name: error?.name
     });
+    
+    // Handle specific popup-related errors with better user messaging
+    if (error?.code === 'auth/popup-blocked' || error?.code === 'auth/popup-closed-by-user') {
+      logWarn("Google sign-in popup was blocked or closed by user", {
+        code: error?.code,
+        userAgent: navigator.userAgent
+      });
+      throw new Error('popup-cancelled');
+    } else if (error?.message === 'popup-blocked') {
+      logWarn("Popup blocker detected");
+      throw new Error('popup-blocked');
+    }
     
     logError("Google sign-in error", {
       code: error?.code || "unknown",
