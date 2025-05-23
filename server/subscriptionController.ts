@@ -166,8 +166,14 @@ export async function getBillingCycleWordUsageAnalytics(userId: number) {
   try {
     console.log(`🔍 Generating comprehensive subscription management report for user ${userId}`);
 
-    // 1. Retrieve authentic subscription details from Stripe
-    const subscriptionData = await getUserSubscription(userId);
+    // 1. Get user from database to get their subscription ID
+    const user = await storage.getUser(userId);
+    if (!user?.stripeSubscriptionId) {
+      throw new Error(`User ${userId} has no Stripe subscription ID`);
+    }
+
+    // 2. Retrieve authentic subscription details from Stripe
+    const subscriptionData = await getUserSubscription(user.stripeSubscriptionId);
     console.log(`✅ Retrieved subscription data: ${subscriptionData.plan} (${subscriptionData.wordLimit} words)`);
 
     // 2. Calculate subscription period with precise timing (end - 1 millisecond)
