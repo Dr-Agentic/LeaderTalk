@@ -297,11 +297,7 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getOrCreateCurrentBillingCycle(userId: number): Promise<UserWordUsage> {
-    // First, try to get the current cycle
-    const currentCycle = await this.getCurrentBillingCycle(userId);
-    if (currentCycle) {
-      return currentCycle;
-    }
+    // Note: This method is deprecated - use wordUsageUtils.ts for authentic Stripe billing cycles
     
     // If no current cycle exists, we need to create one
     const user = await this.getUser(userId);

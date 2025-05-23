@@ -1202,24 +1202,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get recordings from current billing cycle only
   app.get("/api/recordings/current-cycle", requireAuth, async (req, res) => {
     try {
-      const { getBillingCycleForUser } = await import('./utils/wordUsageUtils');
-      const billingCycleInfo = await getBillingCycleForUser(req.session.userId!);
+      const { getUserSubscriptionData } = await import('./billingService');
+      const billingData = await getUserSubscriptionData(req.session.userId!);
       
-      if (!billingCycleInfo) {
+      if (!billingData.billingCycle) {
         return res.json([]);
       }
 
       const allRecordings = await storage.getRecordings(req.session.userId!);
       
       // Filter recordings to current billing cycle using authentic Stripe dates
-      const billingCycleStart = new Date(billingCycleInfo.start);
-      const billingCycleEnd = new Date(billingCycleInfo.end);
+      const billingCycleStart = new Date(billingData.billingCycle.start);
+      const billingCycleEnd = new Date(billingData.billingCycle.end);
       
       const currentCycleRecordings = allRecordings.filter(recording => {
         const recordingDate = new Date(recording.recordedAt || recording.createdAt);
         return recordingDate >= billingCycleStart && recordingDate <= billingCycleEnd;
       });
 
+      console.log(`📊 Found ${currentCycleRecordings.length} recordings in current billing cycle`);
       return res.json(currentCycleRecordings);
     } catch (error) {
       console.error("Error fetching current cycle recordings:", error);
