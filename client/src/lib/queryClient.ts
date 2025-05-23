@@ -8,7 +8,6 @@ let currentUserId: number | null = null;
 
 export async function checkSession(): Promise<boolean> {
   try {
-    logDebug("Checking session status");
     const timestamp = Date.now(); // Add timestamp to prevent caching
     const response = await fetch(`/api/debug/session?t=${timestamp}`, {
       credentials: 'include', // Ensure cookies are sent
