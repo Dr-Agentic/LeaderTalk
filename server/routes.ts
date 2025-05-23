@@ -2425,35 +2425,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (user.stripeCustomerId && user.stripeSubscriptionId) {
         try {
-          // Get word limit from Stripe
-          wordLimit = await getUserSubscriptionWordLimit(userId);
+          // Get billing cycle dates and word limit from centralized subscription service
+          const { getUserBillingCycle, getUserWordLimit } = await import('./subscriptionService');
           
-          // Get billing cycle dates from Stripe
-          const Stripe = (await import('stripe')).default;
-          const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-            apiVersion: "2023-10-16",
-          });
-          const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
+          const billingCycle = await getUserBillingCycle(userId);
+          wordLimit = await getUserWordLimit(userId);
           
-          // Convert Stripe Unix timestamps to JavaScript dates
-          const startDate = new Date(subscription.current_period_start * 1000);
-          const endDate = new Date(subscription.current_period_end * 1000);
-          
-          // Validate dates before converting to ISO string
-          if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-            throw new Error(`Invalid Stripe timestamps: start=${subscription.current_period_start}, end=${subscription.current_period_end}`);
-          }
-          
-          billingCycleStart = startDate.toISOString().split('T')[0];
-          billingCycleEnd = endDate.toISOString().split('T')[0];
+          billingCycleStart = billingCycle.start.toISOString().split('T')[0];
+          billingCycleEnd = billingCycle.end.toISOString().split('T')[0];
           
           console.log(`📅 Stripe billing cycle: ${billingCycleStart} to ${billingCycleEnd}`);
           console.log(`📊 Current usage: ${currentBillingCycleUsage} / ${wordLimit} words`);
           
         } catch (stripeError) {
-          console.error('Error fetching Stripe data:', stripeError);
-          // Use default word limit when Stripe fails
-          wordLimit = 500; // Default Starter plan limit
+          console.error('Error fetching Stripe subscription data:', stripeError);
+          throw new Error(`Failed to get subscription data from Stripe: ${stripeError.message}`);
         }
       } else {
         // User has no Stripe subscription, use default limit
