@@ -114,7 +114,7 @@ export default function Settings() {
         {/* Word usage stats for billing */}
         <WordUsageStats />
         
-        {/* Current billing cycle usage chart */}
+        {/* Monthly word usage chart (calendar-based) */}
         <CurrentCycleUsageChart />
         
         {/* Subscription Management */}

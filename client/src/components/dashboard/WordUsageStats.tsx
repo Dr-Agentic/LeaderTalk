@@ -2,8 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-import { CalendarIcon, PackageOpen } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import { CalendarIcon, PackageOpen, TrendingUp } from "lucide-react";
 
 // Generate a data structure for the past 6 months
 function generatePast6MonthsData(history: any[]) {
@@ -156,50 +156,22 @@ export default function WordUsageStats() {
             </p>
           </div>
 
-          {/* Billing cycle information */}
+          {/* Current Billing Cycle information */}
           <div className="mt-6 p-4 bg-primary/5 rounded-md border border-primary/20">
             <div className="flex items-start gap-3">
               <CalendarIcon className="h-5 w-5 text-primary mt-0.5" />
               <div>
-                <h4 className="text-sm font-medium">Subscription Renewal</h4>
-                {/* Always display a renewal date */}
+                <h4 className="text-sm font-medium">Current Billing Cycle</h4>
                 <p className="text-sm text-muted-foreground">
-                  Your word count will reset on <span className="font-medium text-primary">{billingCycle.endDate ? formatDate(billingCycle.endDate) : "N/A"}</span>
+                  From {billingCycle.startDate ? formatDate(billingCycle.startDate) : "N/A"} to {billingCycle.endDate ? formatDate(billingCycle.endDate) : "N/A"}
                 </p>
                 {billingCycle.daysRemaining && (
                   <p className="text-sm mt-1">
-                    <span className="font-medium">{billingCycle.daysRemaining}</span> days remaining in this cycle
+                    <span className="font-medium">{billingCycle.daysRemaining}</span> days remaining
                   </p>
                 )}
-                <p className="text-xs mt-2 text-muted-foreground">
-                  Based on {subscriptionPlan.name} plan ({subscriptionPlan.monthlyWordLimit ? subscriptionPlan.monthlyWordLimit.toLocaleString() : "N/A"} words monthly)
-                </p>
               </div>
             </div>
-          </div>
-
-          <div className="h-48 mt-6">
-            <p className="mb-2 text-sm font-medium">Calendar Monthly Usage</p>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={usageHistory}>
-                <XAxis 
-                  dataKey="name" 
-                  fontSize={12} 
-                  interval={0} 
-                />
-                <YAxis fontSize={12} />
-                <Tooltip 
-                  formatter={(value) => [`${value.toLocaleString()} words`, 'Usage']}
-                  labelFormatter={(label) => `${label}`}
-                />
-                <Bar 
-                  dataKey="words" 
-                  fill="var(--primary)" 
-                  radius={[4, 4, 0, 0]} 
-                  maxBarSize={50}
-                />
-              </BarChart>
-            </ResponsiveContainer>
           </div>
         </div>
       </CardContent>
