@@ -173,6 +173,18 @@ export default function WordUsageStats() {
             
             const currentCycleRecordings = recordingsData.filter(recording => {
               const recordingDate = new Date(recording.recordedAt || recording.createdAt);
+              
+              // Debug logging to see what's happening
+              console.log('Recording:', {
+                title: recording.title,
+                recordedAt: recording.recordedAt,
+                createdAt: recording.createdAt,
+                recordingDate: recordingDate.toISOString(),
+                billingStart: billingCycleStart.toISOString(),
+                billingEnd: billingCycleEnd.toISOString(),
+                isInCycle: recordingDate >= billingCycleStart && recordingDate <= billingCycleEnd
+              });
+              
               return recordingDate >= billingCycleStart && recordingDate <= billingCycleEnd;
             });
 
