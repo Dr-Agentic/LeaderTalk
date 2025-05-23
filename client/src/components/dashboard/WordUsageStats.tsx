@@ -164,42 +164,38 @@ export default function WordUsageStats() {
 
 
           {/* Billing Cycle Recordings Chart */}
-          {!isRecordingsLoading && data?.history && (
+          {!isLoading && data?.history && data.history.length > 0 && (
             <div className="h-48 mt-6">
               <div className="flex items-center gap-2 mb-3">
                 <TrendingUp className="h-4 w-4 text-primary" />
                 <p className="text-sm font-medium">Billing Cycle Recordings</p>
               </div>
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={currentMonthData.chartData}>
+                <BarChart data={data.history.slice(0, 10).map((entry, index) => ({
+                  name: `Recording ${index + 1}`,
+                  words: entry.wordCount || 0,
+                  displayName: entry.displayName || `Entry ${index + 1}`
+                }))}>
                   <XAxis 
-                    dataKey="date" 
+                    dataKey="name" 
                     fontSize={12} 
                     interval={0}
                     tick={{ fontSize: 10 }}
                   />
                   <YAxis fontSize={12} />
                   <Tooltip 
-                    formatter={(value, name, props) => [
+                    formatter={(value) => [
                       `${value.toLocaleString()} words`,
                       'Words Used'
                     ]}
-                    labelFormatter={(label, payload) => {
-                      if (payload && payload[0] && payload[0].payload) {
-                        return `${payload[0].payload.recordingName || `Day ${label}`}`;
-                      }
-                      return `Day ${label}`;
-                    }}
+                    labelFormatter={(label) => label}
                   />
                   <Bar 
                     dataKey="words" 
+                    fill="var(--primary)"
                     radius={[4, 4, 0, 0]}
-                    maxBarSize={currentMonthData.chartData.length > 20 ? 20 : 40}
-                  >
-                    {currentMonthData.chartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill="var(--primary)" />
-                    ))}
-                  </Bar>
+                    maxBarSize={40}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </div>
