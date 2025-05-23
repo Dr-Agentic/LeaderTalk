@@ -183,15 +183,19 @@ export async function getCurrentSubscription(req: Request, res: Response) {
             plan: "starter",
             planId: starterProduct.id,
             isFree: true,
-            // Original subscription start date
-            startDate: subscription.start_date ? new Date(subscription.start_date * 1000) : new Date(),
-            // Current billing period
-            currentPeriodStart: new Date(subscription.current_period_start * 1000),
-            currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+            // Original subscription start date - require valid data from Stripe
+            startDate: subscription.start_date ? new Date(subscription.start_date * 1000) : 
+              (() => { throw new Error(`Error from Stripe: subscription.start_date is missing for subscription ${subscription.id}`) })(),
+            // Current billing period - require valid data from Stripe
+            currentPeriodStart: subscription.current_period_start ? new Date(subscription.current_period_start * 1000) :
+              (() => { throw new Error(`Error from Stripe: subscription.current_period_start is missing for subscription ${subscription.id}`) })(),
+            currentPeriodEnd: subscription.current_period_end ? new Date(subscription.current_period_end * 1000) :
+              (() => { throw new Error(`Error from Stripe: subscription.current_period_end is missing for subscription ${subscription.id}`) })(),
             cancelAtPeriodEnd: subscription.cancel_at_period_end,
             amount: 0,
             currency: (starterProduct.default_price as Stripe.Price).currency,
-            interval: (starterProduct.default_price as Stripe.Price).recurring?.interval || 'month',
+            interval: (starterProduct.default_price as Stripe.Price).recurring?.interval || 
+              (() => { throw new Error(`Error from Stripe: recurring.interval is missing for product ${starterProduct.id}`) })(),
             productImage: starterProduct.images && starterProduct.images.length > 0 ? starterProduct.images[0] : null
           }
         });
