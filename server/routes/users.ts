@@ -15,11 +15,7 @@ export function registerUserRoutes(app: Express) {
   // Get current user info
   app.get("/api/users/me", async (req, res, next) => {
     try {
-      console.log("===== USER ME REQUEST =====");
-      console.log("Session ID:", req.sessionID);
-      console.log("User ID in session:", req.session?.userId);
-      console.log("Session cookie:", req.headers.cookie);
-      console.log("Full session data:", req.session);
+
       
       const userId = req.session?.userId;
       if (!userId) {
@@ -27,15 +23,10 @@ export function registerUserRoutes(app: Express) {
         return res.status(401).json({ error: "Not authenticated" });
       }
       
-      console.log("Looking up user ID:", userId);
       const user = await storage.getUser(userId);
       if (!user) {
-        console.log("User not found in storage for ID:", userId);
         return res.status(404).json({ error: "User not found" });
       }
-      
-      console.log("User found:", user.id, user.username);
-      console.log("===== END USER ME REQUEST =====");
       
       res.json(user);
     } catch (error) {
