@@ -164,17 +164,17 @@ export default function WordUsageStats() {
 
 
           {/* Billing Cycle Recordings Chart */}
-          {!isLoading && data?.history && data.history.length > 0 && (
+          {!isRecordingsLoading && recordingsData && recordingsData.length > 0 && (
             <div className="h-48 mt-6">
               <div className="flex items-center gap-2 mb-3">
                 <TrendingUp className="h-4 w-4 text-primary" />
                 <p className="text-sm font-medium">Billing Cycle Recordings</p>
               </div>
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={data.history.slice(0, 10).map((entry, index) => ({
-                  name: `Recording ${index + 1}`,
-                  words: entry.wordCount || 0,
-                  displayName: entry.displayName || `Entry ${index + 1}`
+                <BarChart data={recordingsData.slice(0, 10).map((recording, index) => ({
+                  name: recording.title.length > 10 ? recording.title.substring(0, 10) + '...' : recording.title,
+                  words: recording.wordCount || 0,
+                  fullTitle: recording.title
                 }))}>
                   <XAxis 
                     dataKey="name" 
@@ -184,11 +184,16 @@ export default function WordUsageStats() {
                   />
                   <YAxis fontSize={12} />
                   <Tooltip 
-                    formatter={(value) => [
+                    formatter={(value, name, props) => [
                       `${value.toLocaleString()} words`,
                       'Words Used'
                     ]}
-                    labelFormatter={(label) => label}
+                    labelFormatter={(label, payload) => {
+                      if (payload && payload[0] && payload[0].payload) {
+                        return payload[0].payload.fullTitle;
+                      }
+                      return label;
+                    }}
                   />
                   <Bar 
                     dataKey="words" 
