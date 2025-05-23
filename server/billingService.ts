@@ -87,6 +87,69 @@ export function calculateUsagePercentage(currentUsage: number, wordLimit: number
 }
 
 /**
+ * Helper function to calculate analytics from usage report data
+ */
+function calculateCycleAnalytics(usageReport: any, wordLimit: number) {
+  const usagePercentage = wordLimit > 0 
+    ? Math.round((usageReport.totalWordCount / wordLimit) * 100)
+    : 0;
+
+  const remainingWords = Math.max(0, wordLimit - usageReport.totalWordCount);
+  const hasExceededLimit = usageReport.totalWordCount > wordLimit;
+  
+  const averageWordsPerRecording = usageReport.recordingCount > 0 
+    ? Math.round(usageReport.totalWordCount / usageReport.recordingCount)
+    : 0;
+
+  const totalRecordingDuration = usageReport.recordings.reduce((sum: number, recording: any) => sum + recording.duration, 0);
+  const averageDurationPerRecording = usageReport.recordingCount > 0
+    ? Math.round(totalRecordingDuration / usageReport.recordingCount)
+    : 0;
+
+  return {
+    usagePercentage,
+    remainingWords,
+    hasExceededLimit,
+    averageWordsPerRecording,
+    totalRecordingDuration,
+    averageDurationPerRecording,
+  };
+}
+
+/**
+ * Helper function to calculate billing cycle dates based on interval
+ */
+function calculateHistoricalCycleDates(currentPeriodStart: Date, interval: string, cycleNumber: number) {
+  let cycleStart: Date;
+  let cycleEnd: Date;
+  
+  if (interval === 'month') {
+    // Monthly cycles
+    cycleEnd = new Date(currentPeriodStart);
+    cycleEnd.setMonth(cycleEnd.getMonth() - cycleNumber);
+    cycleEnd.setTime(cycleEnd.getTime() - 1); // End of previous cycle
+    
+    cycleStart = new Date(cycleEnd);
+    cycleStart.setMonth(cycleStart.getMonth());
+    cycleStart.setDate(1);
+    cycleStart.setHours(0, 0, 0, 0);
+  } else {
+    // Yearly cycles
+    cycleEnd = new Date(currentPeriodStart);
+    cycleEnd.setFullYear(cycleEnd.getFullYear() - cycleNumber);
+    cycleEnd.setTime(cycleEnd.getTime() - 1);
+    
+    cycleStart = new Date(cycleEnd);
+    cycleStart.setFullYear(cycleStart.getFullYear());
+    cycleStart.setMonth(0);
+    cycleStart.setDate(1);
+    cycleStart.setHours(0, 0, 0, 0);
+  }
+  
+  return { cycleStart, cycleEnd };
+}
+
+/**
  * Generate comprehensive billing cycle word usage analytics combining Stripe subscription data with detailed usage reporting
  * @param userId - User ID to analyze
  * @returns Complete billing cycle analytics with subscription details and word usage breakdown
@@ -153,22 +216,8 @@ export async function getBillingCycleWordUsageAnalytics(userId: number): Promise
       userId
     );
 
-    // 4. Calculate comprehensive analytics
-    const usagePercentage = subscriptionData.wordLimit > 0 
-      ? Math.round((usageReport.totalWordCount / subscriptionData.wordLimit) * 100)
-      : 0;
-
-    const remainingWords = Math.max(0, subscriptionData.wordLimit - usageReport.totalWordCount);
-    const hasExceededLimit = usageReport.totalWordCount > subscriptionData.wordLimit;
-    
-    const averageWordsPerRecording = usageReport.recordingCount > 0 
-      ? Math.round(usageReport.totalWordCount / usageReport.recordingCount)
-      : 0;
-
-    const totalRecordingDuration = usageReport.recordings.reduce((sum, recording) => sum + recording.duration, 0);
-    const averageDurationPerRecording = usageReport.recordingCount > 0
-      ? Math.round(totalRecordingDuration / usageReport.recordingCount)
-      : 0;
+    // 4. Calculate comprehensive analytics using shared helper
+    const analytics = calculateCycleAnalytics(usageReport, subscriptionData.wordLimit);
 
     const result = {
       subscription: {
@@ -203,5 +252,231 @@ export async function getBillingCycleWordUsageAnalytics(userId: number): Promise
   } catch (error) {
     console.error("❌ Error generating subscription management report:", error);
     throw new Error(`Failed to generate subscription management report: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Generate billing cycle word usage history across multiple cycles for trend analysis
+ * @param userId - User ID to analyze
+ * @param numberOfCycles - Number of billing cycles to analyze (including current)
+ * @returns Historical usage data with trend analytics across multiple billing periods
+ */
+export async function getBillingCycleWordUsageHistory(userId: number, numberOfCycles: number = 3): Promise<{
+  userId: number;
+  cyclesAnalyzed: number;
+  generatedAt: Date;
+  currentCycle: {
+    subscription: {
+      id: string;
+      status: string;
+      plan: string;
+      planId: string;
+      isFree: boolean;
+      startDate: Date;
+      currentPeriodStart: Date;
+      currentPeriodEnd: Date;
+      wordLimit: number;
+      amount: number;
+      currency: string;
+      interval: string;
+    };
+    usageReport: {
+      totalWordCount: number;
+      firstRecordingCreatedAt: Date | null;
+      lastRecordingCreatedAt: Date | null;
+      recordingCount: number;
+      recordings: Array<{
+        id: number;
+        name: string;
+        createdAt: Date;
+        wordCount: number;
+        duration: number;
+        order: number;
+      }>;
+    };
+    analytics: {
+      usagePercentage: number;
+      remainingWords: number;
+      hasExceededLimit: boolean;
+      averageWordsPerRecording: number;
+      totalRecordingDuration: number;
+      averageDurationPerRecording: number;
+    };
+  };
+  historicalCycles: Array<{
+    cycleNumber: number;
+    startDate: Date;
+    endDate: Date;
+    usageReport: {
+      totalWordCount: number;
+      firstRecordingCreatedAt: Date | null;
+      lastRecordingCreatedAt: Date | null;
+      recordingCount: number;
+      recordings: Array<{
+        id: number;
+        name: string;
+        createdAt: Date;
+        wordCount: number;
+        duration: number;
+        order: number;
+      }>;
+    };
+    analytics: {
+      usagePercentage: number;
+      averageWordsPerRecording: number;
+      totalRecordingDuration: number;
+      averageDurationPerRecording: number;
+    };
+  }>;
+  trendAnalytics: {
+    totalWordsAcrossCycles: number;
+    averageWordsPerCycle: number;
+    usageTrend: "increasing" | "decreasing" | "stable";
+    cycleComparison: Array<{
+      cycle: string;
+      words: number;
+      change: string;
+    }>;
+  };
+}> {
+  try {
+    console.log(`🔍 Generating ${numberOfCycles}-cycle word usage history for user ${userId}`);
+
+    // Get current cycle analytics first
+    const currentCycleAnalytics = await getBillingCycleWordUsageAnalytics(userId);
+    
+    // Calculate historical cycle periods
+    const historicalCycles = [];
+    const currentPeriodStart = currentCycleAnalytics.subscription.currentPeriodStart;
+    const interval = currentCycleAnalytics.subscription.interval;
+    
+    // Import database storage for historical data
+    const { dbStorage } = await import("./dbStorage.js");
+    
+    // Calculate previous cycles based on interval
+    for (let cycleNumber = 1; cycleNumber < numberOfCycles; cycleNumber++) {
+      let cycleStart: Date;
+      let cycleEnd: Date;
+      
+      if (interval === 'month') {
+        // Monthly cycles
+        cycleEnd = new Date(currentPeriodStart);
+        cycleEnd.setMonth(cycleEnd.getMonth() - cycleNumber);
+        cycleEnd.setTime(cycleEnd.getTime() - 1); // End of previous cycle
+        
+        cycleStart = new Date(cycleEnd);
+        cycleStart.setMonth(cycleStart.getMonth());
+        cycleStart.setDate(1);
+        cycleStart.setHours(0, 0, 0, 0);
+      } else {
+        // Yearly cycles
+        cycleEnd = new Date(currentPeriodStart);
+        cycleEnd.setFullYear(cycleEnd.getFullYear() - cycleNumber);
+        cycleEnd.setTime(cycleEnd.getTime() - 1);
+        
+        cycleStart = new Date(cycleEnd);
+        cycleStart.setFullYear(cycleStart.getFullYear());
+        cycleStart.setMonth(0);
+        cycleStart.setDate(1);
+        cycleStart.setHours(0, 0, 0, 0);
+      }
+      
+      console.log(`📅 Analyzing cycle ${cycleNumber}: ${cycleStart.toISOString()} to ${cycleEnd.toISOString()}`);
+      
+      // Get usage data for this historical cycle
+      const usageReport = await dbStorage.wordUsageReport(cycleStart, cycleEnd, userId);
+      
+      // Calculate analytics for this cycle
+      const usagePercentage = currentCycleAnalytics.subscription.wordLimit > 0 
+        ? Math.round((usageReport.totalWordCount / currentCycleAnalytics.subscription.wordLimit) * 100)
+        : 0;
+      
+      const averageWordsPerRecording = usageReport.recordingCount > 0 
+        ? Math.round(usageReport.totalWordCount / usageReport.recordingCount)
+        : 0;
+      
+      const totalRecordingDuration = usageReport.recordings.reduce((sum, recording) => sum + recording.duration, 0);
+      const averageDurationPerRecording = usageReport.recordingCount > 0
+        ? Math.round(totalRecordingDuration / usageReport.recordingCount)
+        : 0;
+      
+      historicalCycles.push({
+        cycleNumber,
+        startDate: cycleStart,
+        endDate: cycleEnd,
+        usageReport,
+        analytics: {
+          usagePercentage,
+          averageWordsPerRecording,
+          totalRecordingDuration,
+          averageDurationPerRecording,
+        },
+      });
+    }
+    
+    // Calculate trend analytics
+    const allCycles = [
+      { cycle: "current", words: currentCycleAnalytics.usageReport.totalWordCount },
+      ...historicalCycles.map(cycle => ({ 
+        cycle: `${cycle.cycleNumber}_cycles_ago`, 
+        words: cycle.usageReport.totalWordCount 
+      }))
+    ];
+    
+    const totalWordsAcrossCycles = allCycles.reduce((sum, cycle) => sum + cycle.words, 0);
+    const averageWordsPerCycle = Math.round(totalWordsAcrossCycles / allCycles.length);
+    
+    // Determine usage trend
+    let usageTrend: "increasing" | "decreasing" | "stable" = "stable";
+    if (allCycles.length >= 2) {
+      const currentWords = allCycles[0].words;
+      const previousWords = allCycles[1].words;
+      const threshold = averageWordsPerCycle * 0.1; // 10% threshold
+      
+      if (currentWords > previousWords + threshold) {
+        usageTrend = "increasing";
+      } else if (currentWords < previousWords - threshold) {
+        usageTrend = "decreasing";
+      }
+    }
+    
+    // Calculate cycle comparison with percentage changes
+    const cycleComparison = allCycles.map((cycle, index) => {
+      let change = "0%";
+      if (index > 0) {
+        const previousCycle = allCycles[index - 1];
+        const percentChange = previousCycle.words > 0 
+          ? Math.round(((cycle.words - previousCycle.words) / previousCycle.words) * 100)
+          : 0;
+        change = percentChange > 0 ? `+${percentChange}%` : `${percentChange}%`;
+      }
+      
+      return {
+        cycle: cycle.cycle,
+        words: cycle.words,
+        change,
+      };
+    });
+    
+    const result = {
+      userId,
+      cyclesAnalyzed: numberOfCycles,
+      generatedAt: new Date(),
+      currentCycle: currentCycleAnalytics,
+      historicalCycles,
+      trendAnalytics: {
+        totalWordsAcrossCycles,
+        averageWordsPerCycle,
+        usageTrend,
+        cycleComparison,
+      },
+    };
+    
+    console.log(`📊 History Analysis: ${totalWordsAcrossCycles} total words across ${numberOfCycles} cycles (${usageTrend} trend)`);
+    
+    return result;
+  } catch (error) {
+    console.error("❌ Error generating billing cycle usage history:", error);
+    throw new Error(`Failed to generate billing cycle usage history: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
