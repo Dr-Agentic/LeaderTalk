@@ -16,6 +16,7 @@ import cors from "cors";
 import Stripe from "stripe";
 import { getUserSubscriptionWordLimit } from "./utils/stripeWordLimits";
 import { getUserBillingCycle, getUserWordLimit } from "./subscriptionService";
+import { getUserSubscriptionData, calculateBillingCycleInfo, calculateUsagePercentage } from "./billingService";
 
 // Get the directory path for our project
 const __filename = fileURLToPath(import.meta.url);
@@ -2507,37 +2508,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Helper function to get user subscription data
-  async function getUserSubscriptionData(userId: number) {
-    const user = await storage.getUser(userId);
-    if (!user) {
-      throw new Error("User not found");
-    }
 
-    const currentUsage = await storage.getCurrentWordUsage(userId);
-    const billingCycle = await getUserBillingCycle(userId);
-    
-    let stripeWordLimit = 0;
-    let stripeWordLimitError = null;
-    
-    try {
-      if (user.stripeCustomerId && user.stripeSubscriptionId) {
-        stripeWordLimit = await getUserWordLimit(userId);
-        console.log("Got word limit from Stripe:", stripeWordLimit);
-      }
-    } catch (error) {
-      console.error("Error getting word limit from Stripe:", error);
-      stripeWordLimitError = error.message;
-    }
-
-    return {
-      user,
-      currentUsage,
-      billingCycle,
-      stripeWordLimit,
-      stripeWordLimitError
-    };
-  }
 
   // Endpoint to get user's word usage statistics for billing
   app.get("/api/usage/words", requireAuth, async (req, res) => {
