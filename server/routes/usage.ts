@@ -1,5 +1,5 @@
 import { Express, Request, Response } from "express";
-import { getUserSubscriptionData, calculateBillingCycleInfo, calculateUsagePercentage } from "../subscriptionController";
+import { getBillingCycleWordUsageAnalytics } from "../subscriptionController";
 import { getUserBillingCycle, getUserWordLimit } from "../paymentServiceHandler";
 
 const requireAuth = (req: Request, res: Response, next: Function) => {
