@@ -287,21 +287,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  private calculateUserBillingCycleStart(user: User): Date {
-    const now = new Date();
-    const registrationDate = new Date(user.createdAt);
-    const billingDay = user.billingCycleDay || registrationDate.getDate();
-    
-    const cycleStart = new Date(now.getFullYear(), now.getMonth(), billingDay, 0, 0, 0, 0);
-    
-    // If we're past the billing day this month, use this month's billing day
-    // If we're before the billing day, use last month's billing day
-    if (now.getDate() < billingDay) {
-      cycleStart.setMonth(cycleStart.getMonth() - 1);
-    }
-    
-    return cycleStart;
-  }
+
 
   private calculateUserBillingCycleEnd(cycleStart: Date): Date {
     const cycleEnd = new Date(cycleStart);
