@@ -2507,36 +2507,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Helper function to get user subscription data
+  async function getUserSubscriptionData(userId: number) {
+    const user = await storage.getUser(userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const currentUsage = await storage.getCurrentWordUsage(userId);
+    const billingCycle = await getUserBillingCycle(userId);
+    
+    let stripeWordLimit = 0;
+    let stripeWordLimitError = null;
+    
+    try {
+      if (user.stripeCustomerId && user.stripeSubscriptionId) {
+        stripeWordLimit = await getUserWordLimit(userId);
+        console.log("Got word limit from Stripe:", stripeWordLimit);
+      }
+    } catch (error) {
+      console.error("Error getting word limit from Stripe:", error);
+      stripeWordLimitError = error.message;
+    }
+
+    return {
+      user,
+      currentUsage,
+      billingCycle,
+      stripeWordLimit,
+      stripeWordLimitError
+    };
+  }
+
   // Endpoint to get user's word usage statistics for billing
   app.get("/api/usage/words", requireAuth, async (req, res) => {
     try {
-      // Get user details to check when billing cycle resets
-      const user = await storage.getUser(req.session.userId!);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-      
-      // Get current billing cycle usage
-      const currentUsage = await storage.getCurrentWordUsage(req.session.userId!);
-      
-      // Get billing cycle information from Stripe subscription
-      const billingCycle = await getUserBillingCycle(req.session.userId!);
-      
-      // Get the word limit from Stripe using the centralized service
-      let stripeWordLimit = 0;
-      let stripeWordLimitError = null;
-      
-      try {
-        if (user.stripeCustomerId && user.stripeSubscriptionId) {
-          stripeWordLimit = await getUserWordLimit(req.session.userId!);
-          console.log("Got word limit from Stripe:", stripeWordLimit);
-        }
-      } catch (error) {
-        console.error("Error getting word limit from Stripe:", error);
-        stripeWordLimitError = error.message;
-      }
-      
-      // Remove fake subscription data - use only authentic Stripe data
+      const { user, currentUsage, billingCycle, stripeWordLimit, stripeWordLimitError } = 
+        await getUserSubscriptionData(req.session.userId!);
       
       // Calculate days remaining in current cycle
       let daysRemaining = 0;
@@ -2611,8 +2618,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       });
       
-      // Use the Stripe word limit if available, otherwise fall back to database plan
-      let finalWordLimit = stripeWordLimit > 0 ? stripeWordLimit : (subscriptionPlan ? subscriptionPlan.monthlyWordLimit : 0);
+      // Use only authentic Stripe word limit data
+      let finalWordLimit = stripeWordLimit;
       
       // Calculate usage percentage based on the word limit
       const wordLimitPercentage = finalWordLimit > 0
