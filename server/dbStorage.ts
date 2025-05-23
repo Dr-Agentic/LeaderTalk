@@ -708,7 +708,7 @@ export class DatabaseStorage implements IStorage {
         totalWordCount,
         firstRecordingCreatedAt,
         lastRecordingCreatedAt,
-        recordingCount: recordings.length,
+        recordingCount: recordingResults.length,
         recordings: formattedRecordings,
       };
 
