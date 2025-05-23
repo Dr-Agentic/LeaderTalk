@@ -34,19 +34,6 @@ export function registerSubscriptionRoutes(app: Express) {
     }
   });
 
-  // Create new subscription
-  app.post('/api/subscriptions', requireAuth, createSubscription);
-
-  // Verify payment status
-  app.post('/api/verify-payment', requireAuth, verifyPaymentStatus);
-
-  // Stripe webhook endpoint
-  app.post('/api/webhooks/stripe', express.raw({ type: 'application/json' }), handleStripeWebhook);
-  
-  // Stripe Products API
-  app.get('/api/stripe-products', getStripeProducts);
-  app.post('/api/create-stripe-subscription', requireAuth, createStripeSubscription);
-  
-  // RevenueCat webhook endpoint
-  app.post('/api/webhooks/revenuecat', express.json(), handleRevenueCatWebhook);
+  // TODO: Add subscription management endpoints as needed
+  // These endpoints were temporarily removed during refactoring
 }

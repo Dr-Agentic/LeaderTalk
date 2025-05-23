@@ -18,18 +18,18 @@ export function registerUsageRoutes(app: Express) {
         return res.status(401).json({ error: "Authentication required" });
       }
 
-      const billingData = await getUserSubscriptionData(userId);
+      const billingData = await getBillingCycleWordUsageAnalytics(userId);
       
       const response = {
-        currentUsage: billingData.currentUsage,
-        wordLimit: billingData.stripeWordLimit,
-        usagePercentage: calculateUsagePercentage(billingData.currentUsage, billingData.stripeWordLimit),
-        hasExceededLimit: billingData.currentUsage > billingData.stripeWordLimit,
-        billingCycle: billingData.billingCycle ? {
-          startDate: billingData.billingCycle.start.toISOString().split('T')[0],
-          endDate: billingData.billingCycle.end.toISOString().split('T')[0],
-          daysRemaining: calculateBillingCycleInfo(billingData.billingCycle).daysRemaining
-        } : null
+        currentUsage: billingData.analytics.currentUsage,
+        wordLimit: billingData.analytics.wordLimit,
+        usagePercentage: billingData.analytics.usagePercentage,
+        hasExceededLimit: billingData.analytics.hasExceededLimit,
+        billingCycle: {
+          startDate: billingData.analytics.billingCycleProgress.cycleStart.toISOString().split('T')[0],
+          endDate: billingData.analytics.billingCycleProgress.cycleEnd.toISOString().split('T')[0],
+          daysRemaining: billingData.analytics.billingCycleProgress.daysRemaining
+        }
       };
 
       console.log('✅ Returning billing cycle data:', response);
@@ -48,22 +48,21 @@ export function registerUsageRoutes(app: Express) {
         return res.status(401).json({ error: "Authentication required" });
       }
 
-      const billingData = await getUserSubscriptionData(userId);
-      const billingCycle = billingData.billingCycle;
+      const billingData = await getBillingCycleWordUsageAnalytics(userId);
       
       const response = {
-        currentMonthUsage: billingData.currentUsage,
-        wordLimitPercentage: calculateUsagePercentage(billingData.currentUsage, billingData.stripeWordLimit),
-        billingCycle: billingCycle ? calculateBillingCycleInfo(billingCycle) : null,
-        wordLimit: billingData.stripeWordLimit,
-        hasExceededLimit: billingData.currentUsage > billingData.stripeWordLimit
+        currentMonthUsage: billingData.analytics.currentUsage,
+        wordLimitPercentage: billingData.analytics.usagePercentage,
+        billingCycle: {
+          daysRemaining: billingData.analytics.billingCycleProgress.daysRemaining,
+          cycleStartDate: billingData.analytics.billingCycleProgress.cycleStart.toISOString().split('T')[0],
+          cycleEndDate: billingData.analytics.billingCycleProgress.cycleEnd.toISOString().split('T')[0]
+        },
+        wordLimit: billingData.analytics.wordLimit,
+        hasExceededLimit: billingData.analytics.hasExceededLimit
       };
 
-      console.log('Final billing cycle data:', billingCycle ? {
-        startDate: billingCycle.start.toISOString().split('T')[0],
-        endDate: billingCycle.end.toISOString().split('T')[0],
-        daysRemaining: calculateBillingCycleInfo(billingCycle).daysRemaining
-      } : null);
+      console.log('Final billing cycle data:', response.billingCycle);
 
       res.json(response);
     } catch (error) {

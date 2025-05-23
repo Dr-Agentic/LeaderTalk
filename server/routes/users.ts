@@ -52,12 +52,16 @@ export function registerUserRoutes(app: Express) {
         return res.status(401).json({ error: "Authentication required" });
       }
 
-      // Temporarily return basic data to get app working
+      const billingData = await getBillingCycleWordUsageAnalytics(userId);
+      
       res.json({
-        currentUsage: 0,
-        wordLimit: 500,
-        billingCycle: { startDate: '2025-05-21', endDate: '2025-06-21' },
-        usagePercentage: 0
+        currentUsage: billingData.analytics.currentUsage,
+        wordLimit: billingData.analytics.wordLimit,
+        billingCycle: {
+          startDate: billingData.analytics.billingCycleProgress.cycleStart.toISOString().split('T')[0],
+          endDate: billingData.analytics.billingCycleProgress.cycleEnd.toISOString().split('T')[0]
+        },
+        usagePercentage: billingData.analytics.usagePercentage
       });
     } catch (error) {
       console.error("Error fetching word usage:", error);
