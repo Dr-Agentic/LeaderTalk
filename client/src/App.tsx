@@ -156,8 +156,7 @@ function Router() {
       {!isAuthenticated && <Route path="/transcripts" component={DirectLogin} />}
       {!isAuthenticated && <Route path="/progress" component={DirectLogin} />}
       
-      {/* Debug routes - always accessible */}
-      <Route path="/debug" component={DebugLogs} />
+
       
       {/* Fallback route */}
       <Route component={NotFound} />
