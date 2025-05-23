@@ -3,7 +3,7 @@
  * Use server/subscriptionService.ts instead for all subscription operations.
  */
 
-import { getUserWordLimit } from '../subscriptionService';
+import { getUserWordLimit } from '../paymentServiceHandler';
 
 /**
  * Get word limit for a user's current subscription

@@ -62,15 +62,19 @@ export async function getUserSubscription(userId: number): Promise<SubscriptionD
     plan: product.name.toLowerCase(),
     planId: product.id,
     isFree: price.unit_amount === 0,
-    startDate: subscription.start_date ? new Date(subscription.start_date * 1000) : new Date(),
-    currentPeriodStart: new Date(subscription.current_period_start * 1000),
-    currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+    startDate: subscription.start_date ? new Date(subscription.start_date * 1000) : 
+      (() => { throw new Error(`Error from Stripe: subscription.start_date is missing for subscription ${subscription.id}`) })(),
+    currentPeriodStart: subscription.current_period_start ? new Date(subscription.current_period_start * 1000) :
+      (() => { throw new Error(`Error from Stripe: subscription.current_period_start is missing for subscription ${subscription.id}`) })(),
+    currentPeriodEnd: subscription.current_period_end ? new Date(subscription.current_period_end * 1000) :
+      (() => { throw new Error(`Error from Stripe: subscription.current_period_end is missing for subscription ${subscription.id}`) })(),
     nextRenewalDate: new Date(subscription.current_period_end * 1000),
     nextRenewalTimestamp: subscription.current_period_end,
     cancelAtPeriodEnd: subscription.cancel_at_period_end,
     amount: price.unit_amount || 0,
     currency: price.currency,
-    interval: price.recurring?.interval || 'month',
+    interval: price.recurring?.interval || 
+      (() => { throw new Error(`Error from Stripe: recurring.interval is missing for price ${price.id}`) })(),
     productImage: product.images && product.images.length > 0 ? product.images[0] : null,
     metadata: product.metadata,
     wordLimit

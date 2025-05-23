@@ -15,7 +15,7 @@ import { fileURLToPath } from "url";
 import cors from "cors";
 import Stripe from "stripe";
 import { getUserSubscriptionWordLimit } from "./utils/stripeWordLimits";
-import { getUserBillingCycle, getUserWordLimit } from "./subscriptionService";
+import { getUserBillingCycle, getUserWordLimit } from "./paymentServiceHandler";
 import { getUserSubscriptionData, calculateBillingCycleInfo, calculateUsagePercentage } from "./billingService";
 import { getWordUsageStats } from "./utils/wordUsageUtils";
 
@@ -39,7 +39,7 @@ import {
   getStripeProducts,
   createStripeSubscription,
   getCurrentSubscription
-} from "./stripe";
+} from "./subscriptionController";
 import { updateLeaderImages } from "./update-leader-images";
 import { importTrainingData } from "./import-training-data";
 import { updateUserSubscription } from "./subscription";

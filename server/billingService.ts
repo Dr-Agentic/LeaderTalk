@@ -1,4 +1,4 @@
-import { getUserBillingCycle, getUserWordLimit } from "./subscriptionService";
+import { getUserBillingCycle, getUserWordLimit } from "./paymentServiceHandler";
 import { storage } from "./storage";
 
 export interface BillingData {
