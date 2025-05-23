@@ -55,8 +55,12 @@ export function registerRecordingRoutes(app: Express) {
       }
 
       // Get billing cycle dates for filtering
-      const { getBillingCycleForUser } = await import('../utils/wordUsageUtils');
-      const billingCycle = await getBillingCycleForUser(userId);
+      const { getBillingCycleWordUsageAnalytics } = await import('../subscriptionController');
+      const billingData = await getBillingCycleWordUsageAnalytics(userId);
+      const billingCycle = {
+        start: billingData.analytics.billingCycleProgress.cycleStart,
+        end: billingData.analytics.billingCycleProgress.cycleEnd
+      };
       
       if (!billingCycle) {
         return res.json([]);
