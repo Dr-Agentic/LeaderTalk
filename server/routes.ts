@@ -1196,7 +1196,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(500).json({ message: "Internal server error" });
     }
   });
-  
+
+  // Get recordings from current billing cycle only
+  app.get("/api/recordings/current-cycle", requireAuth, async (req, res) => {
+    try {
+      const user = await storage.getUser(req.session.userId!);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Get current billing cycle info using existing logic
+      const billingCycleData = await storage.getOrCreateCurrentBillingCycle(req.session.userId!);
+      const allRecordings = await storage.getRecordings(req.session.userId!);
+      
+      // Filter recordings to current billing cycle using the same date logic as word usage
+      const billingCycleStart = new Date(billingCycleData.cycleStartDate);
+      const billingCycleEnd = new Date(billingCycleData.cycleEndDate);
+      
+      const currentCycleRecordings = allRecordings.filter(recording => {
+        const recordingDate = new Date(recording.recordedAt || recording.createdAt);
+        return recordingDate >= billingCycleStart && recordingDate <= billingCycleEnd;
+      });
+
+      return res.json(currentCycleRecordings);
+    } catch (error) {
+      console.error("Error fetching current cycle recordings:", error);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Get recording by ID
   app.get("/api/recordings/:id", requireAuth, async (req, res) => {
     try {
