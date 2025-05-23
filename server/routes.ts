@@ -15,6 +15,7 @@ import { fileURLToPath } from "url";
 import cors from "cors";
 import Stripe from "stripe";
 import { getUserSubscriptionWordLimit } from "./utils/stripeWordLimits";
+import { getUserBillingCycle, getUserWordLimit } from "./subscriptionService";
 
 // Get the directory path for our project
 const __filename = fileURLToPath(import.meta.url);
@@ -2518,16 +2519,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get current billing cycle usage
       const currentUsage = await storage.getCurrentWordUsage(req.session.userId!);
       
-      // Get the current billing cycle for additional information
-      const currentCycle = await storage.getCurrentBillingCycle(req.session.userId!);
+      // Get billing cycle information from Stripe subscription
+      const billingCycle = await getUserBillingCycle(req.session.userId!);
       
-      // Get the word limit from Stripe using the central utility function
+      // Get the word limit from Stripe using the centralized service
       let stripeWordLimit = 0;
       let stripeWordLimitError = null;
       
       try {
         if (user.stripeCustomerId && user.stripeSubscriptionId) {
-          stripeWordLimit = await getUserSubscriptionWordLimit(req.session.userId!);
+          stripeWordLimit = await getUserWordLimit(req.session.userId!);
           console.log("Got word limit from Stripe:", stripeWordLimit);
         }
       } catch (error) {
@@ -2535,31 +2536,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         stripeWordLimitError = error.message;
       }
       
-      // Use default subscription plan data
-      const subscriptionPlan = {
-        id: 1,
-        name: "Starter",
-        planCode: "starter",
-        monthlyWordLimit: 500,
-        monthlyPriceUsd: "0",
-        yearlyPriceUsd: "0",
-        features: ["500 words per month", "Basic analytics", "Up to 3 leader models"],
-        isDefault: true
-      };
+      // Remove fake subscription data - use only authentic Stripe data
       
       // Calculate days remaining in current cycle
       let daysRemaining = 0;
       let cycleStartDate = '';
       let cycleEndDate = '';
       
-      if (currentCycle) {
+      if (billingCycle) {
         const now = new Date();
-        const endDate = new Date(currentCycle.cycleEndDate);
+        const endDate = new Date(billingCycle.end);
         daysRemaining = Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
         
         // Format dates for frontend display
-        cycleStartDate = new Date(currentCycle.cycleStartDate).toISOString().split('T')[0];
-        cycleEndDate = new Date(currentCycle.cycleEndDate).toISOString().split('T')[0];
+        cycleStartDate = new Date(billingCycle.start).toISOString().split('T')[0];
+        cycleEndDate = new Date(billingCycle.end).toISOString().split('T')[0];
       } else {
         // If we don't have a current cycle, calculate one based on user registration date
         const registrationDate = new Date(user.createdAt);
@@ -2628,15 +2619,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ? Math.min(100, Math.round((currentUsage / finalWordLimit) * 100))
         : 0;
       
-      console.log("Returning word usage data:", {
-        currentUsage,
-        cycleStartDate,
-        cycleEndDate,
-        stripeWordLimit,
-        databaseWordLimit: subscriptionPlan ? subscriptionPlan.monthlyWordLimit : 0,
-        finalWordLimit,
-        wordLimitPercentage
-      });
+      // Removed debug log with fake data structure
       
       // Ensure we always have valid dates
       if (!cycleStartDate || cycleStartDate === '') {
