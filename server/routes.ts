@@ -2541,16 +2541,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
 
-  
-  // API endpoint to get current user's subscription details
-  app.get('/api/current-subscription', requireAuth, async (req, res) => {
-    // Set explicit content type to ensure proper JSON response
-    res.setHeader('Content-Type', 'application/json');
-    
-    // Call the subscription handler function from stripe.ts
-    return getCurrentSubscription(req, res);
-  });
-
   // API endpoint to get all subscription plans
   app.get('/api/subscription-plans', async (req, res) => {
     try {
@@ -2679,11 +2669,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // New Stripe Product API Endpoints - No auth required for viewing products
   app.get('/api/stripe-products', getStripeProducts);
-  app.get('/api/current-subscription', requireAuth, (req, res) => {
-    // Set response type explicitly to avoid HTML response issues
-    res.setHeader('Content-Type', 'application/json');
-    return getCurrentSubscription(req, res);
-  });
+
   app.post('/api/create-stripe-subscription', requireAuth, createStripeSubscription);
   
   // RevenueCat endpoint
