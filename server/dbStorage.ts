@@ -216,7 +216,7 @@ export class DatabaseStorage implements IStorage {
       if (user.stripeCustomerId && user.stripeSubscriptionId) {
         try {
           // Use centralized subscription service
-          const { auditUserSubscriptions, getUserBillingCycle } = await import('./subscriptionService');
+          const { auditUserSubscriptions, getUserBillingCycle } = await import('./paymentServiceHandler');
           
           // Audit for multiple subscriptions
           await auditUserSubscriptions(userId);

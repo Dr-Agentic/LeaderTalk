@@ -2458,7 +2458,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (user.stripeCustomerId && user.stripeSubscriptionId) {
         try {
           // Get billing cycle dates and word limit from centralized subscription service
-          const { getUserBillingCycle, getUserWordLimit } = await import('./subscriptionService');
+          const { getUserBillingCycle, getUserWordLimit } = await import('./paymentServiceHandler');
           
           const billingCycle = await getUserBillingCycle(userId);
           wordLimit = await getUserWordLimit(userId);
