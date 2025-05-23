@@ -2513,13 +2513,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Endpoint to get user's word usage statistics for billing
   app.get("/api/usage/words", requireAuth, async (req, res) => {
     try {
-      const { user, currentUsage, billingCycle, stripeWordLimit, stripeWordLimitError } = 
-        await getUserSubscriptionData(req.session.userId!);
+      const { getWordUsageStatistics } = await import('./utils/wordUsageUtils');
+      const wordUsageData = await getWordUsageStatistics(req.session.userId!);
       
-      // Calculate days remaining in current cycle
-      let daysRemaining = 0;
-      let cycleStartDate = '';
-      let cycleEndDate = '';
+      console.log("Final billing cycle data:", {
+        startDate: wordUsageData.billingCycle.startDate,
+        endDate: wordUsageData.billingCycle.endDate,
+        daysRemaining: wordUsageData.billingCycle.daysRemaining
+      });
+      
+      return res.json(wordUsageData);
       
       if (billingCycle) {
         const now = new Date();
