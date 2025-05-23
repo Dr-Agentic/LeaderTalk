@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -13,22 +13,28 @@ export function LegalModal({ isOpen, onClose, type }: LegalModalProps) {
   
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[80vh] flex flex-col">
-        <DialogHeader>
+      <DialogContent className="max-w-4xl max-h-[85vh] flex flex-col p-0">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b">
           <DialogTitle className="text-xl font-semibold">
             {isTerms ? 'Terms of Service' : 'Privacy Policy'}
           </DialogTitle>
+          <DialogDescription className="text-sm text-muted-foreground">
+            {isTerms 
+              ? 'Please review our terms and conditions for using LeaderTalk.' 
+              : 'Learn how we collect, use, and protect your personal information.'
+            }
+          </DialogDescription>
         </DialogHeader>
         
-        <ScrollArea className="flex-1 pr-4">
-          <div className="space-y-6 text-sm leading-relaxed">
+        <ScrollArea className="flex-1 px-6 py-4" style={{ maxHeight: 'calc(85vh - 140px)' }}>
+          <div className="space-y-6 text-sm leading-relaxed pr-4">
             {isTerms ? <TermsContent /> : <PrivacyContent />}
           </div>
         </ScrollArea>
         
-        <DialogFooter>
-          <Button onClick={onClose} className="w-full">
-            Close
+        <DialogFooter className="px-6 pb-6 pt-4 border-t bg-muted/30">
+          <Button onClick={onClose} className="w-full" size="lg">
+            I Understand
           </Button>
         </DialogFooter>
       </DialogContent>
