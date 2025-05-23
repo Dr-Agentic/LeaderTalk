@@ -269,13 +269,14 @@ export class DatabaseStorage implements IStorage {
       }
 
       // Get word usage entries that fall within the current billing cycle
+      // Filter by when recordings were actually made (createdAt) vs Stripe billing cycle
       const currentCycleEntries = await db.select()
         .from(userWordUsage)
         .where(
           and(
             eq(userWordUsage.userId, userId),
-            sql`${userWordUsage.cycleStartDate} >= ${billingCycleStart}`,
-            sql`${userWordUsage.cycleStartDate} < ${billingCycleEnd}`
+            sql`${userWordUsage.createdAt} >= ${billingCycleStart}`,
+            sql`${userWordUsage.createdAt} < ${billingCycleEnd}`
           )
         );
       
