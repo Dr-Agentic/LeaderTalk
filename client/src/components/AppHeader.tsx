@@ -3,7 +3,6 @@ import { MenuIcon, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
 import { Link } from "wouter";
-import logoImage from "@assets/LeaderTalk-NoLabel.png";
 
 interface AppHeaderProps {
   setSidebarOpen: (isOpen: boolean) => void;
@@ -61,10 +60,7 @@ export default function AppHeader({
         {/* Centered logo and title */}
         <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center justify-center">
           <Link href="/" className="flex items-center gap-2">
-            <svg className="h-8 w-8" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="50" cy="50" r="45" fill="currentColor" className="text-primary"/>
-              <text x="50" y="60" textAnchor="middle" fontSize="40" fontWeight="bold" fill="white">LT</text>
-            </svg>
+            <img src="/assets/images/LeaderTalk.png" alt="LeaderTalk Logo" className="h-8 w-auto" />
             <h1 className="text-lg font-bold text-primary">LeaderTalk</h1>
           </Link>
         </div>

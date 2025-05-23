@@ -34,7 +34,7 @@ export default function SplashScreen({
           className="w-40 md:w-48 mb-6 flex justify-center items-center"
         >
           <img 
-            src="/assets/LeaderTalk-NoLabel.png?v=2" 
+            src="/assets/LeaderTalk-NoLabel.png" 
             alt="LeaderTalk" 
             className="w-full h-auto object-contain"
           />
