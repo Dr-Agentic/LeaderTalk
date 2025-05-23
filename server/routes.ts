@@ -1202,18 +1202,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get recordings from current billing cycle only
   app.get("/api/recordings/current-cycle", requireAuth, async (req, res) => {
     try {
-      const user = await storage.getUser(req.session.userId!);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
+      const { getBillingCycleForUser } = await import('./utils/wordUsageUtils');
+      const billingCycleInfo = await getBillingCycleForUser(req.session.userId!);
+      
+      if (!billingCycleInfo) {
+        return res.json([]);
       }
 
-      // Get current billing cycle info using existing logic
-      const billingCycleData = await storage.getOrCreateCurrentBillingCycle(req.session.userId!);
       const allRecordings = await storage.getRecordings(req.session.userId!);
       
-      // Filter recordings to current billing cycle using the same date logic as word usage
-      const billingCycleStart = new Date(billingCycleData.cycleStartDate);
-      const billingCycleEnd = new Date(billingCycleData.cycleEndDate);
+      // Filter recordings to current billing cycle using authentic Stripe dates
+      const billingCycleStart = new Date(billingCycleInfo.start);
+      const billingCycleEnd = new Date(billingCycleInfo.end);
       
       const currentCycleRecordings = allRecordings.filter(recording => {
         const recordingDate = new Date(recording.recordedAt || recording.createdAt);
