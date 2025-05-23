@@ -17,7 +17,7 @@ import Stripe from "stripe";
 import { getUserSubscriptionWordLimit } from "./utils/stripeWordLimits";
 import { getUserBillingCycle, getUserWordLimit } from "./paymentServiceHandler";
 import { getUserSubscriptionData, calculateBillingCycleInfo, calculateUsagePercentage } from "./billingService";
-import { getWordUsageStats } from "./utils/wordUsageUtils";
+
 
 // Get the directory path for our project
 const __filename = fileURLToPath(import.meta.url);
@@ -2540,10 +2540,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return getCurrentSubscription(req, res);
   });
 
-  // Word usage statistics endpoint - now simplified to use billing service
-  app.get('/api/usage/words', requireAuth, async (req, res) => {
-    return getWordUsageStats(req, res);
-  });
+
   
   // API endpoint to get current user's subscription details
   app.get('/api/current-subscription', requireAuth, async (req, res) => {
