@@ -54,17 +54,28 @@ export function registerRecordingRoutes(app: Express) {
         return res.status(401).json({ error: "Authentication required" });
       }
 
-      // Get current word usage (which includes billing cycle logic)
-      const currentUsage = await storage.getCurrentWordUsage(userId);
+      // Get billing cycle dates for filtering
+      const { getBillingCycleForUser } = await import('../utils/wordUsageUtils');
+      const billingCycle = await getBillingCycleForUser(userId);
       
-      // Get all recordings and filter by current cycle
+      if (!billingCycle) {
+        return res.json([]);
+      }
+
       const allRecordings = await storage.getRecordings(userId);
       
-      // For now, return all recordings as we'd need billing cycle dates to filter properly
-      res.json({
-        recordings: allRecordings,
-        totalWordCount: currentUsage
+      // Filter recordings to current billing cycle using authentic Stripe dates
+      const billingCycleStart = new Date(billingCycle.start);
+      const billingCycleEnd = new Date(billingCycle.end);
+      
+      const currentCycleRecordings = allRecordings.filter(recording => {
+        const recordingDate = new Date(recording.recordedAt || recording.createdAt);
+        return recordingDate >= billingCycleStart && recordingDate <= billingCycleEnd;
       });
+
+      console.log(`📊 Found ${currentCycleRecordings.length} recordings in current billing cycle`);
+      
+      res.json(currentCycleRecordings);
     } catch (error) {
       console.error("Error fetching current cycle recordings:", error);
       res.status(500).json({ error: "Failed to fetch current cycle recordings" });
