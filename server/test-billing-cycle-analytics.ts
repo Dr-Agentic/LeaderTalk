@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 
-import { getBillingCycleWordUsageAnalytics } from "./billingService.js";
+import { getBillingCycleWordUsageAnalytics } from "./subscriptionController.js";
 
 async function testBillingCycleAnalytics() {
   console.log("🧪 Testing getBillingCycleWordUsageAnalytics function...");

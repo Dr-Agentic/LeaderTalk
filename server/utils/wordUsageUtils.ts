@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { getUserSubscriptionData } from "../billingService";
+import { getUserSubscriptionData } from "../subscriptionController";
 
 // Export for route handlers
 export async function getWordUsageStatistics(userId: number) {

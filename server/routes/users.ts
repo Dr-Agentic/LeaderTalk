@@ -1,7 +1,7 @@
 import { Express, Request, Response } from "express";
 import { storage } from "../storage";
 import { insertUserSchema, updateUserSchema } from "@shared/schema";
-import { getUserSubscriptionData } from "../billingService";
+import { getUserSubscriptionData } from "../subscriptionController";
 import { z } from "zod";
 
 const requireAuth = (req: Request, res: Response, next: Function) => {

@@ -3,7 +3,7 @@
  * This validates the multi-cycle billing analysis and trend calculations
  */
 
-import { getBillingCycleWordUsageHistory } from './billingService.js';
+import { getBillingCycleWordUsageHistory } from './subscriptionController.js';
 
 async function testBillingCycleHistory() {
   try {

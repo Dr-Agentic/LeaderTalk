@@ -108,7 +108,7 @@ export async function getUserSubscriptionData(userId: number): Promise<BillingDa
     }
 
     const { dbStorage } = await import("./dbStorage.js");
-    const currentUsage = await dbStorage.getCurrentWordUsage(userId);
+    const currentUsage = await dbStorage.getCurrentWordUsage_deprecated(userId);
     
     let billingCycle = null;
     let stripeWordLimit = 500; // Default fallback
