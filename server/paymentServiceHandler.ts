@@ -78,7 +78,14 @@ export async function getUserSubscription(stripeSubscriptionId: string): Promise
  * Get billing cycle dates for a user from their Stripe subscription
  */
 export async function getUserBillingCycle(userId: number): Promise<{ start: Date; end: Date }> {
-  const subscription = await getUserSubscription(userId);
+  // Get user from database to get their subscription ID
+  const user = await storage.getUser(userId);
+  if (!user?.stripeSubscriptionId) {
+    throw new Error(`User ${userId} has no Stripe subscription ID`);
+  }
+
+  // Use the pure Stripe API function
+  const subscription = await getUserSubscription(user.stripeSubscriptionId);
   return {
     start: subscription.currentPeriodStart,
     end: subscription.currentPeriodEnd
