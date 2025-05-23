@@ -1,0 +1,44 @@
+import { Express } from "express";
+import { registerAuthRoutes } from "./auth";
+import { registerUserRoutes } from "./users";
+import { registerLeaderRoutes } from "./leaders";
+import { registerRecordingRoutes } from "./recordings";
+import { registerSubscriptionRoutes } from "./subscriptions";
+import { registerTrainingRoutes } from "./training";
+import { registerAdminRoutes } from "./admin";
+import { registerDebugRoutes } from "./debug";
+import { registerUsageRoutes } from "./usage";
+
+/**
+ * Register all route modules with the Express app
+ */
+export function registerAllRoutes(app: Express) {
+  // Authentication routes
+  registerAuthRoutes(app);
+  
+  // User management routes
+  registerUserRoutes(app);
+  
+  // Leader-related routes
+  registerLeaderRoutes(app);
+  
+  // Recording management routes
+  registerRecordingRoutes(app);
+  
+  // Subscription and billing routes
+  registerSubscriptionRoutes(app);
+  
+  // Usage tracking routes
+  registerUsageRoutes(app);
+  
+  // Training content routes
+  registerTrainingRoutes(app);
+  
+  // Admin functionality routes
+  registerAdminRoutes(app);
+  
+  // Debug and health check routes
+  registerDebugRoutes(app);
+  
+  console.log("✅ All route modules registered successfully");
+}
