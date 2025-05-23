@@ -60,7 +60,7 @@ export default function AppHeader({
         {/* Centered logo and title */}
         <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center justify-center">
           <Link href="/" className="flex items-center gap-2">
-            <img src="/assets/images/LeaderTalk.png" alt="LeaderTalk Logo" className="h-8 w-auto" />
+            <img src="/assets/LeaderTalk-NoLabel.png" alt="LeaderTalk Logo" className="h-8 w-auto" />
             <h1 className="text-lg font-bold text-primary">LeaderTalk</h1>
           </Link>
         </div>
