@@ -97,6 +97,11 @@ export default function WordUsageStats() {
     queryKey: ['/api/usage/billing-cycle'],
   });
 
+  // Get current month data for billing cycle recordings chart
+  const { data: currentMonthData, isLoading: isCurrentMonthLoading } = useQuery({
+    queryKey: ['/api/current-month-data'],
+  });
+
   if (isLoading) {
     return <WordUsageStatsSkeleton />;
   }
@@ -165,7 +170,7 @@ export default function WordUsageStats() {
                 <p className="text-sm text-muted-foreground">
                   From {billingCycle.startDate ? formatDate(billingCycle.startDate) : "N/A"} to {billingCycle.endDate ? formatDate(billingCycle.endDate) : "N/A"}
                 </p>
-                {billingCycle.daysRemaining && (
+                {billingCycle.daysRemaining !== undefined && (
                   <p className="text-sm mt-1">
                     <span className="font-medium">{billingCycle.daysRemaining}</span> days remaining
                   </p>
@@ -173,6 +178,48 @@ export default function WordUsageStats() {
               </div>
             </div>
           </div>
+
+          {/* Billing Cycle Recordings Chart */}
+          {!isCurrentMonthLoading && currentMonthData?.chartData && (
+            <div className="h-48 mt-6">
+              <div className="flex items-center gap-2 mb-3">
+                <TrendingUp className="h-4 w-4 text-primary" />
+                <p className="text-sm font-medium">Billing Cycle Recordings</p>
+              </div>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={currentMonthData.chartData}>
+                  <XAxis 
+                    dataKey="date" 
+                    fontSize={12} 
+                    interval={0}
+                    tick={{ fontSize: 10 }}
+                  />
+                  <YAxis fontSize={12} />
+                  <Tooltip 
+                    formatter={(value, name, props) => [
+                      `${value.toLocaleString()} words`,
+                      'Words Used'
+                    ]}
+                    labelFormatter={(label, payload) => {
+                      if (payload && payload[0] && payload[0].payload) {
+                        return `${payload[0].payload.recordingName || `Day ${label}`}`;
+                      }
+                      return `Day ${label}`;
+                    }}
+                  />
+                  <Bar 
+                    dataKey="words" 
+                    radius={[4, 4, 0, 0]}
+                    maxBarSize={currentMonthData.chartData.length > 20 ? 20 : 40}
+                  >
+                    {currentMonthData.chartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill="var(--primary)" />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
