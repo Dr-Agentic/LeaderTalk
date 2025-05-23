@@ -296,46 +296,7 @@ export class DatabaseStorage implements IStorage {
     return cycleEnd;
   }
   
-  async getOrCreateCurrentBillingCycle(userId: number): Promise<UserWordUsage> {
-    // Note: This method is deprecated - use wordUsageUtils.ts for authentic Stripe billing cycles
-    
-    // If no current cycle exists, we need to create one
-    const user = await this.getUser(userId);
-    if (!user) {
-      throw new Error(`User with ID ${userId} not found`);
-    }
-    
-    // Get user creation date to use as reference for billing cycles
-    const userCreatedAt = user.createdAt;
-    const now = new Date();
-    
-    // Find the most recent cycle to determine the next cycle number
-    const previousCycles = await db.select()
-      .from(userWordUsage)
-      .where(eq(userWordUsage.userId, userId))
-      .orderBy(desc(userWordUsage.cycleNumber))
-      .limit(1);
-    
-    const lastCycleNumber = previousCycles.length > 0 ? previousCycles[0].cycleNumber : 0;
-    const newCycleNumber = lastCycleNumber + 1;
-    
-    // Calculate the billing cycle dates
-    const cycleStartDate = calculateCycleStartDate(userCreatedAt, now, user.billingCycleDay);
-    const cycleEndDate = calculateCycleEndDate(cycleStartDate);
-    
-    // Create the new billing cycle record
-    const newCycle = await this.createUserWordUsage({
-      userId,
-      year: cycleStartDate.getUTCFullYear(),
-      month: cycleStartDate.getUTCMonth() + 1, // JavaScript months are 0-indexed
-      cycleStartDate,
-      cycleEndDate,
-      wordCount: 0,
-      cycleNumber: newCycleNumber
-    });
-    
-    return newCycle;
-  }
+
   // Initialize default leaders if none exist
   async initializeDefaultLeaders(): Promise<void> {
     const existingLeaders = await this.getLeaders();
