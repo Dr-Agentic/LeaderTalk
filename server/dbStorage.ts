@@ -247,7 +247,7 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
 
-  async getCurrentWordUsage(userId: number): Promise<number> {
+  async getCurrentWordUsage_deprecated(userId: number): Promise<number> {
     try {
       // First, get the user to determine their Stripe subscription billing cycle
       const user = await this.getUser(userId);
@@ -640,14 +640,14 @@ export class DatabaseStorage implements IStorage {
   /**
    * Generate comprehensive word usage report for a specific time interval
    * @param startTime - Start of the time interval
-   * @param endTime - End of the time interval  
+   * @param endTime - End of the time interval
    * @param userId - User ID to generate report for
    * @returns Detailed report with recordings and usage statistics
    */
   async wordUsageReport(
     startTime: Date,
     endTime: Date,
-    userId: number
+    userId: number,
   ): Promise<{
     totalWordCount: number;
     firstRecordingCreatedAt: Date | null;
@@ -663,7 +663,9 @@ export class DatabaseStorage implements IStorage {
     }>;
   }> {
     try {
-      console.log(`📊 Generating word usage report for user ${userId} from ${startTime.toISOString()} to ${endTime.toISOString()}`);
+      console.log(
+        `📊 Generating word usage report for user ${userId} from ${startTime.toISOString()} to ${endTime.toISOString()}`,
+      );
 
       // Get all recordings for the user within the time interval
       const recordingResults = await db
@@ -680,19 +682,28 @@ export class DatabaseStorage implements IStorage {
             eq(recordings.userId, userId),
             gte(recordings.recordedAt, startTime),
             lte(recordings.recordedAt, endTime),
-            isNotNull(recordings.wordCount)
-          )
+            isNotNull(recordings.wordCount),
+          ),
         )
         .orderBy(asc(recordings.recordedAt));
 
-      console.log(`📈 Found ${recordingResults.length} recordings for user ${userId} in specified time interval`);
+      console.log(
+        `📈 Found ${recordingResults.length} recordings for user ${userId} in specified time interval`,
+      );
 
       // Calculate total word count
-      const totalWordCount = recordingResults.reduce((sum, recording) => sum + (recording.wordCount || 0), 0);
+      const totalWordCount = recordingResults.reduce(
+        (sum, recording) => sum + (recording.wordCount || 0),
+        0,
+      );
 
       // Get first and last recording timestamps
-      const firstRecordingCreatedAt = recordingResults.length > 0 ? recordingResults[0].createdAt : null;
-      const lastRecordingCreatedAt = recordingResults.length > 0 ? recordingResults[recordingResults.length - 1].createdAt : null;
+      const firstRecordingCreatedAt =
+        recordingResults.length > 0 ? recordingResults[0].createdAt : null;
+      const lastRecordingCreatedAt =
+        recordingResults.length > 0
+          ? recordingResults[recordingResults.length - 1].createdAt
+          : null;
 
       // Format recordings with order numbers
       const formattedRecordings = recordingResults.map((recording, index) => ({
@@ -712,16 +723,18 @@ export class DatabaseStorage implements IStorage {
         recordings: formattedRecordings,
       };
 
-      console.log(`✅ Generated report: ${report.recordingCount} recordings, ${report.totalWordCount} total words`);
-      
+      console.log(
+        `✅ Generated report: ${report.recordingCount} recordings, ${report.totalWordCount} total words`,
+      );
+
       return report;
     } catch (error) {
       console.error("❌ Error generating word usage report:", error);
-      throw new Error(`Failed to generate word usage report: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to generate word usage report: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
     }
   }
-
-
 }
 
 // Export a singleton instance

@@ -2,6 +2,332 @@ import { Request, Response } from "express";
 import Stripe from "stripe";
 import { storage } from "./storage";
 
+// Import functions that will be moved from billingService
+import { getUserSubscription, getUserBillingCycle, getUserWordLimit } from "./paymentServiceHandler";
+
+/**
+ * Interface for billing data
+ */
+export interface BillingData {
+  user: any;
+  currentUsage: number;
+  billingCycle: { start: Date; end: Date } | null;
+  stripeWordLimit: number;
+  stripeWordLimitError: string | null;
+}
+
+/**
+ * Interface for billing cycle information
+ */
+export interface BillingCycleInfo {
+  daysRemaining: number;
+  cycleStartDate: string;
+  cycleEndDate: string;
+}
+
+/**
+ * Calculate usage percentage based on word limit
+ */
+export function calculateUsagePercentage(currentUsage: number, wordLimit: number): number {
+  return wordLimit > 0 
+    ? Math.min(100, Math.round((currentUsage / wordLimit) * 100))
+    : 0;
+}
+
+/**
+ * Helper function to calculate analytics from usage report data
+ */
+function calculateCycleAnalytics(usageReport: any, wordLimit: number) {
+  const usagePercentage = wordLimit > 0 
+    ? Math.round((usageReport.totalWordCount / wordLimit) * 100)
+    : 0;
+
+  const remainingWords = Math.max(0, wordLimit - usageReport.totalWordCount);
+  const hasExceededLimit = usageReport.totalWordCount > wordLimit;
+  
+  const averageWordsPerRecording = usageReport.recordingCount > 0 
+    ? Math.round(usageReport.totalWordCount / usageReport.recordingCount)
+    : 0;
+
+  const totalRecordingDuration = usageReport.recordings.reduce((sum: number, recording: any) => sum + recording.duration, 0);
+  const averageDurationPerRecording = usageReport.recordingCount > 0
+    ? Math.round(totalRecordingDuration / usageReport.recordingCount)
+    : 0;
+
+  return {
+    usagePercentage,
+    remainingWords,
+    hasExceededLimit,
+    averageWordsPerRecording,
+    totalRecordingDuration,
+    averageDurationPerRecording,
+  };
+}
+
+/**
+ * Helper function to calculate billing cycle dates based on interval
+ */
+function calculateHistoricalCycleDates(currentPeriodStart: Date, interval: string, cycleNumber: number) {
+  let cycleStart: Date;
+  let cycleEnd: Date;
+  
+  if (interval === 'month') {
+    // Monthly cycles
+    cycleEnd = new Date(currentPeriodStart);
+    cycleEnd.setMonth(cycleEnd.getMonth() - cycleNumber);
+    cycleEnd.setTime(cycleEnd.getTime() - 1); // End of previous cycle
+    
+    cycleStart = new Date(cycleEnd);
+    cycleStart.setMonth(cycleStart.getMonth());
+    cycleStart.setDate(1);
+    cycleStart.setHours(0, 0, 0, 0);
+  } else {
+    // Yearly cycles
+    cycleEnd = new Date(currentPeriodStart);
+    cycleEnd.setFullYear(cycleEnd.getFullYear() - cycleNumber);
+    cycleEnd.setTime(cycleEnd.getTime() - 1);
+    
+    cycleStart = new Date(cycleEnd);
+    cycleStart.setFullYear(cycleStart.getFullYear());
+    cycleStart.setMonth(0);
+    cycleStart.setDate(1);
+    cycleStart.setHours(0, 0, 0, 0);
+  }
+  
+  return { cycleStart, cycleEnd };
+}
+
+/**
+ * Get user subscription data from authentic sources only
+ */
+export async function getUserSubscriptionData(userId: number): Promise<BillingData> {
+  try {
+    const user = await storage.getUser(userId);
+    if (!user) {
+      throw new Error(`User ${userId} not found`);
+    }
+
+    const { dbStorage } = await import("./dbStorage.js");
+    const currentUsage = await dbStorage.getCurrentWordUsage(userId);
+    
+    let billingCycle = null;
+    let stripeWordLimit = 500; // Default fallback
+    let stripeWordLimitError = null;
+
+    try {
+      billingCycle = await getUserBillingCycle(userId);
+      stripeWordLimit = await getUserWordLimit(userId);
+    } catch (error) {
+      stripeWordLimitError = `Failed to get Stripe data: ${error instanceof Error ? error.message : 'Unknown error'}`;
+      console.warn(`⚠️ Using fallback word limit for user ${userId}:`, stripeWordLimitError);
+    }
+
+    return {
+      user,
+      currentUsage,
+      billingCycle,
+      stripeWordLimit,
+      stripeWordLimitError,
+    };
+  } catch (error) {
+    console.error("Error getting user subscription data:", error);
+    throw error;
+  }
+}
+
+/**
+ * Calculate billing cycle information for display
+ */
+export function calculateBillingCycleInfo(billingCycle: { start: Date; end: Date } | null): BillingCycleInfo {
+  if (!billingCycle) {
+    return {
+      daysRemaining: 0,
+      cycleStartDate: 'Unknown',
+      cycleEndDate: 'Unknown'
+    };
+  }
+
+  const now = new Date();
+  const daysRemaining = Math.max(0, Math.ceil((billingCycle.end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+  const cycleStartDate = billingCycle.start.toISOString().split('T')[0];
+  const cycleEndDate = billingCycle.end.toISOString().split('T')[0];
+
+  return {
+    daysRemaining,
+    cycleStartDate,
+    cycleEndDate
+  };
+}
+
+/**
+ * Generate comprehensive billing cycle word usage analytics combining Stripe subscription data with detailed usage reporting
+ */
+export async function getBillingCycleWordUsageAnalytics(userId: number) {
+  try {
+    console.log(`🔍 Generating comprehensive subscription management report for user ${userId}`);
+
+    // 1. Retrieve authentic subscription details from Stripe
+    const subscriptionData = await getUserSubscription(userId);
+    console.log(`✅ Retrieved subscription data: ${subscriptionData.plan} (${subscriptionData.wordLimit} words)`);
+
+    // 2. Calculate subscription period with precise timing (end - 1 millisecond)
+    const subscriptionStart = subscriptionData.currentPeriodStart;
+    const subscriptionEndExclusive = new Date(subscriptionData.currentPeriodEnd.getTime() - 1);
+
+    console.log(`📅 Subscription period: ${subscriptionStart.toISOString()} to ${subscriptionEndExclusive.toISOString()}`);
+
+    // 3. Fetch word usage report for the exact subscription period
+    const { dbStorage } = await import("./dbStorage.js");
+    const usageReport = await dbStorage.wordUsageReport(
+      subscriptionStart,
+      subscriptionEndExclusive,
+      userId
+    );
+
+    // 4. Calculate comprehensive analytics using shared helper
+    const analytics = calculateCycleAnalytics(usageReport, subscriptionData.wordLimit);
+
+    const result = {
+      subscription: {
+        id: subscriptionData.id,
+        status: subscriptionData.status,
+        plan: subscriptionData.plan,
+        planId: subscriptionData.planId,
+        isFree: subscriptionData.isFree,
+        startDate: subscriptionData.startDate,
+        currentPeriodStart: subscriptionData.currentPeriodStart,
+        currentPeriodEnd: subscriptionData.currentPeriodEnd,
+        wordLimit: subscriptionData.wordLimit,
+        amount: subscriptionData.amount,
+        currency: subscriptionData.currency,
+        interval: subscriptionData.interval,
+      },
+      usageReport,
+      analytics,
+    };
+
+    console.log(`📊 Analytics: ${analytics.usagePercentage}% used (${usageReport.totalWordCount}/${subscriptionData.wordLimit} words)`);
+    console.log(`🎙️ Recordings: ${usageReport.recordingCount} total, ${analytics.averageWordsPerRecording} avg words/recording`);
+    
+    return result;
+  } catch (error) {
+    console.error("❌ Error generating subscription management report:", error);
+    throw new Error(`Failed to generate subscription management report: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Generate billing cycle word usage history across multiple cycles for trend analysis
+ */
+export async function getBillingCycleWordUsageHistory(userId: number, numberOfCycles: number = 3) {
+  try {
+    console.log(`🔍 Generating ${numberOfCycles}-cycle word usage history for user ${userId}`);
+
+    // Get current cycle analytics first
+    const currentCycleAnalytics = await getBillingCycleWordUsageAnalytics(userId);
+    
+    // Calculate historical cycle periods
+    const historicalCycles = [];
+    const currentPeriodStart = currentCycleAnalytics.subscription.currentPeriodStart;
+    const interval = currentCycleAnalytics.subscription.interval;
+    
+    // Import database storage for historical data
+    const { dbStorage } = await import("./dbStorage.js");
+    
+    // Calculate previous cycles based on interval using shared helper
+    for (let cycleNumber = 1; cycleNumber < numberOfCycles; cycleNumber++) {
+      const { cycleStart, cycleEnd } = calculateHistoricalCycleDates(currentPeriodStart, interval, cycleNumber);
+      
+      console.log(`📅 Analyzing cycle ${cycleNumber}: ${cycleStart.toISOString()} to ${cycleEnd.toISOString()}`);
+      
+      // Get usage data for this historical cycle
+      const usageReport = await dbStorage.wordUsageReport(cycleStart, cycleEnd, userId);
+      
+      // Calculate analytics for this cycle using shared helper (excluding some fields for historical data)
+      const fullAnalytics = calculateCycleAnalytics(usageReport, currentCycleAnalytics.subscription.wordLimit);
+      const analytics = {
+        usagePercentage: fullAnalytics.usagePercentage,
+        averageWordsPerRecording: fullAnalytics.averageWordsPerRecording,
+        totalRecordingDuration: fullAnalytics.totalRecordingDuration,
+        averageDurationPerRecording: fullAnalytics.averageDurationPerRecording,
+      };
+      
+      historicalCycles.push({
+        cycleNumber,
+        startDate: cycleStart,
+        endDate: cycleEnd,
+        usageReport,
+        analytics,
+      });
+    }
+    
+    // Calculate trend analytics
+    const allCycles = [
+      { cycle: "current", words: currentCycleAnalytics.usageReport.totalWordCount },
+      ...historicalCycles.map(cycle => ({ 
+        cycle: `${cycle.cycleNumber}_cycles_ago`, 
+        words: cycle.usageReport.totalWordCount 
+      }))
+    ];
+    
+    const totalWordsAcrossCycles = allCycles.reduce((sum, cycle) => sum + cycle.words, 0);
+    const averageWordsPerCycle = Math.round(totalWordsAcrossCycles / allCycles.length);
+    
+    // Determine usage trend
+    let usageTrend: "increasing" | "decreasing" | "stable" = "stable";
+    if (allCycles.length >= 2) {
+      const currentWords = allCycles[0].words;
+      const previousWords = allCycles[1].words;
+      const threshold = averageWordsPerCycle * 0.1; // 10% threshold
+      
+      if (currentWords > previousWords + threshold) {
+        usageTrend = "increasing";
+      } else if (currentWords < previousWords - threshold) {
+        usageTrend = "decreasing";
+      }
+    }
+    
+    // Calculate cycle comparison with percentage changes
+    const cycleComparison = allCycles.map((cycle, index) => {
+      let change = "0%";
+      if (index > 0) {
+        const previousCycle = allCycles[index - 1];
+        const percentChange = previousCycle.words > 0 
+          ? Math.round(((cycle.words - previousCycle.words) / previousCycle.words) * 100)
+          : 0;
+        change = percentChange > 0 ? `+${percentChange}%` : `${percentChange}%`;
+      }
+      
+      return {
+        cycle: cycle.cycle,
+        words: cycle.words,
+        change,
+      };
+    });
+    
+    const result = {
+      userId,
+      cyclesAnalyzed: numberOfCycles,
+      generatedAt: new Date(),
+      currentCycle: currentCycleAnalytics,
+      historicalCycles,
+      trendAnalytics: {
+        totalWordsAcrossCycles,
+        averageWordsPerCycle,
+        usageTrend,
+        cycleComparison,
+      },
+    };
+    
+    console.log(`📊 History Analysis: ${totalWordsAcrossCycles} total words across ${numberOfCycles} cycles (${usageTrend} trend)`);
+    
+    return result;
+  } catch (error) {
+    console.error("❌ Error generating billing cycle usage history:", error);
+    throw new Error(`Failed to generate billing cycle usage history: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
 /**
  * Helper function to extract word limit from a product metadata
  * Handles different case variations (words, Words, WORDS)
@@ -61,7 +387,7 @@ if (!process.env.STRIPE_SECRET_KEY) {
 // Ensure the secret key is properly trimmed to avoid invalid characters
 const secretKey = process.env.STRIPE_SECRET_KEY ? process.env.STRIPE_SECRET_KEY.trim() : '';
 const stripe = new Stripe(secretKey, {
-  apiVersion: "2023-10-16", // Standard stable version
+  apiVersion: "2025-04-30.basil", // Standard stable version
 });
 
 // Get active subscription details for the current user
