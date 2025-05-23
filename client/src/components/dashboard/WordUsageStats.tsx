@@ -103,13 +103,10 @@ export default function WordUsageStats() {
     staleTime: 30000, // Cache for 30 seconds to avoid excessive requests
   });
 
-  // Now using authentic server-filtered data for current billing cycle
-
-  // Use the server-filtered recordings directly (no client-side filtering needed)
-  const recordingsArray = Array.isArray(currentCycleRecordings) ? currentCycleRecordings : (currentCycleRecordings?.recordings || []);
-  console.log("📊 React Query response:", currentCycleRecordings);
-  console.log("📊 Final recordings array:", recordingsArray);
-  console.log("📊 Array length:", recordingsArray?.length);
+  // Extract recordings from the enhanced current-cycle API response
+  const recordingsArray = currentCycleRecordings?.recordings || [];
+  console.log("📊 Current cycle recordings:", recordingsArray.length, "records");
+  console.log("📊 Sample record:", recordingsArray[0]);
 
   if (isLoading) {
     return <WordUsageStatsSkeleton />;
@@ -184,7 +181,7 @@ export default function WordUsageStats() {
                   name: recording.title.length > 10 ? recording.title.substring(0, 10) + '...' : recording.title,
                   words: recording.wordCount || 0,
                   fullTitle: recording.title,
-                  date: new Date(recording.recordedAt || recording.createdAt).toLocaleDateString()
+                  date: recording.formattedDate || 'N/A'
                 }))}>
                   <XAxis 
                     dataKey="name" 
