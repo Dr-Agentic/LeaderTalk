@@ -97,9 +97,9 @@ export default function WordUsageStats() {
     queryKey: ['/api/usage/billing-cycle'],
   });
 
-  // Get current month data for billing cycle recordings chart
-  const { data: currentMonthData, isLoading: isCurrentMonthLoading } = useQuery({
-    queryKey: ['/api/current-month-data'],
+  // Get recordings data for the chart
+  const { data: recordingsData, isLoading: isRecordingsLoading } = useQuery({
+    queryKey: ['/api/recordings'],
   });
 
   if (isLoading) {
@@ -164,7 +164,7 @@ export default function WordUsageStats() {
 
 
           {/* Billing Cycle Recordings Chart */}
-          {!isCurrentMonthLoading && currentMonthData?.chartData && (
+          {!isRecordingsLoading && data?.history && (
             <div className="h-48 mt-6">
               <div className="flex items-center gap-2 mb-3">
                 <TrendingUp className="h-4 w-4 text-primary" />
