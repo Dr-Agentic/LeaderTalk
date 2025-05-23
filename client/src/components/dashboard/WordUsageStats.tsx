@@ -97,15 +97,18 @@ export default function WordUsageStats() {
     queryKey: ['/api/usage/billing-cycle'],
   });
 
-  // Get current billing cycle recordings for the chart (force fresh data)
+  // Get current billing cycle recordings for the chart
   const { data: currentCycleRecordings, isLoading: isRecordingsLoading } = useQuery({
-    queryKey: ['/api/recordings/current-cycle', Date.now()], // Force cache refresh
-    staleTime: 0, // Always fetch fresh data
+    queryKey: ['/api/recordings/current-cycle'],
+    staleTime: 30000, // Cache for 30 seconds to avoid excessive requests
   });
 
-  // Extract recordings array from response
-  const recordingsArray = currentCycleRecordings?.recordings || currentCycleRecordings;
-  console.log("📊 Recordings array:", recordingsArray);
+  // Now using authentic server-filtered data for current billing cycle
+
+  // Use the server-filtered recordings directly (no client-side filtering needed)
+  const recordingsArray = Array.isArray(currentCycleRecordings) ? currentCycleRecordings : (currentCycleRecordings?.recordings || []);
+  console.log("📊 React Query response:", currentCycleRecordings);
+  console.log("📊 Final recordings array:", recordingsArray);
   console.log("📊 Array length:", recordingsArray?.length);
 
   if (isLoading) {
