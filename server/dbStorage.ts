@@ -233,6 +233,41 @@ export class DatabaseStorage implements IStorage {
           const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
             apiVersion: "2023-10-16",
           });
+          
+          // 🚨 CHECK FOR MULTIPLE SUBSCRIPTIONS - Critical resilience check
+          const allCustomerSubscriptions = await stripe.subscriptions.list({
+            customer: user.stripeCustomerId,
+            status: 'all', // Include active, past_due, canceled, etc.
+            limit: 100
+          });
+          
+          console.log(`🔍 SUBSCRIPTION AUDIT for customer ${user.stripeCustomerId}:`);
+          console.log(`   Total subscriptions found: ${allCustomerSubscriptions.data.length}`);
+          
+          if (allCustomerSubscriptions.data.length > 1) {
+            console.error(`
+🚨🚨🚨 CRITICAL: MULTIPLE SUBSCRIPTIONS DETECTED 🚨🚨🚨
+═══════════════════════════════════════════════════════════
+👤 User ID: ${userId} (${user.email})
+🔑 Customer ID: ${user.stripeCustomerId}
+📊 Total Subscriptions: ${allCustomerSubscriptions.data.length}
+💾 Stored Subscription ID: ${user.stripeSubscriptionId}
+
+📝 All Subscriptions for this customer:
+${allCustomerSubscriptions.data.map((sub, index) => 
+  `   ${index + 1}. ID: ${sub.id}
+      Status: ${sub.status}
+      Plan: ${sub.items.data[0]?.price?.nickname || 'Unknown'}
+      Created: ${new Date(sub.created * 1000).toISOString()}
+      Current Period: ${new Date(sub.current_period_start * 1000).toISOString()} - ${new Date(sub.current_period_end * 1000).toISOString()}
+      ${sub.id === user.stripeSubscriptionId ? '👈 THIS IS THE STORED ONE' : ''}`
+).join('\n')}
+═══════════════════════════════════════════════════════════
+            `);
+          } else {
+            console.log(`✅ Single subscription confirmed for customer ${user.stripeCustomerId}`);
+          }
+          
           const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
           
           // Debug: Show raw Stripe timestamps
