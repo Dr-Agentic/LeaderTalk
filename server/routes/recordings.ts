@@ -74,6 +74,12 @@ export function registerRecordingRoutes(app: Express) {
       });
 
       console.log(`📊 Found ${currentCycleRecordings.length} recordings in current billing cycle`);
+      console.log(`📊 First few recordings:`, currentCycleRecordings.slice(0, 3).map(r => ({ 
+        id: r.id, 
+        title: r.title, 
+        wordCount: r.wordCount,
+        recordedAt: r.recordedAt 
+      })));
       
       res.json(currentCycleRecordings);
     } catch (error) {

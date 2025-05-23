@@ -97,10 +97,16 @@ export default function WordUsageStats() {
     queryKey: ['/api/usage/billing-cycle'],
   });
 
-  // Get current billing cycle recordings for the chart
+  // Get current billing cycle recordings for the chart (force fresh data)
   const { data: currentCycleRecordings, isLoading: isRecordingsLoading } = useQuery({
-    queryKey: ['/api/recordings/current-cycle'],
+    queryKey: ['/api/recordings/current-cycle', Date.now()], // Force cache refresh
+    staleTime: 0, // Always fetch fresh data
   });
+
+  // Extract recordings array from response
+  const recordingsArray = currentCycleRecordings?.recordings || currentCycleRecordings;
+  console.log("📊 Recordings array:", recordingsArray);
+  console.log("📊 Array length:", recordingsArray?.length);
 
   if (isLoading) {
     return <WordUsageStatsSkeleton />;
@@ -164,14 +170,14 @@ export default function WordUsageStats() {
 
 
           {/* Current Billing Cycle Recordings Chart */}
-          {!isRecordingsLoading && currentCycleRecordings && currentCycleRecordings.length > 0 ? (
+          {!isRecordingsLoading && recordingsArray && recordingsArray.length > 0 ? (
             <div className="h-48 mt-6">
               <div className="flex items-center gap-2 mb-3">
                 <TrendingUp className="h-4 w-4 text-primary" />
                 <p className="text-sm font-medium">Current Billing Cycle Recordings</p>
               </div>
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={currentCycleRecordings.slice(0, 10).map((recording) => ({
+                <BarChart data={recordingsArray.slice(0, 10).map((recording) => ({
                   name: recording.title.length > 10 ? recording.title.substring(0, 10) + '...' : recording.title,
                   words: recording.wordCount || 0,
                   fullTitle: recording.title,
