@@ -161,23 +161,7 @@ export default function WordUsageStats() {
             </p>
           </div>
 
-          {/* Current Billing Cycle information */}
-          <div className="mt-6 p-4 bg-primary/5 rounded-md border border-primary/20">
-            <div className="flex items-start gap-3">
-              <CalendarIcon className="h-5 w-5 text-primary mt-0.5" />
-              <div>
-                <h4 className="text-sm font-medium">Current Billing Cycle</h4>
-                <p className="text-sm text-muted-foreground">
-                  From {billingCycle.startDate ? formatDate(billingCycle.startDate) : "N/A"} to {billingCycle.endDate ? formatDate(billingCycle.endDate) : "N/A"}
-                </p>
-                {billingCycle.daysRemaining !== undefined && (
-                  <p className="text-sm mt-1">
-                    <span className="font-medium">{billingCycle.daysRemaining}</span> days remaining
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
+
 
           {/* Billing Cycle Recordings Chart */}
           {!isCurrentMonthLoading && currentMonthData?.chartData && (
