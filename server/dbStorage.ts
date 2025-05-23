@@ -226,75 +226,24 @@ export class DatabaseStorage implements IStorage {
       let billingCycleStart: Date;
       let billingCycleEnd: Date;
 
-      // Get billing cycle dates from Stripe if user has a subscription
+      // Get billing cycle dates from Stripe using centralized service
       if (user.stripeCustomerId && user.stripeSubscriptionId) {
         try {
-          const Stripe = (await import('stripe')).default;
-          const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-            apiVersion: "2023-10-16",
-          });
+          // Use centralized subscription service
+          const { auditUserSubscriptions, getUserBillingCycle } = await import('./subscriptionService');
           
-          // 🚨 CHECK FOR MULTIPLE SUBSCRIPTIONS - Critical resilience check
-          const allCustomerSubscriptions = await stripe.subscriptions.list({
-            customer: user.stripeCustomerId,
-            status: 'active', // Only fetch active subscriptions
-            limit: 100
-          });
+          // Audit for multiple subscriptions
+          await auditUserSubscriptions(userId);
           
-          console.log(`🔍 SUBSCRIPTION AUDIT for customer ${user.stripeCustomerId}:`);
-          console.log(`   Total subscriptions found: ${allCustomerSubscriptions.data.length}`);
-          
-          if (allCustomerSubscriptions.data.length > 1) {
-            console.error(`
-🚨🚨🚨 CRITICAL: MULTIPLE SUBSCRIPTIONS DETECTED 🚨🚨🚨
-═══════════════════════════════════════════════════════════
-👤 User ID: ${userId} (${user.email})
-🔑 Customer ID: ${user.stripeCustomerId}
-📊 Total Subscriptions: ${allCustomerSubscriptions.data.length}
-💾 Stored Subscription ID: ${user.stripeSubscriptionId}
-
-📝 All Subscriptions for this customer:
-${allCustomerSubscriptions.data.map((sub, index) => 
-  `   ${index + 1}. ID: ${sub.id}
-      Status: ${sub.status}
-      Plan: ${sub.items.data[0]?.price?.nickname || 'Unknown'}
-      Created: ${new Date(sub.created * 1000).toISOString()}
-      Current Period: ${new Date(sub.current_period_start * 1000).toISOString()} - ${new Date(sub.current_period_end * 1000).toISOString()}
-      ${sub.id === user.stripeSubscriptionId ? '👈 THIS IS THE STORED ONE' : ''}`
-).join('\n')}
-═══════════════════════════════════════════════════════════
-            `);
-          } else {
-            console.log(`✅ Single subscription confirmed for customer ${user.stripeCustomerId}`);
-          }
-          
-          const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
-          
-          // Debug: Show raw Stripe timestamps
-          console.log(`🔍 Raw Stripe timestamps for user ${userId}:`);
-          console.log(`   current_period_start: ${subscription.current_period_start} (raw)`);
-          console.log(`   current_period_end: ${subscription.current_period_end} (raw)`);
-          
-          // Test both with and without *1000 conversion
-          const startWithMultiplier = new Date(subscription.current_period_start * 1000);
-          const endWithMultiplier = new Date(subscription.current_period_end * 1000);
-          const startWithoutMultiplier = new Date(subscription.current_period_start);
-          const endWithoutMultiplier = new Date(subscription.current_period_end);
-          
-          console.log(`🔍 Date conversions:`);
-          console.log(`   With *1000: ${startWithMultiplier.toISOString()} to ${endWithMultiplier.toISOString()}`);
-          console.log(`   Without *1000: ${startWithoutMultiplier.toISOString()} to ${endWithoutMultiplier.toISOString()}`);
-          
-          // Use Stripe's current_period_start and current_period_end (Stripe uses Unix timestamps)
-          billingCycleStart = new Date(subscription.current_period_start * 1000);
-          billingCycleEnd = new Date(subscription.current_period_end * 1000);
+          // Get billing cycle dates
+          const billingCycle = await getUserBillingCycle(userId);
+          billingCycleStart = billingCycle.start;
+          billingCycleEnd = billingCycle.end;
           
           console.log(`📅 Final billing cycle for user ${userId}: ${billingCycleStart.toISOString()} to ${billingCycleEnd.toISOString()}`);
         } catch (stripeError) {
           console.error(`Error fetching Stripe billing cycle for user ${userId}:`, stripeError);
-          // Fall back to registration-based billing cycle
-          billingCycleStart = this.calculateUserBillingCycleStart(user);
-          billingCycleEnd = this.calculateUserBillingCycleEnd(billingCycleStart);
+          throw new Error(`Failed to get billing cycle from Stripe: ${stripeError.message}`);
         }
       } else {
         // Fall back to registration-based billing cycle
