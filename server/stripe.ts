@@ -50,29 +50,6 @@ function getWordLimitFromMetadata(product: Stripe.Product): number {
   throw new Error(`No valid word limit found in metadata for product ${product.name} (${product.id})`);
 }
 
-/**
- * Get default word limit based on plan name
- */
-function getDefaultWordLimit(productName: string): number {
-  const planName = (productName || '').toLowerCase();
-  
-  if (planName.includes('starter')) {
-    return 5000;
-  } else if (planName.includes('pro')) {
-    return 15000;
-  } else if (planName.includes('executive')) {
-    return 50000;
-  }
-  
-  // Default fallback
-  console.log(`Unknown plan name "${productName}", using default word limit of 5000`);
-  return 5000;
-}
-
-// Validate that Stripe secret key is available
-if (!process.env.STRIPE_SECRET_KEY) {
-  console.warn("Missing STRIPE_SECRET_KEY environment variable");
-}
 
 // Initialize Stripe client
 // Make sure we're using the secret key for server-side API calls
@@ -158,7 +135,7 @@ export async function getCurrentSubscription(req: Request, res: Response) {
         );
         
         if (!starterProduct || !starterProduct.default_price) {
-          console.log("No Starter plan found in Stripe, returning temporary free plan data");
+          console.error("No Starter plan found in Stripe, returning temporary free plan data");
           // If we can't find a starter product, return temporary free plan data
           return res.status(200).json({
             success: true,

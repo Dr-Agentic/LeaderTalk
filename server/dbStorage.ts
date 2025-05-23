@@ -237,7 +237,7 @@ export class DatabaseStorage implements IStorage {
           // 🚨 CHECK FOR MULTIPLE SUBSCRIPTIONS - Critical resilience check
           const allCustomerSubscriptions = await stripe.subscriptions.list({
             customer: user.stripeCustomerId,
-            status: 'all', // Include active, past_due, canceled, etc.
+            status: 'active', // Only fetch active subscriptions
             limit: 100
           });
           
