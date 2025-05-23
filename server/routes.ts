@@ -24,16 +24,22 @@ const requireAuth = (req: Request, res: Response, next: Function) => {
 
 export function servePublicFiles(app: Express) {
   // Serve static files from the public directory
-  const publicPath = path.join(__dirname, '../public');
+  const publicPath = path.resolve(process.cwd(), 'public');
   console.log('Setting up static file serving from:', publicPath);
   
-  app.use(express.static(publicPath, {
-    setHeaders: (res, path) => {
-      if (path.endsWith('.json')) {
+  app.use('/assets', express.static(path.join(publicPath, 'assets'), {
+    setHeaders: (res, filePath) => {
+      if (filePath.endsWith('.json')) {
         res.setHeader('Content-Type', 'application/json');
+      }
+      if (filePath.endsWith('.png') || filePath.endsWith('.jpg') || filePath.endsWith('.jpeg')) {
+        res.setHeader('Cache-Control', 'public, max-age=31536000');
       }
     }
   }));
+  
+  // Also serve root public files
+  app.use(express.static(publicPath));
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
