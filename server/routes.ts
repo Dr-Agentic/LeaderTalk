@@ -2623,20 +2623,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Use Stripe word limit if available, otherwise fall back to database plan
       // Create a modified subscription plan based on accurate Stripe data
-      const modifiedSubscriptionPlan = subscriptionPlan ? {
-        id: subscriptionPlan.id,
-        name: subscriptionPlan.name,
-        planCode: subscriptionPlan.planCode,
+      const modifiedSubscriptionPlan = stripeWordLimit > 0 ? {
+        id: 1,
+        name: "Stripe Subscription",
+        planCode: "stripe_plan",
         // Use Stripe data if available, otherwise use database value
-        monthlyWordLimit: finalWordLimit,
-        monthlyPriceUsd: subscriptionPlan.monthlyPriceUsd,
-        yearlyPriceUsd: subscriptionPlan.yearlyPriceUsd,
-        features: subscriptionPlan.features ? 
-          typeof subscriptionPlan.features === 'string' ? 
-            JSON.parse(subscriptionPlan.features) : 
-            subscriptionPlan.features 
-          : null,
-        isDefault: subscriptionPlan.isDefault || false
+        monthlyWordLimit: stripeWordLimit,
+        monthlyPriceUsd: "N/A",
+        yearlyPriceUsd: "N/A",
+        features: [`${stripeWordLimit.toLocaleString()} words per month`],
+        isDefault: false
       } : null;
       
       // Log the full JSON response for debugging
@@ -2677,18 +2673,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           features: (() => {
             // Default features if we encounter parsing issues
             const defaultFeatures = [
-              `${subscriptionPlan.monthlyWordLimit.toLocaleString()} words per month`, 
+              `${modifiedSubscriptionPlan.monthlyWordLimit.toLocaleString()} words per month`, 
               "Basic analytics", 
               "Leadership style guidance"
             ];
             
             // Safely parse subscription plan features
-            if (!subscriptionPlan.features) return defaultFeatures;
+            if (!modifiedSubscriptionPlan.features) return defaultFeatures;
             
             try {
-              if (typeof subscriptionPlan.features === 'string') {
+              if (typeof modifiedSubscriptionPlan.features === 'string') {
                 // Handle potential issues with the JSON string
-                const cleanedString = subscriptionPlan.features.trim();
+                const cleanedString = modifiedSubscriptionPlan.features.trim();
                 if (!cleanedString) return defaultFeatures;
                 
                 // If it starts with a bracket, try to parse it
