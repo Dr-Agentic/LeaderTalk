@@ -164,47 +164,69 @@ export default function WordUsageStats() {
 
 
           {/* Billing Cycle Recordings Chart */}
-          {!isRecordingsLoading && recordingsData && recordingsData.length > 0 && (
-            <div className="h-48 mt-6">
-              <div className="flex items-center gap-2 mb-3">
-                <TrendingUp className="h-4 w-4 text-primary" />
-                <p className="text-sm font-medium">Billing Cycle Recordings</p>
+          {(() => {
+            if (isRecordingsLoading || !recordingsData || !data?.billingCycle) return null;
+            
+            // Filter recordings to current billing cycle only
+            const billingCycleStart = new Date(data.billingCycle.startDate);
+            const billingCycleEnd = new Date(data.billingCycle.endDate);
+            
+            const currentCycleRecordings = recordingsData.filter(recording => {
+              const recordingDate = new Date(recording.recordedAt || recording.createdAt);
+              return recordingDate >= billingCycleStart && recordingDate <= billingCycleEnd;
+            });
+
+            if (currentCycleRecordings.length === 0) {
+              return (
+                <div className="h-24 mt-6 flex items-center justify-center text-muted-foreground">
+                  <p className="text-sm">No recordings in current billing cycle</p>
+                </div>
+              );
+            }
+
+            return (
+              <div className="h-48 mt-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <TrendingUp className="h-4 w-4 text-primary" />
+                  <p className="text-sm font-medium">Current Billing Cycle Recordings</p>
+                </div>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={currentCycleRecordings.slice(0, 10).map((recording, index) => ({
+                    name: recording.title.length > 10 ? recording.title.substring(0, 10) + '...' : recording.title,
+                    words: recording.wordCount || 0,
+                    fullTitle: recording.title,
+                    date: new Date(recording.recordedAt || recording.createdAt).toLocaleDateString()
+                  }))}>
+                    <XAxis 
+                      dataKey="name" 
+                      fontSize={12} 
+                      interval={0}
+                      tick={{ fontSize: 10 }}
+                    />
+                    <YAxis fontSize={12} />
+                    <Tooltip 
+                      formatter={(value, name, props) => [
+                        `${value.toLocaleString()} words`,
+                        'Words Used'
+                      ]}
+                      labelFormatter={(label, payload) => {
+                        if (payload && payload[0] && payload[0].payload) {
+                          return `${payload[0].payload.fullTitle} (${payload[0].payload.date})`;
+                        }
+                        return label;
+                      }}
+                    />
+                    <Bar 
+                      dataKey="words" 
+                      fill="var(--primary)"
+                      radius={[4, 4, 0, 0]}
+                      maxBarSize={40}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={recordingsData.slice(0, 10).map((recording, index) => ({
-                  name: recording.title.length > 10 ? recording.title.substring(0, 10) + '...' : recording.title,
-                  words: recording.wordCount || 0,
-                  fullTitle: recording.title
-                }))}>
-                  <XAxis 
-                    dataKey="name" 
-                    fontSize={12} 
-                    interval={0}
-                    tick={{ fontSize: 10 }}
-                  />
-                  <YAxis fontSize={12} />
-                  <Tooltip 
-                    formatter={(value, name, props) => [
-                      `${value.toLocaleString()} words`,
-                      'Words Used'
-                    ]}
-                    labelFormatter={(label, payload) => {
-                      if (payload && payload[0] && payload[0].payload) {
-                        return payload[0].payload.fullTitle;
-                      }
-                      return label;
-                    }}
-                  />
-                  <Bar 
-                    dataKey="words" 
-                    fill="var(--primary)"
-                    radius={[4, 4, 0, 0]}
-                    maxBarSize={40}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          )}
+            );
+          })()}
         </div>
       </CardContent>
     </Card>
