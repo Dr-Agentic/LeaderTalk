@@ -235,18 +235,11 @@ export async function getBillingCycleWordUsageAnalytics(userId: number): Promise
         interval: subscriptionData.interval,
       },
       usageReport,
-      analytics: {
-        usagePercentage,
-        remainingWords,
-        hasExceededLimit,
-        averageWordsPerRecording,
-        totalRecordingDuration,
-        averageDurationPerRecording,
-      },
+      analytics,
     };
 
-    console.log(`📊 Analytics: ${usagePercentage}% used (${usageReport.totalWordCount}/${subscriptionData.wordLimit} words)`);
-    console.log(`🎙️ Recordings: ${usageReport.recordingCount} total, ${averageWordsPerRecording} avg words/recording`);
+    console.log(`📊 Analytics: ${analytics.usagePercentage}% used (${usageReport.totalWordCount}/${subscriptionData.wordLimit} words)`);
+    console.log(`🎙️ Recordings: ${usageReport.recordingCount} total, ${analytics.averageWordsPerRecording} avg words/recording`);
     
     return result;
   } catch (error) {
@@ -353,64 +346,30 @@ export async function getBillingCycleWordUsageHistory(userId: number, numberOfCy
     // Import database storage for historical data
     const { dbStorage } = await import("./dbStorage.js");
     
-    // Calculate previous cycles based on interval
+    // Calculate previous cycles based on interval using shared helper
     for (let cycleNumber = 1; cycleNumber < numberOfCycles; cycleNumber++) {
-      let cycleStart: Date;
-      let cycleEnd: Date;
-      
-      if (interval === 'month') {
-        // Monthly cycles
-        cycleEnd = new Date(currentPeriodStart);
-        cycleEnd.setMonth(cycleEnd.getMonth() - cycleNumber);
-        cycleEnd.setTime(cycleEnd.getTime() - 1); // End of previous cycle
-        
-        cycleStart = new Date(cycleEnd);
-        cycleStart.setMonth(cycleStart.getMonth());
-        cycleStart.setDate(1);
-        cycleStart.setHours(0, 0, 0, 0);
-      } else {
-        // Yearly cycles
-        cycleEnd = new Date(currentPeriodStart);
-        cycleEnd.setFullYear(cycleEnd.getFullYear() - cycleNumber);
-        cycleEnd.setTime(cycleEnd.getTime() - 1);
-        
-        cycleStart = new Date(cycleEnd);
-        cycleStart.setFullYear(cycleStart.getFullYear());
-        cycleStart.setMonth(0);
-        cycleStart.setDate(1);
-        cycleStart.setHours(0, 0, 0, 0);
-      }
+      const { cycleStart, cycleEnd } = calculateHistoricalCycleDates(currentPeriodStart, interval, cycleNumber);
       
       console.log(`📅 Analyzing cycle ${cycleNumber}: ${cycleStart.toISOString()} to ${cycleEnd.toISOString()}`);
       
       // Get usage data for this historical cycle
       const usageReport = await dbStorage.wordUsageReport(cycleStart, cycleEnd, userId);
       
-      // Calculate analytics for this cycle
-      const usagePercentage = currentCycleAnalytics.subscription.wordLimit > 0 
-        ? Math.round((usageReport.totalWordCount / currentCycleAnalytics.subscription.wordLimit) * 100)
-        : 0;
-      
-      const averageWordsPerRecording = usageReport.recordingCount > 0 
-        ? Math.round(usageReport.totalWordCount / usageReport.recordingCount)
-        : 0;
-      
-      const totalRecordingDuration = usageReport.recordings.reduce((sum, recording) => sum + recording.duration, 0);
-      const averageDurationPerRecording = usageReport.recordingCount > 0
-        ? Math.round(totalRecordingDuration / usageReport.recordingCount)
-        : 0;
+      // Calculate analytics for this cycle using shared helper (excluding some fields for historical data)
+      const fullAnalytics = calculateCycleAnalytics(usageReport, currentCycleAnalytics.subscription.wordLimit);
+      const analytics = {
+        usagePercentage: fullAnalytics.usagePercentage,
+        averageWordsPerRecording: fullAnalytics.averageWordsPerRecording,
+        totalRecordingDuration: fullAnalytics.totalRecordingDuration,
+        averageDurationPerRecording: fullAnalytics.averageDurationPerRecording,
+      };
       
       historicalCycles.push({
         cycleNumber,
         startDate: cycleStart,
         endDate: cycleEnd,
         usageReport,
-        analytics: {
-          usagePercentage,
-          averageWordsPerRecording,
-          totalRecordingDuration,
-          averageDurationPerRecording,
-        },
+        analytics,
       });
     }
     
