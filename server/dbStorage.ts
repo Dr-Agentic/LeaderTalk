@@ -24,7 +24,7 @@ import {
   UpdateSubscriptionPlan,
   AnalysisResult,
 } from "@shared/schema";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { eq, and, desc, sql, gte, lte, isNotNull, asc } from "drizzle-orm";
 import { IStorage } from "./storage";
 
 // Helper functions for billing cycle management
@@ -666,36 +666,36 @@ export class DatabaseStorage implements IStorage {
       console.log(`📊 Generating word usage report for user ${userId} from ${startTime.toISOString()} to ${endTime.toISOString()}`);
 
       // Get all recordings for the user within the time interval
-      const recordings = await db
+      const recordingResults = await db
         .select({
-          id: recordingsTable.id,
-          title: recordingsTable.title,
-          createdAt: recordingsTable.createdAt,
-          wordCount: recordingsTable.wordCount,
-          duration: recordingsTable.duration,
+          id: recordings.id,
+          title: recordings.title,
+          createdAt: recordings.recordedAt,
+          wordCount: recordings.wordCount,
+          duration: recordings.duration,
         })
-        .from(recordingsTable)
+        .from(recordings)
         .where(
           and(
-            eq(recordingsTable.userId, userId),
-            gte(recordingsTable.createdAt, startTime),
-            lte(recordingsTable.createdAt, endTime),
-            isNotNull(recordingsTable.wordCount)
+            eq(recordings.userId, userId),
+            gte(recordings.recordedAt, startTime),
+            lte(recordings.recordedAt, endTime),
+            isNotNull(recordings.wordCount)
           )
         )
-        .orderBy(asc(recordingsTable.createdAt));
+        .orderBy(asc(recordings.recordedAt));
 
-      console.log(`📈 Found ${recordings.length} recordings for user ${userId} in specified time interval`);
+      console.log(`📈 Found ${recordingResults.length} recordings for user ${userId} in specified time interval`);
 
       // Calculate total word count
-      const totalWordCount = recordings.reduce((sum, recording) => sum + (recording.wordCount || 0), 0);
+      const totalWordCount = recordingResults.reduce((sum, recording) => sum + (recording.wordCount || 0), 0);
 
       // Get first and last recording timestamps
-      const firstRecordingCreatedAt = recordings.length > 0 ? recordings[0].createdAt : null;
-      const lastRecordingCreatedAt = recordings.length > 0 ? recordings[recordings.length - 1].createdAt : null;
+      const firstRecordingCreatedAt = recordingResults.length > 0 ? recordingResults[0].createdAt : null;
+      const lastRecordingCreatedAt = recordingResults.length > 0 ? recordingResults[recordingResults.length - 1].createdAt : null;
 
       // Format recordings with order numbers
-      const formattedRecordings = recordings.map((recording, index) => ({
+      const formattedRecordings = recordingResults.map((recording, index) => ({
         id: recording.id,
         name: recording.title,
         createdAt: recording.createdAt,
