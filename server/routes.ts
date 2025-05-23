@@ -2644,7 +2644,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           startDate: cycleStartDate,
           endDate: cycleEndDate,
           daysRemaining,
-          cycleNumber: currentCycle?.cycleNumber || 1
+          cycleNumber: 1
         },
         // Use our modified subscription plan with corrected word limit
         subscriptionPlan: modifiedSubscriptionPlan
@@ -2660,7 +2660,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           startDate: cycleStartDate,
           endDate: cycleEndDate,
           daysRemaining,
-          cycleNumber: currentCycle?.cycleNumber || 1
+          cycleNumber: 1
         },
         // Use our modified subscription plan with corrected word limit
         subscriptionPlan: modifiedSubscriptionPlan ? {
