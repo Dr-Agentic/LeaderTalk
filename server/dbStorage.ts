@@ -183,21 +183,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(userWordUsage.cycleNumber));
   }
   
-  async getCurrentBillingCycle(userId: number): Promise<UserWordUsage | undefined> {
-    const now = new Date();
-    
-    const result = await db.select()
-      .from(userWordUsage)
-      .where(
-        and(
-          eq(userWordUsage.userId, userId),
-          sql`${userWordUsage.cycleStartDate} <= ${now}`,
-          sql`${userWordUsage.cycleEndDate} >= ${now}`
-        )
-      );
-    
-    return result[0];
-  }
+
   
   async createUserWordUsage(usage: InsertUserWordUsage): Promise<UserWordUsage> {
     const result = await db.insert(userWordUsage)

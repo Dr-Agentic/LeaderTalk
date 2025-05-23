@@ -36,7 +36,7 @@ export interface IStorage {
   
   // Word usage tracking operations
   getUserWordUsage(userId: number): Promise<UserWordUsage[]>;
-  getCurrentBillingCycle(userId: number): Promise<UserWordUsage | undefined>;
+
   createUserWordUsage(usage: InsertUserWordUsage): Promise<UserWordUsage>;
   updateUserWordUsage(id: number, data: UpdateUserWordUsage): Promise<UserWordUsage | undefined>;
   getCurrentWordUsage(userId: number): Promise<number>;
@@ -242,15 +242,7 @@ export class MemStorage implements IStorage {
       });
   }
   
-  async getCurrentBillingCycle(userId: number): Promise<UserWordUsage | undefined> {
-    const now = new Date();
-    
-    return Array.from(this.wordUsages.values()).find(
-      usage => usage.userId === userId && 
-               new Date(usage.cycleStartDate) <= now && 
-               new Date(usage.cycleEndDate) >= now
-    );
-  }
+
   
   async createUserWordUsage(usage: InsertUserWordUsage): Promise<UserWordUsage> {
     const id = this.wordUsageIdCounter++;
