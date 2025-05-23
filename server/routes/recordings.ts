@@ -74,14 +74,24 @@ export function registerRecordingRoutes(app: Express) {
       });
 
       console.log(`📊 Found ${currentCycleRecordings.length} recordings in current billing cycle`);
-      console.log(`📊 First few recordings:`, currentCycleRecordings.slice(0, 3).map(r => ({ 
-        id: r.id, 
-        title: r.title, 
-        wordCount: r.wordCount,
-        recordedAt: r.recordedAt 
-      })));
       
-      res.json(currentCycleRecordings);
+      // Format records with chart-ready data
+      const chartReadyRecordings = currentCycleRecordings.map(recording => ({
+        id: recording.id,
+        title: recording.title,
+        wordCount: recording.wordCount || 0,
+        recordedAt: recording.recordedAt,
+        date: recording.recordedAt ? new Date(recording.recordedAt).toISOString().split('T')[0] : null,
+        formattedDate: recording.recordedAt ? new Date(recording.recordedAt).toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric'
+        }) : 'N/A'
+      }));
+      
+      console.log(`📊 Chart-ready recordings:`, chartReadyRecordings.slice(0, 3));
+      
+      res.json({ recordings: chartReadyRecordings });
     } catch (error) {
       console.error("Error fetching current cycle recordings:", error);
       res.status(500).json({ error: "Failed to fetch current cycle recordings" });
