@@ -1,9 +1,9 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, signInWithPopup, GoogleAuthProvider, getRedirectResult } from "firebase/auth";
+import { getAuth, signInWithPopup, signInWithRedirect, GoogleAuthProvider, getRedirectResult } from "firebase/auth";
 import { logInfo, logError, logDebug, logWarn } from "@/lib/debugLogger";
 
-// IMPORTANT: Using popup authentication for better compatibility in this environment
-// Redirect authentication causes CORS issues with "accounts.google.com refused to connect"
+// IMPORTANT: Using hybrid authentication - popup for desktop, redirect for iOS/Safari
+// This provides the best compatibility across all devices and browsers
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "demo-key",
@@ -42,18 +42,37 @@ export async function signInWithGoogle() {
       display: 'popup'
     });
     
-    // Check if popup blockers are enabled
+    // Check if we're on iOS or if popup blockers are enabled
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    
+    // Test for popup support
     const testPopup = window.open('', '_blank', 'width=1,height=1');
-    if (!testPopup || testPopup.closed) {
-      logWarn("Popup blocked - user needs to allow popups");
-      throw new Error('popup-blocked');
-    } else {
+    const popupBlocked = !testPopup || testPopup.closed;
+    
+    if (testPopup && !testPopup.closed) {
       testPopup.close();
     }
     
-    // Use popup authentication
-    logDebug("Opening Google auth popup");
-    const result = await signInWithPopup(auth, provider);
+    // Use different strategies based on device capabilities
+    let result;
+    if (popupBlocked || isIOS || isSafari) {
+      logWarn("Popup authentication not available, using redirect fallback", {
+        isIOS,
+        isSafari,
+        popupBlocked,
+        userAgent: navigator.userAgent
+      });
+      
+      // For iOS and Safari, use redirect instead of popup
+      await signInWithRedirect(auth, provider);
+      // Note: This will redirect the page, so code below won't execute
+      return null;
+    } else {
+      // Use popup authentication for desktop browsers
+      logDebug("Opening Google auth popup");
+      result = await signInWithPopup(auth, provider);
+    }
     console.log("Popup authentication completed");
     logInfo("Google popup authentication completed");
     
