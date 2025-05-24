@@ -64,6 +64,14 @@ export async function signInWithGoogle() {
         userAgent: navigator.userAgent
       });
       
+      // Store authentication attempt in localStorage for iOS tracking
+      localStorage.setItem('authAttempt', JSON.stringify({
+        timestamp: Date.now(),
+        isIOS,
+        isSafari,
+        currentUrl: window.location.href
+      }));
+      
       // For iOS and Safari, use redirect instead of popup
       await signInWithRedirect(auth, provider);
       // Note: This will redirect the page, so code below won't execute
@@ -185,16 +193,30 @@ export async function handleRedirectResult() {
     console.log("Checking for redirect result...");
     console.log("Current URL:", window.location.href);
     console.log("URL params:", new URLSearchParams(window.location.search).toString());
+    
+    // Check for auth attempt tracking
+    const authAttempt = localStorage.getItem('authAttempt');
+    if (authAttempt) {
+      const attempt = JSON.parse(authAttempt);
+      console.log("Found previous auth attempt:", attempt);
+      logDebug("Found previous authentication attempt", attempt);
+    }
+    
     logDebug("Checking for Google auth redirect result", {
       url: window.location.href,
       search: window.location.search,
-      hash: window.location.hash
+      hash: window.location.hash,
+      hasAuthAttempt: !!authAttempt
     });
+    
     const result = await getRedirectResult(auth);
     
     if (result) {
       console.log("Redirect result found");
       logInfo("Google redirect result found - user authenticated");
+      
+      // Clear the auth attempt tracking since we found a successful result
+      localStorage.removeItem('authAttempt');
       
       // The signed-in user info
       const user = result.user;
