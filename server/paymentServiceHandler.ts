@@ -266,3 +266,47 @@ export async function createDefaultSubscription(
 
   return subscription;
 }
+
+/**
+ * Retrieve existing subscription details from Stripe with full product information
+ */
+export async function getExistingSubscription(subscriptionId: string): Promise<any> {
+  const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
+    expand: ["items.data.price"],
+  });
+
+  const item = subscription.items.data[0];
+  const price = item.price as Stripe.Price;
+  const product = await stripe.products.retrieve(price.product as string);
+
+  console.log("Stripe product details:");
+  console.log("- Name:", product.name);
+  console.log("- ID:", product.id);
+  console.log("- Metadata:", product.metadata);
+
+  return {
+    id: subscription.id,
+    status: subscription.status,
+    plan: product.name.toLowerCase(),
+    planId: product.id,
+    isFree: price.unit_amount === 0,
+    startDate: subscription.start_date
+      ? new Date(subscription.start_date * 1000)
+      : new Date(),
+    currentPeriodStart: new Date(subscription.current_period_start * 1000),
+    currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+    nextRenewalDate: new Date(subscription.current_period_end * 1000),
+    nextRenewalTimestamp: subscription.current_period_end,
+    cancelAtPeriodEnd: subscription.cancel_at_period_end,
+    amount: price.unit_amount ? price.unit_amount / 100 : 0,
+    currency: price.currency,
+    interval: price.recurring?.interval || "month",
+    productImage:
+      product.images && product.images.length > 0 ? product.images[0] : null,
+    metadata: product.metadata || {},
+    wordLimit: parseInt(
+      product.metadata?.Words || "ERROR: no word limit metadata",
+      10,
+    ),
+  };
+}
