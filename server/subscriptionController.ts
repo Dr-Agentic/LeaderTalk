@@ -1,16 +1,12 @@
 import { Request, Response } from "express";
 import { storage } from "./storage";
-import Stripe from "stripe";
 import {
   getUserSubscription,
   getUserBillingCycle,
   getUserWordLimit,
+  createDefaultSubscription,
+  ensureUserHasStripeCustomer,
 } from "./paymentServiceHandler";
-
-// Initialize Stripe with the secret key
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2023-10-16", // Standard stable version
-});
 
 /**
  * Validate user authentication and retrieve user data
@@ -180,7 +176,10 @@ async function getExistingSubscription(subscriptionId: string): Promise<any> {
     productImage:
       product.images && product.images.length > 0 ? product.images[0] : null,
     metadata: product.metadata || {},
-    wordLimit: parseInt(product.metadata?.Words || "500", 10),
+    wordLimit: parseInt(
+      product.metadata?.Words || "ERROR: no word limit metadata",
+      10,
+    ),
   };
 }
 
@@ -257,10 +256,6 @@ export async function getCurrentSubscription(req: Request, res: Response) {
  */
 export async function getBillingCycleWordUsageAnalytics(userId: number) {
   try {
-    console.log(
-      `🔍 Generating comprehensive subscription management report for user ${userId}`,
-    );
-
     // 1. Get user from database to get their subscription ID
     const user = await storage.getUser(userId);
     if (!user?.stripeSubscriptionId) {
@@ -331,23 +326,10 @@ export async function getBillingCycleWordUsageAnalytics(userId: number) {
         billingCycleProgress: {
           daysRemaining,
           cycleStart: subscriptionStart,
-          cycleEnd: subscriptionData.currentPeriodEnd,
-          percentComplete: Math.round(
-            ((now.getTime() - subscriptionStart.getTime()) /
-              (subscriptionData.currentPeriodEnd.getTime() -
-                subscriptionStart.getTime())) *
-              100,
-          ),
+          cycleEnd: subscriptionData.currentPeriodEnd
         },
       },
     };
-
-    console.log(`✅ COMPREHENSIVE BILLING ANALYTICS COMPLETE`);
-    console.log(
-      `📈 Usage: ${usageReport.totalWordCount}/${wordLimit} words (${usagePercentage}%)`,
-    );
-    console.log(`⏰ ${daysRemaining} days remaining in billing cycle`);
-
     return analytics;
   } catch (error) {
     console.error("❌ ERROR in getBillingCycleWordUsageAnalytics:", error);
