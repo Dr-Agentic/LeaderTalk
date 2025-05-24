@@ -35,84 +35,7 @@ async function validateUserAccess(
 
 
 
-/**
- * Create a default starter subscription for a user
- */
-async function createDefaultSubscription(
-  user: any,
-  customerId: string,
-): Promise<any> {
-  console.log(
-    `🔄 Creating default Starter subscription for user ${user.id}...`,
-  );
 
-  // Fetch all products to find the Starter plan
-  const products = await stripe.products.list({
-    active: true,
-    expand: ["data.default_price"],
-  });
-
-  let productName = "ERROR: No Starter plan found";
-  // Find the Starter (free) plan
-  const starterProduct = products.data.find(
-    (p) =>
-      p.name.toLowerCase().includes("starter") ||
-      (p.default_price && (p.default_price as Stripe.Price).unit_amount === 0),
-  );
-
-  if (!starterProduct || !starterProduct.default_price) {
-    throw new Error("No Starter plan found in Stripe");
-  }
-
-  const priceId = (starterProduct.default_price as Stripe.Price).id;
-
-  // Create subscription
-  const subscription = await stripe.subscriptions.create({
-    customer: customerId,
-    items: [{ price: priceId }],
-    metadata: {
-      userId: user.id.toString(),
-    },
-  });
-
-  // Update user with subscription ID
-  await storage.updateUser(user.id, {
-    stripeSubscriptionId: subscription.id,
-    subscriptionPlan: starterProduct.name,
-  });
-
-  console.log(`🎉 SUBSCRIPTION INITIALIZATION COMPLETE!`);
-  console.log(
-    `✅ Created default Starter subscription for user ${user.id}: ${subscription.id}`,
-  );
-
-  return {
-    id: subscription.id,
-    status: subscription.status,
-    plan: "starter",
-    planId: starterProduct.id,
-    isFree: true,
-    startDate: subscription.start_date
-      ? new Date(subscription.start_date * 1000)
-      : new Date(),
-    currentPeriodStart: subscription.current_period_start
-      ? new Date(subscription.current_period_start * 1000)
-      : new Date(),
-    currentPeriodEnd: subscription.current_period_end
-      ? new Date(subscription.current_period_end * 1000)
-      : new Date(),
-    cancelAtPeriodEnd: subscription.cancel_at_period_end,
-    amount: 0,
-    currency: (starterProduct.default_price as Stripe.Price).currency,
-    interval:
-      (starterProduct.default_price as Stripe.Price).recurring?.interval ||
-      "month",
-    productImage:
-      starterProduct.images && starterProduct.images.length > 0
-        ? starterProduct.images[0]
-        : null,
-  };
-}
 
 /**
  * Retrieve existing subscription details from Stripe
@@ -173,7 +96,7 @@ export async function getCurrentSubscription(req: Request, res: Response) {
       );
 
       try {
-        const customerId = await ensureStripeCustomer(user);
+        const customerId = await ensureUserHasStripeCustomer(user);
         const subscriptionData = await createDefaultSubscription(
           user,
           customerId,
