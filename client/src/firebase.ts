@@ -42,9 +42,9 @@ export async function signInWithGoogle() {
       display: 'popup'
     });
     
-    // Check if we're on iOS or if popup blockers are enabled
+    // Check if we're on iOS or Safari browser
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    const isSafari = navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome');
     
     // Test for popup support
     const testPopup = window.open('', '_blank', 'width=1,height=1');
