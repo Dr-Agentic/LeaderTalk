@@ -41,6 +41,8 @@ export async function signInWithGoogle() {
     const isAndroid = /Android/.test(navigator.userAgent);
     const isMobile = isIOS || isAndroid || /Mobi|Mobile/i.test(navigator.userAgent);
     const isSafari = navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome');
+    // Note: Chrome on iOS also uses WebKit and has similar restrictions
+    const isIOSChrome = isIOS && navigator.userAgent.includes('Chrome');
     
     // Test for popup support
     const testPopup = window.open('', '_blank', 'width=1,height=1');
@@ -55,14 +57,15 @@ export async function signInWithGoogle() {
       isAndroid, 
       isMobile,
       isSafari,
+      isIOSChrome,
       popupBlocked,
       userAgent: navigator.userAgent
     });
     
     // Use different strategies based on device capabilities
     let result;
-    if (isMobile || isIOS || isAndroid) {
-      console.log("📱 MOBILE DEVICE DETECTED - Using redirect authentication");
+    if (isIOS || isAndroid || isIOSChrome) {
+      console.log("📱 MOBILE/iOS DEVICE DETECTED - Using redirect authentication (required for iOS)");
       
       logWarn("Using redirect authentication for mobile device", {
         isIOS,
