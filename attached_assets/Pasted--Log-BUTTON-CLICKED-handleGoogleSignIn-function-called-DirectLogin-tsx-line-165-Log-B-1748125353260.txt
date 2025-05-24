@@ -1,0 +1,204 @@
+[Log] 🔴 BUTTON CLICKED - handleGoogleSignIn function called! (DirectLogin.tsx, line 165)
+[Log] 🔴 Browser User Agent: – "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 Safari/605.1.15" (DirectLogin.tsx, line 166)
+[Log] 🔴 Current URL: – "https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2y2pqhs8si0sg.spock.replit.dev/dashboard" (DirectLogin.tsx, line 167)
+[Log] 🔴 Loading state set to true (DirectLogin.tsx, line 170)
+[Log] 🔴 Firebase config being used: – {apiKey: "Present (hidden)", projectId: "leadertalk-987ec", appId: "Present (hidden)", …} (DirectLogin.tsx, line 180)
+{apiKey: "Present (hidden)", projectId: "leadertalk-987ec", appId: "Present (hidden)", authDomain: "leadertalk-987ec.firebaseapp.com", currentUrl: "https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2y2pqhs8si0sg.spock.replit.dev/dashboard", …}Object
+[Log] Firebase config being used: – {apiKey: "Present (hidden)", projectId: "leadertalk-987ec", appId: "Present (hidden)", …} (DirectLogin.tsx, line 181)
+{apiKey: "Present (hidden)", projectId: "leadertalk-987ec", appId: "Present (hidden)", authDomain: "leadertalk-987ec.firebaseapp.com", currentUrl: "https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2y2pqhs8si0sg.spock.replit.dev/dashboard", …}Object
+[Debug] [DEBUG] – "Attempting Google sign-in with config" – {apiKey: "Present (hidden)", projectId: "leadertalk-987ec", appId: "Present (hidden)", …} (debugLogger.ts, line 27)
+{apiKey: "Present (hidden)", projectId: "leadertalk-987ec", appId: "Present (hidden)", authDomain: "leadertalk-987ec.firebaseapp.com", currentUrl: "https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2y2pqhs8si0sg.spock.replit.dev/dashboard", …}Object
+[Log] 🔴 About to call signInWithGoogle function... (DirectLogin.tsx, line 183)
+[Log] Starting Google sign-in popup... (DirectLogin.tsx, line 184)
+[Log] Force onboarding checkbox is: – false (DirectLogin.tsx, line 185)
+[Log] [INFO] – "Google sign-in process initiated from UI" – "" (debugLogger.ts, line 30)
+[Log] Firebase config: – {apiKey: "Present (hidden)", projectId: "leadertalk-987ec", appId: "Present (hidden)", …} (firebase.ts, line 25)
+{apiKey: "Present (hidden)", projectId: "leadertalk-987ec", appId: "Present (hidden)", authDomain: "leadertalk-987ec.firebaseapp.com", currentUrl: "https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2y2pqhs8si0sg.spock.replit.dev/dashboard", …}Object
+[Debug] [DEBUG] – "Firebase authentication attempt" – {apiKey: "Present (hidden)", projectId: "leadertalk-987ec", appId: "Present (hidden)", …} (debugLogger.ts, line 27)
+{apiKey: "Present (hidden)", projectId: "leadertalk-987ec", appId: "Present (hidden)", authDomain: "leadertalk-987ec.firebaseapp.com", currentUrl: "https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2y2pqhs8si0sg.spock.replit.dev/dashboard", …}Object
+[Log] Starting Google sign-in with popup... (firebase.ts, line 27)
+[Log] [INFO] – "Starting Google sign-in with popup" – "" (debugLogger.ts, line 30)
+[Log] Auth state before popup: – "No user" (firebase.ts, line 29)
+[Log] 🟢 Using popup authentication (including Safari) (firebase.ts, line 61)
+[Debug] [DEBUG] – "Opening Google auth popup for desktop browser" – "" (debugLogger.ts, line 27)
+[Error] Error signing in with Google – FirebaseError: Firebase: Error (auth/popup-blocked).
+FirebaseError: Firebase: Error (auth/popup-blocked).
+	(anonymous function) (firebase.ts:132)
+[Error] Error details: – {code: "auth/popup-blocked", message: "Firebase: Error (auth/popup-blocked).", stack: "_FirebaseError@https://447b9aa1-dbc9-48c2-96b3-b8e…/node_modules/.vite/deps/firebase_auth.js:7557:10", …}
+{code: "auth/popup-blocked", message: "Firebase: Error (auth/popup-blocked).", stack: "_FirebaseError@https://447b9aa1-dbc9-48c2-96b3-b8e…/node_modules/.vite/deps/firebase_auth.js:7557:10", name: "FirebaseError"}Object
+	(anonymous function) (firebase.ts:133)
+[Warning] [WARN] – "Google sign-in popup was blocked or closed by user" – {code: "auth/popup-blocked", userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Ap… (KHTML, like Gecko) Version/18.5 Safari/605.1.15"} (debugLogger.ts, line 24)
+{code: "auth/popup-blocked", userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Ap… (KHTML, like Gecko) Version/18.5 Safari/605.1.15"}Object
+[Error] Google sign in error: – Error: popup-cancelled — firebase.ts:184
+Error: popup-cancelled — firebase.ts:184
+	(anonymous function) (DirectLogin.tsx:281)
+[Error] Error details: – {code: undefined, message: "popup-cancelled", stack: "@https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2…qhs8si0sg.spock.replit.dev/src/firebase.ts:144:22"}
+{code: undefined, message: "popup-cancelled", stack: "@https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2…qhs8si0sg.spock.replit.dev/src/firebase.ts:144:22"}Object
+	(anonymous function) (DirectLogin.tsx:282)
+[Error] [ERROR] – "Google sign-in error in UI component" – {code: "unknown", message: "popup-cancelled", stack: "@https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2…qhs8si0sg.spock.replit.dev/src/firebase.ts:144:22", …}
+{code: "unknown", message: "popup-cancelled", stack: "@https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2…qhs8si0sg.spock.replit.dev/src/firebase.ts:144:22", url: "https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2y2pqhs8si0sg.spock.replit.dev/dashboard"}Object
+	addLog (debugLogger.ts:21)
+	(anonymous function) (DirectLogin.tsx:287)
+[Warning] Stripe.js@v3 was loaded on the page, but @stripe/stripe-js@7.3.0 expected Stripe.js@basil. This may result in unexpected behavior. For more information, see https://docs.stripe.com/sdks/stripejs-versioning (@stripe_stripe-js.js, line 119)
+[Debug] [vite] hot updated: /src/App.tsx?v=7jE0apjkJdssaNcWNqThE (client, line 223)
+[Debug] [vite] hot updated: /src/index.css?v=7jE0apjkJdssaNcWNqThE (client, line 223)
+[Debug] [vite] hot updated: /src/pages/DirectLogin.tsx (client, line 223)
+[Debug] [vite] hot updated: /src/pages/Onboarding.tsx (client, line 223)
+[Debug] [vite] hot updated: /src/components/Sidebar.tsx (client, line 223)
+[Log] Checking for redirect result... (firebase.ts, line 162)
+[Log] Current URL: – "https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2y2pqhs8si0sg.spock.replit.dev/dashboard" (firebase.ts, line 163)
+[Log] URL params: – "" (firebase.ts, line 164)
+[Debug] [DEBUG] – "Checking for Google auth redirect result" – {url: "https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2y2pqhs8si0sg.spock.replit.dev/dashboard", search: "", hash: ""} (debugLogger.ts, line 27)
+[Log] 🔵 About to call getRedirectResult... (firebase.ts, line 170)
+[Log] 🔵 getRedirectResult returned: – null (firebase.ts, line 172)
+[Log] 🔵 Result details: – {hasResult: false, hasUser: false, hasCredential: false, …} (firebase.ts, line 173)
+{hasResult: false, hasUser: false, hasCredential: false, operationType: "none"}Object
+[Log] No redirect result found (firebase.ts, line 245)
+[Debug] [DEBUG] – "No Google redirect result found" – "" (debugLogger.ts, line 27)
+[Debug] [DEBUG] – "Received session data" – {sessionExists: true, sessionId: "F3YaDj_y…", userId: null, …} (debugLogger.ts, line 27)
+{sessionExists: true, sessionId: "F3YaDj_y…", userId: null, isLoggedIn: false, cookiePresent: true, …}Object
+[Log] Session exists but not logged in (likely expired) (queryClient.ts, line 53)
+[Warning] [WARN] – "Session exists but not logged in (likely expired)" – {sessionId: "F3YaDj_y…", cookiePresent: true, cookieExists: true, …} (debugLogger.ts, line 24)
+{sessionId: "F3YaDj_y…", cookiePresent: true, cookieExists: true, cookieHeader: "Present"}Object
+[Log] Session check shows not logged in (App.tsx, line 68)
+[Info] Successfully preconnected to https://fonts.googleapis.com/
+[Info] Successfully preconnected to https://fonts.gstatic.com/
+[Error] Failed to load resource: A server with the specified hostname could not be found. (index.js, line 0)
+[Debug] [vite] connecting... (client, line 495)
+[Debug] [vite] connected. (client, line 618)
+[Warning] Stripe.js@v3 was loaded on the page, but @stripe/stripe-js@7.3.0 expected Stripe.js@basil. This may result in unexpected behavior. For more information, see https://docs.stripe.com/sdks/stripejs-versioning (@stripe_stripe-js.js, line 119, x2)
+[Log] Checking for redirect result... (firebase.ts, line 162)
+[Log] Current URL: – "https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2y2pqhs8si0sg.spock.replit.dev/dashboard" (firebase.ts, line 163)
+[Log] URL params: – "" (firebase.ts, line 164)
+[Debug] [DEBUG] – "Checking for Google auth redirect result" – {url: "https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2y2pqhs8si0sg.spock.replit.dev/dashboard", search: "", hash: ""} (debugLogger.ts, line 27)
+[Log] 🔵 About to call getRedirectResult... (firebase.ts, line 170)
+[Info] Successfully preconnected to https://api.stripe.com/
+[Log] 🔵 getRedirectResult returned: – null (firebase.ts, line 172)
+[Log] 🔵 Result details: – {hasResult: false, hasUser: false, hasCredential: false, …} (firebase.ts, line 173)
+{hasResult: false, hasUser: false, hasCredential: false, operationType: "none"}Object
+[Log] No redirect result found (firebase.ts, line 245)
+[Debug] [DEBUG] – "No Google redirect result found" – "" (debugLogger.ts, line 27)
+[Debug] [DEBUG] – "Received session data" – {sessionExists: true, sessionId: "F3YaDj_y…", userId: null, …} (debugLogger.ts, line 27)
+{sessionExists: true, sessionId: "F3YaDj_y…", userId: null, isLoggedIn: false, cookiePresent: true, …}Object
+[Log] Session exists but not logged in (likely expired) (queryClient.ts, line 53)
+[Warning] [WARN] – "Session exists but not logged in (likely expired)" – {sessionId: "F3YaDj_y…", cookiePresent: true, cookieExists: true, …} (debugLogger.ts, line 24)
+{sessionId: "F3YaDj_y…", cookiePresent: true, cookieExists: true, cookieHeader: "Present"}Object
+[Log] Session check shows not logged in (App.tsx, line 68)
+[Log] Checking for redirect result... (firebase.ts, line 162)
+[Log] Current URL: – "https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2y2pqhs8si0sg.spock.replit.dev/dashboard" (firebase.ts, line 163)
+[Log] URL params: – "" (firebase.ts, line 164)
+[Debug] [DEBUG] – "Checking for Google auth redirect result" – {url: "https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2y2pqhs8si0sg.spock.replit.dev/dashboard", search: "", hash: ""} (debugLogger.ts, line 27)
+[Log] 🔵 About to call getRedirectResult... (firebase.ts, line 170)
+[Log] 🔵 getRedirectResult returned: – null (firebase.ts, line 172)
+[Log] 🔵 Result details: – {hasResult: false, hasUser: false, hasCredential: false, …} (firebase.ts, line 173)
+{hasResult: false, hasUser: false, hasCredential: false, operationType: "none"}Object
+[Log] No redirect result found (firebase.ts, line 245)
+[Debug] [DEBUG] – "No Google redirect result found" – "" (debugLogger.ts, line 27)
+[Debug] [DEBUG] – "Received session data" – {sessionExists: true, sessionId: "F3YaDj_y…", userId: null, …} (debugLogger.ts, line 27)
+{sessionExists: true, sessionId: "F3YaDj_y…", userId: null, isLoggedIn: false, cookiePresent: true, …}Object
+[Log] Session exists but not logged in (likely expired) (queryClient.ts, line 53)
+[Warning] [WARN] – "Session exists but not logged in (likely expired)" – {sessionId: "F3YaDj_y…", cookiePresent: true, cookieExists: true, …} (debugLogger.ts, line 24)
+{sessionId: "F3YaDj_y…", cookiePresent: true, cookieExists: true, cookieHeader: "Present"}Object
+[Log] Session check shows not logged in (App.tsx, line 68)
+[Log] Initializing RevenueCat... (main.tsx, line 7)
+[Error] RevenueCat SDK not available
+	(anonymous function) (revenuecat.ts:36)
+	initializeRevenueCat (revenuecat.ts:3)
+	(anonymous function) (main.tsx:8)
+[Log] 🔴 BUTTON CLICKED - handleGoogleSignIn function called! (DirectLogin.tsx, line 165)
+[Log] 🔴 Browser User Agent: – "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 Safari/605.1.15" (DirectLogin.tsx, line 166)
+[Log] 🔴 Current URL: – "https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2y2pqhs8si0sg.spock.replit.dev/dashboard" (DirectLogin.tsx, line 167)
+[Log] 🔴 Loading state set to true (DirectLogin.tsx, line 170)
+[Log] 🔴 Firebase config being used: – {apiKey: "Present (hidden)", projectId: "leadertalk-987ec", appId: "Present (hidden)", …} (DirectLogin.tsx, line 180)
+{apiKey: "Present (hidden)", projectId: "leadertalk-987ec", appId: "Present (hidden)", authDomain: "leadertalk-987ec.firebaseapp.com", currentUrl: "https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2y2pqhs8si0sg.spock.replit.dev/dashboard", …}Object
+[Log] Firebase config being used: – {apiKey: "Present (hidden)", projectId: "leadertalk-987ec", appId: "Present (hidden)", …} (DirectLogin.tsx, line 181)
+{apiKey: "Present (hidden)", projectId: "leadertalk-987ec", appId: "Present (hidden)", authDomain: "leadertalk-987ec.firebaseapp.com", currentUrl: "https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2y2pqhs8si0sg.spock.replit.dev/dashboard", …}Object
+[Debug] [DEBUG] – "Attempting Google sign-in with config" – {apiKey: "Present (hidden)", projectId: "leadertalk-987ec", appId: "Present (hidden)", …} (debugLogger.ts, line 27)
+{apiKey: "Present (hidden)", projectId: "leadertalk-987ec", appId: "Present (hidden)", authDomain: "leadertalk-987ec.firebaseapp.com", currentUrl: "https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2y2pqhs8si0sg.spock.replit.dev/dashboard", …}Object
+[Log] 🔴 About to call signInWithGoogle function... (DirectLogin.tsx, line 183)
+[Log] Starting Google sign-in popup... (DirectLogin.tsx, line 184)
+[Log] Force onboarding checkbox is: – false (DirectLogin.tsx, line 185)
+[Log] [INFO] – "Google sign-in process initiated from UI" – "" (debugLogger.ts, line 30)
+[Log] Firebase config: – {apiKey: "Present (hidden)", projectId: "leadertalk-987ec", appId: "Present (hidden)", …} (firebase.ts, line 25)
+{apiKey: "Present (hidden)", projectId: "leadertalk-987ec", appId: "Present (hidden)", authDomain: "leadertalk-987ec.firebaseapp.com", currentUrl: "https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2y2pqhs8si0sg.spock.replit.dev/dashboard", …}Object
+[Debug] [DEBUG] – "Firebase authentication attempt" – {apiKey: "Present (hidden)", projectId: "leadertalk-987ec", appId: "Present (hidden)", …} (debugLogger.ts, line 27)
+{apiKey: "Present (hidden)", projectId: "leadertalk-987ec", appId: "Present (hidden)", authDomain: "leadertalk-987ec.firebaseapp.com", currentUrl: "https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2y2pqhs8si0sg.spock.replit.dev/dashboard", …}Object
+[Log] Starting Google sign-in with popup... (firebase.ts, line 27)
+[Log] [INFO] – "Starting Google sign-in with popup" – "" (debugLogger.ts, line 30)
+[Log] Auth state before popup: – "No user" (firebase.ts, line 29)
+[Log] 🟢 POPUP AUTHENTICATION - Works for Safari and all browsers! (firebase.ts, line 61)
+[Debug] [DEBUG] – "Opening Google auth popup for desktop browser" – "" (debugLogger.ts, line 27)
+[Log] Popup authentication completed (firebase.ts, line 69)
+[Log] [INFO] – "Google popup authentication completed" – "" (debugLogger.ts, line 30)
+[Log] User authenticated: – {uid: "xPYdak2MM0N3FXZGPuQ9YPSCVxg2", email: "morsy.cheikhrouhou@gmail.com", displayName: "Morsy Cheikhrouhou", …} (firebase.ts, line 78)
+{uid: "xPYdak2MM0N3FXZGPuQ9YPSCVxg2", email: "morsy.cheikhrouhou@gmail.com", displayName: "Morsy Cheikhrouhou", hasPhotoUrl: true}Object
+[Log] [INFO] – "Firebase user authenticated" – {uid: "xPYdak2MM0N3FXZGPuQ9YPSCVxg2", email: "morsy.cheikhrouhou@gmail.com", displayName: "Morsy Cheikhrouhou", …} (debugLogger.ts, line 30)
+{uid: "xPYdak2MM0N3FXZGPuQ9YPSCVxg2", email: "morsy.cheikhrouhou@gmail.com", displayName: "Morsy Cheikhrouhou", hasPhotoUrl: true}Object
+[Log] Sending user data to server... (firebase.ts, line 81)
+[Debug] [DEBUG] – "Sending user data to server for authentication" – {endpoint: "/api/users", method: "POST", googleId: "Present (hidden)"} (debugLogger.ts, line 27)
+[Log] User successfully registered/logged in on server (firebase.ts, line 101)
+[Log] [INFO] – "User successfully registered/logged in on server" – "" (debugLogger.ts, line 30)
+[Log] Server response: – {id: 2, username: "Morsy Cheikhrouhou", email: "morsy.cheikhrouhou@gmail.com", …} (firebase.ts, line 104)
+{id: 2, username: "Morsy Cheikhrouhou", email: "morsy.cheikhrouhou@gmail.com", googleId: "xPYdak2MM0N3FXZGPuQ9YPSCVxg2", photoUrl: "https://lh3.googleusercontent.com/a/ACg8ocJ9blY9d-nJdWBST_eKFA24taAododCwU8w7J9KGPf-oHOAiob1=s96-c", …}Object
+[Log] User already onboarded, redirecting to dashboard... (firebase.ts, line 106)
+[Log] [INFO] – "User already onboarded, redirecting to dashboard" – "" (debugLogger.ts, line 30)
+[Log] Google sign-in completed successfully – _UserImpl {providerId: "firebase", proactiveRefresh: ProactiveRefresh, reloadUserInfo: Object, …} (DirectLogin.tsx, line 194)
+_UserImpl {providerId: "firebase", proactiveRefresh: ProactiveRefresh, reloadUserInfo: Object, reloadListener: null, uid: "xPYdak2MM0N3FXZGPuQ9YPSCVxg2", …}_UserImpl
+[Log] [INFO] – "Google sign-in completed successfully in UI component" – "" (debugLogger.ts, line 30)
+[Debug] [DEBUG] – "Checking user onboarding status for normal flow" – "" (debugLogger.ts, line 27)
+[Debug] [DEBUG] – "API request" – {method: "GET", url: "/api/users/me", hasData: false} (debugLogger.ts, line 27)
+[Warning] [WARN] – "Network request failed, retrying..." – {url: "/api/users/me", retry: 1, error: "Load failed"} (debugLogger.ts, line 24)
+[Info] Successfully preconnected to https://fonts.googleapis.com/
+[Info] Successfully preconnected to https://fonts.gstatic.com/
+[Error] Failed to load resource: A server with the specified hostname could not be found. (index.js, line 0)
+[Debug] [vite] connecting... (client, line 495)
+[Debug] [vite] connected. (client, line 618)
+[Warning] Stripe.js@v3 was loaded on the page, but @stripe/stripe-js@7.3.0 expected Stripe.js@basil. This may result in unexpected behavior. For more information, see https://docs.stripe.com/sdks/stripejs-versioning (@stripe_stripe-js.js, line 119, x2)
+[Log] Checking for redirect result... (firebase.ts, line 162)
+[Log] Current URL: – "https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2y2pqhs8si0sg.spock.replit.dev/dashboard" (firebase.ts, line 163)
+[Log] URL params: – "" (firebase.ts, line 164)
+[Debug] [DEBUG] – "Checking for Google auth redirect result" – {url: "https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2y2pqhs8si0sg.spock.replit.dev/dashboard", search: "", hash: ""} (debugLogger.ts, line 27)
+[Log] 🔵 About to call getRedirectResult... (firebase.ts, line 170)
+[Info] Successfully preconnected to https://api.stripe.com/
+[Log] 🔵 getRedirectResult returned: – null (firebase.ts, line 172)
+[Log] 🔵 Result details: – {hasResult: false, hasUser: false, hasCredential: false, …} (firebase.ts, line 173)
+{hasResult: false, hasUser: false, hasCredential: false, operationType: "none"}Object
+[Log] No redirect result found (firebase.ts, line 245)
+[Debug] [DEBUG] – "No Google redirect result found" – "" (debugLogger.ts, line 27)
+[Debug] [DEBUG] – "Received session data" – {sessionExists: true, sessionId: "F3YaDj_y…", userId: 2, …} (debugLogger.ts, line 27)
+{sessionExists: true, sessionId: "F3YaDj_y…", userId: 2, isLoggedIn: true, cookiePresent: true, …}Object
+[Log] Session confirmed valid, user ID: 2 (queryClient.ts, line 43)
+[Log] [INFO] – "Session confirmed valid, user ID: 2" – {userId: 2, sessionId: "F3YaDj_y…", cookiePresent: true, …} (debugLogger.ts, line 30)
+{userId: 2, sessionId: "F3YaDj_y…", cookiePresent: true, cookieExists: true}Object
+[Log] Session check successful, fetching user details (App.tsx, line 74)
+[Debug] [DEBUG] – "API request" – {method: "GET", url: "/api/users/me", hasData: false} (debugLogger.ts, line 27)
+[Debug] [DEBUG] – "API request successful" – {url: "/api/users/me", method: "GET", status: 200} (debugLogger.ts, line 27)
+[Log] Checking for redirect result... (firebase.ts, line 162)
+[Log] Current URL: – "https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2y2pqhs8si0sg.spock.replit.dev/dashboard" (firebase.ts, line 163)
+[Log] URL params: – "" (firebase.ts, line 164)
+[Debug] [DEBUG] – "Checking for Google auth redirect result" – {url: "https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2y2pqhs8si0sg.spock.replit.dev/dashboard", search: "", hash: ""} (debugLogger.ts, line 27)
+[Log] 🔵 About to call getRedirectResult... (firebase.ts, line 170)
+[Log] 🔵 getRedirectResult returned: – null (firebase.ts, line 172)
+[Log] 🔵 Result details: – {hasResult: false, hasUser: false, hasCredential: false, …} (firebase.ts, line 173)
+{hasResult: false, hasUser: false, hasCredential: false, operationType: "none"}Object
+[Log] No redirect result found (firebase.ts, line 245)
+[Debug] [DEBUG] – "No Google redirect result found" – "" (debugLogger.ts, line 27)
+[Debug] [DEBUG] – "Received session data" – {sessionExists: true, sessionId: "F3YaDj_y…", userId: 2, …} (debugLogger.ts, line 27)
+{sessionExists: true, sessionId: "F3YaDj_y…", userId: 2, isLoggedIn: true, cookiePresent: true, …}Object
+[Log] Session confirmed valid, user ID: 2 (queryClient.ts, line 43)
+[Log] [INFO] – "Session confirmed valid, user ID: 2" – {userId: 2, sessionId: "F3YaDj_y…", cookiePresent: true, …} (debugLogger.ts, line 30)
+{userId: 2, sessionId: "F3YaDj_y…", cookiePresent: true, cookieExists: true}Object
+[Log] Session check successful, fetching user details (App.tsx, line 74)
+[Debug] [DEBUG] – "API request" – {method: "GET", url: "/api/users/me", hasData: false} (debugLogger.ts, line 27)
+[Debug] [DEBUG] – "API request successful" – {url: "/api/users/me", method: "GET", status: 200} (debugLogger.ts, line 27)
+[Log] Initializing RevenueCat... (main.tsx, line 7)
+[Error] RevenueCat SDK not available
+	(anonymous function) (revenuecat.ts:36)
+	initializeRevenueCat (revenuecat.ts:3)
+	(anonymous function) (main.tsx:8)
+[Debug] [DEBUG] – "Query function called" – {requestUrl: "/api/users/me"} (debugLogger.ts, line 27)
+[Debug] [DEBUG] – "Query function called" – {requestUrl: "/api/recordings"} (debugLogger.ts, line 27)
+[Debug] [DEBUG] – "Query function called" – {requestUrl: "/api/leaders"} (debugLogger.ts, line 27)
+[Debug] [DEBUG] – "Query successful" – {requestUrl: "/api/users/me", status: 200} (debugLogger.ts, line 27)
+[Debug] [DEBUG] – "Query successful" – {requestUrl: "/api/leaders", status: 200} (debugLogger.ts, line 27)
+[Debug] [DEBUG] – "Query successful" – {requestUrl: "/api/recordings", status: 200} (debugLogger.ts, line 27)
