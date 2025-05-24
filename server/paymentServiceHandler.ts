@@ -183,3 +183,86 @@ function getWordLimitFromMetadata(product: Stripe.Product): number {
 
   throw new Error(`No valid word limit found in metadata for product ${product.name} (${product.id})`);
 }
+
+/**
+ * Ensure user has a Stripe customer ID, create if missing
+ */
+export async function ensureUserHasStripeCustomer(user: any): Promise<string> {
+  if (user.stripeCustomerId) {
+    console.log(
+      `♻️  Using existing Stripe customer ID: ${user.stripeCustomerId}`,
+    );
+    return user.stripeCustomerId;
+  }
+
+  console.log(
+    `🆕 Creating NEW Stripe customer for user ${user.id} (${user.email})`,
+  );
+
+  const customer = await stripe.customers.create({
+    email: user.email,
+    name: user.username,
+    metadata: {
+      userId: user.id.toString(),
+    },
+  });
+
+  // Import storage here to avoid circular dependencies
+  const { storage } = await import("./storage");
+  await storage.updateUser(user.id, {
+    stripeCustomerId: customer.id,
+  });
+
+  console.log(
+    `✅ SUCCESS: Created new Stripe customer for user ${user.id}: ${customer.id}`,
+  );
+  return customer.id;
+}
+
+/**
+ * Create a default starter subscription for a user
+ */
+export async function createDefaultSubscription(
+  user: any,
+  customerId: string,
+): Promise<any> {
+  console.log(
+    `🔄 Creating default Starter subscription for user ${user.id}...`,
+  );
+
+  // Fetch all products to find the Starter plan
+  const products = await stripe.products.list({
+    active: true,
+    expand: ["data.default_price"],
+  });
+
+  // Find the Starter (free) plan
+  const starterProduct = products.data.find((p) =>
+    p.name.toLowerCase().includes("starter"),
+  );
+
+  if (!starterProduct || !starterProduct.default_price) {
+    throw new Error(`No Starter product found in Stripe`);
+  }
+
+  const price = starterProduct.default_price as Stripe.Price;
+  console.log(`🎯 Found Starter product: ${starterProduct.name} (${price.id})`);
+
+  const subscription = await stripe.subscriptions.create({
+    customer: customerId,
+    items: [{ price: price.id }],
+    expand: ["items.data.price"],
+  });
+
+  console.log(
+    `✅ Created default subscription: ${subscription.id} for user ${user.id}`,
+  );
+
+  // Import storage here to avoid circular dependencies
+  const { storage } = await import("./storage");
+  await storage.updateUser(user.id, {
+    stripeSubscriptionId: subscription.id,
+  });
+
+  return subscription;
+}

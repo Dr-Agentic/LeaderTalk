@@ -100,10 +100,7 @@ export default function WordUsageStats() {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={recordingsArray.slice(0, 10).map((recording) => ({
-                    name:
-                      recording.title.length > 10
-                        ? recording.title.substring(0, 10) + "..."
-                        : recording.title,
+                    name: recording.id,
                     words: recording.wordCount || 0,
                     fullTitle: recording.title,
                     date: recording.formattedDate || "N/A",

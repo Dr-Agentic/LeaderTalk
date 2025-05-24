@@ -5,6 +5,8 @@ import {
   getUserSubscription,
   getUserBillingCycle,
   getUserWordLimit,
+  ensureUserHasStripeCustomer,
+  createDefaultSubscription,
 } from "./paymentServiceHandler";
 
 // Initialize Stripe with the secret key
@@ -31,38 +33,7 @@ async function validateUserAccess(
   return { userId, user };
 }
 
-/**
- * Ensure user has a Stripe customer ID, create if missing
- */
-async function ensureStripeCustomer(user: any): Promise<string> {
-  if (user.stripeCustomerId) {
-    console.log(
-      `♻️  Using existing Stripe customer ID: ${user.stripeCustomerId}`,
-    );
-    return user.stripeCustomerId;
-  }
 
-  console.log(
-    `🆕 Creating NEW Stripe customer for user ${user.id} (${user.email})`,
-  );
-
-  const customer = await stripe.customers.create({
-    email: user.email,
-    name: user.username,
-    metadata: {
-      userId: user.id.toString(),
-    },
-  });
-
-  await storage.updateUser(user.id, {
-    stripeCustomerId: customer.id,
-  });
-
-  console.log(
-    `✅ SUCCESS: Created new Stripe customer for user ${user.id}: ${customer.id}`,
-  );
-  return customer.id;
-}
 
 /**
  * Create a default starter subscription for a user
