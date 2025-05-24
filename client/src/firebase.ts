@@ -212,9 +212,18 @@ export async function handleRedirectResult() {
       hash: window.location.hash
     });
     
+    console.log("🔵 About to call getRedirectResult...");
     const result = await getRedirectResult(auth);
+    console.log("🔵 getRedirectResult returned:", result);
+    console.log("🔵 Result details:", {
+      hasResult: !!result,
+      hasUser: !!result?.user,
+      hasCredential: !!result?.credential,
+      operationType: result?.operationType || "none"
+    });
     
     if (result) {
+      console.log("🔵 Redirect result found - SUCCESS!");
       console.log("Redirect result found");
       logInfo("Google redirect result found - user authenticated");
       
