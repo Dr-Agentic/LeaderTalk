@@ -1,12 +1,16 @@
 import { Request, Response } from "express";
 import { storage } from "./storage";
+import Stripe from "stripe";
 import {
   getUserSubscription,
   getUserBillingCycle,
   getUserWordLimit,
-  createDefaultSubscription,
-  ensureUserHasStripeCustomer,
 } from "./paymentServiceHandler";
+
+// Initialize Stripe with the secret key
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: "2023-10-16",
+});
 
 /**
  * Validate user authentication and retrieve user data
