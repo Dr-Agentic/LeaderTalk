@@ -28,11 +28,19 @@ async function validateUserAccess(
   return { userId, user };
 }
 
+/**
+ * Get billing cycle dates for a user from their Stripe subscription
+ */
+export async function getUserBillingCycle(userId: number): Promise<{ start: Date; end: Date }> {
+  // Get user from database to get their subscription ID
+  const user = await storage.getUser(userId);
+  if (!user?.stripeSubscriptionId) {
+    throw new Error(`User ${userId} has no Stripe subscription ID`);
+  }
 
-
-
-
-
+  // Use the pure Stripe API function
+  return getBillingCycleFromSubscription(user.stripeSubscriptionId);
+}
 
 export async function getCurrentSubscription(req: Request, res: Response) {
   res.setHeader("Content-Type", "application/json");
