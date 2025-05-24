@@ -179,19 +179,83 @@ function getWordLimitFromMetadata(product: Stripe.Product): number {
 }
 
 /**
+ * Lookup customer in Stripe by email address
+ */
+async function lookupCustomerByEmail(email: string): Promise<any> {
+  try {
+    const customers = await stripe.customers.list({
+      email: email,
+      limit: 10,
+    });
+    
+    console.log(`🔍 Lookup by email ${email}: Found ${customers.data.length} customers`);
+    
+    if (customers.data.length > 0) {
+      customers.data.forEach((customer, index) => {
+        console.log(`📋 Customer ${index + 1}: ID=${customer.id}, Email=${customer.email}, Created=${new Date(customer.created * 1000).toISOString()}`);
+      });
+    }
+    
+    return customers.data.length > 0 ? customers.data[0] : null;
+  } catch (error) {
+    console.error(`❌ Error looking up customer by email ${email}:`, error);
+    return null;
+  }
+}
+
+/**
  * Ensure user has a Stripe customer ID, create if missing
  */
 export async function ensureUserHasStripeCustomer(user: any): Promise<string> {
   if (user.stripeCustomerId) {
-    console.log(
-      `♻️  Using existing Stripe customer ID: ${user.stripeCustomerId}`,
-    );
-    return user.stripeCustomerId;
+    console.log(`🔍 Validating existing Stripe customer ID: ${user.stripeCustomerId}`);
+    
+    // Check if the customer actually exists in Stripe
+    try {
+      const customer = await stripe.customers.retrieve(user.stripeCustomerId);
+      console.log(`✅ Customer exists in Stripe: ${user.stripeCustomerId}`);
+      return user.stripeCustomerId;
+    } catch (error: any) {
+      if (error.code === 'resource_missing') {
+        console.log(`❌ Customer ${user.stripeCustomerId} no longer exists in Stripe`);
+        
+        // Step 1: Try to lookup customer by email address
+        console.log(`🔍 Looking up customer by email: ${user.email}`);
+        const existingCustomer = await lookupCustomerByEmail(user.email);
+        
+        if (existingCustomer) {
+          console.log(`📋 Found existing customer by email: ${existingCustomer.id}`);
+          // For now, just log the output as requested - do not use it yet
+          console.log(`⚠️  Note: Found customer but not using it yet to avoid mixing profiles`);
+        }
+        
+        // Step 2: Create a new Stripe customer
+        console.log(`🆕 Creating NEW Stripe customer for user ${user.id} (${user.email})`);
+        
+        const newCustomer = await stripe.customers.create({
+          email: user.email,
+          name: user.username,
+          metadata: {
+            userId: user.id.toString(),
+          },
+        });
+        
+        // Import storage here to avoid circular dependencies
+        const { storage } = await import("./storage");
+        await storage.updateUser(user.id, {
+          stripeCustomerId: newCustomer.id,
+        });
+        
+        console.log(`✅ SUCCESS: Created new Stripe customer for user ${user.id}: ${newCustomer.id}`);
+        return newCustomer.id;
+      } else {
+        console.error(`❌ Error validating Stripe customer ${user.stripeCustomerId}:`, error);
+        throw error;
+      }
+    }
   }
 
-  console.log(
-    `🆕 Creating NEW Stripe customer for user ${user.id} (${user.email})`,
-  );
+  console.log(`🆕 No customer ID found, creating NEW Stripe customer for user ${user.id} (${user.email})`);
 
   const customer = await stripe.customers.create({
     email: user.email,
@@ -207,9 +271,7 @@ export async function ensureUserHasStripeCustomer(user: any): Promise<string> {
     stripeCustomerId: customer.id,
   });
 
-  console.log(
-    `✅ SUCCESS: Created new Stripe customer for user ${user.id}: ${customer.id}`,
-  );
+  console.log(`✅ SUCCESS: Created new Stripe customer for user ${user.id}: ${customer.id}`);
   return customer.id;
 }
 

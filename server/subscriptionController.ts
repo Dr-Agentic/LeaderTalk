@@ -93,7 +93,7 @@ export async function getCurrentSubscription(req: Request, res: Response) {
       );
 
       console.log(
-        `✅ Retrieved subscription data: ${subscriptionData.plan} (${subscriptionData.wordLimit} words) ${subscriptionData.status}`,
+        `✅ Retrieved subscription data: ${JSON.stringify(subscriptionData, null, 2)}`,
       );
 
       // Check if the subscription is active
