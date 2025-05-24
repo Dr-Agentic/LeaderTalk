@@ -36,12 +36,6 @@ export async function signInWithGoogle() {
     logInfo("Starting Google sign-in with popup");
     console.log("Auth state before popup:", auth.currentUser ? "User is signed in" : "No user");
     
-    // Configure provider for better popup experience
-    provider.setCustomParameters({
-      prompt: 'select_account',
-      display: 'popup'
-    });
-    
     // Check if we're on iOS or Safari browser
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     const isSafari = navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome');
@@ -57,14 +51,19 @@ export async function signInWithGoogle() {
     // Use different strategies based on device capabilities
     let result;
     if (popupBlocked || isIOS || isSafari) {
-      logWarn("Popup authentication not available, using redirect fallback", {
+      logWarn("Using redirect authentication for Safari/iOS", {
         isIOS,
         isSafari,
         popupBlocked,
         userAgent: navigator.userAgent
       });
       
-      // Store authentication attempt in localStorage for iOS tracking
+      // Configure provider for redirect authentication
+      provider.setCustomParameters({
+        prompt: 'select_account'
+      });
+      
+      // Store authentication attempt in localStorage for tracking
       localStorage.setItem('authAttempt', JSON.stringify({
         timestamp: Date.now(),
         isIOS,
@@ -77,6 +76,12 @@ export async function signInWithGoogle() {
       // Note: This will redirect the page, so code below won't execute
       return null;
     } else {
+      // Configure provider for popup authentication
+      provider.setCustomParameters({
+        prompt: 'select_account',
+        display: 'popup'
+      });
+      
       // Use popup authentication for desktop browsers
       logDebug("Opening Google auth popup");
       result = await signInWithPopup(auth, provider);
