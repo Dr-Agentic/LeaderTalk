@@ -1,9 +1,9 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, signInWithPopup, GoogleAuthProvider, getRedirectResult } from "firebase/auth";
+import { getAuth, signInWithRedirect, GoogleAuthProvider, getRedirectResult } from "firebase/auth";
 import { logInfo, logError, logDebug, logWarn } from "@/lib/debugLogger";
 
-// IMPORTANT: Switch from redirect to popup authentication to avoid CORS issues
-// This should resolve the "accounts.google.com refused to connect" error
+// IMPORTANT: Using redirect authentication for better portability across different environments
+// This provides better compatibility than popup-based authentication
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "demo-key",
@@ -32,103 +32,26 @@ export async function signInWithGoogle() {
     console.log("Firebase config:", configInfo);
     logDebug("Firebase authentication attempt", configInfo);
     
-    console.log("Starting Google sign-in with popup...");
-    logInfo("Starting Google sign-in with popup");
-    console.log("Auth state before popup:", auth.currentUser ? "User is signed in" : "No user");
+    console.log("Starting Google sign-in with redirect...");
+    logInfo("Starting Google sign-in with redirect");
+    console.log("Auth state before redirect:", auth.currentUser ? "User is signed in" : "No user");
     
-    // Configure provider for better popup experience
+    // Configure provider for better redirect experience
     provider.setCustomParameters({
-      prompt: 'select_account',
-      // Ensure it opens as a popup, not redirect
-      display: 'popup'
+      prompt: 'select_account'
     });
     
-    // Use popup with specific size and position for better UX
-    logDebug("Opening Google auth popup");
+    // Use redirect authentication for better portability
+    logDebug("Initiating Google auth redirect");
     
-    // Check if popup blockers are enabled
-    const testPopup = window.open('', '_blank', 'width=1,height=1');
-    if (!testPopup || testPopup.closed) {
-      logWarn("Popup blocked - user needs to allow popups");
-      throw new Error('popup-blocked');
-    } else {
-      testPopup.close();
-    }
+    await signInWithRedirect(auth, provider);
+    console.log("Redirect authentication initiated");
+    logInfo("Google redirect authentication initiated");
     
-    const result = await signInWithPopup(auth, provider);
-    console.log("Popup authentication completed");
-    logInfo("Google popup authentication completed");
-    
-    // Return the user information
-    const user = result.user;
-    const userInfo = {
-      uid: user.uid,
-      email: user.email,
-      displayName: user.displayName,
-      hasPhotoUrl: !!user.photoURL
-    };
-    
-    console.log("User authenticated:", userInfo);
-    logInfo("Firebase user authenticated", userInfo);
-    
-    // Now create or update the user on our server
-    try {
-      console.log("Sending user data to server...");
-      logDebug("Sending user data to server for authentication", {
-        endpoint: '/api/users',
-        method: 'POST',
-        googleId: user.uid ? "Present (hidden)" : "Missing"
-      });
-      
-      const response = await fetch('/api/users', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          googleId: user.uid,
-          email: user.email || `user_${user.uid}@example.com`,
-          username: user.displayName || `User ${user.uid.substring(0, 6)}`,
-          photoUrl: user.photoURL
-        }),
-        credentials: 'include'
-      });
-      
-      if (response.ok) {
-        console.log("User successfully registered/logged in on server");
-        logInfo("User successfully registered/logged in on server");
-        
-        const userData = await response.json();
-        console.log("Server response:", userData);
-        
-        // Check if user has completed onboarding
-        if (userData.dateOfBirth && userData.profession && userData.goals && userData.selectedLeaders) {
-          console.log("User already onboarded, redirecting to dashboard...");
-          logInfo("User already onboarded, redirecting to dashboard");
-          window.location.href = '/dashboard';
-        } else {
-          console.log("User needs onboarding, redirecting to /onboarding...");
-          logInfo("User needs onboarding, redirecting to /onboarding");
-          window.location.href = '/onboarding';
-        }
-      } else {
-        const responseText = await response.text();
-        console.error("Server registration failed:", responseText);
-        logError("Server registration failed", {
-          status: response.status,
-          responseText,
-          url: '/api/users'
-        });
-      }
-    } catch (serverError: any) {
-      console.error("Error communicating with server:", serverError);
-      logError("Error communicating with server after Google authentication", {
-        message: serverError?.message || "Unknown server error",
-        stack: serverError?.stack || "No stack trace"
-      });
-    }
-    
-    return user;
+    // Note: With redirect authentication, this function will not return a user
+    // The page will redirect to Google and then back to our app
+    // The actual authentication handling is done in handleRedirectResult()
+    return null;
   } catch (error: any) {
     console.error("Error signing in with Google", error);
     console.error("Error details:", {
@@ -138,16 +61,13 @@ export async function signInWithGoogle() {
       name: error?.name
     });
     
-    // Handle specific popup-related errors with better user messaging
-    if (error?.code === 'auth/popup-blocked' || error?.code === 'auth/popup-closed-by-user') {
-      logWarn("Google sign-in popup was blocked or closed by user", {
+    // Handle specific redirect-related errors
+    if (error?.code === 'auth/cancelled-popup-request' || error?.code === 'auth/popup-closed-by-user') {
+      logWarn("Google sign-in was cancelled by user", {
         code: error?.code,
         userAgent: navigator.userAgent
       });
-      throw new Error('popup-cancelled');
-    } else if (error?.message === 'popup-blocked') {
-      logWarn("Popup blocker detected");
-      throw new Error('popup-blocked');
+      throw new Error('auth-cancelled');
     }
     
     logError("Google sign-in error", {
@@ -172,6 +92,7 @@ export async function handleRedirectResult() {
     if (result) {
       console.log("Redirect result found");
       logInfo("Google redirect result found - user authenticated");
+      
       // The signed-in user info
       const user = result.user;
       const userInfo = {
@@ -182,6 +103,64 @@ export async function handleRedirectResult() {
       };
       console.log("User authenticated:", userInfo);
       logInfo("User authenticated via redirect", userInfo);
+      
+      // Now create or update the user on our server
+      try {
+        console.log("Sending user data to server...");
+        logDebug("Sending user data to server for authentication", {
+          endpoint: '/api/users',
+          method: 'POST',
+          googleId: user.uid ? "Present (hidden)" : "Missing"
+        });
+        
+        const response = await fetch('/api/users', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            googleId: user.uid,
+            email: user.email || `user_${user.uid}@example.com`,
+            username: user.displayName || `User ${user.uid.substring(0, 6)}`,
+            photoUrl: user.photoURL
+          }),
+          credentials: 'include'
+        });
+        
+        if (response.ok) {
+          console.log("User successfully registered/logged in on server");
+          logInfo("User successfully registered/logged in on server");
+          
+          const userData = await response.json();
+          console.log("Server response:", userData);
+          
+          // Check if user has completed onboarding
+          if (userData.dateOfBirth && userData.profession && userData.goals && userData.selectedLeaders) {
+            console.log("User already onboarded, redirecting to dashboard...");
+            logInfo("User already onboarded, redirecting to dashboard");
+            window.location.href = '/dashboard';
+          } else {
+            console.log("User needs onboarding, redirecting to /onboarding...");
+            logInfo("User needs onboarding, redirecting to /onboarding");
+            window.location.href = '/onboarding';
+          }
+        } else {
+          const responseText = await response.text();
+          console.error("Server registration failed:", responseText);
+          logError("Server registration failed", {
+            status: response.status,
+            responseText,
+            url: '/api/users'
+          });
+        }
+      } catch (serverError: any) {
+        console.error("Error communicating with server:", serverError);
+        logError("Error communicating with server after Google authentication", {
+          message: serverError?.message || "Unknown server error",
+          stack: serverError?.stack || "No stack trace"
+        });
+      }
+      
       return user;
     }
     console.log("No redirect result found");
