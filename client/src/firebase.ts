@@ -183,7 +183,13 @@ export async function signInWithGoogle() {
 export async function handleRedirectResult() {
   try {
     console.log("Checking for redirect result...");
-    logDebug("Checking for Google auth redirect result");
+    console.log("Current URL:", window.location.href);
+    console.log("URL params:", new URLSearchParams(window.location.search).toString());
+    logDebug("Checking for Google auth redirect result", {
+      url: window.location.href,
+      search: window.location.search,
+      hash: window.location.hash
+    });
     const result = await getRedirectResult(auth);
     
     if (result) {
