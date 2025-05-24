@@ -173,15 +173,35 @@ export function registerUserRoutes(app: Express) {
       // Set user ID in session
       req.session.userId = user.id;
       
-      // Save session and respond
-      req.session.save((err) => {
+      // Force session regeneration for Safari compatibility
+      req.session.regenerate((err) => {
         if (err) {
-          console.error("Session save error:", err);
-          return res.status(500).json({ error: "Failed to save session" });
+          console.error("Session regeneration error:", err);
+          // Fallback to regular session save
+          req.session.userId = user.id;
+          return req.session.save((saveErr) => {
+            if (saveErr) {
+              console.error("Session save error:", saveErr);
+              return res.status(500).json({ error: "Failed to save session" });
+            }
+            console.log("User created/updated successfully (fallback):", user.id);
+            res.json(user);
+          });
         }
         
-        console.log("User created/updated successfully:", user.id);
-        res.json(user);
+        // Set user ID again after regeneration
+        req.session.userId = user.id;
+        
+        // Save the regenerated session
+        req.session.save((saveErr) => {
+          if (saveErr) {
+            console.error("Session save error after regeneration:", saveErr);
+            return res.status(500).json({ error: "Failed to save session" });
+          }
+          
+          console.log("User created/updated successfully with regenerated session:", user.id);
+          res.json(user);
+        });
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
