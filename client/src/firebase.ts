@@ -82,7 +82,7 @@ export async function signInWithGoogle() {
       return null;
     } else {
       // For desktop Safari and all other browsers, use popup
-      console.log("🟢 Using popup authentication (including Safari)");
+      console.log("🟢 POPUP AUTHENTICATION - Works for Safari and all browsers!");
       
       // Configure provider for popup authentication
       provider.setCustomParameters({
