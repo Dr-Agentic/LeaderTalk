@@ -20,6 +20,7 @@ import SituationView from "@/pages/SituationView";
 import NextSituation from "@/pages/NextSituation";
 import Recording from "@/pages/Recording";
 import DebugLogs from "@/pages/DebugLogs";
+import IOSDebug from "@/pages/IOSDebug";
 import { useEffect, useState } from "react";
 import { apiRequest } from "./lib/queryClient";
 import { logInfo, logError, logDebug } from "@/lib/debugLogger";
@@ -164,7 +165,8 @@ function Router() {
       {!isAuthenticated && <Route path="/transcripts" component={DirectLogin} />}
       {!isAuthenticated && <Route path="/progress" component={DirectLogin} />}
       
-
+      {/* iOS Debug tool - accessible without authentication */}
+      <Route path="/ios-debug" component={IOSDebug} />
       
       {/* Fallback route */}
       <Route component={NotFound} />
