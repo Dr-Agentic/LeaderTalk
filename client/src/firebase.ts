@@ -92,10 +92,31 @@ export async function signInWithGoogle() {
       
       console.log("🟡 Starting redirect authentication...");
       
-      // For iOS devices, use redirect
-      await signInWithRedirect(auth, provider);
-      console.log("🟡 Redirect initiated (this may not log)");
-      return null;
+      try {
+        // For iOS devices, use redirect
+        await signInWithRedirect(auth, provider);
+        console.log("🟡 Redirect initiated (this may not log)");
+        return null;
+      } catch (redirectError: any) {
+        console.error("❌ iOS redirect authentication failed:", redirectError);
+        logError("iOS redirect authentication failed", {
+          error: redirectError?.message || "Unknown error",
+          code: redirectError?.code || "unknown",
+          isIOS,
+          isSafari,
+          userAgent: navigator.userAgent
+        });
+        
+        // Try popup as fallback for iOS
+        console.log("🔄 Trying popup fallback for iOS...");
+        try {
+          result = await signInWithPopup(auth, provider);
+          console.log("✅ Popup fallback successful on iOS");
+        } catch (popupError: any) {
+          console.error("❌ Both redirect and popup failed on iOS:", popupError);
+          throw new Error(`iOS authentication failed. Please try using the demo login or contact support. Error: ${popupError?.message || "Unknown error"}`);
+        }
+      }
     } else {
       // For desktop Safari and all other browsers, use popup
       console.log("🟢 POPUP AUTHENTICATION - Works for Safari and all browsers!");
