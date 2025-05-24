@@ -13,6 +13,7 @@ export default function DirectLogin() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [forceOnboarding, setForceOnboarding] = useState(false);
+  const [authStatus, setAuthStatus] = useState<string>("");
   const [legalModal, setLegalModal] = useState<{ isOpen: boolean; type: 'terms' | 'privacy' | null }>({
     isOpen: false,
     type: null,
@@ -195,6 +196,7 @@ export default function DirectLogin() {
     
     try {
       setIsLoading(true);
+      setAuthStatus("🔍 Starting authentication...");
       console.log("🔴 Loading state set to true");
 
       // Log Firebase configuration for debugging
@@ -229,8 +231,12 @@ export default function DirectLogin() {
         sessionStorage.removeItem("forceOnboarding");
       }
 
+      setAuthStatus("🚀 Opening Google authentication...");
+      
       // Use the popup authentication
       const user = await signInWithGoogle();
+      
+      setAuthStatus("✅ Authentication successful! Processing...");
       console.log("Google sign-in completed successfully", user);
       logInfo("Google sign-in completed successfully in UI component");
 
@@ -357,6 +363,7 @@ export default function DirectLogin() {
         url: window.location.href,
       });
 
+      setAuthStatus(`❌ Authentication failed: ${error?.message || "Unknown error"}`);
       setIsLoading(false);
 
       // Show error toast with more details
@@ -402,6 +409,15 @@ export default function DirectLogin() {
               Test onboarding flow (resets profile data)
             </label>
           </div>
+
+          {/* Authentication Status Display */}
+          {authStatus && (
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-800 font-medium text-center">
+                {authStatus}
+              </p>
+            </div>
+          )}
 
           <Button
             variant="default"
