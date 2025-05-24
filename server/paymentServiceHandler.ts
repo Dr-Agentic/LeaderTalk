@@ -213,11 +213,24 @@ export async function ensureUserHasStripeCustomer(user: any): Promise<string> {
     // Check if the customer actually exists in Stripe
     try {
       const customer = await stripe.customers.retrieve(user.stripeCustomerId);
-      console.log(`✅ Customer exists in Stripe: ${user.stripeCustomerId}`);
+      
+      // Additional validation: check if customer is valid and not deleted
+      if (customer.deleted) {
+        console.log(`❌ Customer ${user.stripeCustomerId} is deleted in Stripe`);
+        throw new Error('Customer is deleted');
+      }
+      
+      // Verify customer email matches our user (security check)
+      if (customer.email !== user.email) {
+        console.log(`⚠️  Customer email mismatch: Stripe=${customer.email}, User=${user.email}`);
+        // Continue anyway but log the discrepancy
+      }
+      
+      console.log(`✅ Customer exists and is valid in Stripe: ${user.stripeCustomerId}`);
       return user.stripeCustomerId;
     } catch (error: any) {
-      if (error.code === 'resource_missing') {
-        console.log(`❌ Customer ${user.stripeCustomerId} no longer exists in Stripe`);
+      if (error.code === 'resource_missing' || error.message === 'Customer is deleted') {
+        console.log(`❌ Customer ${user.stripeCustomerId} no longer exists or is deleted in Stripe`);
         
         // Step 1: Try to lookup customer by email address
         console.log(`🔍 Looking up customer by email: ${user.email}`);

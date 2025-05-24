@@ -148,12 +148,21 @@ async function handleNoValidSubscription(userId: number): Promise<any> {
     return subscriptionData;
   }
 
-  // Use payment service handler to retrieve all active subscriptions for the customer
-  console.warn(
-    `🔍 Checking all subscriptions for customer ${user.stripeCustomerId}`,
-  );
-
+  // First, ensure the customer ID is valid before checking subscriptions
+  console.log(`🔍 Validating customer before checking subscriptions...`);
+  
   try {
+    const validCustomerId = await ensureUserHasStripeCustomer(user);
+    
+    if (validCustomerId !== user.stripeCustomerId) {
+      console.log(`📝 Customer ID updated from ${user.stripeCustomerId} to ${validCustomerId}`);
+      // Customer was recreated, so they won't have existing subscriptions
+      console.log(`📋 Customer was recreated, creating default subscription`);
+      const subscriptionData = await createDefaultSubscription(user, validCustomerId);
+      console.log(`✅ Created default subscription ${subscriptionData.id} for user ${userId}`);
+      return subscriptionData;
+    }
+
     // Get all subscriptions for this customer from Stripe
     const stripe = (await import("stripe")).default;
     const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -161,14 +170,14 @@ async function handleNoValidSubscription(userId: number): Promise<any> {
     });
 
     const subscriptions = await stripeInstance.subscriptions.list({
-      customer: user.stripeCustomerId,
+      customer: validCustomerId,
       status: "active",
       limit: 100,
     });
 
     const activeSubscriptions = subscriptions.data;
-    console.warn(
-      `📊 Found ${activeSubscriptions.length} active subscriptions for customer ${user.stripeCustomerId}`,
+    console.log(
+      `📊 Found ${activeSubscriptions.length} active subscriptions for customer ${validCustomerId}`,
     );
 
     if (activeSubscriptions.length === 0) {
@@ -227,25 +236,40 @@ async function handleNoValidSubscription(userId: number): Promise<any> {
       );
       return subscriptionData;
     }
-  } catch (error) {
-    console.error(
-      `❌ Error checking subscriptions for customer ${user.stripeCustomerId}:`,
-      error,
-    );
-
-    // Fallback: create a new subscription
-    console.log(
-      `📋 Fallback: Creating default subscription for user ${userId} due to error`,
-    );
-    const subscriptionData = await createDefaultSubscription(
-      user,
-      user.stripeCustomerId,
-    );
-
-    console.log(
-      `✅ Created fallback subscription ${subscriptionData.id} for user ${userId}`,
-    );
-    return subscriptionData;
+  } catch (error: any) {
+    console.error(`❌ Error checking subscriptions:`, error);
+    
+    // If the error is about the customer not existing, try to fix it
+    if (error.code === 'resource_missing' && error.param === 'customer') {
+      console.log(`❌ Customer validation failed during subscription check, recreating customer`);
+      
+      try {
+        // Clear the invalid customer ID and recreate
+        await storage.updateUser(userId, { stripeCustomerId: null });
+        const updatedUser = await storage.getUser(userId);
+        
+        const newCustomerId = await ensureUserHasStripeCustomer(updatedUser);
+        const subscriptionData = await createDefaultSubscription(updatedUser, newCustomerId);
+        
+        console.log(`✅ Recovered: Created new customer and subscription ${subscriptionData.id} for user ${userId}`);
+        return subscriptionData;
+      } catch (recoveryError) {
+        console.error(`❌ Recovery failed:`, recoveryError);
+        throw new Error(`Unable to create valid subscription for user ${userId}`);
+      }
+    }
+    
+    // For other errors, try fallback with current customer ID
+    console.log(`📋 Fallback: Creating default subscription for user ${userId} due to error`);
+    
+    try {
+      const subscriptionData = await createDefaultSubscription(user, user.stripeCustomerId);
+      console.log(`✅ Created fallback subscription ${subscriptionData.id} for user ${userId}`);
+      return subscriptionData;
+    } catch (fallbackError) {
+      console.error(`❌ Fallback also failed:`, fallbackError);
+      throw new Error(`Unable to create subscription for user ${userId}: ${error.message}`);
+    }
   }
 }
 
