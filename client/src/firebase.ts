@@ -51,6 +51,9 @@ export async function signInWithGoogle() {
     // Use different strategies based on device capabilities
     let result;
     if (popupBlocked || isIOS || isSafari) {
+      console.log("🟡 SAFARI DETECTED - Using redirect authentication");
+      console.log("Safari details:", { isIOS, isSafari, popupBlocked, userAgent: navigator.userAgent });
+      
       logWarn("Using redirect authentication for Safari/iOS", {
         isIOS,
         isSafari,
@@ -68,11 +71,15 @@ export async function signInWithGoogle() {
         timestamp: Date.now(),
         isIOS,
         isSafari,
-        currentUrl: window.location.href
+        currentUrl: window.location.href,
+        redirectInitiated: true
       }));
+      
+      console.log("🟡 Starting redirect authentication...");
       
       // For iOS and Safari, use redirect instead of popup
       await signInWithRedirect(auth, provider);
+      console.log("🟡 Redirect initiated (this may not log)");
       // Note: This will redirect the page, so code below won't execute
       return null;
     } else {
