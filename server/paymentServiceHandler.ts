@@ -353,12 +353,22 @@ export async function getExistingSubscription(subscriptionId: string): Promise<a
   console.log("- ID:", product.id);
   console.log("- Metadata:", product.metadata);
 
+  // Extract only the values we need from the price object
+  const priceAmount = price.unit_amount ? price.unit_amount / 100 : 0;
+  const priceCurrency = price.currency || 'usd';
+  const priceInterval = price.recurring?.interval || "month";
+  
+  // Extract only the values we need from metadata
+  const cleanMetadata = {
+    Words: product.metadata?.Words || "500"
+  };
+  
   return {
     id: subscription.id,
     status: subscription.status,
     plan: product.name.toLowerCase(),
     planId: product.id,
-    isFree: price.unit_amount === 0,
+    isFree: priceAmount === 0,
     startDate: subscription.start_date
       ? new Date(subscription.start_date * 1000)
       : new Date(),
@@ -367,15 +377,12 @@ export async function getExistingSubscription(subscriptionId: string): Promise<a
     nextRenewalDate: new Date(subscription.current_period_end * 1000),
     nextRenewalTimestamp: subscription.current_period_end,
     cancelAtPeriodEnd: subscription.cancel_at_period_end,
-    amount: price.unit_amount ? price.unit_amount / 100 : 0,
-    currency: price.currency,
-    interval: price.recurring?.interval || "month",
+    amount: priceAmount,
+    currency: priceCurrency,
+    interval: priceInterval,
     productImage:
       product.images && product.images.length > 0 ? product.images[0] : null,
-    metadata: product.metadata || {},
-    wordLimit: parseInt(
-      product.metadata?.Words || "ERROR: no word limit metadata",
-      10,
-    ),
+    metadata: cleanMetadata,
+    wordLimit: parseInt(cleanMetadata.Words, 10),
   };
 }
