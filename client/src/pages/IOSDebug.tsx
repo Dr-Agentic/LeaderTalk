@@ -51,6 +51,23 @@ export default function IOSDebug() {
         await authenticateWithServer(result.user);
       } else {
         addDebugEntry("❌ No redirect result found");
+        
+        // iOS Safari fallback: Check if user is actually signed in
+        const currentUser = auth.currentUser;
+        if (currentUser) {
+          addDebugEntry("🔄 But found current user in Firebase auth!", {
+            user: {
+              uid: currentUser.uid,
+              email: currentUser.email,
+              displayName: currentUser.displayName
+            }
+          });
+          
+          // Try to authenticate with server using current user
+          await authenticateWithServer(currentUser);
+        } else {
+          addDebugEntry("❌ No current user either");
+        }
       }
     } catch (error: any) {
       addDebugEntry("❌ Error checking redirect result", {
