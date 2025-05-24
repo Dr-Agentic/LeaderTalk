@@ -419,6 +419,15 @@ export default function DirectLogin() {
             </div>
           )}
 
+          {/* iOS Safari Warning */}
+          {navigator.userAgent.includes('iPhone') && navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome') && (
+            <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
+              <p className="text-sm text-orange-800 text-center">
+                📱 <strong>iOS Safari Users:</strong> If Google sign-in isn't working, please try the demo login below or use Chrome browser for best experience.
+              </p>
+            </div>
+          )}
+
           <Button
             variant="default"
             size="lg"
