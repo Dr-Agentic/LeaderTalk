@@ -61,14 +61,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }),
     secret: sessionSecret,
     resave: false,
-    saveUninitialized: true, // Changed to true - Safari needs this
-    rolling: true, // Force cookie refresh on each request - helps Safari
+    saveUninitialized: false,
     cookie: {
-      secure: false, // Set to false for Replit domains - Safari requires this
+      secure: isProduction,
       httpOnly: true,
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      sameSite: 'lax', // Use 'lax' for better Safari compatibility
-      path: '/', // Explicit path for Safari
+      sameSite: isProduction ? 'none' : 'lax'
     },
     name: 'leadertalk.sid'
   }));

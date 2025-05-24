@@ -96,31 +96,27 @@ export async function signInWithGoogle() {
     console.log("User authenticated:", userInfo);
     logInfo("Firebase user authenticated", userInfo);
     
-    // Get Firebase ID token for API authentication
-    const idToken = await user.getIdToken();
-    
-    // Now create or update the user on our server using Firebase token
+    // Now create or update the user on our server
     try {
       console.log("Sending user data to server...");
       logDebug("Sending user data to server for authentication", {
         endpoint: '/api/users',
         method: 'POST',
-        googleId: user.uid ? "Present (hidden)" : "Missing",
-        hasIdToken: !!idToken
+        googleId: user.uid ? "Present (hidden)" : "Missing"
       });
       
       const response = await fetch('/api/users', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${idToken}` // Use Firebase token instead of cookies
         },
         body: JSON.stringify({
           googleId: user.uid,
           email: user.email || `user_${user.uid}@example.com`,
           username: user.displayName || `User ${user.uid.substring(0, 6)}`,
           photoUrl: user.photoURL
-        })
+        }),
+        credentials: 'include'
       });
       
       if (response.ok) {
