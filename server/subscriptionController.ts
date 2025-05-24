@@ -86,9 +86,14 @@ export async function getCurrentSubscription(req: Request, res: Response) {
 
     // Step 3: Retrieve existing subscription
     try {
-      const subscriptionData = await getExistingSubscription(
+      let subscriptionData = await getExistingSubscription(
         user.stripeSubscriptionId,
       );
+
+      // Check if the subscription is active
+      if (subscriptionData.status !== "active") {
+        subscriptionData = await handleNoValidSubscription(userId);
+      }
 
       return res.status(200).json({
         success: true,
@@ -107,6 +112,101 @@ export async function getCurrentSubscription(req: Request, res: Response) {
       success: false,
       error: "Internal server error",
     });
+  }
+}
+
+
+/**
+ * Handle case where user has no valid active subscription
+ * We will pull all the susbcriptions of that user and check if there is one active.
+ */
+async function handleNoValidSubscription(userId: number): Promise<any> {
+  console.log(`🔍 Handling no valid subscription for user ${userId}`);
+  
+  // Get user from database
+  const user = await storage.getUser(userId);
+  if (!user) {
+    throw new Error(`User ${userId} not found`);
+  }
+
+  if (!user.stripeCustomerId) {
+    console.log(`📋 User ${userId} has no Stripe customer ID, creating default subscription`);
+    // Ensure user has a Stripe customer ID
+    const customerId = await ensureUserHasStripeCustomer(user);
+    const subscriptionData = await createDefaultSubscription(user, customerId);
+    
+    console.log(`✅ Created default subscription ${subscriptionData.id} for user ${userId}`);
+    return subscriptionData;
+  }
+
+  // Use payment service handler to retrieve all active subscriptions for the customer
+  console.log(`🔍 Checking all subscriptions for customer ${user.stripeCustomerId}`);
+  
+  try {
+    // Get all subscriptions for this customer from Stripe
+    const stripe = (await import('stripe')).default;
+    const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: "2023-10-16",
+    });
+    
+    const subscriptions = await stripeInstance.subscriptions.list({
+      customer: user.stripeCustomerId,
+      status: 'active',
+      limit: 100
+    });
+
+    const activeSubscriptions = subscriptions.data;
+    console.log(`📊 Found ${activeSubscriptions.length} active subscriptions for customer ${user.stripeCustomerId}`);
+
+    if (activeSubscriptions.length === 0) {
+      // No active subscriptions, create a new one
+      console.log(`📋 No active subscriptions found, creating default subscription for user ${userId}`);
+      const subscriptionData = await createDefaultSubscription(user, user.stripeCustomerId);
+      
+      console.log(`✅ Created default subscription ${subscriptionData.id} for user ${userId}`);
+      return subscriptionData;
+    
+    } else if (activeSubscriptions.length === 1) {
+      // Exactly one active subscription, assign it to the user
+      const subscription = activeSubscriptions[0];
+      console.log(`📌 Found single active subscription ${subscription.id}, assigning to user ${userId}`);
+      
+      await storage.updateUser(userId, {
+        stripeSubscriptionId: subscription.id,
+      });
+      
+      // Get the subscription details using our payment service handler
+      const subscriptionData = await getExistingSubscription(subscription.id);
+      console.log(`✅ Assigned subscription ${subscription.id} to user ${userId}`);
+      return subscriptionData;
+    
+    } else {
+      // Multiple active subscriptions, use the latest one by creation date
+      const latestSubscription = activeSubscriptions.reduce((latest, current) => {
+        return current.created > latest.created ? current : latest;
+      });
+      
+      console.log(`📌 Found ${activeSubscriptions.length} active subscriptions, using latest: ${latestSubscription.id} (created: ${new Date(latestSubscription.created * 1000).toISOString()})`);
+      
+      await storage.updateUser(userId, {
+        stripeSubscriptionId: latestSubscription.id,
+      });
+      
+      // Get the subscription details using our payment service handler
+      const subscriptionData = await getExistingSubscription(latestSubscription.id);
+      console.log(`✅ Assigned latest subscription ${latestSubscription.id} to user ${userId}`);
+      return subscriptionData;
+    }
+
+  } catch (error) {
+    console.error(`❌ Error checking subscriptions for customer ${user.stripeCustomerId}:`, error);
+    
+    // Fallback: create a new subscription
+    console.log(`📋 Fallback: Creating default subscription for user ${userId} due to error`);
+    const subscriptionData = await createDefaultSubscription(user, user.stripeCustomerId);
+    
+    console.log(`✅ Created fallback subscription ${subscriptionData.id} for user ${userId}`);
+    return subscriptionData;
   }
 }
 
