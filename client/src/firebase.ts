@@ -290,6 +290,77 @@ export async function handleRedirectResult() {
     }
     console.log("No redirect result found");
     logDebug("No Google redirect result found");
+    
+    // iOS Safari workaround: Check if user is actually signed in via current user state
+    const currentUser = auth.currentUser;
+    if (currentUser) {
+      console.log("iOS fallback: Found current user in Firebase auth state");
+      logInfo("iOS fallback: Using current user for authentication", {
+        uid: currentUser.uid,
+        email: currentUser.email,
+        displayName: currentUser.displayName
+      });
+      
+      // Clear auth attempt tracking
+      localStorage.removeItem('authAttempt');
+      
+      // Process authentication with server using the same logic as redirect result
+      try {
+        console.log("Sending current user data to server...");
+        logDebug("Sending current user data to server for authentication", {
+          endpoint: '/api/users',
+          method: 'POST',
+          googleId: currentUser.uid ? "Present (hidden)" : "Missing"
+        });
+        
+        const response = await fetch('/api/users', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            googleId: currentUser.uid,
+            email: currentUser.email || `user_${currentUser.uid}@example.com`,
+            username: currentUser.displayName || `User ${currentUser.uid.substring(0, 6)}`,
+            photoUrl: currentUser.photoURL
+          }),
+          credentials: 'include'
+        });
+        
+        if (response.ok) {
+          const userData = await response.json();
+          console.log("iOS fallback: Server authentication successful");
+          logInfo("iOS fallback: User successfully registered/logged in on server");
+          console.log("Server response:", userData);
+          
+          // Check if user needs onboarding
+          if (!userData.dateOfBirth) {
+            console.log("User needs onboarding, redirecting...");
+            logInfo("User needs onboarding, redirecting to onboarding flow");
+            window.location.href = '/onboarding';
+          } else {
+            console.log("User already onboarded, redirecting to dashboard...");
+            logInfo("User already onboarded, redirecting to dashboard");
+            window.location.href = '/dashboard';
+          }
+          
+          return currentUser;
+        } else {
+          const errorData = await response.text();
+          console.error("iOS fallback: Failed to register/login user on server:", errorData);
+          logError("iOS fallback: Failed to register/login user on server", { 
+            status: response.status, 
+            error: errorData 
+          });
+        }
+      } catch (error: any) {
+        console.error("iOS fallback: Network error during server auth:", error);
+        logError("iOS fallback: Network error during server authentication", {
+          message: error.message
+        });
+      }
+    }
+    
     return null;
   } catch (error: any) {
     console.error("Error handling redirect result", error);
