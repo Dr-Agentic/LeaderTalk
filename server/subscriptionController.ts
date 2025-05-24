@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { storage } from "./storage";
 import {
   getUserSubscription,
-  getUserBillingCycle,
+  getBillingCycleFromSubscription,
   getUserWordLimit,
   ensureUserHasStripeCustomer,
   createDefaultSubscription,
