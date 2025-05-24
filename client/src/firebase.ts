@@ -36,8 +36,10 @@ export async function signInWithGoogle() {
     logInfo("Starting Google sign-in with popup");
     console.log("Auth state before popup:", auth.currentUser ? "User is signed in" : "No user");
     
-    // Check if we're on iOS or Safari browser
+    // Enhanced mobile device detection
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isAndroid = /Android/.test(navigator.userAgent);
+    const isMobile = isIOS || isAndroid || /Mobi|Mobile/i.test(navigator.userAgent);
     const isSafari = navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome');
     
     // Test for popup support
@@ -48,13 +50,24 @@ export async function signInWithGoogle() {
       testPopup.close();
     }
     
+    console.log("🔍 Device detection:", {
+      isIOS,
+      isAndroid, 
+      isMobile,
+      isSafari,
+      popupBlocked,
+      userAgent: navigator.userAgent
+    });
+    
     // Use different strategies based on device capabilities
     let result;
-    if (isIOS) {
-      console.log("🟡 iOS DETECTED - Using redirect authentication");
+    if (isMobile || isIOS || isAndroid) {
+      console.log("📱 MOBILE DEVICE DETECTED - Using redirect authentication");
       
-      logWarn("Using redirect authentication for iOS", {
+      logWarn("Using redirect authentication for mobile device", {
         isIOS,
+        isAndroid,
+        isMobile,
         isSafari,
         popupBlocked,
         userAgent: navigator.userAgent
