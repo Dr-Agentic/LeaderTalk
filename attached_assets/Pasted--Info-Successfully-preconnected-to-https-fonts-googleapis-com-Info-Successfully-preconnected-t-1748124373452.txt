@@ -1,0 +1,36 @@
+[Info] Successfully preconnected to https://fonts.googleapis.com/
+[Info] Successfully preconnected to https://fonts.gstatic.com/
+[Error] Failed to load resource: A server with the specified hostname could not be found. (index.js, line 0)
+[Debug] [vite] connecting... (client, line 495)
+[Debug] [vite] connected. (client, line 618)
+[Warning] Stripe.js@v3 was loaded on the page, but @stripe/stripe-js@7.3.0 expected Stripe.js@basil. This may result in unexpected behavior. For more information, see https://docs.stripe.com/sdks/stripejs-versioning (@stripe_stripe-js.js, line 119, x2)
+[Log] Checking for redirect result... (firebase.ts, line 162)
+[Log] Current URL: – "https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2y2pqhs8si0sg.spock.replit.dev/dashboard" (firebase.ts, line 163)
+[Log] URL params: – "" (firebase.ts, line 164)
+[Debug] [DEBUG] – "Checking for Google auth redirect result" – {url: "https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2y2pqhs8si0sg.spock.replit.dev/dashboard", search: "", hash: ""} (debugLogger.ts, line 27)
+[Info] Successfully preconnected to https://api.stripe.com/
+[Log] No redirect result found (firebase.ts, line 236)
+[Debug] [DEBUG] – "No Google redirect result found" – "" (debugLogger.ts, line 27)
+[Debug] [DEBUG] – "Received session data" – {sessionExists: true, sessionId: "F3YaDj_y…", userId: null, …} (debugLogger.ts, line 27)
+{sessionExists: true, sessionId: "F3YaDj_y…", userId: null, isLoggedIn: false, cookiePresent: true, …}Object
+[Log] Session exists but not logged in (likely expired) (queryClient.ts, line 53)
+[Warning] [WARN] – "Session exists but not logged in (likely expired)" – {sessionId: "F3YaDj_y…", cookiePresent: true, cookieExists: true, …} (debugLogger.ts, line 24)
+{sessionId: "F3YaDj_y…", cookiePresent: true, cookieExists: true, cookieHeader: "Present"}Object
+[Log] Session check shows not logged in (App.tsx, line 68)
+[Log] Checking for redirect result... (firebase.ts, line 162)
+[Log] Current URL: – "https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2y2pqhs8si0sg.spock.replit.dev/dashboard" (firebase.ts, line 163)
+[Log] URL params: – "" (firebase.ts, line 164)
+[Debug] [DEBUG] – "Checking for Google auth redirect result" – {url: "https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2y2pqhs8si0sg.spock.replit.dev/dashboard", search: "", hash: ""} (debugLogger.ts, line 27)
+[Log] No redirect result found (firebase.ts, line 236)
+[Debug] [DEBUG] – "No Google redirect result found" – "" (debugLogger.ts, line 27)
+[Debug] [DEBUG] – "Received session data" – {sessionExists: true, sessionId: "F3YaDj_y…", userId: null, …} (debugLogger.ts, line 27)
+{sessionExists: true, sessionId: "F3YaDj_y…", userId: null, isLoggedIn: false, cookiePresent: true, …}Object
+[Log] Session exists but not logged in (likely expired) (queryClient.ts, line 53)
+[Warning] [WARN] – "Session exists but not logged in (likely expired)" – {sessionId: "F3YaDj_y…", cookiePresent: true, cookieExists: true, …} (debugLogger.ts, line 24)
+{sessionId: "F3YaDj_y…", cookiePresent: true, cookieExists: true, cookieHeader: "Present"}Object
+[Log] Session check shows not logged in (App.tsx, line 68)
+[Log] Initializing RevenueCat... (main.tsx, line 7)
+[Error] RevenueCat SDK not available
+	(anonymous function) (revenuecat.ts:36)
+	initializeRevenueCat (revenuecat.ts:3)
+	(anonymous function) (main.tsx:8)

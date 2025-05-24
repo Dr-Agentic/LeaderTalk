@@ -189,8 +189,13 @@ export default function DirectLogin() {
   };
 
   const handleGoogleSignIn = async () => {
+    console.log("🔴 BUTTON CLICKED - handleGoogleSignIn function called!");
+    console.log("🔴 Browser User Agent:", navigator.userAgent);
+    console.log("🔴 Current URL:", window.location.href);
+    
     try {
       setIsLoading(true);
+      console.log("🔴 Loading state set to true");
 
       // Log Firebase configuration for debugging
       const configInfo = {
@@ -207,9 +212,11 @@ export default function DirectLogin() {
         environment: import.meta.env.NODE_ENV,
       };
 
+      console.log("🔴 Firebase config being used:", configInfo);
       console.log("Firebase config being used:", configInfo);
       logDebug("Attempting Google sign-in with config", configInfo);
 
+      console.log("🔴 About to call signInWithGoogle function...");
       console.log("Starting Google sign-in popup...");
       console.log("Force onboarding checkbox is:", forceOnboarding);
       logInfo("Google sign-in process initiated from UI");
