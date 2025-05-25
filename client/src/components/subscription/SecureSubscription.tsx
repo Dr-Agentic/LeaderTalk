@@ -227,54 +227,55 @@ export default function SecureSubscription() {
             </CardHeader>
             
             <CardContent className="space-y-4">
-              {/* Monthly Pricing */}
-              <div className="text-center border-b pb-4">
-                <div className="mb-2">
-                  <span className="text-2xl font-bold">
-                    {plan.pricing.monthly.formattedPrice}
-                  </span>
-                </div>
-                <p className="text-sm text-muted-foreground">Monthly billing</p>
-              </div>
-              
-              {/* Yearly Pricing */}
+              {/* Pricing */}
               <div className="text-center">
-                <div className="mb-2">
-                  <span className="text-2xl font-bold">
-                    {plan.pricing.yearly?.formattedPrice || 'Not available'}
-                  </span>
-                  {plan.pricing.yearly?.formattedSavings && (
-                    <span className="ml-2 text-sm text-green-600 font-medium">
-                      {plan.pricing.yearly.formattedSavings}
-                    </span>
-                  )}
+                <div className="text-3xl font-bold text-gray-900">
+                  {plan.pricing.formattedPrice}
                 </div>
-                <p className="text-sm text-muted-foreground">Yearly billing</p>
+                {plan.pricing.formattedSavings && (
+                  <div className="text-sm text-green-600 font-medium mt-1">
+                    {plan.pricing.formattedSavings}
+                  </div>
+                )}
               </div>
               
-              <div>
-                <p className="font-medium text-center mb-2">
-                  {plan.features.formattedWordLimit}
-                </p>
-              </div>
-
               <Separator />
               
+              {/* Features */}
               <div className="space-y-2">
-                <p className="font-medium">Features included:</p>
-                {plan.features.benefits?.map((feature: string, index: number) => (
-                  <div key={index} className="flex items-center space-x-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span className="text-sm">{feature}</span>
+                <div className="flex items-center text-sm">
+                  <Check className="h-4 w-4 text-green-500 mr-2" />
+                  <span>{plan.features.wordLimit.toLocaleString()} words/month</span>
+                </div>
+                <div className="flex items-center text-sm">
+                  <Check className="h-4 w-4 text-green-500 mr-2" />
+                  <span>Leader library access</span>
+                </div>
+                {plan.features.advancedAnalytics && (
+                  <div className="flex items-center text-sm">
+                    <Check className="h-4 w-4 text-green-500 mr-2" />
+                    <span>Advanced analytics</span>
                   </div>
-                ))}
+                )}
+                {plan.features.prioritySupport && (
+                  <div className="flex items-center text-sm">
+                    <Check className="h-4 w-4 text-green-500 mr-2" />
+                    <span>Priority support</span>
+                  </div>
+                )}
+                {plan.billingType === 'yearly' && (
+                  <div className="flex items-center text-sm">
+                    <Check className="h-4 w-4 text-blue-500 mr-2" />
+                    <span className="text-blue-600 font-medium">Best value option</span>
+                  </div>
+                )}
               </div>
               
               <Button 
                 className="w-full" 
                 onClick={() => handleSubscribe(plan)}
-                disabled={createSubscription.isPending || currentSubscription?.planId === plan.priceId}
-                variant={currentSubscription?.planId === plan.priceId ? "secondary" : "default"}
+                disabled={createSubscription.isPending}
+                variant={plan.isPopular ? "default" : "outline"}
               >
                 {createSubscription.isPending ? (
                   <>
