@@ -334,26 +334,19 @@ export async function getBillingProducts(req: Request, res: Response) {
       const cleanName = product.name.replace(/[_-]/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2');
       const planCode = product.metadata?.planCode || product.name.toLowerCase().replace(/[^a-z0-9]/g, '');
       
+      // Create monthly product option
       billingProducts.push({
-        id: product.id,
-        code: planCode,
-        name: cleanName,
+        id: `${product.id}_monthly`,
+        stripeProductId: product.id,
+        code: `${planCode}_monthly`,
+        name: `${cleanName} Monthly`,
         description: `${wordLimit.toLocaleString()} words per month`,
         productIcon: product.images?.[0] || null,
         pricing: {
-          monthly: {
-            amount: monthlyAmount,
-            formattedPrice: `$${monthlyAmount.toFixed(2)}/month`,
-            interval: 'monthly',
-            stripePriceId: monthlyPrice.id
-          },
-          yearly: yearlyPrice ? {
-            amount: yearlyAmount,
-            formattedPrice: `$${yearlyAmount.toFixed(2)}/year`,
-            formattedSavings: yearlySavings > 0 ? `Save ${yearlySavings}%` : null,
-            interval: 'yearly',
-            stripePriceId: yearlyPrice.id
-          } : null
+          amount: monthlyAmount,
+          formattedPrice: `$${monthlyAmount.toFixed(2)}/month`,
+          interval: 'monthly',
+          stripePriceId: monthlyPrice.id
         },
         features: {
           wordLimit,
@@ -362,9 +355,39 @@ export async function getBillingProducts(req: Request, res: Response) {
           advancedAnalytics: product.metadata?.advancedAnalytics === 'true',
           prioritySupport: product.metadata?.prioritySupport === 'true'
         },
-        isPopular: product.metadata?.isPopular === 'true',
-        isDefault: product.metadata?.isDefault === 'true'
+        isPopular: product.metadata?.isPopular === 'true' && !yearlyPrice, // Only if no yearly option
+        isDefault: product.metadata?.isDefault === 'true' && !yearlyPrice,
+        billingType: 'monthly'
       });
+
+      // Create yearly product option if yearly pricing exists
+      if (yearlyPrice) {
+        billingProducts.push({
+          id: `${product.id}_yearly`,
+          stripeProductId: product.id,
+          code: `${planCode}_yearly`,
+          name: `${cleanName} Yearly`,
+          description: `${wordLimit.toLocaleString()} words per month (billed annually)`,
+          productIcon: product.images?.[0] || null,
+          pricing: {
+            amount: yearlyAmount,
+            formattedPrice: `$${yearlyAmount.toFixed(2)}/year`,
+            formattedSavings: yearlySavings > 0 ? `Save ${yearlySavings}%` : null,
+            interval: 'yearly',
+            stripePriceId: yearlyPrice.id
+          },
+          features: {
+            wordLimit,
+            maxRecordingLength: parseInt(product.metadata?.maxRecordingLength || '300'),
+            leaderLibraryAccess: product.metadata?.leaderLibraryAccess !== 'false',
+            advancedAnalytics: product.metadata?.advancedAnalytics === 'true',
+            prioritySupport: product.metadata?.prioritySupport === 'true'
+          },
+          isPopular: product.metadata?.isPopular === 'true', // Yearly is popular if available
+          isDefault: product.metadata?.isDefault === 'true',
+          billingType: 'yearly'
+        });
+      }
     }
     
     if (billingProducts.length === 0) {
