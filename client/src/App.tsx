@@ -11,6 +11,7 @@ import TranscriptView from "@/pages/TranscriptView";
 import AllTranscripts from "@/pages/AllTranscripts";
 import Settings from "@/pages/Settings";
 import SubscriptionPage from "@/pages/SubscriptionNew";
+import SubscriptionSecure from "@/pages/SubscriptionSecure";
 import LeadershipInspirations from "@/pages/LeadershipInspirations";
 import Progress from "@/pages/Progress";
 import Training from "@/pages/Training";
