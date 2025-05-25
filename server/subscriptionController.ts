@@ -281,16 +281,32 @@ export async function getBillingProducts(req: Request, res: Response) {
     const plans = await storage.getSubscriptionPlans();
     
     // Transform to clean billing format with server-side formatting
-    const billingProducts = plans.map(plan => {
+    const billingProducts = await Promise.all(plans.map(async plan => {
       const monthlyPrice = parseFloat(plan.monthlyPriceUsd);
       const yearlyPrice = parseFloat(plan.yearlyPriceUsd);
       const yearlySavings = Math.round(((monthlyPrice * 12 - yearlyPrice) / (monthlyPrice * 12)) * 100);
+      
+      // Get product icon from payment service if stripe product ID exists
+      let productIcon = null;
+      if (plan.stripeProductId) {
+        try {
+          const stripe = (await import("stripe")).default;
+          const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY!, {
+            apiVersion: "2023-10-16",
+          });
+          const product = await stripeInstance.products.retrieve(plan.stripeProductId);
+          productIcon = product.images && product.images.length > 0 ? product.images[0] : null;
+        } catch (error) {
+          console.warn(`Could not retrieve product icon for plan ${plan.planCode}:`, error);
+        }
+      }
       
       return {
         id: plan.id.toString(),
         code: plan.planCode,
         name: plan.name,
         description: `${plan.monthlyWordLimit.toLocaleString()} words per month`,
+        productIcon,
         pricing: {
           monthly: {
             amount: monthlyPrice,
@@ -312,7 +328,7 @@ export async function getBillingProducts(req: Request, res: Response) {
         isDefault: plan.isDefault || false,
         isPopular: plan.planCode === 'pro' // Mark Pro as popular
       };
-    });
+    }));
     
     res.json(billingProducts);
   } catch (error) {

@@ -13,6 +13,7 @@ interface BillingProduct {
   code: string;
   name: string;
   description: string;
+  productIcon: string | null;
   pricing: {
     monthly: {
       amount: number;
@@ -154,21 +155,21 @@ export default function SecureSubscription() {
 
       {/* Current Subscription Status */}
       {currentSubscription?.hasSubscription && currentSubscription.subscription && (
-        <Card className="border-green-200 bg-green-50">
+        <Card className="border-blue-200 bg-white">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-green-800">Current Subscription</CardTitle>
-                <CardDescription className="text-green-600">
+                <CardTitle className="text-gray-900">Current Subscription</CardTitle>
+                <CardDescription className="text-gray-600">
                   You're subscribed to {currentSubscription.subscription.plan}
                 </CardDescription>
               </div>
-              <Badge variant="secondary" className="bg-green-100 text-green-800">
+              <Badge variant="secondary" className="bg-blue-100 text-blue-800">
                 {currentSubscription.subscription.formattedStatus}
               </Badge>
             </div>
           </CardHeader>
-          <CardContent className="text-green-700">
+          <CardContent className="text-gray-700">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <p className="font-medium">Word Usage</p>
@@ -202,8 +203,17 @@ export default function SecureSubscription() {
           >
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle className="text-xl">{plan.name}</CardTitle>
-                {plan.name.toLowerCase().includes('pro') && (
+                <div className="flex items-center space-x-3">
+                  {plan.productIcon && (
+                    <img 
+                      src={plan.productIcon} 
+                      alt={`${plan.name} icon`}
+                      className="w-8 h-8 rounded-md object-cover"
+                    />
+                  )}
+                  <CardTitle className="text-xl">{plan.name}</CardTitle>
+                </div>
+                {plan.isPopular && (
                   <Badge variant="default">Popular</Badge>
                 )}
               </div>
