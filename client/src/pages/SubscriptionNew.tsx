@@ -7,15 +7,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, CheckCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { loadStripe } from '@stripe/stripe-js';
 import { useState, useEffect } from "react";
-import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
-// Load Stripe outside of component render
-const stripeKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
-const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
+// Stripe is now handled entirely on the server for security
 
 // Define types for Stripe products
 interface StripePrice {
