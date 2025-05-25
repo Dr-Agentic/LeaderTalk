@@ -34,6 +34,51 @@ export function registerSubscriptionRoutes(app: Express) {
     }
   });
 
-  // TODO: Add subscription management endpoints as needed
-  // These endpoints were temporarily removed during refactoring
+  // Get Stripe products (subscription plans)
+  app.get('/api/stripe-products', async (req, res) => {
+    try {
+      // Get all subscription plans from database
+      const plans = await storage.getSubscriptionPlans();
+      
+      // Transform to match expected frontend format
+      const formattedPlans = plans.map(plan => ({
+        id: plan.id.toString(),
+        name: plan.name,
+        description: plan.description || '',
+        price: plan.price,
+        currency: plan.currency,
+        interval: plan.interval,
+        wordLimit: plan.wordLimit,
+        features: plan.features || [],
+        priceId: plan.stripeProductId || plan.id.toString()
+      }));
+      
+      res.json(formattedPlans);
+    } catch (error) {
+      console.error("Error fetching subscription plans:", error);
+      res.status(500).json({ error: "Failed to fetch subscription plans" });
+    }
+  });
+
+  // Create Stripe subscription
+  app.post('/api/create-stripe-subscription', requireAuth, async (req, res) => {
+    try {
+      const { priceId } = req.body;
+      
+      if (!priceId) {
+        return res.status(400).json({ error: "Price ID is required" });
+      }
+      
+      // For now, return a mock response since we're focusing on frontend security
+      // This should be replaced with actual Stripe integration when ready
+      res.json({ 
+        message: "Subscription endpoint ready for Stripe integration",
+        priceId,
+        status: "pending_setup"
+      });
+    } catch (error) {
+      console.error("Error creating subscription:", error);
+      res.status(500).json({ error: "Failed to create subscription" });
+    }
+  });
 }
