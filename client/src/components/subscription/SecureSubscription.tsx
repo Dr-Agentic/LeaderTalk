@@ -235,9 +235,9 @@ export default function SecureSubscription() {
               <div className="text-center">
                 <div className="mb-2">
                   <span className="text-2xl font-bold">
-                    {plan.pricing.yearly.formattedPrice}
+                    {plan.pricing.yearly?.formattedPrice || 'Not available'}
                   </span>
-                  {plan.pricing.yearly.formattedSavings && (
+                  {plan.pricing.yearly?.formattedSavings && (
                     <span className="ml-2 text-sm text-green-600 font-medium">
                       {plan.pricing.yearly.formattedSavings}
                     </span>
