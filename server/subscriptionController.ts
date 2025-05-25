@@ -286,19 +286,26 @@ export async function getBillingProducts(req: Request, res: Response) {
       const yearlyPrice = parseFloat(plan.yearlyPriceUsd);
       const yearlySavings = Math.round(((monthlyPrice * 12 - yearlyPrice) / (monthlyPrice * 12)) * 100);
       
-      // Get product icon from payment service if stripe product ID exists
+      // Get product icon from payment service using plan code
       let productIcon = null;
-      if (plan.stripeProductId) {
-        try {
-          const stripe = (await import("stripe")).default;
-          const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY!, {
-            apiVersion: "2023-10-16",
-          });
-          const product = await stripeInstance.products.retrieve(plan.stripeProductId);
-          productIcon = product.images && product.images.length > 0 ? product.images[0] : null;
-        } catch (error) {
-          console.warn(`Could not retrieve product icon for plan ${plan.planCode}:`, error);
+      try {
+        const stripe = (await import("stripe")).default;
+        const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY!, {
+          apiVersion: "2023-10-16",
+        });
+        
+        // Search for products by name/metadata to match our plan codes
+        const products = await stripeInstance.products.list({ limit: 100 });
+        const matchingProduct = products.data.find(product => 
+          product.name.toLowerCase().includes(plan.name.toLowerCase()) ||
+          product.metadata?.planCode === plan.planCode
+        );
+        
+        if (matchingProduct && matchingProduct.images && matchingProduct.images.length > 0) {
+          productIcon = matchingProduct.images[0];
         }
+      } catch (error) {
+        console.warn(`Could not retrieve product icon for plan ${plan.planCode}:`, error);
       }
       
       return {
