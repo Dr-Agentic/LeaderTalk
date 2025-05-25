@@ -19,51 +19,11 @@ const requireAuth = (req: Request, res: Response, next: Function) => {
 
 export function registerBillingRoutes(app: Express) {
   
-  // GET /api/billing/products - Get all available subscription plans
-  app.get('/api/billing/products', async (req, res) => {
-    try {
-      const plans = await storage.getSubscriptionPlans();
-      
-      // Transform to clean billing format (no Stripe references)
-      const billingProducts = plans.map(plan => ({
-        id: plan.id.toString(),
-        code: plan.planCode,
-        name: plan.name,
-        description: `${plan.monthlyWordLimit.toLocaleString()} words per month`,
-        pricing: {
-          monthly: {
-            amount: parseFloat(plan.monthlyPriceUsd),
-            currency: 'usd'
-          },
-          yearly: {
-            amount: parseFloat(plan.yearlyPriceUsd),
-            currency: 'usd'
-          }
-        },
-        features: {
-          wordLimit: plan.monthlyWordLimit,
-          benefits: plan.features || []
-        },
-        isDefault: plan.isDefault || false
-      }));
-      
-      res.json(billingProducts);
-    } catch (error) {
-      console.error("Error fetching billing products:", error);
-      res.status(500).json({ error: "Failed to fetch billing products" });
-    }
-  });
+  // GET /api/billing/products - Get all available subscription plans with server-side formatting
+  app.get('/api/billing/products', getBillingProducts);
 
-  // GET /api/billing/subscriptions/current - Get user's current subscription
-  app.get('/api/billing/subscriptions/current', requireAuth, async (req, res) => {
-    try {
-      res.setHeader('Content-Type', 'application/json');
-      return getCurrentSubscription(req, res);
-    } catch (error) {
-      console.error("Error fetching current subscription:", error);
-      res.status(500).json({ error: "Failed to fetch subscription details" });
-    }
-  });
+  // GET /api/billing/subscriptions/current - Get user's current subscription with formatting
+  app.get('/api/billing/subscriptions/current', requireAuth, getCurrentSubscriptionFormatted);
 
   // POST /api/billing/subscriptions/create - Create a new subscription
   app.post('/api/billing/subscriptions/create', requireAuth, async (req, res) => {

@@ -16,37 +16,63 @@ interface BillingProduct {
   pricing: {
     monthly: {
       amount: number;
-      currency: string;
+      formattedPrice: string;
+      interval: string;
     };
     yearly: {
       amount: number;
-      currency: string;
+      formattedPrice: string;
+      formattedSavings?: string;
+      interval: string;
     };
   };
   features: {
     wordLimit: number;
+    formattedWordLimit: string;
     benefits: string[];
   };
   isDefault: boolean;
+  isPopular: boolean;
 }
 
 interface CurrentSubscription {
   success: boolean;
-  subscription: {
+  hasSubscription: boolean;
+  formattedMessage?: string;
+  subscription?: {
     id: string;
     status: string;
     plan: string;
     planId: string;
     isFree: boolean;
-    startDate: string;
-    currentPeriodStart: string;
-    currentPeriodEnd: string;
-    nextRenewalDate: string;
-    cancelAtPeriodEnd: boolean;
-    amount: number;
-    currency: string;
-    interval: string;
+    
+    // Formatted amounts
+    formattedAmount: string;
+    formattedInterval: string;
+    
+    // Formatted dates
+    startDate: Date;
+    formattedStartDate: string;
+    currentPeriodStart: Date;
+    currentPeriodEnd: Date;
+    formattedCurrentPeriod: string;
+    nextRenewalDate: Date;
+    formattedNextRenewal: string;
+    
+    // Word usage with formatting
     wordLimit: number;
+    currentUsage: number;
+    formattedUsage: string;
+    usagePercentage: number;
+    
+    // Status formatting
+    cancelAtPeriodEnd: boolean;
+    formattedStatus: string;
+    statusColor: string;
+    
+    // Billing cycle info
+    daysRemaining: number;
+    formattedDaysRemaining: string;
   };
 }
 
@@ -127,37 +153,37 @@ export default function SecureSubscription() {
       </div>
 
       {/* Current Subscription Status */}
-      {currentSubscription && (
+      {currentSubscription?.hasSubscription && currentSubscription.subscription && (
         <Card className="border-green-200 bg-green-50">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="text-green-800">Current Subscription</CardTitle>
                 <CardDescription className="text-green-600">
-                  You're subscribed to {currentSubscription.plan}
+                  You're subscribed to {currentSubscription.subscription.plan}
                 </CardDescription>
               </div>
               <Badge variant="secondary" className="bg-green-100 text-green-800">
-                {currentSubscription.status}
+                {currentSubscription.subscription.formattedStatus}
               </Badge>
             </div>
           </CardHeader>
           <CardContent className="text-green-700">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <p className="font-medium">Monthly Word Limit</p>
-                <p className="text-2xl font-bold">{currentSubscription.wordLimit?.toLocaleString() || 'Unlimited'}</p>
+                <p className="font-medium">Word Usage</p>
+                <p className="text-2xl font-bold">{currentSubscription.subscription.formattedUsage}</p>
               </div>
               <div>
                 <p className="font-medium">Amount</p>
                 <p className="text-2xl font-bold">
-                  ${(currentSubscription.amount / 100).toFixed(2)}/{currentSubscription.interval}
+                  {currentSubscription.subscription.formattedAmount}{currentSubscription.subscription.formattedInterval}
                 </p>
               </div>
               <div>
                 <p className="font-medium">Next Billing</p>
                 <p className="text-sm">
-                  {new Date(currentSubscription.currentPeriodEnd).toLocaleDateString()}
+                  {currentSubscription.subscription.formattedNextRenewal}
                 </p>
               </div>
             </div>
@@ -185,11 +211,29 @@ export default function SecureSubscription() {
             </CardHeader>
             
             <CardContent className="space-y-4">
+              {/* Monthly Pricing */}
+              <div className="text-center border-b pb-4">
+                <div className="mb-2">
+                  <span className="text-2xl font-bold">
+                    {plan.pricing.monthly.formattedPrice}
+                  </span>
+                </div>
+                <p className="text-sm text-muted-foreground">Monthly billing</p>
+              </div>
+              
+              {/* Yearly Pricing */}
               <div className="text-center">
-                <span className="text-4xl font-bold">
-                  ${(plan.price / 100).toFixed(2)}
-                </span>
-                <span className="text-muted-foreground">/{plan.interval}</span>
+                <div className="mb-2">
+                  <span className="text-2xl font-bold">
+                    {plan.pricing.yearly.formattedPrice}
+                  </span>
+                  {plan.pricing.yearly.formattedSavings && (
+                    <span className="ml-2 text-sm text-green-600 font-medium">
+                      {plan.pricing.yearly.formattedSavings}
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm text-muted-foreground">Yearly billing</p>
               </div>
               
               <div>
