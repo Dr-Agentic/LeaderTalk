@@ -44,13 +44,13 @@ export function registerSubscriptionRoutes(app: Express) {
       const formattedPlans = plans.map(plan => ({
         id: plan.id.toString(),
         name: plan.name,
-        description: plan.description || '',
-        price: plan.price,
-        currency: plan.currency,
-        interval: plan.interval,
-        wordLimit: plan.wordLimit,
+        description: `${plan.monthlyWordLimit.toLocaleString()} words per month`,
+        price: parseFloat(plan.monthlyPriceUsd) * 100, // Convert to cents
+        currency: 'usd',
+        interval: 'month',
+        wordLimit: plan.monthlyWordLimit,
         features: plan.features || [],
-        priceId: plan.stripeProductId || plan.id.toString()
+        priceId: plan.planCode
       }));
       
       res.json(formattedPlans);
