@@ -278,82 +278,109 @@ async function handleNoValidSubscription(userId: number): Promise<any> {
  */
 export async function getBillingProducts(req: Request, res: Response) {
   try {
-    const plans = await storage.getSubscriptionPlans();
+    const stripe = (await import("stripe")).default;
+    const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: "2024-04-10",
+    });
     
-    // Transform to clean billing format with server-side formatting
-    const billingProducts = await Promise.all(plans.map(async plan => {
-      const monthlyPrice = parseFloat(plan.monthlyPriceUsd);
-      const yearlyPrice = parseFloat(plan.yearlyPriceUsd);
-      const yearlySavings = Math.round(((monthlyPrice * 12 - yearlyPrice) / (monthlyPrice * 12)) * 100);
+    // Get all active products from Stripe
+    const products = await stripeInstance.products.list({ 
+      limit: 100,
+      active: true
+    });
+    
+    console.log(`📦 Found ${products.data.length} active products in Stripe`);
+    console.log(`📦 Products:`, products.data.map(p => ({ 
+      id: p.id,
+      name: p.name, 
+      metadata: p.metadata,
+      images: p.images?.length || 0 
+    })));
+    
+    // Get all active prices
+    const prices = await stripeInstance.prices.list({ 
+      limit: 100,
+      active: true
+    });
+    
+    const billingProducts = [];
+    
+    for (const product of products.data) {
+      if (!product.active) continue;
       
-      // Get product icon from payment service using plan code
-      let productIcon = null;
-      try {
-        const stripe = (await import("stripe")).default;
-        const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY!, {
-          apiVersion: "2023-10-16",
-        });
-        
-        // Search for products by name/metadata to match our plan codes
-        const products = await stripeInstance.products.list({ limit: 100 });
-        console.log(`🖼️ Searching for product icon for plan: ${plan.planCode} (${plan.name})`);
-        console.log(`🖼️ Found ${products.data.length} products in payment service`);
-        
-        // Log all products for debugging
-        console.log(`🖼️ Available products:`, products.data.map(p => ({ name: p.name, metadata: p.metadata })));
-        
-        const matchingProduct = products.data.find(product => 
-          product.name.toLowerCase().includes(plan.name.toLowerCase()) ||
-          product.metadata?.planCode === plan.planCode ||
-          product.name.toLowerCase().includes(plan.planCode.toLowerCase())
-        );
-        
-        if (matchingProduct) {
-          console.log(`🖼️ Matching product found: ${matchingProduct.name}, images: ${matchingProduct.images?.length || 0}`);
-          if (matchingProduct.images && matchingProduct.images.length > 0) {
-            productIcon = matchingProduct.images[0];
-            console.log(`🖼️ Product icon set: ${productIcon}`);
-          }
-        } else {
-          console.log(`🖼️ No matching product found for ${plan.planCode}`);
-        }
-      } catch (error) {
-        console.warn(`Could not retrieve product icon for plan ${plan.planCode}:`, error);
+      // Get monthly and yearly prices for this product
+      const productPrices = prices.data.filter(price => price.product === product.id);
+      const monthlyPrice = productPrices.find(p => p.recurring?.interval === 'month');
+      const yearlyPrice = productPrices.find(p => p.recurring?.interval === 'year');
+      
+      if (!monthlyPrice) {
+        console.warn(`⚠️ No monthly price found for product ${product.name}, skipping`);
+        continue;
       }
       
-      return {
-        id: plan.id.toString(),
-        code: plan.planCode,
-        name: plan.name,
-        description: `${plan.monthlyWordLimit.toLocaleString()} words per month`,
-        productIcon,
+      const monthlyAmount = monthlyPrice.unit_amount ? monthlyPrice.unit_amount / 100 : 0;
+      const yearlyAmount = yearlyPrice ? (yearlyPrice.unit_amount ? yearlyPrice.unit_amount / 100 : 0) : monthlyAmount * 12;
+      const yearlySavings = yearlyPrice ? Math.round(((monthlyAmount * 12 - yearlyAmount) / (monthlyAmount * 12)) * 100) : 0;
+      
+      // Extract word limit from metadata - REQUIRED
+      const wordLimit = product.metadata?.wordLimit ? parseInt(product.metadata.wordLimit) : 
+                       product.metadata?.Words ? parseInt(product.metadata.Words) : null;
+      if (!wordLimit) {
+        console.warn(`⚠️ No wordLimit or Words in metadata for product ${product.name}, skipping`);
+        continue;
+      }
+      
+      const planCode = product.metadata?.planCode || product.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+      
+      billingProducts.push({
+        id: product.id,
+        code: planCode,
+        name: product.name,
+        description: `${wordLimit.toLocaleString()} words per month`,
+        productIcon: product.images?.[0] || null,
         pricing: {
           monthly: {
-            amount: monthlyPrice,
-            formattedPrice: `$${monthlyPrice.toFixed(2)}/month`,
-            interval: 'monthly'
+            amount: monthlyAmount,
+            formattedPrice: `$${monthlyAmount.toFixed(2)}/month`,
+            interval: 'monthly',
+            stripePriceId: monthlyPrice.id
           },
-          yearly: {
-            amount: yearlyPrice,
-            formattedPrice: `$${yearlyPrice.toFixed(2)}/year`,
+          yearly: yearlyPrice ? {
+            amount: yearlyAmount,
+            formattedPrice: `$${yearlyAmount.toFixed(2)}/year`,
             formattedSavings: yearlySavings > 0 ? `Save ${yearlySavings}%` : null,
-            interval: 'yearly'
-          }
+            interval: 'yearly',
+            stripePriceId: yearlyPrice.id
+          } : null
         },
         features: {
-          wordLimit: plan.monthlyWordLimit,
-          formattedWordLimit: `${plan.monthlyWordLimit.toLocaleString()} words/month`,
-          benefits: plan.features || []
+          wordLimit,
+          maxRecordingLength: parseInt(product.metadata?.maxRecordingLength || '300'),
+          leaderLibraryAccess: product.metadata?.leaderLibraryAccess !== 'false',
+          advancedAnalytics: product.metadata?.advancedAnalytics === 'true',
+          prioritySupport: product.metadata?.prioritySupport === 'true'
         },
-        isDefault: plan.isDefault || false,
-        isPopular: plan.planCode === 'pro' // Mark Pro as popular
-      };
-    }));
+        isPopular: product.metadata?.isPopular === 'true',
+        isDefault: product.metadata?.isDefault === 'true'
+      });
+    }
     
+    if (billingProducts.length === 0) {
+      throw new Error('No valid products found in Stripe. Products must have wordLimit in metadata and monthly pricing.');
+    }
+    
+    // Sort by word limit ascending
+    billingProducts.sort((a, b) => a.features.wordLimit - b.features.wordLimit);
+    
+    console.log(`✅ Returning ${billingProducts.length} valid products from Stripe`);
     res.json(billingProducts);
+    
   } catch (error) {
-    console.error("Error fetching billing products:", error);
-    res.status(500).json({ error: "Failed to fetch billing products" });
+    console.error('❌ Failed to get products from Stripe:', error);
+    res.status(500).json({ 
+      error: 'Failed to load subscription plans from payment service',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 }
 
