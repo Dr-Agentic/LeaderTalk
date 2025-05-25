@@ -299,9 +299,13 @@ export async function getBillingProducts(req: Request, res: Response) {
         console.log(`🖼️ Searching for product icon for plan: ${plan.planCode} (${plan.name})`);
         console.log(`🖼️ Found ${products.data.length} products in payment service`);
         
+        // Log all products for debugging
+        console.log(`🖼️ Available products:`, products.data.map(p => ({ name: p.name, metadata: p.metadata })));
+        
         const matchingProduct = products.data.find(product => 
           product.name.toLowerCase().includes(plan.name.toLowerCase()) ||
-          product.metadata?.planCode === plan.planCode
+          product.metadata?.planCode === plan.planCode ||
+          product.name.toLowerCase().includes(plan.planCode.toLowerCase())
         );
         
         if (matchingProduct) {
