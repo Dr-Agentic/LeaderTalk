@@ -92,8 +92,11 @@ export function getLogs(): LogEntry[] {
   }
 }
 
+// Only enable debug/info logs in development
+const isDev = import.meta.env.DEV;
+
 // Convenience methods for different log levels
-export const logInfo = (message: string, details?: any) => addLog('info', message, details);
+export const logInfo = (message: string, details?: any) => isDev && addLog('info', message, details);
 export const logWarn = (message: string, details?: any) => addLog('warn', message, details);
 export const logError = (message: string, details?: any) => addLog('error', message, details);
-export const logDebug = (message: string, details?: any) => addLog('debug', message, details);
+export const logDebug = (message: string, details?: any) => isDev && addLog('debug', message, details);
