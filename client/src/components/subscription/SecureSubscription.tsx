@@ -170,7 +170,7 @@ export default function SecureSubscription() {
             </div>
           </CardHeader>
           <CardContent className="text-gray-700">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
                 <p className="font-medium">Word Usage</p>
                 <p className="text-2xl font-bold">{currentSubscription.subscription.formattedUsage}</p>
@@ -185,6 +185,12 @@ export default function SecureSubscription() {
                 <p className="font-medium">Next Billing</p>
                 <p className="text-sm">
                   {currentSubscription.subscription.formattedNextRenewal}
+                </p>
+              </div>
+              <div>
+                <p className="font-medium">Subscription Created</p>
+                <p className="text-sm">
+                  You first subscribed on {currentSubscription.subscription.formattedStartDate}
                 </p>
               </div>
             </div>
