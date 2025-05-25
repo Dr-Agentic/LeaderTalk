@@ -64,7 +64,7 @@ export async function getUserSubscription(stripeSubscriptionId: string): Promise
     nextRenewalDate: new Date(subscription.current_period_end * 1000),
     nextRenewalTimestamp: subscription.current_period_end,
     cancelAtPeriodEnd: subscription.cancel_at_period_end,
-    amount: price.unit_amount || 0,
+    amount: price.unit_amount ? price.unit_amount / 100 : 0, // Convert cents to dollars
     currency: price.currency,
     interval: price.recurring?.interval || 
       (() => { throw new Error(`Error from Stripe: recurring.interval is missing for price ${price.id}`) })(),
