@@ -6,7 +6,8 @@ import {
   ensureUserHasStripeCustomer
 } from "../paymentServiceHandler";
 import { 
-  getCurrentSubscription
+  getBillingProducts,
+  getCurrentSubscriptionFormatted
 } from "../subscriptionController";
 
 const requireAuth = (req: Request, res: Response, next: Function) => {

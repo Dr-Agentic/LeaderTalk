@@ -274,6 +274,147 @@ async function handleNoValidSubscription(userId: number): Promise<any> {
 }
 
 /**
+ * Get all available billing products with server-side formatting
+ */
+export async function getBillingProducts(req: Request, res: Response) {
+  try {
+    const plans = await storage.getSubscriptionPlans();
+    
+    // Transform to clean billing format with server-side formatting
+    const billingProducts = plans.map(plan => {
+      const monthlyPrice = parseFloat(plan.monthlyPriceUsd);
+      const yearlyPrice = parseFloat(plan.yearlyPriceUsd);
+      const yearlySavings = Math.round(((monthlyPrice * 12 - yearlyPrice) / (monthlyPrice * 12)) * 100);
+      
+      return {
+        id: plan.id.toString(),
+        code: plan.planCode,
+        name: plan.name,
+        description: `${plan.monthlyWordLimit.toLocaleString()} words per month`,
+        pricing: {
+          monthly: {
+            amount: monthlyPrice,
+            formattedPrice: `$${monthlyPrice.toFixed(2)}/month`,
+            interval: 'monthly'
+          },
+          yearly: {
+            amount: yearlyPrice,
+            formattedPrice: `$${yearlyPrice.toFixed(2)}/year`,
+            formattedSavings: yearlySavings > 0 ? `Save ${yearlySavings}%` : null,
+            interval: 'yearly'
+          }
+        },
+        features: {
+          wordLimit: plan.monthlyWordLimit,
+          formattedWordLimit: `${plan.monthlyWordLimit.toLocaleString()} words/month`,
+          benefits: plan.features || []
+        },
+        isDefault: plan.isDefault || false,
+        isPopular: plan.planCode === 'pro' // Mark Pro as popular
+      };
+    });
+    
+    res.json(billingProducts);
+  } catch (error) {
+    console.error("Error fetching billing products:", error);
+    res.status(500).json({ error: "Failed to fetch billing products" });
+  }
+}
+
+/**
+ * Get current user subscription with enhanced server-side formatting
+ */
+export async function getCurrentSubscriptionFormatted(req: Request, res: Response) {
+  try {
+    // Reuse existing logic from getCurrentSubscription
+    const { userId, user } = await validateUserAccess(req);
+
+    if (!user.stripeSubscriptionId) {
+      return res.json({
+        success: true,
+        hasSubscription: false,
+        formattedMessage: "No active subscription found"
+      });
+    }
+
+    // Get subscription details using existing function
+    const subscriptionData = await getUserSubscription(user.stripeSubscriptionId);
+    
+    // Format dates helper
+    const formatDate = (date: Date) => {
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    };
+
+    // Get current word usage for this billing cycle using existing analytics
+    const analytics = await getBillingCycleWordUsageAnalytics(userId);
+    const currentUsage = analytics.analytics.currentUsage;
+
+    const formattedSubscription = {
+      success: true,
+      hasSubscription: true,
+      subscription: {
+        id: subscriptionData.id,
+        status: subscriptionData.status,
+        plan: subscriptionData.plan,
+        planId: subscriptionData.planId,
+        isFree: subscriptionData.isFree,
+        
+        // Formatted amounts
+        formattedAmount: `$${subscriptionData.amount.toFixed(2)}`,
+        formattedInterval: `/${subscriptionData.interval}`,
+        
+        // Formatted dates
+        startDate: subscriptionData.startDate,
+        formattedStartDate: formatDate(subscriptionData.startDate),
+        currentPeriodStart: subscriptionData.currentPeriodStart,
+        currentPeriodEnd: subscriptionData.currentPeriodEnd,
+        formattedCurrentPeriod: `${formatDate(subscriptionData.currentPeriodStart)} - ${formatDate(subscriptionData.currentPeriodEnd)}`,
+        nextRenewalDate: subscriptionData.nextRenewalDate,
+        formattedNextRenewal: formatDate(subscriptionData.nextRenewalDate),
+        
+        // Word usage with formatting
+        wordLimit: subscriptionData.wordLimit,
+        currentUsage,
+        formattedUsage: `${currentUsage.toLocaleString()} of ${subscriptionData.wordLimit.toLocaleString()} words`,
+        usagePercentage: analytics.analytics.usagePercentage,
+        
+        // Status formatting
+        cancelAtPeriodEnd: subscriptionData.cancelAtPeriodEnd,
+        formattedStatus: subscriptionData.status.charAt(0).toUpperCase() + subscriptionData.status.slice(1),
+        statusColor: getStatusColor(subscriptionData.status),
+        
+        // Billing cycle info
+        daysRemaining: analytics.analytics.billingCycleProgress.daysRemaining,
+        formattedDaysRemaining: `${analytics.analytics.billingCycleProgress.daysRemaining} days remaining`
+      }
+    };
+
+    res.json(formattedSubscription);
+  } catch (error) {
+    console.error("Error fetching formatted subscription:", error);
+    res.status(500).json({ error: "Failed to fetch subscription details" });
+  }
+}
+
+/**
+ * Helper function to get status color for UI
+ */
+function getStatusColor(status: string): string {
+  switch (status.toLowerCase()) {
+    case 'active': return 'green';
+    case 'trialing': return 'blue';
+    case 'past_due': return 'yellow';
+    case 'canceled': return 'red';
+    case 'unpaid': return 'red';
+    default: return 'gray';
+  }
+}
+
+/**
  * Generate comprehensive billing cycle word usage analytics combining Stripe subscription data with detailed usage reporting
  */
 export async function getBillingCycleWordUsageAnalytics(userId: number) {
