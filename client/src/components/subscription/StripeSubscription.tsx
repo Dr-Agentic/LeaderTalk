@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
-import { loadStripe } from "@stripe/stripe-js";
+// Stripe is now handled entirely on the server for security
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
@@ -11,7 +10,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { Loader2, CheckCircle, AlertCircle } from "lucide-react";
 
 // Load Stripe outside of a component's render to avoid recreating the Stripe object on every render
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || "");
+// Removed client-side Stripe initialization for security
 
 // Check if Stripe is available
 const isStripeAvailable = !!import.meta.env.VITE_STRIPE_PUBLIC_KEY;
