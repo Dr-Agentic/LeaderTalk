@@ -8,33 +8,51 @@ import { CheckCircle, Loader2, ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 
-interface SubscriptionPlan {
+interface BillingProduct {
   id: string;
+  code: string;
   name: string;
   description: string;
-  price: number;
-  currency: string;
-  interval: string;
-  wordLimit: number;
-  features: string[];
-  priceId: string;
+  pricing: {
+    monthly: {
+      amount: number;
+      currency: string;
+    };
+    yearly: {
+      amount: number;
+      currency: string;
+    };
+  };
+  features: {
+    wordLimit: number;
+    benefits: string[];
+  };
+  isDefault: boolean;
 }
 
 interface CurrentSubscription {
-  id: string;
-  status: string;
-  plan: string;
-  planId: string;
-  amount: number;
-  currency: string;
-  interval: string;
-  currentPeriodStart: string;
-  currentPeriodEnd: string;
-  wordLimit: number;
+  success: boolean;
+  subscription: {
+    id: string;
+    status: string;
+    plan: string;
+    planId: string;
+    isFree: boolean;
+    startDate: string;
+    currentPeriodStart: string;
+    currentPeriodEnd: string;
+    nextRenewalDate: string;
+    cancelAtPeriodEnd: boolean;
+    amount: number;
+    currency: string;
+    interval: string;
+    wordLimit: number;
+  };
 }
 
 export default function SecureSubscription() {
-  const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<BillingProduct | null>(null);
+  const [billingInterval, setBillingInterval] = useState<'monthly' | 'yearly'>('monthly');
   const { toast } = useToast();
 
   // Fetch current subscription
