@@ -330,12 +330,14 @@ export async function getBillingProducts(req: Request, res: Response) {
         continue;
       }
       
+      // Clean up product name - remove underscores and format properly
+      const cleanName = product.name.replace(/[_-]/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2');
       const planCode = product.metadata?.planCode || product.name.toLowerCase().replace(/[^a-z0-9]/g, '');
       
       billingProducts.push({
         id: product.id,
         code: planCode,
-        name: product.name,
+        name: cleanName,
         description: `${wordLimit.toLocaleString()} words per month`,
         productIcon: product.images?.[0] || null,
         pricing: {
