@@ -131,7 +131,7 @@ function Router() {
       {isAuthenticated && onboardingComplete && <Route path="/settings" component={Settings} />}
       {isAuthenticated && onboardingComplete && <Route path="/subscription" component={SubscriptionPage} />}
       {isAuthenticated && onboardingComplete && <Route path="/subscription/new" component={SubscriptionPage} />}
-      {isAuthenticated && onboardingComplete && <Route path="/stripe-products" component={StripeProducts} />}
+
       {isAuthenticated && onboardingComplete && <Route path="/leadership-inspirations" component={LeadershipInspirations} />}
       
       {/* Training module routes */}
@@ -161,9 +161,6 @@ function Router() {
       {!isAuthenticated && <Route path="/transcript/:id" component={DirectLogin} />}
       {!isAuthenticated && <Route path="/transcripts" component={DirectLogin} />}
       {!isAuthenticated && <Route path="/progress" component={DirectLogin} />}
-      
-      {/* iOS Debug tool - accessible without authentication */}
-      <Route path="/ios-debug" component={IOSDebug} />
       
       {/* Fallback route */}
       <Route component={NotFound} />
