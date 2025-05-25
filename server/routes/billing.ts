@@ -160,6 +160,31 @@ export function registerBillingRoutes(app: Express) {
 
     } catch (error: any) {
       console.error('Subscription update error:', error);
+      
+      // Handle the specific case where customer has no payment method
+      if (error.code === 'resource_missing' && error.message.includes('no attached payment source')) {
+        try {
+          // Create a setup intent for collecting payment method
+          const setupIntent = await stripe.setupIntents.create({
+            customer: user.stripeCustomerId,
+            usage: 'off_session',
+            payment_method_types: ['card']
+          });
+          
+          return res.json({
+            success: true,
+            requiresPayment: true,
+            clientSecret: setupIntent.client_secret,
+            message: "Please add a payment method to update your subscription"
+          });
+        } catch (setupError: any) {
+          console.error('Setup intent creation error:', setupError);
+          return res.status(500).json({ 
+            error: "Failed to create payment setup. Please try again." 
+          });
+        }
+      }
+      
       return res.status(500).json({ 
         error: error.message || "Failed to update subscription" 
       });
