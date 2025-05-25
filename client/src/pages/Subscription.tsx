@@ -645,30 +645,14 @@ export default function Subscription() {
                   <p className="text-sm">{selectedPlan.description}</p>
                 </div>
                 
-                {clientSecret && stripePromise ? (
+                {clientSecret ? (
                   <>
                     <Separator className="my-4" />
-                    <h4 className="font-medium mb-4">Complete Your Payment</h4>
-                    <Elements 
-                      stripe={stripePromise} 
-                      options={{ 
-                        clientSecret,
-                        appearance: {
-                          theme: 'stripe',
-                          variables: {
-                            colorPrimary: '#0070f3',
-                            fontFamily: 'system-ui, sans-serif',
-                            borderRadius: '8px',
-                          }
-                        }
-                      }}
-                    >
-                      <CheckoutForm onSuccess={() => {
-                        setClientSecret("");
-                        setSelectedPriceId("");
-                        setSelectedPlan(null);
-                      }} />
-                    </Elements>
+                    <h4 className="font-medium mb-4">Payment Processing Secured</h4>
+                    {/* Elements removed for security - using server checkout */}
+                    <div className="p-4 border rounded bg-muted/30">
+                      <p className="text-muted-foreground">Payment processing moved to secure server checkout</p>
+                    </div>
                     
                     <div className="mt-6 text-sm text-muted-foreground">
                       <p>Having trouble with payment? Please ensure your payment method is valid.</p>
