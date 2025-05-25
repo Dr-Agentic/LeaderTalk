@@ -219,11 +219,7 @@ function DirectSubscriptionInfo() {
   );
 }
 
-// Load Stripe outside of component render
-// Ensure we have a valid Stripe key before initializing
-const stripeKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
-console.log("Initializing Stripe with key:", stripeKey ? "Key exists" : "No key found");
-const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
+// Stripe is now handled entirely on the server for security
 
 // Define types for Stripe products
 interface StripePrice {
