@@ -94,10 +94,10 @@ export default function SecureSubscription() {
     enabled: true
   });
 
-  // Create subscription mutation
-  const createSubscription = useMutation({
-    mutationFn: async (planData: { planCode: string }) => {
-      const response = await fetch('/api/billing/subscriptions/create', {
+  // Update subscription mutation
+  const updateSubscription = useMutation({
+    mutationFn: async (planData: { stripePriceId: string }) => {
+      const response = await fetch('/api/billing/subscriptions/update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -105,19 +105,24 @@ export default function SecureSubscription() {
       });
       
       if (!response.ok) {
-        throw new Error('Failed to create subscription');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update subscription');
       }
       
       return response.json();
     },
     onSuccess: (data) => {
-      if (data.checkoutUrl) {
-        // Redirect to payment checkout
-        window.location.href = data.checkoutUrl;
+      if (data.requiresPayment) {
+        // Handle payment method collection with Stripe
+        toast({
+          title: "Payment Method Required",
+          description: "Please update your payment method to complete the subscription change.",
+        });
+        // TODO: Implement Stripe Elements for payment method collection
       } else {
         toast({
           title: "Success!",
-          description: "Subscription created successfully",
+          description: "Your subscription has been updated successfully",
         });
         queryClient.invalidateQueries({ queryKey: ['/api/billing/subscriptions/current'] });
       }
@@ -131,8 +136,10 @@ export default function SecureSubscription() {
     }
   });
 
-  const handleSubscribe = (plan: SubscriptionPlan) => {
-    createSubscription.mutate({ planCode: plan.priceId });
+  const handleSubscribe = (plan: BillingProduct) => {
+    if (plan.pricing.stripePriceId) {
+      updateSubscription.mutate({ stripePriceId: plan.pricing.stripePriceId });
+    }
   };
 
   if (subscriptionLoading || plansLoading) {

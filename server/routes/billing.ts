@@ -5,6 +5,14 @@ import {
   createDefaultSubscription,
   ensureUserHasStripeCustomer
 } from "../paymentServiceHandler";
+import Stripe from 'stripe';
+
+if (!process.env.STRIPE_SECRET_KEY) {
+  throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
+}
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+  apiVersion: "2024-04-10",
+});
 import { 
   getBillingProducts,
   getCurrentSubscriptionFormatted
@@ -88,6 +96,73 @@ export function registerBillingRoutes(app: Express) {
     } catch (error) {
       console.error("Error canceling subscription:", error);
       res.status(500).json({ error: "Failed to cancel subscription" });
+    }
+  });
+
+  // POST /api/billing/subscriptions/update - Update current subscription plan
+  app.post('/api/billing/subscriptions/update', requireAuth, async (req, res) => {
+    try {
+      const userId = req.session!.userId!;
+      const { stripePriceId } = req.body;
+      
+      if (!stripePriceId) {
+        return res.status(400).json({ error: "Price ID is required" });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user?.stripeCustomerId) {
+        return res.status(400).json({ error: "No Stripe customer found" });
+      }
+
+      // Get current active subscription
+      const subscriptions = await stripe.subscriptions.list({
+        customer: user.stripeCustomerId,
+        status: 'active',
+        limit: 1
+      });
+
+      if (subscriptions.data.length === 0) {
+        return res.status(400).json({ error: "No active subscription found" });
+      }
+
+      const currentSubscription = subscriptions.data[0];
+      
+      // Update the subscription to new price
+      const updatedSubscription = await stripe.subscriptions.update(currentSubscription.id, {
+        items: [{
+          id: currentSubscription.items.data[0].id,
+          price: stripePriceId,
+        }],
+        payment_behavior: 'allow_incomplete',
+        proration_behavior: 'always_invoice',
+        expand: ['latest_invoice.payment_intent']
+      });
+
+      // Check if payment is required (e.g., missing payment method)
+      const latestInvoice = updatedSubscription.latest_invoice as any;
+      
+      if (latestInvoice?.payment_intent?.status === 'requires_payment_method') {
+        // Need payment method - return client secret for Stripe Elements
+        return res.json({
+          success: true,
+          requiresPayment: true,
+          clientSecret: latestInvoice.payment_intent.client_secret,
+          subscriptionId: updatedSubscription.id
+        });
+      }
+
+      // Payment successful or no additional payment required
+      return res.json({
+        success: true,
+        requiresPayment: false,
+        message: "Subscription updated successfully"
+      });
+
+    } catch (error: any) {
+      console.error('Subscription update error:', error);
+      return res.status(500).json({ 
+        error: error.message || "Failed to update subscription" 
+      });
     }
   });
 
