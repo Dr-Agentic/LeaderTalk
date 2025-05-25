@@ -296,13 +296,22 @@ export async function getBillingProducts(req: Request, res: Response) {
         
         // Search for products by name/metadata to match our plan codes
         const products = await stripeInstance.products.list({ limit: 100 });
+        console.log(`🖼️ Searching for product icon for plan: ${plan.planCode} (${plan.name})`);
+        console.log(`🖼️ Found ${products.data.length} products in payment service`);
+        
         const matchingProduct = products.data.find(product => 
           product.name.toLowerCase().includes(plan.name.toLowerCase()) ||
           product.metadata?.planCode === plan.planCode
         );
         
-        if (matchingProduct && matchingProduct.images && matchingProduct.images.length > 0) {
-          productIcon = matchingProduct.images[0];
+        if (matchingProduct) {
+          console.log(`🖼️ Matching product found: ${matchingProduct.name}, images: ${matchingProduct.images?.length || 0}`);
+          if (matchingProduct.images && matchingProduct.images.length > 0) {
+            productIcon = matchingProduct.images[0];
+            console.log(`🖼️ Product icon set: ${productIcon}`);
+          }
+        } else {
+          console.log(`🖼️ No matching product found for ${plan.planCode}`);
         }
       } catch (error) {
         console.warn(`Could not retrieve product icon for plan ${plan.planCode}:`, error);
