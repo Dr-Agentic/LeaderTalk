@@ -247,8 +247,7 @@ interface StripeProductsResponse {
 
 // Payment form component
 const CheckoutForm = ({ onSuccess }: { onSuccess: () => void }) => {
-  const stripe = useStripe();
-  const elements = useElements();
+  // Stripe is now handled entirely on the server for security
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentElementReady, setPaymentElementReady] = useState(false);
