@@ -277,15 +277,15 @@ export default function SecureSubscription() {
               <Button 
                 className="w-full" 
                 onClick={() => handleSubscribe(plan)}
-                disabled={createSubscription.isPending}
+                disabled={updateSubscription.isPending}
                 variant={plan.isPopular ? "default" : "outline"}
               >
-                {createSubscription.isPending ? (
+                {updateSubscription.isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Processing...
                   </>
-                ) : currentSubscription?.planId === plan.priceId ? (
+                ) : currentSubscription?.subscription?.plan === plan.code ? (
                   "Current Plan"
                 ) : (
                   `Subscribe to ${plan.name}`
