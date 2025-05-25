@@ -223,7 +223,8 @@ export default function SubscriptionNew() {
       
       try {
         // Only attempt to get a client secret if we have valid Stripe keys
-        if (stripePromise) {
+        // Stripe removed for security - using server checkout instead
+        if (false) {
           toast({
             title: "Processing",
             description: "Setting up payment details...",

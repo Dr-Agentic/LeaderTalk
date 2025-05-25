@@ -285,7 +285,7 @@ export default function StripeSubscription() {
         <div>
           <h3 className="text-lg font-medium mb-4">Complete Your Payment</h3>
           <Elements 
-            stripe={stripePromise} 
+            // Stripe removed for security 
             options={{ clientSecret: clientSecret as string }}
           >
             <CheckoutForm planCode={selectedPlan} />
