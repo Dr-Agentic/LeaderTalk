@@ -39,20 +39,20 @@ export default function SecureSubscription() {
 
   // Fetch current subscription
   const { data: currentSubscription, isLoading: subscriptionLoading } = useQuery<CurrentSubscription>({
-    queryKey: ['/api/current-subscription'],
+    queryKey: ['/api/billing/subscriptions/current'],
     enabled: true
   });
 
   // Fetch available plans
   const { data: plans, isLoading: plansLoading } = useQuery<SubscriptionPlan[]>({
-    queryKey: ['/api/stripe-products'],
+    queryKey: ['/api/billing/products'],
     enabled: true
   });
 
   // Create subscription mutation
   const createSubscription = useMutation({
-    mutationFn: async (planData: { priceId: string }) => {
-      const response = await fetch('/api/create-stripe-subscription', {
+    mutationFn: async (planData: { planCode: string }) => {
+      const response = await fetch('/api/billing/subscriptions/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -66,15 +66,15 @@ export default function SecureSubscription() {
       return response.json();
     },
     onSuccess: (data) => {
-      if (data.url) {
-        // Redirect to Stripe checkout
-        window.location.href = data.url;
+      if (data.checkoutUrl) {
+        // Redirect to payment checkout
+        window.location.href = data.checkoutUrl;
       } else {
         toast({
           title: "Success!",
           description: "Subscription created successfully",
         });
-        queryClient.invalidateQueries({ queryKey: ['/api/current-subscription'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/billing/subscriptions/current'] });
       }
     },
     onError: () => {
@@ -87,7 +87,7 @@ export default function SecureSubscription() {
   });
 
   const handleSubscribe = (plan: SubscriptionPlan) => {
-    createSubscription.mutate({ priceId: plan.priceId });
+    createSubscription.mutate({ planCode: plan.priceId });
   };
 
   if (subscriptionLoading || plansLoading) {
