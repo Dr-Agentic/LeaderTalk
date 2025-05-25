@@ -247,10 +247,6 @@ export default function SecureSubscription() {
                   <Check className="h-4 w-4 text-green-500 mr-2" />
                   <span>{plan.features.wordLimit.toLocaleString()} words/month</span>
                 </div>
-                <div className="flex items-center text-sm">
-                  <Check className="h-4 w-4 text-green-500 mr-2" />
-                  <span>Leader library access</span>
-                </div>
                 {plan.features.advancedAnalytics && (
                   <div className="flex items-center text-sm">
                     <Check className="h-4 w-4 text-green-500 mr-2" />
