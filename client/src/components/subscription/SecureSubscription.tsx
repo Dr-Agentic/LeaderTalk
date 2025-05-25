@@ -238,7 +238,7 @@ export default function SecureSubscription() {
               
               <div>
                 <p className="font-medium text-center mb-2">
-                  {plan.wordLimit?.toLocaleString() || 'Unlimited'} words/month
+                  {plan.features.formattedWordLimit}
                 </p>
               </div>
 
@@ -246,7 +246,7 @@ export default function SecureSubscription() {
               
               <div className="space-y-2">
                 <p className="font-medium">Features included:</p>
-                {plan.features?.map((feature, index) => (
+                {plan.features.benefits?.map((feature: string, index: number) => (
                   <div key={index} className="flex items-center space-x-2">
                     <CheckCircle className="h-4 w-4 text-green-500" />
                     <span className="text-sm">{feature}</span>
