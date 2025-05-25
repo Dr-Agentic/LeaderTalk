@@ -386,3 +386,106 @@ export async function getExistingSubscription(subscriptionId: string): Promise<a
     wordLimit: parseInt(cleanMetadata.Words, 10),
   };
 }
+
+/**
+ * Update a user's subscription to a new price
+ * This is the only function that should handle Stripe subscription updates
+ */
+export async function updateUserSubscriptionToPlan(stripeCustomerId: string, stripePriceId: string): Promise<{
+  success: boolean;
+  requiresPayment?: boolean;
+  clientSecret?: string;
+  message?: string;
+  error?: string;
+}> {
+  try {
+    if (!process.env.STRIPE_SECRET_KEY) {
+      throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
+    }
+
+    const stripe = (await import('stripe')).default;
+    const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: "2023-10-16",
+    });
+
+    // Get current active subscription
+    const subscriptions = await stripeInstance.subscriptions.list({
+      customer: stripeCustomerId,
+      status: 'active',
+      limit: 1
+    });
+
+    if (subscriptions.data.length === 0) {
+      return { success: false, error: "No active subscription found" };
+    }
+
+    const currentSubscription = subscriptions.data[0];
+    
+    // Update the subscription to new price
+    const updatedSubscription = await stripeInstance.subscriptions.update(currentSubscription.id, {
+      items: [{
+        id: currentSubscription.items.data[0].id,
+        price: stripePriceId,
+      }],
+      payment_behavior: 'allow_incomplete',
+      proration_behavior: 'always_invoice',
+      expand: ['latest_invoice.payment_intent']
+    });
+
+    // Check if payment is required (e.g., missing payment method)
+    const latestInvoice = updatedSubscription.latest_invoice as any;
+    
+    if (latestInvoice?.payment_intent?.status === 'requires_payment_method') {
+      return {
+        success: true,
+        requiresPayment: true,
+        clientSecret: latestInvoice.payment_intent.client_secret,
+        message: "Please add a payment method to update your subscription"
+      };
+    }
+
+    return {
+      success: true,
+      requiresPayment: false,
+      message: "Subscription updated successfully"
+    };
+
+  } catch (error: any) {
+    console.error('Subscription update error:', error);
+    
+    // Handle the specific case where customer has no payment method
+    if (error.code === 'resource_missing' && error.message.includes('no attached payment source')) {
+      try {
+        const stripe = (await import('stripe')).default;
+        const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY, {
+          apiVersion: "2023-10-16",
+        });
+
+        // Create a setup intent for collecting payment method
+        const setupIntent = await stripeInstance.setupIntents.create({
+          customer: stripeCustomerId,
+          usage: 'off_session',
+          payment_method_types: ['card']
+        });
+        
+        return {
+          success: true,
+          requiresPayment: true,
+          clientSecret: setupIntent.client_secret,
+          message: "Please add a payment method to update your subscription"
+        };
+      } catch (setupError: any) {
+        console.error('Setup intent creation error:', setupError);
+        return { 
+          success: false,
+          error: "Failed to create payment setup. Please try again." 
+        };
+      }
+    }
+    
+    return { 
+      success: false,
+      error: error.message || "Failed to update subscription" 
+    };
+  }
+}
