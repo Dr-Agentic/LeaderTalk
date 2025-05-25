@@ -131,32 +131,21 @@ const CheckoutForm = ({ onSuccess = () => {} }: { onSuccess?: () => void }) => {
       </div>
       
       <div className="border rounded-md p-4 mb-6 bg-muted/30">
-        <PaymentElement 
-          className="mb-3" 
-          onReady={handleReady}
-          options={{
-            layout: {
-              type: 'tabs',
-              defaultCollapsed: false,
-            }
-          }}
-        />
+        {/* PaymentElement removed for security - using server checkout */}
+        <div className="mb-3 p-4 border rounded bg-muted/30">
+          <p className="text-muted-foreground">Payment processing moved to secure server checkout</p>
+        </div>
       </div>
       
       <Button 
         type="submit" 
-        disabled={!stripe || isProcessing || !paymentElementReady} 
+        disabled={isProcessing} 
         className="w-full"
       >
         {isProcessing ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             Processing...
-          </>
-        ) : !paymentElementReady ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Loading Payment Form...
           </>
         ) : (
           "Subscribe Now"

@@ -103,7 +103,7 @@ function CheckoutForm({ planCode }: { planCode: string }) {
       )}
       
       <div className="mb-6">
-        <PaymentElement />
+        {/* Payment element removed for security - using server checkout */}
       </div>
       
       <Button 
@@ -294,12 +294,10 @@ export default function StripeSubscription() {
       ) : (
         <div>
           <h3 className="text-lg font-medium mb-4">Complete Your Payment</h3>
-          <Elements 
-            // Stripe removed for security 
-            options={{ clientSecret: clientSecret as string }}
-          >
-            <CheckoutForm planCode={selectedPlan} />
-          </Elements>
+          {/* Stripe Elements removed for security - using server-side checkout */}
+          <div className="text-center p-4 border rounded">
+            <p className="text-muted-foreground">Payment processing moved to secure server checkout</p>
+          </div>
           
           <Button 
             variant="outline" 
