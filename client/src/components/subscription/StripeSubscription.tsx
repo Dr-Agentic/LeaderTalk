@@ -30,8 +30,7 @@ interface PlansResponse {
 }
 
 function CheckoutForm({ planCode }: { planCode: string }) {
-  const stripe = useStripe();
-  const elements = useElements();
+  // Stripe is now handled entirely on the server for security
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
