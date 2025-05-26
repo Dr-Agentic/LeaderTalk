@@ -489,14 +489,15 @@ export async function updateUserSubscriptionToPlan(stripeCustomerId: string, str
 
     const currentSubscription = subscriptions.data[0];
     
-    // Update the subscription to new price
+    // Update the subscription to new price while preserving billing cycle
     const updatedSubscription = await stripeInstance.subscriptions.update(currentSubscription.id, {
       items: [{
         id: currentSubscription.items.data[0].id,
         price: stripePriceId,
       }],
       payment_behavior: 'allow_incomplete',
-      proration_behavior: 'always_invoice',
+      proration_behavior: 'create_prorations',
+      billing_cycle_anchor: 'unchanged',
       expand: ['latest_invoice.payment_intent']
     });
 
