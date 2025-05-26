@@ -473,10 +473,21 @@ export default function SecureSubscription() {
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Processing...
                   </>
-                ) : currentSubscription?.subscription?.plan === plan.code ? (
-                  "Current Plan"
                 ) : (
-                  `Subscribe to ${plan.name}`
+                  (() => {
+                    const currentPlan = currentSubscription?.subscription?.plan;
+                    const planCode = plan.code;
+                    const isCurrentPlan = currentPlan === planCode;
+                    
+                    console.log('🔍 Plan comparison:', {
+                      currentPlan,
+                      planCode, 
+                      isCurrentPlan,
+                      planName: plan.name
+                    });
+                    
+                    return isCurrentPlan ? "Current Plan" : `Subscribe to ${plan.name}`;
+                  })()
                 )}
               </Button>
             </CardContent>
