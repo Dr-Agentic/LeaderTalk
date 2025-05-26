@@ -123,15 +123,9 @@ export default function ModuleView() {
   const getSituationProgress = (situationId: number) => {
     if (!progress) return null;
     
-    // Find the chapter that contains this module
-    const chapter = progress.chapters.find(c => 
-      c.modules.some(m => m.id === moduleId)
-    );
-    
-    if (!chapter) return null;
-    
-    // Find the module in the chapter
-    const moduleProgress = chapter.modules.find(m => m.id === moduleId);
+    // Progress data doesn't have chapters structure yet - simplified for now
+    const chapter = null;
+    const moduleProgress = null;
     
     if (!moduleProgress) return null;
     
@@ -205,46 +199,46 @@ export default function ModuleView() {
                   Passed
                 </div>
               )}
-              {situationProgress?.status === "failed" && (
+              {scenarioProgress?.status === "failed" && (
                 <div className="absolute top-0 right-0 bg-yellow-500 text-white px-3 py-1 rounded-bl-md">
                   Needs Improvement
                 </div>
               )}
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2">
-                  {situationProgress?.status === "completed" ? (
+                  {scenarioProgress?.status === "completed" ? (
                     <CheckCircle className="h-5 w-5 text-green-500" />
-                  ) : situationProgress?.status === "failed" ? (
+                  ) : scenarioProgress?.status === "failed" ? (
                     <XCircle className="h-5 w-5 text-yellow-500" />
                   ) : (
                     <span className="flex items-center justify-center h-5 w-5 rounded-full bg-muted text-xs font-bold">
                       {index + 1}
                     </span>
                   )}
-                  Situation {index + 1}
+                  Scenario {index + 1}
                 </CardTitle>
-                {situationProgress?.status !== "not-started" && (
+                {scenarioProgress?.status !== "not-started" && (
                   <CardDescription>
-                    Score: {situationProgress?.score}/100
+                    Score: {scenarioProgress?.score}/100
                   </CardDescription>
                 )}
               </CardHeader>
               <CardContent>
-                <p className="mb-4">{situation.description}</p>
+                <p className="mb-4">{scenario.description}</p>
                 
                 {chapterId ? (
-                  <Link href={`/training/chapter/${chapterId}/module/${moduleId}/situation/${situation.id}`}>
+                  <Link href={`/training/chapter/${chapterId}/module/${moduleId}/situation/${scenario.id}`}>
                     <Button className="w-full flex items-center justify-center gap-2">
-                      {situationProgress?.status !== "not-started"
+                      {scenarioProgress?.status !== "not-started"
                         ? "Review Response" 
                         : "Respond to Situation"}
                       <ArrowRight size={16} />
                     </Button>
                   </Link>
                 ) : (
-                  <Link href={`/training/situation/${situation.id}?moduleId=${module.id}&fromChapter=${module.chapterId}`}>
+                  <Link href={`/training/situation/${scenario.id}?moduleId=${module.id}&fromChapter=${module.chapterId}`}>
                     <Button className="w-full flex items-center justify-center gap-2">
-                      {situationProgress?.status !== "not-started"
+                      {scenarioProgress?.status !== "not-started"
                         ? "Review Response" 
                         : "Respond to Situation"}
                       <ArrowRight size={16} />
