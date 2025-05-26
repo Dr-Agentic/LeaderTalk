@@ -18,6 +18,17 @@ const requireAuth = (req: Request, res: Response, next: Function) => {
 };
 
 export function registerTrainingRoutes(app: Express) {
+  // Get all chapters - direct access for frontend
+  app.get("/api/training/chapters-direct", requireAuth, async (req, res) => {
+    try {
+      const allChapters = await db.select().from(chapters).orderBy(chapters.order);
+      res.json(allChapters);
+    } catch (error) {
+      console.error("Error fetching chapters:", error);
+      res.status(500).json({ error: "Failed to fetch chapters" });
+    }
+  });
+
   // Get all chapters
   app.get("/api/chapters", async (req, res) => {
     try {
@@ -141,6 +152,27 @@ export function registerTrainingRoutes(app: Express) {
     } catch (error) {
       console.error("Error fetching situation:", error);
       res.status(500).json({ error: "Failed to fetch situation" });
+    }
+  });
+
+  // Get user progress - frontend expects this endpoint
+  app.get("/api/training/progress", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session?.userId;
+      if (!userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      const progress = await db
+        .select()
+        .from(userProgress)
+        .where(eq(userProgress.userId, userId))
+        .orderBy(desc(userProgress.updatedAt));
+
+      res.json(progress);
+    } catch (error) {
+      console.error("Error fetching user progress:", error);
+      res.status(500).json({ error: "Failed to fetch user progress" });
     }
   });
 
@@ -329,6 +361,33 @@ export function registerTrainingRoutes(app: Express) {
     } catch (error) {
       console.error("Error fetching situation attempt:", error);
       res.status(500).json({ error: "Failed to fetch situation attempt" });
+    }
+  });
+
+  // Get next situation for direct training - frontend expects this endpoint
+  app.get("/api/training/next-situation-direct", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session?.userId;
+      if (!userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      // For now, return the first available situation
+      // This can be enhanced later to track user progress and return the actual next situation
+      const nextSituation = await db
+        .select()
+        .from(situations)
+        .orderBy(situations.order)
+        .limit(1);
+
+      if (nextSituation.length === 0) {
+        return res.status(404).json({ error: "No situations available" });
+      }
+
+      res.json(nextSituation[0]);
+    } catch (error) {
+      console.error("Error fetching next situation:", error);
+      res.status(500).json({ error: "Failed to fetch next situation" });
     }
   });
 }
