@@ -169,17 +169,26 @@ export function registerRecordingRoutes(app: Express) {
         return res.status(400).json({ error: "No audio file provided" });
       }
 
-      const { title, duration } = req.body;
+      const { recordingId } = req.body;
       
-      if (!title) {
-        return res.status(400).json({ error: "Recording title is required" });
+      if (!recordingId) {
+        return res.status(400).json({ error: "Recording ID is required" });
       }
 
-      // Create recording record first
-      const recording = await storage.createRecording({
-        userId,
-        title,
-        duration: duration ? parseInt(duration) : 0,
+      // Get existing recording
+      const recording = await storage.getRecording(parseInt(recordingId));
+      
+      if (!recording) {
+        return res.status(404).json({ error: "Recording not found" });
+      }
+
+      // Verify that the recording belongs to the current user
+      if (recording.userId !== userId) {
+        return res.status(403).json({ error: "Unauthorized access to recording" });
+      }
+
+      // Update recording status to processing
+      await storage.updateRecording(recording.id, { 
         status: 'processing'
       });
 
