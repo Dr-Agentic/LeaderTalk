@@ -15,30 +15,9 @@ const requireAuth = (req: Request, res: Response, next: Function) => {
   next();
 };
 
-// Configure multer for file uploads with proper file extensions
+// Configure multer for file uploads without corrupting binary data
 const upload = multer({
-  storage: multer.diskStorage({
-    destination: (req, file, cb) => {
-      cb(null, os.tmpdir());
-    },
-    filename: (req, file, cb) => {
-      // Map MIME types to file extensions that OpenAI supports
-      const mimeToExt = {
-        'audio/webm': 'webm',
-        'audio/wav': 'wav',
-        'audio/mpeg': 'mp3',
-        'audio/mp3': 'mp3',
-        'audio/mp4': 'mp4',
-        'audio/m4a': 'm4a',
-        'audio/ogg': 'ogg',
-        'audio/flac': 'flac'
-      };
-      
-      const ext = mimeToExt[file.mimetype as keyof typeof mimeToExt] || 'webm';
-      const timestamp = Date.now();
-      cb(null, `recording_${timestamp}.${ext}`);
-    }
-  }),
+  storage: multer.memoryStorage(), // Use memory storage to avoid file corruption
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
   fileFilter: (req, file, cb) => {
     // Accept audio files
@@ -223,19 +202,24 @@ export function registerRecordingRoutes(app: Express) {
         }
       }
 
-      // Process audio file asynchronously
-      const audioPath = req.file.path;
-      
+      // Process audio file from memory buffer to avoid corruption
       try {
         console.log(`[RECORDING ${recording.id}] Starting transcription and analysis...`);
         console.log(`[RECORDING ${recording.id}] Audio file details:`, {
           originalName: req.file.originalname,
           mimetype: req.file.mimetype,
-          filename: req.file.filename,
-          path: req.file.path,
           size: req.file.size
         });
-        const { transcription, analysis } = await transcribeAndAnalyzeAudio(recording, audioPath);
+        
+        // Write buffer to temporary file without corruption
+        const timestamp = Date.now();
+        const tempFilePath = path.join(os.tmpdir(), `recording_${timestamp}.webm`);
+        fs.writeFileSync(tempFilePath, req.file.buffer);
+        
+        const { transcription, analysis } = await transcribeAndAnalyzeAudio(recording, tempFilePath);
+        
+        // Clean up temporary file
+        fs.unlinkSync(tempFilePath);
         console.log(`[RECORDING ${recording.id}] Transcription completed, updating database...`);
         
         // Update recording with results
