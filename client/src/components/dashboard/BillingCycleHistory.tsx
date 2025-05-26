@@ -10,6 +10,7 @@ import {
   ResponsiveContainer,
   Cell,
   ReferenceLine,
+  CartesianGrid,
 } from "recharts";
 import { TrendingUp, CalendarDays, Target } from "lucide-react";
 import { format, subMonths } from "date-fns";
