@@ -467,12 +467,12 @@ export default function SecureSubscription() {
               
               {/* Button anchored to bottom */}
               <Button 
-                className="w-full mt-auto text-sm py-2 px-3 h-auto min-h-[40px]" 
+                className="w-full mt-auto text-xs py-3 px-2 h-auto min-h-[48px] whitespace-normal break-words" 
                 onClick={() => handleSubscribe(plan)}
                 disabled={updateSubscription.isPending}
-                variant={plan.isPopular ? "default" : "outline"}
+                variant="default"
               >
-                <span className="text-center leading-tight">
+                <div className="text-center leading-relaxed">
                   {updateSubscription.isPending ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -495,7 +495,7 @@ export default function SecureSubscription() {
                       return isCurrentPlan ? "Current Plan" : `Subscribe to ${plan.name}`;
                     })()
                   )}
-                </span>
+                </div>
               </Button>
             </CardContent>
           </Card>
