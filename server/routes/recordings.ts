@@ -187,16 +187,19 @@ export function registerRecordingRoutes(app: Express) {
       const audioPath = req.file.path;
       
       try {
-        const { transcription, analysis } = await transcribeAndAnalyzeAudio(recording, audioPath);
+        const leaders = await storage.getLeaders();
+        const { transcription, analysis } = await transcribeAndAnalyzeAudio(audioPath, recording, leaders);
         
         // Update recording with results
-        const updatedRecording = await storage.updateRecordingAnalysis(
-          recording.id,
+        await storage.updateRecording(recording.id, {
+          title: recording.title,
+          duration: recording.duration,
+          status: 'completed',
           transcription,
-          analysis
-        );
+          analysisResult: analysis
+        });
 
-        res.json(updatedRecording);
+        res.json(recording);
       } catch (processingError) {
         console.error("Error processing audio:", processingError);
         
