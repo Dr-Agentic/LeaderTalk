@@ -479,23 +479,79 @@ export default function SituationView() {
         </Card>
 
         <div className="space-y-6">
-          {situation.userProgress && (
+          {(situation.userProgress || (submissionPhase === 'complete' && aiEvaluation)) && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  {situation.userProgress.passed ? (
+                  {(situation.userProgress?.passed || (aiEvaluation && aiEvaluation.styleMatchScore >= 70)) ? (
                     <Check className="h-5 w-5 text-green-500" />
                   ) : (
                     <AlertCircle className="h-5 w-5 text-yellow-500" />
                   )}
-                  Feedback
+                  AI Analysis Results
                 </CardTitle>
                 <CardDescription>
-                  Score: {situation.userProgress.score}/100
+                  Score: {situation.userProgress?.score || aiEvaluation?.styleMatchScore || 0}/100
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p>{situation.userProgress.feedback}</p>
+                {aiEvaluation && submissionPhase === 'complete' ? (
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="font-medium mb-2">Overall Feedback</h4>
+                      <p className="text-sm">{aiEvaluation.improvement}</p>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="flex flex-col items-center p-3 bg-muted rounded">
+                        <span className="text-xs text-muted-foreground">Style Match</span>
+                        <span className="font-semibold text-lg">{aiEvaluation.styleMatchScore || 0}%</span>
+                      </div>
+                      <div className="flex flex-col items-center p-3 bg-muted rounded">
+                        <span className="text-xs text-muted-foreground">Clarity</span>
+                        <span className="font-semibold text-lg">{aiEvaluation.clarity || 0}%</span>
+                      </div>
+                      <div className="flex flex-col items-center p-3 bg-muted rounded">
+                        <span className="text-xs text-muted-foreground">Empathy</span>
+                        <span className="font-semibold text-lg">{aiEvaluation.empathy || 0}%</span>
+                      </div>
+                      <div className="flex flex-col items-center p-3 bg-muted rounded">
+                        <span className="text-xs text-muted-foreground">Persuasion</span>
+                        <span className="font-semibold text-lg">{aiEvaluation.persuasiveness || 0}%</span>
+                      </div>
+                    </div>
+
+                    {aiEvaluation.strengths && aiEvaluation.strengths.length > 0 && (
+                      <div>
+                        <h4 className="font-medium mb-2 text-green-700">Strengths</h4>
+                        <ul className="text-sm space-y-1">
+                          {aiEvaluation.strengths.map((strength, index) => (
+                            <li key={index} className="flex items-start gap-2">
+                              <Check className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                              {strength}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {aiEvaluation.weaknesses && aiEvaluation.weaknesses.length > 0 && (
+                      <div>
+                        <h4 className="font-medium mb-2 text-amber-700">Areas for Improvement</h4>
+                        <ul className="text-sm space-y-1">
+                          {aiEvaluation.weaknesses.map((weakness, index) => (
+                            <li key={index} className="flex items-start gap-2">
+                              <AlertCircle className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                              {weakness}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <p>{situation.userProgress?.feedback}</p>
+                )}
               </CardContent>
               <CardFooter>
                 <Button
