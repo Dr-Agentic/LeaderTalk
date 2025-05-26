@@ -8,6 +8,60 @@ import path from "path";
 import os from "os";
 import { z } from "zod";
 
+// Background processing function
+async function processAudioInBackground(recordingId: number, audioBuffer: Buffer): Promise<void> {
+  try {
+    console.log(`[RECORDING ${recordingId}] Background processing started`);
+    
+    // Get the recording details
+    const recording = await storage.getRecording(recordingId);
+    if (!recording) {
+      throw new Error(`Recording ${recordingId} not found`);
+    }
+    
+    // Write buffer to temporary file without corruption
+    const timestamp = Date.now();
+    const tempFilePath = path.join(os.tmpdir(), `recording_${timestamp}.webm`);
+    fs.writeFileSync(tempFilePath, audioBuffer);
+    
+    console.log(`[RECORDING ${recordingId}] Starting transcription and analysis...`);
+    const { transcription, analysis } = await transcribeAndAnalyzeAudio(recording, tempFilePath);
+    
+    // Clean up temporary file
+    fs.unlinkSync(tempFilePath);
+    console.log(`[RECORDING ${recordingId}] Transcription completed, updating database...`);
+    
+    // Update recording with results
+    await storage.updateRecordingAnalysis(recordingId, transcription, analysis);
+    
+    // Update status separately using correct parameters
+    await storage.updateRecording(recordingId, {
+      title: recording.title,
+      duration: recording.duration,
+      status: 'completed'
+    });
+    console.log(`[RECORDING ${recordingId}] Background processing completed successfully`);
+    
+  } catch (processingError) {
+    console.error(`[RECORDING ${recordingId}] Background processing failed:`, processingError);
+    
+    // Update recording status to failed
+    try {
+      const recording = await storage.getRecording(recordingId);
+      if (recording) {
+        await storage.updateRecording(recordingId, { 
+          title: recording.title,
+          duration: recording.duration,
+          status: 'failed',
+          errorDetails: processingError instanceof Error ? processingError.message : 'Unknown error'
+        });
+      }
+    } catch (updateError) {
+      console.error(`[RECORDING ${recordingId}] Failed to update error status:`, updateError);
+    }
+  }
+}
+
 const requireAuth = (req: Request, res: Response, next: Function) => {
   if (!req.session?.userId) {
     return res.status(401).json({ error: "Authentication required" });
