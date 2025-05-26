@@ -489,17 +489,62 @@ export async function updateUserSubscriptionToPlan(stripeCustomerId: string, str
 
     const currentSubscription = subscriptions.data[0];
     
-    // Update the subscription to new price while preserving billing cycle
-    const updatedSubscription = await stripeInstance.subscriptions.update(currentSubscription.id, {
-      items: [{
-        id: currentSubscription.items.data[0].id,
-        price: stripePriceId,
-      }],
-      payment_behavior: 'allow_incomplete',
-      proration_behavior: 'create_prorations',
-      billing_cycle_anchor: 'unchanged',
-      expand: ['latest_invoice.payment_intent']
-    });
+    // Get current subscription details to check for interval changes
+    const currentPrice = await stripeInstance.prices.retrieve(currentSubscription.items.data[0].price.id);
+    const newPrice = await stripeInstance.prices.retrieve(stripePriceId);
+    
+    // Check if we're changing billing intervals (yearly to monthly or vice versa)
+    const changingIntervals = currentPrice.recurring?.interval !== newPrice.recurring?.interval;
+    
+    let updatedSubscription;
+    
+    if (changingIntervals) {
+      // Use subscription schedule for interval changes to avoid billing cycle conflicts
+      // First, create a subscription schedule from the existing subscription
+      const schedule = await stripeInstance.subscriptionSchedules.create({
+        from_subscription: currentSubscription.id,
+      });
+
+      // Then update the schedule to end at the current period end and start new plan
+      await stripeInstance.subscriptionSchedules.update(schedule.id, {
+        end_behavior: 'release', // Release subscription to continue with new plan
+        phases: [
+          {
+            items: [
+              {
+                price: currentSubscription.items.data[0].price.id, // Keep current price until period end
+                quantity: 1,
+              },
+            ],
+            end_date: currentSubscription.current_period_end, // End at current period end
+          },
+          {
+            items: [
+              {
+                price: stripePriceId, // New price starts after current period
+                quantity: 1,
+              },
+            ],
+            // New phase starts automatically after previous phase ends
+          }
+        ],
+      });
+      
+      // Return the current subscription since the change is scheduled
+      updatedSubscription = currentSubscription;
+    } else {
+      // Same interval, use regular update with billing cycle preservation
+      updatedSubscription = await stripeInstance.subscriptions.update(currentSubscription.id, {
+        items: [{
+          id: currentSubscription.items.data[0].id,
+          price: stripePriceId,
+        }],
+        payment_behavior: 'allow_incomplete',
+        proration_behavior: 'create_prorations',
+        billing_cycle_anchor: 'unchanged',
+        expand: ['latest_invoice.payment_intent']
+      });
+    }
 
     // Check if payment is required (e.g., missing payment method)
     const latestInvoice = updatedSubscription.latest_invoice as any;
@@ -516,11 +561,19 @@ export async function updateUserSubscriptionToPlan(stripeCustomerId: string, str
     // Get updated subscription details for enhanced messaging
     const updatedSubscriptionData = await getUserSubscription(updatedSubscription.id);
     
+    // Determine response message based on whether change was scheduled or immediate
+    let message: string;
+    if (changingIntervals) {
+      const currentPeriodEndDate = new Date(currentSubscription.current_period_end * 1000).toLocaleDateString();
+      message = `Your plan change has been scheduled! You'll continue with your current plan until ${currentPeriodEndDate}, then automatically switch to the new plan.`;
+    } else {
+      message = "Subscription updated successfully";
+    }
+    
     return {
       success: true,
       requiresPayment: false,
-      message: "Subscription updated successfully",
-      newPlan: updatedSubscriptionData.plan,
+      message,
       amount: updatedSubscriptionData.amount,
       interval: updatedSubscriptionData.interval,
       nextRenewal: new Date(updatedSubscriptionData.nextRenewalTimestamp * 1000).toLocaleDateString()
