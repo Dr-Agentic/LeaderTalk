@@ -516,7 +516,7 @@ export default function SecureSubscription() {
               onClick={() => {
                 const starterProduct = plans?.find(p => p.code.toLowerCase().includes('starter'));
                 if (starterProduct) {
-                  updateSubscription.mutate({ stripePriceId: starterProduct.prices.monthly.stripePriceId });
+                  updateSubscription.mutate({ stripePriceId: starterProduct.pricing.stripePriceId });
                 }
               }}
               disabled={updateSubscription.isPending}
