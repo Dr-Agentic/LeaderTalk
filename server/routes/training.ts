@@ -167,7 +167,7 @@ export function registerTrainingRoutes(app: Express) {
         .select()
         .from(userProgress)
         .where(eq(userProgress.userId, userId))
-        .orderBy(desc(userProgress.updatedAt));
+        .orderBy(desc(userProgress.createdAt));
 
       res.json(progress);
     } catch (error) {
