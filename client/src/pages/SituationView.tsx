@@ -109,6 +109,7 @@ export default function SituationView() {
   
   const [response, setResponse] = useState("");
   const [leadershipStyle, setLeadershipStyle] = useState("");
+  const [assignedLeadershipStyle, setAssignedLeadershipStyle] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showExampleResponses, setShowExampleResponses] = useState(false);
   
@@ -124,12 +125,9 @@ export default function SituationView() {
 
   const preferredStyle = userData?.preferredLeadershipStyle || "";
   
-  useEffect(() => {
-    if (preferredStyle && !leadershipStyle) {
-      setLeadershipStyle(preferredStyle);
-    }
-  }, [preferredStyle, leadershipStyle]);
-
+  // Define leadership styles
+  const leadershipStyles = ['empathetic', 'inspirational', 'commanding'];
+  
   // Fetch the situation directly from JSON files
   const { data: situation, isLoading: isSituationLoading, isError: isSituationError } = useQuery({
     queryKey: [`/api/training/situations-direct/${situationId}`],
@@ -201,6 +199,23 @@ export default function SituationView() {
       setIsSubmitting(false);
     },
   });
+
+  // Randomly assign a leadership style when situation loads
+  useEffect(() => {
+    if (situation && !assignedLeadershipStyle) {
+      // Use situation ID as seed for consistent random assignment per situation
+      const randomIndex = situation.id % leadershipStyles.length;
+      const assignedStyle = leadershipStyles[randomIndex];
+      setAssignedLeadershipStyle(assignedStyle);
+      setLeadershipStyle(assignedStyle);
+    }
+  }, [situation, assignedLeadershipStyle]);
+  
+  useEffect(() => {
+    if (preferredStyle && !leadershipStyle && !assignedLeadershipStyle) {
+      setLeadershipStyle(preferredStyle);
+    }
+  }, [preferredStyle, leadershipStyle, assignedLeadershipStyle]);
 
   // Handle the audio recording when it's completed
   useEffect(() => {
@@ -326,6 +341,18 @@ export default function SituationView() {
               <p className="font-medium text-lg mb-2">Scenario:</p>
               <p>{situation.description}</p>
             </div>
+
+            {assignedLeadershipStyle && (
+              <div className="bg-accent border border-accent-foreground/20 p-4 rounded-md">
+                <p className="font-medium text-lg mb-2">🎯 Required Leadership Style:</p>
+                <p className="text-xl font-semibold capitalize text-accent-foreground">
+                  {assignedLeadershipStyle}
+                </p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Respond to this situation using a {assignedLeadershipStyle} leadership approach.
+                </p>
+              </div>
+            )}
 
             <div className="bg-primary-foreground border border-primary/20 p-4 rounded-md">
               <p className="font-medium text-lg mb-2">Your Task:</p>
