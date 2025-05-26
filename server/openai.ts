@@ -299,45 +299,17 @@ async function transcribeAudio(audioPath: string): Promise<string> {
       console.warn("Could not analyze audio file header", headerError);
     }
     
-    // Convert audio to WAV format using FFmpeg for OpenAI compatibility
-    const wavPath = audioPath.replace(/\.[^/.]+$/, '') + '.wav';
+    // Send audio directly to OpenAI
+    console.log(`Sending audio file ${audioPath} to OpenAI for transcription`);
     
-    // Use FFmpeg to convert the audio file to WAV format
-    const { exec } = await import('child_process');
-    const { promisify } = await import('util');
-    const execPromise = promisify(exec);
+    const transcription = await openai.audio.transcriptions.create({
+      file: fs.createReadStream(audioPath),
+      model: "whisper-1",
+      response_format: "text",
+    });
     
-    try {
-      console.log(`Converting audio file ${audioPath} to WAV format...`);
-      const command = `ffmpeg -i "${audioPath}" -acodec pcm_s16le -ar 16000 "${wavPath}" -y`;
-      await execPromise(command);
-      console.log('Audio converted successfully to WAV format');
-      
-      // Send converted audio to OpenAI
-      console.log(`Sending converted audio file ${wavPath} to OpenAI for transcription`);
-      const transcription = await openai.audio.transcriptions.create({
-        file: fs.createReadStream(wavPath),
-        model: "whisper-1",
-        response_format: "text",
-      });
-      
-      // Clean up temporary file
-      fs.unlinkSync(wavPath);
-      
-      return transcription;
-      
-    } catch (conversionError) {
-      console.error('FFmpeg conversion error:', conversionError);
-      // Clean up temporary file if it exists
-      try {
-        if (fs.existsSync(wavPath)) {
-          fs.unlinkSync(wavPath);
-        }
-      } catch (cleanupError) {
-        console.error('Failed to cleanup temporary file:', cleanupError);
-      }
-      throw new Error(`Audio conversion failed: ${(conversionError as any)?.message || 'Unknown conversion error'}`);
-    }
+    console.log(`Transcription received, length: ${transcription.length}`);
+    return transcription;
   } catch (error) {
     console.error("Error in audio transcription:", error);
     // If OpenAI API fails due to format issues, return this message
