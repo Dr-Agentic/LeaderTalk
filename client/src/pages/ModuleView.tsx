@@ -195,12 +195,12 @@ export default function ModuleView() {
       )}
       
       <div className="grid gap-6 mt-8">
-        {module.situations.map((situation, index) => {
-          const situationProgress = getSituationProgress(situation.id);
+        {module.scenarios?.map((scenario, index) => {
+          const scenarioProgress = getSituationProgress(scenario.id);
           
           return (
-            <Card key={situation.id} className="relative overflow-hidden">
-              {situationProgress?.status === "completed" && (
+            <Card key={scenario.id} className="relative overflow-hidden">
+              {scenarioProgress?.status === "completed" && (
                 <div className="absolute top-0 right-0 bg-green-500 text-white px-3 py-1 rounded-bl-md">
                   Passed
                 </div>
