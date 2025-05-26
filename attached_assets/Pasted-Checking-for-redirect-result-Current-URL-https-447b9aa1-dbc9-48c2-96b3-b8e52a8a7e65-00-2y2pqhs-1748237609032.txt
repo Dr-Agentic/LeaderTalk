@@ -1,0 +1,63 @@
+Checking for redirect result...
+Current URL: https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2y2pqhs8si0sg.spock.replit.dev/training/chapter/1/module/1
+URL params: 
+[DEBUG] Checking for Google auth redirect result 
+Object {url: "https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2y2pqhs8si0sg.spock.replit.dev/training/chapter/1/m…", search: "", hash: ""}
+🔵 About to call getRedirectResult...
+🔵 getRedirectResult returned: null
+🔵 Result details: 
+Object {hasResult: false, hasUser: false, hasCredential: false, operationType: "none"}
+No redirect result found
+[DEBUG] No Google redirect result found 
+[DEBUG] Received session data 
+Object {sessionExists: true, sessionId: "3k4rUhOq…", userId: 2, isLoggedIn: true, cookiePresent: true, …}
+Session confirmed valid, user ID: 2
+[INFO] Session confirmed valid, user ID: 2 
+Object {userId: 2, sessionId: "3k4rUhOq…", cookiePresent: true, cookieExists: true}
+Session check successful, fetching user details
+[DEBUG] API request 
+Object {method: "GET", url: "/api/users/me", hasData: false}
+[DEBUG] API request successful 
+Object {url: "/api/users/me", method: "GET", status: 200}
+Checking for redirect result...
+Current URL: https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2y2pqhs8si0sg.spock.replit.dev/training/chapter/1/module/1
+URL params: 
+[DEBUG] Checking for Google auth redirect result 
+Object {url: "https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2y2pqhs8si0sg.spock.replit.dev/training/chapter/1/m…", search: "", hash: ""}
+🔵 About to call getRedirectResult...
+🔵 getRedirectResult returned: null
+🔵 Result details: 
+Object {hasResult: false, hasUser: false, hasCredential: false, operationType: "none"}
+No redirect result found
+[DEBUG] No Google redirect result found 
+[DEBUG] Received session data 
+Object {sessionExists: true, sessionId: "3k4rUhOq…", userId: 2, isLoggedIn: true, cookiePresent: true, …}
+Session confirmed valid, user ID: 2
+[INFO] Session confirmed valid, user ID: 2 
+Object {userId: 2, sessionId: "3k4rUhOq…", cookiePresent: true, cookieExists: true}
+Session check successful, fetching user details
+[DEBUG] API request 
+Object {method: "GET", url: "/api/users/me", hasData: false}
+[DEBUG] API request successful 
+Object {url: "/api/users/me", method: "GET", status: 200}
+[DEBUG] Query function called 
+Object {requestUrl: "/api/users/me"}
+[DEBUG] API request 
+Object {method: "GET", url: "/api/users/me", hasData: false}
+[DEBUG] Query function called 
+Object {requestUrl: "/api/training/modules-direct/1"}
+[DEBUG] Query function called 
+Object {requestUrl: "/api/training/progress"}
+[DEBUG] Query successful 
+Object {requestUrl: "/api/users/me", status: 200}
+[DEBUG] Query successful 
+Object {requestUrl: "/api/training/modules-direct/1", status: 200}
+[DEBUG] API request successful 
+Object {url: "/api/users/me", method: "GET", status: 200}
+Query error: 
+SyntaxError {}
+
+at t.value (https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2y2pqhs8si0sg.spock.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2y2pqhs8si0sg.spock.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2y2pqhs8si0sg.spock.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2y2pqhs8si0sg.spock.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400

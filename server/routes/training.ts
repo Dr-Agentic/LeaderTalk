@@ -397,6 +397,61 @@ export function registerTrainingRoutes(app: Express) {
   });
 
   // Get next situation for direct training - frontend expects this endpoint
+  // Get a specific module directly from JSON files - bypasses the database
+  app.get("/api/training/modules-direct/:moduleId", requireAuth, async (req, res) => {
+    try {
+      const moduleId = Number(req.params.moduleId);
+      
+      if (isNaN(moduleId)) {
+        return res.status(400).json({ message: "Invalid module ID" });
+      }
+      
+      // Search all chapter files for the requested module
+      const chapterFiles = [
+        'chapter1_expanded.json',
+        'chapter2_expanded.json',
+        'chapter3_expanded.json',
+        'chapter4_expanded.json',
+        'chapter5_expanded.json'
+      ];
+      
+      let foundModule = null;
+      let chapterId = null;
+      
+      // Search through all chapters to find the module
+      const projectRoot = process.cwd();
+      for (const chapterFile of chapterFiles) {
+        const filePath = path.join(projectRoot, 'attached_assets', chapterFile);
+        
+        if (fs.existsSync(filePath)) {
+          const rawData = fs.readFileSync(filePath, 'utf-8');
+          const chapterData = JSON.parse(rawData);
+          
+          // Find the module in this chapter
+          const module = chapterData.modules.find(m => m.id === moduleId);
+          if (module) {
+            foundModule = {
+              ...module,
+              chapterId: chapterData.id,
+              chapterTitle: chapterData.chapter_title
+            };
+            chapterId = chapterData.id;
+            break;
+          }
+        }
+      }
+      
+      if (!foundModule) {
+        return res.status(404).json({ message: "Module not found" });
+      }
+      
+      res.json(foundModule);
+    } catch (error) {
+      console.error("Error fetching module:", error);
+      return res.status(500).json({ message: "Failed to fetch module" });
+    }
+  });
+
   app.get("/api/training/next-situation-direct", requireAuth, async (req, res) => {
     try {
       const userId = req.session?.userId;
