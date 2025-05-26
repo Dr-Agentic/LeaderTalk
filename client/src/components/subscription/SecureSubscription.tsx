@@ -167,6 +167,7 @@ interface CurrentSubscription {
 export default function SecureSubscription() {
   const [selectedPlan, setSelectedPlan] = useState<BillingProduct | null>(null);
   const [billingInterval, setBillingInterval] = useState<'monthly' | 'yearly'>('monthly');
+  const [paymentSetup, setPaymentSetup] = useState<{ clientSecret: string; planId: string } | null>(null);
   const { toast } = useToast();
 
   // Fetch current subscription
@@ -199,13 +200,16 @@ export default function SecureSubscription() {
       return response.json();
     },
     onSuccess: (data) => {
-      if (data.requiresPayment) {
-        // Handle payment method collection with Stripe
+      if (data.requiresPayment && data.clientSecret) {
+        // Show payment setup form
+        setPaymentSetup({
+          clientSecret: data.clientSecret,
+          planId: data.planId || 'unknown'
+        });
         toast({
           title: "Payment Method Required",
-          description: "Please update your payment method to complete the subscription change.",
+          description: "Please add a payment method to complete the subscription change.",
         });
-        // TODO: Implement Stripe Elements for payment method collection
       } else {
         toast({
           title: "Success!",
@@ -382,6 +386,23 @@ export default function SecureSubscription() {
           </Card>
         ))}
       </div>
+
+      {/* Payment Setup Form */}
+      {paymentSetup && (
+        <Elements stripe={stripePromise} options={{ clientSecret: paymentSetup.clientSecret }}>
+          <PaymentSetupForm 
+            clientSecret={paymentSetup.clientSecret}
+            onSuccess={() => {
+              setPaymentSetup(null);
+              queryClient.invalidateQueries({ queryKey: ['/api/billing/subscriptions/current'] });
+              toast({
+                title: "Payment Method Added",
+                description: "Your payment method has been added successfully! Please try updating your subscription again.",
+              });
+            }}
+          />
+        </Elements>
+      )}
 
       {/* Security Notice */}
       <Card className="border-blue-200 bg-blue-50">
