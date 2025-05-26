@@ -411,7 +411,7 @@ export default function RecordingSection({
       }
       
       // Navigate to the transcript view to show transcription progress
-      window.location.href = `/transcript/${recording.id}`;
+      setLocation(`/transcript/${recording.id}`);
     } catch (error) {
       console.error("Recording error:", error);
 
