@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { CheckCircle, Loader2, ExternalLink, Check, CreditCard } from "lucide-react";
+import { CheckCircle, Loader2, ExternalLink, Check, CreditCard, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import { loadStripe } from '@stripe/stripe-js';
@@ -486,6 +486,33 @@ export default function SecureSubscription() {
             }}
           />
         </Elements>
+      )}
+
+      {/* Cancellation Section - Only for paid plans */}
+      {subscriptionData?.subscription && !subscriptionData.subscription.isFree && (
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-2 text-red-800 mb-3">
+              <AlertTriangle className="h-5 w-5" />
+              <h3 className="text-lg font-semibold">Cancel Subscription</h3>
+            </div>
+            <p className="text-sm text-red-700 mb-4">
+              Cancel your Executive subscription. You'll continue to enjoy all premium features until {subscriptionData.subscription.formattedNextRenewal}, 
+              after which your account will switch to the free Starter plan. No refunds will be provided.
+            </p>
+            <button
+              onClick={() => {
+                if (confirm("Are you sure you want to cancel your subscription? You'll continue to have access until the end of your billing period, with no refund provided.")) {
+                  cancelSubscription.mutate();
+                }
+              }}
+              disabled={cancelSubscription.isPending}
+              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {cancelSubscription.isPending ? 'Cancelling...' : 'Cancel Subscription'}
+            </button>
+          </CardContent>
+        </Card>
       )}
 
       {/* Security Notice */}
