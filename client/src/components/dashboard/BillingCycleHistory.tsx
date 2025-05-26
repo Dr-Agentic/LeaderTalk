@@ -70,7 +70,7 @@ export default function BillingCycleHistory() {
   const hasValidSubscription =
     subscriptionData?.success && subscriptionData.subscription;
 
-  if (!hasValidSubscription) {
+  if (!hasValidSubscription || !currentUsageData) {
     return (
       <Card className="mb-6">
         <CardHeader>
@@ -94,13 +94,23 @@ export default function BillingCycleHistory() {
 
   const subscription = subscriptionData.subscription;
   const currentUsage = currentUsageData || {
-    currentUsage: "error",
-    wordLimit: "BillingCycleHistory",
+    currentUsage: 0,
+    wordLimit: 10000,
+    billingCycle: {
+      startDate: '2025-01-26',
+      endDate: '2025-02-25',
+      daysRemaining: 30
+    }
   };
 
   // Generate billing cycle history data using server-calculated monthly periods
   const generateCycleHistory = (): BillingCycleData[] => {
     const cycles: BillingCycleData[] = [];
+    
+    // Check if we have valid billing cycle data
+    if (!currentUsage.billingCycle?.startDate || !currentUsage.billingCycle?.endDate) {
+      return [];
+    }
     
     // Use the correct monthly billing cycle dates from the server
     const currentCycleStart = new Date(currentUsage.billingCycle.startDate);
