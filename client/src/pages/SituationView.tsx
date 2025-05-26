@@ -215,6 +215,7 @@ export default function SituationView() {
       );
     },
     onSuccess: (data) => {
+      console.log("AI evaluation response:", data);
       // Store AI evaluation and complete the flow
       setAiEvaluation(data.evaluation);
       setSubmissionPhase('complete');
@@ -428,38 +429,7 @@ export default function SituationView() {
                     disabled={isSubmitting}
                   />
 
-                  <div className="flex gap-2">
-                    <Button
-                      type="button"
-                      variant={isRecording ? "destructive" : "outline"}
-                      size="sm"
-                      onClick={isRecording ? stopRecording : startRecording}
-                      disabled={isSubmitting}
-                    >
-                      {isRecording ? (
-                        <>
-                          <MicOff className="h-4 w-4 mr-2" /> Stop Recording (
-                          {recordingDuration.toFixed(1)}s)
-                        </>
-                      ) : (
-                        <>
-                          <Mic className="h-4 w-4 mr-2" /> Record Response
-                        </>
-                      )}
-                    </Button>
 
-                    {recordingBlob && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={resetRecording}
-                        disabled={isSubmitting || isRecording}
-                      >
-                        Clear Recording
-                      </Button>
-                    )}
-                  </div>
                 </div>
               )}
             </div>

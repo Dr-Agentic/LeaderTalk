@@ -418,7 +418,11 @@ export function registerTrainingRoutes(app: Express) {
         .values(attemptData)
         .returning();
 
-      res.json(result[0]);
+      res.json({ 
+        success: true, 
+        evaluation,
+        attempt: result[0] 
+      });
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ 
