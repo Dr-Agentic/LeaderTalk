@@ -529,14 +529,23 @@ export async function getBillingCycleWordUsageAnalytics(userId: number) {
     let usagePeriodEnd: Date;
     
     if (subscriptionData.interval === 'year') {
-      // For annual plans, word usage is tracked monthly
+      // For annual plans, word usage is tracked monthly starting from subscription date
+      const subscriptionStart = subscriptionData.currentPeriodStart;
       const now = new Date();
-      const currentMonth = now.getMonth();
-      const currentYear = now.getFullYear();
       
-      // Current month usage period (1st to last day of month)
-      usagePeriodStart = new Date(currentYear, currentMonth, 1);
-      usagePeriodEnd = new Date(currentYear, currentMonth + 1, 0, 23, 59, 59, 999);
+      // Calculate how many complete months since subscription started
+      const monthsSinceStart = (now.getFullYear() - subscriptionStart.getFullYear()) * 12 + 
+                               (now.getMonth() - subscriptionStart.getMonth());
+      
+      // Current monthly period starts from subscription day of month
+      usagePeriodStart = new Date(subscriptionStart.getFullYear(), 
+                                  subscriptionStart.getMonth() + monthsSinceStart, 
+                                  subscriptionStart.getDate());
+      
+      // Next period starts one month later
+      usagePeriodEnd = new Date(subscriptionStart.getFullYear(), 
+                                subscriptionStart.getMonth() + monthsSinceStart + 1, 
+                                subscriptionStart.getDate() - 1, 23, 59, 59, 999);
     } else {
       // For monthly plans, use Stripe billing cycle
       usagePeriodStart = subscriptionData.currentPeriodStart;
