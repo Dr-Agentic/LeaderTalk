@@ -257,7 +257,7 @@ export default function SecureSubscription() {
     onSuccess: () => {
       toast({
         title: "Subscription Cancelled",
-        description: `Your subscription has been cancelled. You'll continue to enjoy Executive features until ${subscriptionData?.subscription?.formattedNextRenewal}, then switch to the free Starter plan.`,
+        description: `Your subscription has been cancelled. You'll continue to enjoy Executive features until ${currentSubscription?.subscription?.formattedNextRenewal}, then switch to the free Starter plan.`,
         duration: 8000,
       });
       queryClient.invalidateQueries({ queryKey: ['/api/billing/subscriptions/current'] });
@@ -273,7 +273,7 @@ export default function SecureSubscription() {
 
   // Enhanced success messaging based on subscription change type
   const showSubscriptionSuccessMessage = (data: any, variables: any) => {
-    const currentPlan = subscription?.subscription?.plan || '';
+    const currentPlan = currentSubscription?.subscription?.plan || '';
     const newPlan = data.newPlan || '';
     const amount = data.amount || 0;
     const interval = data.interval || '';
@@ -489,7 +489,7 @@ export default function SecureSubscription() {
       )}
 
       {/* Cancellation Section - Only for paid plans */}
-      {subscriptionData?.subscription && !subscriptionData.subscription.isFree && (
+      {currentSubscription?.subscription && !currentSubscription.subscription.isFree && (
         <Card className="border-red-200 bg-red-50">
           <CardContent className="p-6">
             <div className="flex items-center space-x-2 text-red-800 mb-3">
@@ -497,7 +497,7 @@ export default function SecureSubscription() {
               <h3 className="text-lg font-semibold">Cancel Subscription</h3>
             </div>
             <p className="text-sm text-red-700 mb-4">
-              Cancel your Executive subscription. You'll continue to enjoy all premium features until {subscriptionData.subscription.formattedNextRenewal}, 
+              Cancel your Executive subscription. You'll continue to enjoy all premium features until {currentSubscription.subscription.formattedNextRenewal}, 
               after which your account will switch to the free Starter plan. No refunds will be provided.
             </p>
             <button
