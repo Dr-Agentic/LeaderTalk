@@ -8,6 +8,7 @@ import {
   createDefaultSubscription,
   getExistingSubscription,
   updateUserSubscriptionToPlan,
+  cancelUserSubscription,
 } from "./paymentServiceHandler";
 
 /**

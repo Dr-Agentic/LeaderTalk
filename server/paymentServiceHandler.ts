@@ -598,3 +598,38 @@ export async function updateUserSubscriptionToPlan(stripeCustomerId: string, str
     };
   }
 }
+
+/**
+ * Cancel a user's subscription at period end
+ */
+export async function cancelUserSubscription(stripeSubscriptionId: string): Promise<{
+  success: boolean;
+  message?: string;
+  error?: string;
+}> {
+  try {
+    const stripe = (await import('stripe')).default;
+    const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: "2023-10-16",
+    });
+
+    // Cancel the subscription at period end
+    const cancelledSubscription = await stripeInstance.subscriptions.update(stripeSubscriptionId, {
+      cancel_at_period_end: true,
+    });
+
+    console.log(`✅ Subscription ${stripeSubscriptionId} marked for cancellation at period end`);
+
+    return {
+      success: true,
+      message: "Subscription cancelled successfully. You'll retain access until your current billing period ends."
+    };
+
+  } catch (error: any) {
+    console.error('Subscription cancellation error:', error);
+    return {
+      success: false,
+      error: error.message || 'Failed to cancel subscription'
+    };
+  }
+}
