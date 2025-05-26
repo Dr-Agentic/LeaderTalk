@@ -655,17 +655,13 @@ function AnalysisInstancesList({
         throw new Error("Session expired - please login again");
       }
 
-      // Make the API request
-      const response = await fetch("/api/leader-alternative", {
-        method: "POST",
+      // Make the API request using the correct endpoint
+      const response = await fetch(`/api/leaders/${leaderId}/alternatives?text=${encodeURIComponent(instance.text)}`, {
+        method: "GET",
         headers: {
           "Content-Type": "application/json",
         },
         credentials: "include", // Important to include cookies
-        body: JSON.stringify({
-          leaderId,
-          originalText: instance.text,
-        }),
       });
 
       if (!response.ok) {
@@ -674,10 +670,10 @@ function AnalysisInstancesList({
 
       const data = await response.json();
 
-      // Save the alternative text
+      // Save the alternative text (response structure from /api/leaders/:id/alternatives)
       setLeaderAlternatives((prev) => ({
         ...prev,
-        [cacheKey]: data.alternative.alternativeText,
+        [cacheKey]: data.alternativeText,
       }));
     } catch (error) {
       console.error("Error fetching leader alternative:", error);
