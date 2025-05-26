@@ -616,6 +616,91 @@ export async function getBillingCycleWordUsageAnalytics(userId: number) {
   }
 }
 
+/**
+ * Get historical billing cycle word usage for N monthly cycles based on subscription anniversary date
+ */
+export async function getHistoricalBillingCycleUsage(userId: number, monthlyCycles: number = 6) {
+  try {
+    console.log(`📊 Generating ${monthlyCycles} historical monthly cycles for user ${userId}`);
+    
+    const user = await storage.getUser(userId);
+    if (!user?.stripeSubscriptionId) {
+      throw new Error(`User ${userId} has no Stripe subscription ID`);
+    }
+
+    const subscriptionData = await getUserSubscription(user.stripeSubscriptionId);
+    console.log(`✅ Retrieved subscription for history: ${subscriptionData.plan} (${subscriptionData.interval})`);
+
+    const historicalCycles = [];
+    const subscriptionStart = subscriptionData.currentPeriodStart;
+    const billingDay = subscriptionStart.getDate(); // Anniversary day (26th in your case)
+    
+    // Generate cycles based on subscription anniversary date
+    for (let i = 0; i < monthlyCycles; i++) {
+      let cycleStart: Date;
+      let cycleEnd: Date;
+
+      if (subscriptionData.interval === 'year') {
+        // For annual plans, create monthly cycles from subscription anniversary date
+        const now = new Date();
+        
+        // Calculate the current monthly cycle
+        let currentMonthStart: Date;
+        if (now.getDate() >= billingDay) {
+          currentMonthStart = new Date(now.getFullYear(), now.getMonth(), billingDay);
+        } else {
+          currentMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, billingDay);
+        }
+        
+        // Go back i months from current cycle
+        cycleStart = new Date(currentMonthStart.getFullYear(), currentMonthStart.getMonth() - i, billingDay);
+        cycleEnd = new Date(cycleStart.getFullYear(), cycleStart.getMonth() + 1, billingDay - 1, 23, 59, 59, 999);
+        
+      } else {
+        // For monthly plans, use actual Stripe billing cycles
+        cycleStart = new Date(subscriptionStart.getTime() - (i * 30 * 24 * 60 * 60 * 1000));
+        cycleEnd = new Date(cycleStart.getTime() + (30 * 24 * 60 * 60 * 1000) - 1);
+      }
+
+      // Get usage data for this cycle
+      const usageReport = await storage.wordUsageReport(cycleStart, cycleEnd, userId);
+      
+      const isCurrent = i === 0; // First cycle is current
+      const cycleLabel = isCurrent ? 'Current' : cycleStart.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+
+      const cycleData = {
+        cycleLabel,
+        cycleStart: cycleStart.toISOString(),
+        cycleEnd: cycleEnd.toISOString(),
+        wordsUsed: usageReport.totalWordCount,
+        wordLimit: subscriptionData.wordLimit,
+        usagePercentage: Math.round((usageReport.totalWordCount / subscriptionData.wordLimit) * 100),
+        isCurrent,
+        recordingCount: usageReport.recordingCount,
+        recordings: usageReport.recordings
+      };
+
+      historicalCycles.push(cycleData);
+      console.log(`📊 Cycle ${i + 1}: ${cycleLabel} (${cycleStart.toLocaleDateString()} - ${cycleEnd.toLocaleDateString()}) - ${usageReport.totalWordCount} words`);
+    }
+
+    // Reverse to show oldest to newest
+    historicalCycles.reverse();
+
+    return {
+      userId,
+      subscription: subscriptionData,
+      monthlyCycles,
+      historicalCycles,
+      generatedAt: new Date()
+    };
+
+  } catch (error) {
+    console.error("❌ ERROR in getHistoricalBillingCycleUsage:", error);
+    throw error;
+  }
+}
+
 
 
 /**
