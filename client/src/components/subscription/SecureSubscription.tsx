@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { CheckCircle, Loader2, ExternalLink, Check, CreditCard, AlertTriangle } from "lucide-react";
+import { CheckCircle, Loader2, ExternalLink, Check, CreditCard, AlertTriangle, Info } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
