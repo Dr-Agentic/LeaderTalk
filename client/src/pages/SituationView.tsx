@@ -20,6 +20,7 @@ import { useAuth } from "../hooks/useAuth";
 import { useRecording } from "../hooks/useRecording";
 import { getQueryFn, apiRequest } from "../lib/queryClient";
 import AppLayout from "@/components/AppLayout";
+import SubmissionFlow from "@/components/SubmissionFlow";
 
 interface StyleResponse {
   empathetic: string;
@@ -125,6 +126,11 @@ export default function SituationView() {
   const [assignedLeadershipStyle, setAssignedLeadershipStyle] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showExampleResponses, setShowExampleResponses] = useState(false);
+  
+  // New submission flow states
+  const [submissionPhase, setSubmissionPhase] = useState<'idle' | 'submitted' | 'analyzing' | 'complete'>('idle');
+  const [aiEvaluation, setAiEvaluation] = useState<any>(null);
+  const [submittedResponse, setSubmittedResponse] = useState("");
 
   // Recording functionality for voice responses
   const {
@@ -188,20 +194,31 @@ export default function SituationView() {
     placeholderData: { attempts: [] },
   });
 
-  // Mutation for submitting a response
+  // New AI-powered submission mutation
   const submitResponse = useMutation({
     mutationFn: async ({
       situationId,
       response,
       leadershipStyle,
     }: SubmitResponseParams) => {
+      setSubmissionPhase('analyzing');
+      setSubmittedResponse(response);
+      
       return apiRequest(
         "POST",
-        `/api/training/situations/${situationId}/respond`,
-        { response, leadershipStyle, fromJsonFile: true },
+        `/api/training/submit-with-ai-evaluation`,
+        { 
+          scenarioId: situationId, 
+          userResponse: response,
+          leadershipStyle 
+        },
       );
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Store AI evaluation and complete the flow
+      setAiEvaluation(data.evaluation);
+      setSubmissionPhase('complete');
+      
       queryClient.invalidateQueries({
         queryKey: [`/api/training/situations/${situationId}`],
       });
@@ -209,13 +226,10 @@ export default function SituationView() {
         queryKey: [`/api/training/situations/${situationId}/attempts`],
       });
       queryClient.invalidateQueries({ queryKey: ["/api/training/progress"] });
-      queryClient.invalidateQueries({
-        queryKey: ["/api/training/next-situation"],
-      });
 
       toast({
-        title: "Response submitted",
-        description: "Your response has been evaluated.",
+        title: "AI Analysis Complete",
+        description: "Your response has been evaluated with detailed feedback.",
       });
 
       setIsSubmitting(false);
@@ -224,11 +238,11 @@ export default function SituationView() {
       console.error("Error submitting response:", error);
       toast({
         variant: "destructive",
-        title: "Submission failed",
-        description:
-          "There was an error submitting your response. Please try again.",
+        title: "Analysis failed",
+        description: "There was an error analyzing your response. Please try again.",
       });
       setIsSubmitting(false);
+      setSubmissionPhase('idle');
     },
   });
 
