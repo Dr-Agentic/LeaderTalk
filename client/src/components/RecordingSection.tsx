@@ -311,6 +311,8 @@ export default function RecordingSection({
         recordingBlob,
         `recording_${Date.now()}.${fileExtension}`,
       );
+      formData.append("title", recordingTitle);
+      formData.append("duration", recordingTime.toString());
       formData.append("recordingId", recording.id.toString());
       formData.append("detectSpeakers", detectSpeakers.toString());
       formData.append("createTranscript", createTranscript.toString());
