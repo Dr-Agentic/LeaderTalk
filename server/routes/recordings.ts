@@ -15,9 +15,30 @@ const requireAuth = (req: Request, res: Response, next: Function) => {
   next();
 };
 
-// Configure multer for file uploads
+// Configure multer for file uploads with proper file extensions
 const upload = multer({
-  dest: os.tmpdir(),
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, os.tmpdir());
+    },
+    filename: (req, file, cb) => {
+      // Map MIME types to file extensions that OpenAI supports
+      const mimeToExt = {
+        'audio/webm': 'webm',
+        'audio/wav': 'wav',
+        'audio/mpeg': 'mp3',
+        'audio/mp3': 'mp3',
+        'audio/mp4': 'mp4',
+        'audio/m4a': 'm4a',
+        'audio/ogg': 'ogg',
+        'audio/flac': 'flac'
+      };
+      
+      const ext = mimeToExt[file.mimetype as keyof typeof mimeToExt] || 'webm';
+      const timestamp = Date.now();
+      cb(null, `recording_${timestamp}.${ext}`);
+    }
+  }),
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
   fileFilter: (req, file, cb) => {
     // Accept audio files
