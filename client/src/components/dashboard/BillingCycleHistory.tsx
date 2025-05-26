@@ -187,23 +187,21 @@ export default function BillingCycleHistory() {
         <div className="mt-6 grid grid-cols-3 gap-4 pt-4 border-t">
           <div className="text-center">
             <p className="text-2xl font-bold text-primary">
-              {currentUsage.currentUsage.toLocaleString()}
+              {billingCycleData.find(c => c.isCurrent)?.wordsUsed.toLocaleString() || '0'}
             </p>
             <p className="text-xs text-muted-foreground">Current Cycle</p>
           </div>
           <div className="text-center">
             <p className="text-2xl font-bold">
-              {Math.round(
-                (currentUsage.currentUsage / currentUsage.wordLimit) * 100,
-              )}
-              %
+              {billingCycleData.find(c => c.isCurrent)?.usagePercentage || 0}%
             </p>
             <p className="text-xs text-muted-foreground">Usage Rate</p>
           </div>
           <div className="text-center">
             <p className="text-2xl font-bold">
               {(
-                currentUsage.wordLimit - currentUsage.currentUsage
+                (billingCycleData.find(c => c.isCurrent)?.wordLimit || 0) - 
+                (billingCycleData.find(c => c.isCurrent)?.wordsUsed || 0)
               ).toLocaleString()}
             </p>
             <p className="text-xs text-muted-foreground">Remaining</p>
