@@ -75,11 +75,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(express.json({ limit: '10mb' }));
   app.use(express.urlencoded({ extended: true }));
 
-  // Serve static files BEFORE registering API routes
-  servePublicFiles(app);
-
-  // Register all modular routes
+  // Register all modular routes FIRST
   registerAllRoutes(app);
+
+  // Serve static files AFTER API routes
+  servePublicFiles(app);
 
   // Create HTTP server
   const server = createServer(app);
