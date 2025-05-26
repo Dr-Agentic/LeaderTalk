@@ -171,25 +171,35 @@ export function registerRecordingRoutes(app: Express) {
         return res.status(400).json({ error: "No audio file provided" });
       }
 
-      const { title, duration } = req.body;
+      const { title, duration, recordingId } = req.body;
+      console.log(`[UPLOAD ROUTE] Processing upload - title: ${title}, duration: ${duration}, recordingId: ${recordingId}`);
       
-      if (!title) {
-        return res.status(400).json({ error: "Recording title is required" });
-      }
-
-      // Create recording record first
-      console.log(`[UPLOAD] Creating recording for user ${userId}, title: ${title}`);
       let recording;
-      try {
-        recording = await storage.createRecording({
-          userId,
-          title,
-          duration: duration ? parseInt(duration) : 0
-        });
-        console.log(`[UPLOAD] Recording created with ID: ${recording.id}`);
-      } catch (createError) {
-        console.error(`[UPLOAD] Failed to create recording:`, createError);
-        return res.status(500).json({ error: "Failed to create recording" });
+      if (recordingId) {
+        // Recording already exists, fetch it
+        recording = await storage.getRecording(parseInt(recordingId));
+        if (!recording) {
+          return res.status(404).json({ error: "Recording not found" });
+        }
+        console.log(`[UPLOAD] Using existing recording ${recording.id}`);
+      } else {
+        // Create new recording
+        if (!title) {
+          return res.status(400).json({ error: "Recording title is required" });
+        }
+        
+        console.log(`[UPLOAD] Creating new recording for user ${userId}, title: ${title}`);
+        try {
+          recording = await storage.createRecording({
+            userId,
+            title,
+            duration: duration ? parseInt(duration) : 0
+          });
+          console.log(`[UPLOAD] Recording created with ID: ${recording.id}`);
+        } catch (createError) {
+          console.error(`[UPLOAD] Failed to create recording:`, createError);
+          return res.status(500).json({ error: "Failed to create recording" });
+        }
       }
 
       // Process audio file asynchronously
@@ -201,10 +211,13 @@ export function registerRecordingRoutes(app: Express) {
         console.log(`[RECORDING ${recording.id}] Transcription completed, updating database...`);
         
         // Update recording with results
+        await storage.updateRecordingAnalysis(recording.id, transcription, analysis);
+        
+        // Update status separately using correct parameters
         await storage.updateRecording(recording.id, {
-          status: 'completed',
-          transcription,
-          analysisResult: analysis
+          title: recording.title,
+          duration: recording.duration,
+          status: 'completed'
         });
         console.log(`[RECORDING ${recording.id}] Database updated, sending response...`);
 
@@ -216,8 +229,9 @@ export function registerRecordingRoutes(app: Express) {
         
         // Update recording status to failed
         await storage.updateRecording(recording.id, { 
-          status: 'failed',
-          transcription: 'Processing failed'
+          title: recording.title,
+          duration: recording.duration,
+          status: 'failed'
         });
 
         res.status(500).json({ 
