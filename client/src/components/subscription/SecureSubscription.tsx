@@ -237,7 +237,9 @@ export default function SecureSubscription() {
       } else {
         // Enhanced success messaging based on subscription change type
         showSubscriptionSuccessMessage(data, variables);
+        // Force immediate refresh of subscription data
         queryClient.invalidateQueries({ queryKey: ['/api/billing/subscriptions/current'] });
+        queryClient.refetchQueries({ queryKey: ['/api/billing/subscriptions/current'] });
       }
     },
     onError: () => {
@@ -544,15 +546,18 @@ export default function SecureSubscription() {
               Cancel Subscription?
             </AlertDialogTitle>
             <AlertDialogDescription className="text-sm text-gray-600">
-              Are you sure you want to cancel your Executive subscription? This action cannot be undone.
-              <br /><br />
-              <strong>What happens next:</strong>
-              <ul className="list-disc pl-5 mt-2 space-y-1">
-                <li>You'll continue to enjoy all Executive features until {currentSubscription?.subscription?.formattedNextRenewal}</li>
-                <li>After that, your account will automatically switch to the free Starter plan</li>
-                <li>No refunds will be provided for the current billing period</li>
-                <li>You can resubscribe at any time to regain Executive access</li>
-              </ul>
+              <div>
+                Are you sure you want to cancel your Executive subscription? This action cannot be undone.
+              </div>
+              <div className="mt-4">
+                <strong>What happens next:</strong>
+                <ul className="list-disc pl-5 mt-2 space-y-1">
+                  <li>You'll continue to enjoy all Executive features until {currentSubscription?.subscription?.formattedNextRenewal}</li>
+                  <li>After that, your account will automatically switch to the free Starter plan</li>
+                  <li>No refunds will be provided for the current billing period</li>
+                  <li>You can resubscribe at any time to regain Executive access</li>
+                </ul>
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
