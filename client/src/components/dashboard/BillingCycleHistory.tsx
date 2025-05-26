@@ -149,6 +149,11 @@ export default function BillingCycleHistory() {
                 fontSize={12}
                 tickLine={false}
                 axisLine={false}
+                interval={0}
+                angle={0}
+                textAnchor="middle"
+                height={60}
+                tick={{ fontSize: 10, textAnchor: 'middle' }}
               />
               <YAxis
                 fontSize={12}
