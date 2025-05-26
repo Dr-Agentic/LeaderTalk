@@ -12,6 +12,7 @@ export interface SubscriptionData {
   status: string;
   plan: string;
   planId: string;
+  priceId: string;
   isFree: boolean;
   startDate: Date;
   currentPeriodStart: Date;
@@ -54,6 +55,7 @@ export async function getUserSubscription(stripeSubscriptionId: string): Promise
     status: subscription.status,
     plan: product.name.toLowerCase(),
     planId: product.id,
+    priceId: price.id, // Add the Stripe price ID
     isFree: price.unit_amount === 0,
     startDate: subscription.start_date ? new Date(subscription.start_date * 1000) : 
       (() => { throw new Error(`Error from Stripe: subscription.start_date is missing for subscription ${subscription.id}`) })(),

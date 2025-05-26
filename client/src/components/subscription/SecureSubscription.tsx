@@ -476,17 +476,14 @@ export default function SecureSubscription() {
                   </>
                 ) : (
                   (() => {
-                    const currentProductId = currentSubscription?.subscription?.planId;
-                    const currentInterval = currentSubscription?.subscription?.interval;
-                    const planProductId = plan.stripeProductId;
-                    const planInterval = plan.billingType;
-                    const isCurrentPlan = currentProductId === planProductId && currentInterval === planInterval;
+                    const currentPriceId = currentSubscription?.subscription?.priceId;
+                    const planPriceId = plan.pricing[billingInterval]?.stripePriceId;
+                    const isCurrentPlan = currentPriceId === planPriceId;
                     
-                    console.log('🔍 Product + Interval comparison:', {
-                      currentProductId,
-                      currentInterval,
-                      planProductId,
-                      planInterval,
+                    console.log('🔍 Price ID comparison:', {
+                      currentPriceId,
+                      planPriceId,
+                      billingInterval,
                       isCurrentPlan,
                       planName: plan.name
                     });
