@@ -486,7 +486,7 @@ export function registerTrainingRoutes(app: Express) {
       
       // Find the scenario across all chapters and modules
       for (let chapterNum = 1; chapterNum <= 5; chapterNum++) {
-        const filePath = path.join(__dirname, '../../attached_assets', `chapter${chapterNum}_expanded.json`);
+        const filePath = path.join(process.cwd(), 'attached_assets', `chapter${chapterNum}_expanded.json`);
         console.log(`Checking file: ${filePath}`);
         
         if (fs.existsSync(filePath)) {
