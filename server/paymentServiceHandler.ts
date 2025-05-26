@@ -455,10 +455,31 @@ export async function updateUserSubscriptionToPlan(stripeCustomerId: string, str
     
     // Handle the specific case where customer has no payment method
     if (error.code === 'resource_missing' && error.message.includes('no attached payment source')) {
+      console.log('🔍 Customer has no payment method. Checking Stripe customer:', stripeCustomerId);
       try {
         const stripe = (await import('stripe')).default;
         const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY, {
           apiVersion: "2023-10-16",
+        });
+
+        // First, check what payment methods are actually attached to this customer
+        const paymentMethods = await stripeInstance.paymentMethods.list({
+          customer: stripeCustomerId,
+          type: 'card'
+        });
+        
+        console.log('💳 Customer payment methods in Stripe:', {
+          customerId: stripeCustomerId,
+          methodCount: paymentMethods.data.length,
+          methods: paymentMethods.data.map(pm => ({
+            id: pm.id,
+            type: pm.type,
+            created: pm.created,
+            card: pm.card ? {
+              brand: pm.card.brand,
+              last4: pm.card.last4
+            } : null
+          }))
         });
 
         // Create a setup intent for collecting payment method
@@ -470,6 +491,8 @@ export async function updateUserSubscriptionToPlan(stripeCustomerId: string, str
             allow_redirects: 'always'
           }
         });
+        
+        console.log('💳 Created setup intent for payment method collection:', setupIntent.id);
         
         return {
           success: true,

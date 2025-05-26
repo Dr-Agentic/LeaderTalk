@@ -29,7 +29,9 @@ function PaymentSetupForm({ clientSecret, onSuccess }: { clientSecret: string; o
     setIsProcessing(true);
 
     try {
-      const { error } = await stripe.confirmSetup({
+      console.log('🔄 Starting payment method setup...');
+      
+      const { error, setupIntent } = await stripe.confirmSetup({
         elements,
         confirmParams: {
           return_url: window.location.origin + '/subscription',
@@ -37,18 +39,29 @@ function PaymentSetupForm({ clientSecret, onSuccess }: { clientSecret: string; o
         redirect: 'if_required'
       });
 
+      console.log('💳 Setup result:', { error, setupIntent });
+
       if (error) {
+        console.error('❌ Payment setup failed:', error);
         toast({
           title: "Payment Method Setup Failed",
           description: error.message,
           variant: "destructive",
         });
-      } else {
+      } else if (setupIntent && setupIntent.status === 'succeeded') {
+        console.log('✅ Payment method successfully added to Stripe!');
         toast({
           title: "Payment Method Added",
           description: "Your payment method has been successfully added!",
         });
         onSuccess();
+      } else {
+        console.log('⚠️ Setup intent status:', setupIntent?.status);
+        toast({
+          title: "Payment Setup Incomplete",
+          description: "Please try again or contact support.",
+          variant: "destructive",
+        });
       }
     } catch (err) {
       toast({
