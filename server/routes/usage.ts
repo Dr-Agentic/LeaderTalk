@@ -71,6 +71,27 @@ export function registerUsageRoutes(app: Express) {
     }
   });
 
+  // Get billing cycle history
+  app.get('/api/usage/billing-cycle-history', requireAuth, async (req, res) => {
+    try {
+      const userId = req.session?.userId;
+      if (!userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      const numberOfCycles = parseInt(req.query.cycles as string) || 6;
+      const historyData = await getBillingCycleWordUsageHistory(userId, numberOfCycles);
+      
+      res.json({
+        success: true,
+        ...historyData
+      });
+    } catch (error) {
+      console.error("Error fetching billing cycle history:", error);
+      res.status(500).json({ error: "Failed to fetch billing cycle history" });
+    }
+  });
+
   // Get usage history
   app.get('/api/usage/history', requireAuth, async (req, res) => {
     try {
