@@ -521,6 +521,7 @@ export async function updateUserSubscriptionToPlan(stripeCustomerId: string, str
                 quantity: 1,
               },
             ],
+            start_date: currentSubscription.current_period_start, // Start from current period start
             end_date: currentSubscription.current_period_end, // End at current period end
           },
           {
@@ -530,7 +531,8 @@ export async function updateUserSubscriptionToPlan(stripeCustomerId: string, str
                 quantity: 1,
               },
             ],
-            // New phase starts automatically after previous phase ends
+            start_date: currentSubscription.current_period_end, // Start when previous phase ends
+            // This phase continues indefinitely until manually changed
           }
         ],
       });
