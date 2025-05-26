@@ -496,6 +496,11 @@ export async function updateUserSubscriptionToPlan(stripeCustomerId: string, str
     // Check if we're changing billing intervals (yearly to monthly or vice versa)
     const changingIntervals = currentPrice.recurring?.interval !== newPrice.recurring?.interval;
     
+    console.log('🔍 Interval comparison debug:');
+    console.log('  Current price interval:', currentPrice.recurring?.interval);
+    console.log('  New price interval:', newPrice.recurring?.interval);
+    console.log('  Changing intervals?', changingIntervals);
+    
     let updatedSubscription;
     
     if (changingIntervals) {
