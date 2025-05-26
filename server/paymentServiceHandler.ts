@@ -370,6 +370,7 @@ export async function getExistingSubscription(subscriptionId: string): Promise<a
     status: subscription.status,
     plan: product.name.toLowerCase(),
     planId: product.id,
+    priceId: price.id, // Add the Stripe price ID
     isFree: priceAmount === 0,
     startDate: subscription.start_date
       ? new Date(subscription.start_date * 1000)
