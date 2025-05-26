@@ -303,8 +303,8 @@ async function transcribeAudio(audioPath: string): Promise<string> {
     const wavPath = audioPath.replace(/\.[^/.]+$/, '') + '.wav';
     
     // Use FFmpeg to convert the audio file to WAV format
-    const { exec } = require('child_process');
-    const { promisify } = require('util');
+    const { exec } = await import('child_process');
+    const { promisify } = await import('util');
     const execPromise = promisify(exec);
     
     try {
@@ -336,37 +336,8 @@ async function transcribeAudio(audioPath: string): Promise<string> {
       } catch (cleanupError) {
         console.error('Failed to cleanup temporary file:', cleanupError);
       }
-      throw new Error(`Audio conversion failed: ${conversionError.message}`);
+      throw new Error(`Audio conversion failed: ${(conversionError as any)?.message || 'Unknown conversion error'}`);
     }
-    
-    // Log the transcription for debugging
-    console.log(`Transcription received, first 50 chars: "${transcription.substring(0, 50)}..."`);
-    
-    // Log detected language characteristics for debugging
-    // Note: With auto-detection now enabled, we expect to see various scripts
-    // This is just for logging purposes to help diagnose potential transcription issues
-    const scriptAnalysis = {
-      latin: (transcription.match(/[a-zA-Z]/g) || []).length,
-      cyrillic: (transcription.match(/[\u0400-\u04FF]/g) || []).length,
-      cjk: (transcription.match(/[\u4E00-\u9FFF\u3040-\u309F\u30A0-\u30FF\uAC00-\uD7AF]/g) || []).length,
-      arabic: (transcription.match(/[\u0600-\u06FF]/g) || []).length,
-      devanagari: (transcription.match(/[\u0900-\u097F]/g) || []).length,
-      total: transcription.length
-    };
-    
-    // Log script detection
-    if (scriptAnalysis.total > 0) {
-      const dominantScript = Object.entries(scriptAnalysis)
-        .filter(([key]) => key !== 'total')
-        .sort(([, a], [, b]) => b - a)[0];
-      
-      console.log(
-        `Transcription language analysis: ${dominantScript[0]} script appears dominant (${Math.floor((dominantScript[1] / scriptAnalysis.total) * 100)}%)`
-      );
-    }
-    
-    // Return the transcription text
-    return transcription;
   } catch (error) {
     console.error("Error in audio transcription:", error);
     // If OpenAI API fails due to format issues, return this message
