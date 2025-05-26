@@ -144,20 +144,17 @@ export default function BillingCycleHistory() {
               data={billingCycleData}
               margin={{ top: 20, right: 20, left: 50, bottom: 80 }}
             >
+              <CartesianGrid strokeDasharray="3 3" />
               <XAxis
                 dataKey="month"
-                tickLine={false}
-                axisLine={false}
-                interval={0}
-                tick={{ fontSize: 10, textAnchor: 'middle', fill: '#374151' }}
+                tick={{ fontSize: 10, fill: "#4B5563" }}
+                padding={{ left: 10, right: 10 }}
                 height={60}
               />
               <YAxis
-                tickLine={false}
-                axisLine={false}
                 tickFormatter={(value) => value.toLocaleString()}
                 domain={[0, Math.max(maxUsage * 1.2, avgLimit * 1.1)]}
-                tick={{ fontSize: 10, fill: '#374151' }}
+                tick={{ fontSize: 10, fill: "#4B5563" }}
                 width={40}
               />
               <Tooltip content={<CustomTooltip />} />
