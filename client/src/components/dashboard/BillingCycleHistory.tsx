@@ -174,7 +174,7 @@ export default function BillingCycleHistory() {
                 {billingCycleData.map((entry, index) => (
                   <Cell
                     key={`cell-${index}`}
-                    fill={entry.wordsUsed === 0 ? "hsl(var(--muted))" : getBarColor(entry)}
+                    fill={entry.wordsUsed === 0 ? "hsl(var(--muted))" : "hsl(var(--primary))"}
                     fillOpacity={entry.wordsUsed === 0 ? 0.3 : 1}
                     stroke={
                       entry.isCurrent ? "hsl(var(--primary))" : "transparent"
