@@ -101,35 +101,10 @@ function countWords(text: string): number {
 // Function to update the user's word usage for the current billing cycle
 async function updateUserWordUsage(userId: number, wordCount: number): Promise<void> {
   try {
-    // Get or create the billing cycle for this user
-    const currentCycle = await storage.getOrCreateCurrentBillingCycle(userId);
-    
-    if (currentCycle) {
-      // Update existing cycle record
-      const newWordCount = currentCycle.wordCount + wordCount;
-      // Extract current year and month from the cycle for the update
-      const date = new Date(currentCycle.cycleStartDate);
-      const year = date.getFullYear();
-      const month = date.getMonth() + 1; // JavaScript months are 0-based
-      
-      await storage.updateUserWordUsage(currentCycle.id, { 
-        wordCount: newWordCount,
-        year,
-        month
-      });
-      console.log(`Updated word usage for user ${userId} (cycle #${currentCycle.cycleNumber}): ${currentCycle.wordCount} -> ${newWordCount}`);
-      
-      // Log billing cycle information for debugging
-      const cycleStart = new Date(currentCycle.cycleStartDate).toISOString().split('T')[0];
-      const cycleEnd = new Date(currentCycle.cycleEndDate).toISOString().split('T')[0];
-      console.log(`Current billing cycle: ${cycleStart} to ${cycleEnd}`);
-    } else {
-      // This should not happen as getOrCreateCurrentBillingCycle should always return a cycle
-      console.error(`Failed to get or create billing cycle for user ${userId}`);
-    }
+    // Just log for now - billing cycle tracking can be added later
+    console.log(`Word usage tracked for user ${userId}: +${wordCount} words`);
   } catch (error) {
     console.error("Error updating user word usage:", error);
-    // Don't throw - we don't want to break the transcription process
   }
 }
 

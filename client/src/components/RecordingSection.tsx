@@ -394,7 +394,7 @@ export default function RecordingSection({
       // Show success message
       toast({
         title: "Recording saved",
-        description: "Your recording has been saved and is being analyzed.",
+        description: "Redirecting to transcription view...",
       });
 
       // Reset state
@@ -403,9 +403,13 @@ export default function RecordingSection({
       setShowTitleDialog(false);
       setRecordingTitle("");
 
+      // Navigate to the transcription view to watch processing
       if (onRecordingComplete) {
         onRecordingComplete(recording);
       }
+      
+      // Navigate to the recording detail page to show transcription progress
+      window.location.href = `/recordings/${recording.id}`;
     } catch (error) {
       console.error("Recording error:", error);
 
