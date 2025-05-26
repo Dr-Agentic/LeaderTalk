@@ -1,0 +1,69 @@
+🔵 getRedirectResult returned: null
+🔵 Result details: 
+Object {hasResult: false, hasUser: false, hasCredential: false, operationType: "none"}
+No redirect result found
+[DEBUG] No Google redirect result found 
+[DEBUG] Received session data 
+Object {sessionExists: true, sessionId: "ppWeqey3…", userId: 2, isLoggedIn: true, cookiePresent: true, …}
+Session confirmed valid, user ID: 2
+[INFO] Session confirmed valid, user ID: 2 
+Object {userId: 2, sessionId: "ppWeqey3…", cookiePresent: true, cookieExists: true}
+Session check successful, fetching user details
+[DEBUG] API request 
+Object {method: "GET", url: "/api/users/me", hasData: false}
+[DEBUG] API request successful 
+Object {url: "/api/users/me", method: "GET", status: 200}
+Checking for redirect result...
+Current URL: https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2y2pqhs8si0sg.spock.replit.dev/subscription
+URL params: 
+[DEBUG] Checking for Google auth redirect result 
+Object {url: "https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2y2pqhs8si0sg.spock.replit.dev/subscription", search: "", hash: ""}
+🔵 About to call getRedirectResult...
+🔵 getRedirectResult returned: null
+🔵 Result details: 
+Object {hasResult: false, hasUser: false, hasCredential: false, operationType: "none"}
+No redirect result found
+[DEBUG] No Google redirect result found 
+[DEBUG] Received session data 
+Object {sessionExists: true, sessionId: "ppWeqey3…", userId: 2, isLoggedIn: true, cookiePresent: true, …}
+Session confirmed valid, user ID: 2
+[INFO] Session confirmed valid, user ID: 2 
+Object {userId: 2, sessionId: "ppWeqey3…", cookiePresent: true, cookieExists: true}
+Session check successful, fetching user details
+[DEBUG] API request 
+Object {method: "GET", url: "/api/users/me", hasData: false}
+[DEBUG] API request successful 
+Object {url: "/api/users/me", method: "GET", status: 200}
+[DEBUG] Query function called 
+Object {requestUrl: "/api/billing/subscriptions/current"}
+[DEBUG] Query function called 
+Object {requestUrl: "/api/billing/products"}
+[DEBUG] Query function called 
+Object {requestUrl: "/api/users/me"}
+[DEBUG] Query successful 
+Object {requestUrl: "/api/billing/products", status: 200}
+[DEBUG] Query successful 
+Object {requestUrl: "/api/users/me", status: 200}
+[DEBUG] Query successful 
+Object {requestUrl: "/api/billing/subscriptions/current", status: 200}
+🔍 Product ID comparison: 
+Object {currentProductId: "prod_SL1r07YU25xJfO", planProductId: "prod_SLj6GCGT1tiUSd", isCurrentPlan: false, planName: "Leader Talk Starter Monthly"}
+currentProductId: "prod_SL1r07YU25xJfO"
+isCurrentPlan: false
+planName: "Leader Talk Starter Monthly"
+planProductId: "prod_SLj6GCGT1tiUSd"
+[[Prototype]]: Object
+🔍 Product ID comparison: 
+Object {currentProductId: "prod_SL1r07YU25xJfO", planProductId: "prod_SL1r07YU25xJfO", isCurrentPlan: true, planName: "Leader Talk Exec Monthly"}
+currentProductId: "prod_SL1r07YU25xJfO"
+isCurrentPlan: true
+planName: "Leader Talk Exec Monthly"
+planProductId: "prod_SL1r07YU25xJfO"
+[[Prototype]]: Object
+🔍 Product ID comparison: 
+Object {currentProductId: "prod_SL1r07YU25xJfO", planProductId: "prod_SL1r07YU25xJfO", isCurrentPlan: true, planName: "Leader Talk Exec Yearly"}
+currentProductId: "prod_SL1r07YU25xJfO"
+isCurrentPlan: true
+planName: "Leader Talk Exec Yearly"
+planProductId: "prod_SL1r07YU25xJfO"
+[[Prototype]]: Object
