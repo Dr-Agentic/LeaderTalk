@@ -61,16 +61,17 @@ export default function BillingCycleHistory() {
     queryKey: ["/api/current-subscription"],
   });
 
-  // Get current billing cycle usage
-  const { data: currentUsageData } = useQuery({
-    queryKey: ["/api/usage/billing-cycle"],
+  // Get historical billing cycle data (6 monthly cycles)
+  const { data: historicalData } = useQuery({
+    queryKey: ["/api/usage/billing-cycle", { monthlyCycles: 6 }],
+    queryFn: () => fetch('/api/usage/billing-cycle?monthlyCycles=6').then(res => res.json()),
   });
 
   // Check if we have valid subscription data
   const hasValidSubscription =
     subscriptionData?.success && subscriptionData.subscription;
 
-  if (!hasValidSubscription || !currentUsageData) {
+  if (!hasValidSubscription || !historicalData?.success || !historicalData?.historicalCycles) {
     return (
       <Card className="mb-6">
         <CardHeader>
@@ -93,60 +94,19 @@ export default function BillingCycleHistory() {
   }
 
   const subscription = subscriptionData.subscription;
-  const currentUsage = currentUsageData || {
-    currentUsage: 0,
-    wordLimit: 10000,
-    billingCycle: {
-      startDate: '2025-01-26',
-      endDate: '2025-02-25',
-      daysRemaining: 30
-    }
-  };
+  const historicalCycles = historicalData.historicalCycles;
+  
+  // Use real historical data from server
+  const billingCycleData: BillingCycleData[] = historicalCycles.map((cycle: any) => ({
+    month: cycle.cycleLabel,
+    wordsUsed: cycle.wordsUsed,
+    wordLimit: cycle.wordLimit,
+    usagePercentage: cycle.usagePercentage,
+    isCurrent: cycle.isCurrent
+  }));
 
-  // Generate billing cycle history data using server-calculated monthly periods
-  const generateCycleHistory = (): BillingCycleData[] => {
-    const cycles: BillingCycleData[] = [];
-    
-    // Check if we have valid billing cycle data
-    if (!currentUsage.billingCycle?.startDate || !currentUsage.billingCycle?.endDate) {
-      return [];
-    }
-    
-    // Use the correct monthly billing cycle dates from the server
-    const currentCycleStart = new Date(currentUsage.billingCycle.startDate);
-    const currentCycleEnd = new Date(currentUsage.billingCycle.endDate);
-    
-    // Generate 6 cycles: current + 5 previous monthly cycles
-    for (let i = 0; i < 6; i++) {
-      const cycleStart = subMonths(currentCycleStart, i);
-      const cycleEnd = subMonths(currentCycleEnd, i);
-
-      const isCurrent = i === 0;
-      const cycleLabel = isCurrent ? "Current" : format(cycleStart, "MMM yyyy");
-
-      // For current cycle, use actual usage data; for historical cycles, show 0 (no historical data yet)
-      const wordsUsed = isCurrent ? currentUsage.currentUsage : 0;
-      const wordLimit = currentUsage.wordLimit;
-      const usagePercentage = Math.round((wordsUsed / wordLimit) * 100);
-
-      cycles.push({
-        cycleLabel,
-        cycleStart: cycleStart.toISOString(),
-        cycleEnd: cycleEnd.toISOString(),
-        wordsUsed,
-        wordLimit,
-        usagePercentage,
-        isCurrent,
-      });
-    }
-
-    // Reverse to show oldest to newest
-    return cycles.reverse();
-  };
-
-  const cycleHistory = generateCycleHistory();
-  const maxUsage = Math.max(...cycleHistory.map((c) => c.wordsUsed));
-  const avgLimit = cycleHistory[0]?.wordLimit || 500;
+  const maxUsage = Math.max(...billingCycleData.map((c) => c.wordsUsed));
+  const avgLimit = billingCycleData[0]?.wordLimit || 500;
 
   // Get bar color based on usage percentage
   const getBarColor = (cycle: BillingCycleData) => {
@@ -208,7 +168,7 @@ export default function BillingCycleHistory() {
               />
 
               <Bar dataKey="wordsUsed" name="Words Used" radius={[4, 4, 0, 0]}>
-                {cycleHistory.map((entry, index) => (
+                {billingCycleData.map((entry, index) => (
                   <Cell
                     key={`cell-${index}`}
                     fill={getBarColor(entry)}
