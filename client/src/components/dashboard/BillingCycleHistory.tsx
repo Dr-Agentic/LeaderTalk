@@ -141,11 +141,11 @@ export default function BillingCycleHistory() {
         <div className="h-80 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
-              data={cycleHistory}
+              data={billingCycleData}
               margin={{ top: 20, right: 20, left: 20, bottom: 5 }}
             >
               <XAxis
-                dataKey="cycleLabel"
+                dataKey="month"
                 fontSize={12}
                 tickLine={false}
                 axisLine={false}
