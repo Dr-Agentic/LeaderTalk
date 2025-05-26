@@ -158,9 +158,8 @@ export default function ModuleView() {
   };
 
   // Calculate module completion percentage
-  const moduleCompletion = progress ? 
-    progress.chapters.find(c => c.modules.some(m => m.id === moduleId))
-      ?.modules.find(m => m.id === moduleId)?.progress || 0 : 0;
+  const moduleCompletion = progress && Array.isArray(progress) && progress.length > 0 ? 
+    progress.find(p => p.moduleId === moduleId)?.progress || 0 : 0;
 
   return (
     <AppLayout
