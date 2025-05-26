@@ -188,38 +188,7 @@ export default function BillingCycleHistory() {
           </ResponsiveContainer>
         </div>
 
-        {/* Summary stats */}
-        <div className="mt-6 grid grid-cols-3 gap-4 pt-4 border-t">
-          <div className="text-center">
-            <p className="text-2xl font-bold text-primary">
-              {billingCycleData.find(c => c.isCurrent)?.wordsUsed.toLocaleString() || '0'}
-            </p>
-            <p className="text-xs text-muted-foreground">Current Cycle</p>
-          </div>
-          <div className="text-center">
-            <p className="text-2xl font-bold">
-              {billingCycleData.find(c => c.isCurrent)?.usagePercentage || 0}%
-            </p>
-            <p className="text-xs text-muted-foreground">Usage Rate</p>
-          </div>
-          <div className="text-center">
-            <p className="text-2xl font-bold">
-              {(
-                (billingCycleData.find(c => c.isCurrent)?.wordLimit || 0) - 
-                (billingCycleData.find(c => c.isCurrent)?.wordsUsed || 0)
-              ).toLocaleString()}
-            </p>
-            <p className="text-xs text-muted-foreground">Remaining</p>
-          </div>
-        </div>
 
-        <div className="mt-4 p-3 bg-muted/30 rounded-lg">
-          <p className="text-sm text-muted-foreground">
-            <span className="font-medium">Note:</span> Historical data shows
-            past billing cycles. Only current cycle shows actual usage data.
-            Historical usage tracking will be enhanced in future updates.
-          </p>
-        </div>
       </CardContent>
     </Card>
   );
