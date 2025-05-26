@@ -93,3 +93,5 @@ export default function AppLayout({
     </div>
   );
 }
+
+export { AppLayout };
