@@ -535,19 +535,35 @@ export function registerTrainingRoutes(app: Express) {
         return res.status(401).json({ error: "Authentication required" });
       }
 
-      // For now, return the first available situation
-      // This can be enhanced later to track user progress and return the actual next situation
-      const nextSituation = await db
-        .select()
-        .from(situations)
-        .orderBy(situations.order)
-        .limit(1);
-
-      if (nextSituation.length === 0) {
-        return res.status(404).json({ error: "No situations available" });
+      // Get the first available situation from JSON files (like the original implementation)
+      for (let chapterNum = 1; chapterNum <= 5; chapterNum++) {
+        const filePath = path.join(process.cwd(), 'attached_assets', `chapter${chapterNum}_expanded.json`);
+        
+        if (fs.existsSync(filePath)) {
+          const chapterData = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+          
+          if (chapterData.modules) {
+            for (const module of chapterData.modules) {
+              if (module.scenarios && module.scenarios.length > 0) {
+                const scenario = module.scenarios[0]; // Return first scenario for now
+                return res.json({
+                  id: scenario.id,
+                  description: scenario.description,
+                  context: scenario.context,
+                  userPrompt: scenario.user_prompt,
+                  styleResponses: scenario.style_responses,
+                  moduleId: module.id,
+                  moduleTitle: module.module_title,
+                  chapterId: chapterData.id,
+                  chapterTitle: chapterData.chapter_title
+                });
+              }
+            }
+          }
+        }
       }
 
-      res.json(nextSituation[0]);
+      return res.status(404).json({ error: "No situations available" });
     } catch (error) {
       console.error("Error fetching next situation:", error);
       res.status(500).json({ error: "Failed to fetch next situation" });
