@@ -138,7 +138,7 @@ export default function BillingCycleHistory() {
         </div>
       </CardHeader>
       <CardContent className="pt-2">
-        <div className="h-80 w-full">
+        <div className="h-96 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={billingCycleData}
@@ -170,11 +170,12 @@ export default function BillingCycleHistory() {
                 label={{ value: "Limit", position: "topRight" }}
               />
 
-              <Bar dataKey="wordsUsed" name="Words Used" radius={[4, 4, 0, 0]}>
+              <Bar dataKey="wordsUsed" name="Words Used" radius={[4, 4, 0, 0]} minPointSize={8}>
                 {billingCycleData.map((entry, index) => (
                   <Cell
                     key={`cell-${index}`}
-                    fill={getBarColor(entry)}
+                    fill={entry.wordsUsed === 0 ? "hsl(var(--muted))" : getBarColor(entry)}
+                    fillOpacity={entry.wordsUsed === 0 ? 0.3 : 1}
                     stroke={
                       entry.isCurrent ? "hsl(var(--primary))" : "transparent"
                     }
