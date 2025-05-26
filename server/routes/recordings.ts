@@ -187,7 +187,9 @@ export function registerRecordingRoutes(app: Express) {
       const audioPath = req.file.path;
       
       try {
+        console.log(`[RECORDING ${recording.id}] Starting transcription and analysis...`);
         const { transcription, analysis } = await transcribeAndAnalyzeAudio(recording, audioPath);
+        console.log(`[RECORDING ${recording.id}] Transcription completed, updating database...`);
         
         // Update recording with results
         await storage.updateRecording(recording.id, {
@@ -195,6 +197,7 @@ export function registerRecordingRoutes(app: Express) {
           transcription,
           analysisResult: analysis
         });
+        console.log(`[RECORDING ${recording.id}] Database updated, sending response...`);
 
         // Get the updated recording to return
         const updatedRecording = await storage.getRecording(recording.id);
