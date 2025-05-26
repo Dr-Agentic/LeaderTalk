@@ -202,62 +202,19 @@ export function registerRecordingRoutes(app: Express) {
         }
       }
 
-      // Process audio file from memory buffer to avoid corruption
-      try {
-        console.log(`[RECORDING ${recording.id}] Starting transcription and analysis...`);
-        console.log(`[RECORDING ${recording.id}] Audio file details:`, {
-          originalName: req.file.originalname,
-          mimetype: req.file.mimetype,
-          size: req.file.size
-        });
-        
-        // Write buffer to temporary file without corruption
-        const timestamp = Date.now();
-        const tempFilePath = path.join(os.tmpdir(), `recording_${timestamp}.webm`);
-        fs.writeFileSync(tempFilePath, req.file.buffer);
-        
-        const { transcription, analysis } = await transcribeAndAnalyzeAudio(recording, tempFilePath);
-        
-        // Clean up temporary file
-        fs.unlinkSync(tempFilePath);
-        console.log(`[RECORDING ${recording.id}] Transcription completed, updating database...`);
-        
-        // Update recording with results
-        await storage.updateRecordingAnalysis(recording.id, transcription, analysis);
-        
-        // Update status separately using correct parameters
-        await storage.updateRecording(recording.id, {
-          title: recording.title,
-          duration: recording.duration,
-          status: 'completed'
-        });
-        console.log(`[RECORDING ${recording.id}] Database updated, sending response...`);
-
-        // Get the updated recording to return
-        const updatedRecording = await storage.getRecording(recording.id);
-        res.json(updatedRecording);
-      } catch (processingError) {
-        console.error("Error processing audio:", processingError);
-        
-        // Update recording status to failed
-        await storage.updateRecording(recording.id, { 
-          title: recording.title,
-          duration: recording.duration,
-          status: 'failed'
-        });
-
-        res.status(500).json({ 
-          error: "Failed to process audio file",
-          recordingId: recording.id
-        });
-      } finally {
-        // Clean up uploaded file
-        try {
-          fs.unlinkSync(audioPath);
-        } catch (cleanupError) {
-          console.error("Error cleaning up uploaded file:", cleanupError);
-        }
-      }
+      // Return immediately, then process audio in background
+      console.log(`[RECORDING ${recording.id}] Starting background transcription and analysis...`);
+      console.log(`[RECORDING ${recording.id}] Audio file details:`, {
+        originalName: req.file.originalname,
+        mimetype: req.file.mimetype,
+        size: req.file.size
+      });
+      
+      // Start processing in background (don't await)
+      processAudioInBackground(recording, req.file.buffer);
+      
+      // Return immediately with the recording in "processing" status
+      res.json(recording);
     } catch (error) {
       console.error("Error in audio upload:", error);
       
