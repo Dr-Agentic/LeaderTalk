@@ -1,7 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation, useRoute } from "wouter";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -73,17 +80,23 @@ interface Attempt {
 
 export default function SituationView() {
   // Support both URL patterns: legacy /training/situation/:id and new /training/chapter/:chapterId/module/:moduleId/situation/:id
-  const [matchesLegacy, legacyParams] = useRoute<{ id: string }>("/training/situation/:id");
-  const [matchesNew, newParams] = useRoute<{ chapterId: string, moduleId: string, id: string }>("/training/chapter/:chapterId/module/:moduleId/situation/:id");
-  
+  const [matchesLegacy, legacyParams] = useRoute<{ id: string }>(
+    "/training/situation/:id",
+  );
+  const [matchesNew, newParams] = useRoute<{
+    chapterId: string;
+    moduleId: string;
+    id: string;
+  }>("/training/chapter/:chapterId/module/:moduleId/situation/:id");
+
   const [location] = useLocation();
   const searchParams = new URLSearchParams(location.search);
-  
+
   // Determine which route pattern matched and extract parameters
   const [situationId, setFunctionId] = useState<number>(0);
   const [moduleId, setModuleId] = useState<number | null>(null);
   const [chapterId, setChapterId] = useState<number | null>(null);
-  
+
   // Update IDs when route changes
   useEffect(() => {
     if (matchesNew && newParams) {
@@ -93,43 +106,47 @@ export default function SituationView() {
     } else if (matchesLegacy && legacyParams) {
       setFunctionId(parseInt(legacyParams.id));
       // Check for moduleId in query params for legacy route
-      const moduleIdParam = searchParams.get('moduleId');
+      const moduleIdParam = searchParams.get("moduleId");
       setModuleId(moduleIdParam ? parseInt(moduleIdParam) : null);
-      
+
       // Look for chapter ID in query params too
-      const chapterIdParam = searchParams.get('fromChapter');
+      const chapterIdParam = searchParams.get("fromChapter");
       setChapterId(chapterIdParam ? parseInt(chapterIdParam) : null);
     }
   }, [matchesNew, newParams, matchesLegacy, legacyParams, searchParams]);
-  
+
   const { isAuthenticated, isLoading: authLoading, userData } = useAuth();
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
+
   const [response, setResponse] = useState("");
   const [leadershipStyle, setLeadershipStyle] = useState("");
   const [assignedLeadershipStyle, setAssignedLeadershipStyle] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showExampleResponses, setShowExampleResponses] = useState(false);
-  
+
   // Recording functionality for voice responses
-  const { 
-    isRecording, 
-    startRecording, 
-    stopRecording, 
-    recordingBlob, 
+  const {
+    isRecording,
+    startRecording,
+    stopRecording,
+    recordingBlob,
     recordingDuration,
-    resetRecording
+    resetRecording,
   } = useRecording();
 
   const preferredStyle = userData?.preferredLeadershipStyle || "";
-  
+
   // Define leadership styles
-  const leadershipStyles = ['empathetic', 'inspirational', 'commanding'];
-  
+  const leadershipStyles = ["empathetic", "inspirational", "commanding"];
+
   // Fetch the situation directly from JSON files
-  const { data: situation, isLoading: isSituationLoading, isError: isSituationError } = useQuery({
+  const {
+    data: situation,
+    isLoading: isSituationLoading,
+    isError: isSituationError,
+  } = useQuery({
     queryKey: [`/api/training/situations-direct/${situationId}`],
     queryFn: getQueryFn({ on401: "throw" }),
     enabled: !!situationId && isAuthenticated,
@@ -143,7 +160,7 @@ export default function SituationView() {
     onError: (error: any) => {
       // Check if the error contains a redirection message (302 response)
       try {
-        const errorData = JSON.parse(error.message.split(': ')[1]);
+        const errorData = JSON.parse(error.message.split(": ")[1]);
         if (errorData.redirect && errorData.redirectUrl) {
           console.log(`Error with redirect data: ${errorData.message}`);
           navigate(errorData.redirectUrl);
@@ -151,42 +168,56 @@ export default function SituationView() {
       } catch (e) {
         console.error("Failed to parse error data:", e);
       }
-    }
+    },
   });
-  
+
   // Fetch attempts for this situation
-  const { data: attemptsData, isLoading: isAttemptsLoading, isError: isAttemptsError } = useQuery({
+  const {
+    data: attemptsData,
+    isLoading: isAttemptsLoading,
+    isError: isAttemptsError,
+  } = useQuery({
     queryKey: [`/api/training/situations/${situationId}/attempts`],
     queryFn: getQueryFn({ on401: "throw" }),
     enabled: !!situationId && isAuthenticated,
     // Handle error gracefully
     onError: (error) => {
-      console.log('Error fetching attempts, returning empty array', error);
+      console.log("Error fetching attempts, returning empty array", error);
     },
     // Provide default data if table doesn't exist yet or other errors
-    placeholderData: { attempts: [] }
+    placeholderData: { attempts: [] },
   });
 
   // Mutation for submitting a response
   const submitResponse = useMutation({
-    mutationFn: async ({ situationId, response, leadershipStyle }: SubmitResponseParams) => {
+    mutationFn: async ({
+      situationId,
+      response,
+      leadershipStyle,
+    }: SubmitResponseParams) => {
       return apiRequest(
         "POST",
-        `/api/training/situations/${situationId}/respond`, 
-        { response, leadershipStyle, fromJsonFile: true }
+        `/api/training/situations/${situationId}/respond`,
+        { response, leadershipStyle, fromJsonFile: true },
       );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/training/situations/${situationId}`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/training/situations/${situationId}/attempts`] });
+      queryClient.invalidateQueries({
+        queryKey: [`/api/training/situations/${situationId}`],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [`/api/training/situations/${situationId}/attempts`],
+      });
       queryClient.invalidateQueries({ queryKey: ["/api/training/progress"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/training/next-situation"] });
-      
+      queryClient.invalidateQueries({
+        queryKey: ["/api/training/next-situation"],
+      });
+
       toast({
         title: "Response submitted",
         description: "Your response has been evaluated.",
       });
-      
+
       setIsSubmitting(false);
     },
     onError: (error) => {
@@ -194,7 +225,8 @@ export default function SituationView() {
       toast({
         variant: "destructive",
         title: "Submission failed",
-        description: "There was an error submitting your response. Please try again.",
+        description:
+          "There was an error submitting your response. Please try again.",
       });
       setIsSubmitting(false);
     },
@@ -210,7 +242,7 @@ export default function SituationView() {
       setLeadershipStyle(assignedStyle);
     }
   }, [situation, assignedLeadershipStyle]);
-  
+
   useEffect(() => {
     if (preferredStyle && !leadershipStyle && !assignedLeadershipStyle) {
       setLeadershipStyle(preferredStyle);
@@ -286,14 +318,15 @@ export default function SituationView() {
 
   if (!situation) {
     // Determine the appropriate back navigation path
-    const backTo = chapterId && moduleId 
-      ? `/training/chapter/${chapterId}/module/${moduleId}`
-      : moduleId 
-        ? `/training/module/${moduleId}` 
-        : "/training";
-    
+    const backTo =
+      chapterId && moduleId
+        ? `/training/chapter/${chapterId}/module/${moduleId}`
+        : moduleId
+          ? `/training/module/${moduleId}`
+          : "/training";
+
     const backLabel = moduleId ? "Back to Module" : "Back to Training";
-    
+
     return (
       <AppLayout
         showBackButton
@@ -313,20 +346,23 @@ export default function SituationView() {
   }
 
   // Determine the appropriate back navigation path
-  const backTo = chapterId && moduleId 
-    ? `/training/chapter/${chapterId}/module/${moduleId}`
-    : moduleId 
-      ? `/training/module/${moduleId}` 
-      : "/training";
-  
+  const backTo =
+    chapterId && moduleId
+      ? `/training/chapter/${chapterId}/module/${moduleId}`
+      : moduleId
+        ? `/training/module/${moduleId}`
+        : "/training";
+
   const backLabel = moduleId ? "Back to Module" : "Back to Training";
-  
+
   return (
     <AppLayout
       showBackButton
       backTo={backTo}
       backLabel={backLabel}
-      pageTitle={situation.userProgress ? "Response Review" : "Training Situation"}
+      pageTitle={
+        situation.userProgress ? "Response Review" : "Training Situation"
+      }
     >
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2">
@@ -344,12 +380,15 @@ export default function SituationView() {
 
             {assignedLeadershipStyle && (
               <div className="bg-accent border border-accent-foreground/20 p-4 rounded-md">
-                <p className="font-medium text-lg mb-2">🎯 Required Leadership Style:</p>
+                <p className="font-medium text-lg mb-2">
+                  🎯 Required Leadership Style:
+                </p>
                 <p className="text-xl font-semibold capitalize text-accent-foreground">
                   {assignedLeadershipStyle}
                 </p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Respond to this situation using a {assignedLeadershipStyle} leadership approach.
+                  Respond to this situation using a {assignedLeadershipStyle}{" "}
+                  leadership approach.
                 </p>
               </div>
             )}
@@ -374,7 +413,7 @@ export default function SituationView() {
                     onChange={(e) => setResponse(e.target.value)}
                     disabled={isSubmitting}
                   />
-                  
+
                   <div className="flex gap-2">
                     <Button
                       type="button"
@@ -385,7 +424,8 @@ export default function SituationView() {
                     >
                       {isRecording ? (
                         <>
-                          <MicOff className="h-4 w-4 mr-2" /> Stop Recording ({recordingDuration.toFixed(1)}s)
+                          <MicOff className="h-4 w-4 mr-2" /> Stop Recording (
+                          {recordingDuration.toFixed(1)}s)
                         </>
                       ) : (
                         <>
@@ -393,7 +433,7 @@ export default function SituationView() {
                         </>
                       )}
                     </Button>
-                    
+
                     {recordingBlob && (
                       <Button
                         type="button"
@@ -410,35 +450,6 @@ export default function SituationView() {
               )}
             </div>
 
-            <div>
-              <p className="font-medium text-lg mb-2">Leadership Style:</p>
-              {situation.userProgress ? (
-                <div className="p-4 border rounded-md capitalize">
-                  {situation.userProgress.leadershipStyle || "Not specified"}
-                </div>
-              ) : (
-                <RadioGroup
-                  value={leadershipStyle}
-                  onValueChange={setLeadershipStyle}
-                  className="flex flex-col space-y-2"
-                  disabled={isSubmitting}
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="empathetic" id="empathetic" />
-                    <Label htmlFor="empathetic" className="font-medium">Empathetic</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="inspirational" id="inspirational" />
-                    <Label htmlFor="inspirational" className="font-medium">Inspirational</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="commanding" id="commanding" />
-                    <Label htmlFor="commanding" className="font-medium">Commanding</Label>
-                  </div>
-                </RadioGroup>
-              )}
-            </div>
-            
             {!situation.userProgress && (
               <CardFooter className="px-0">
                 <Button
@@ -478,9 +489,13 @@ export default function SituationView() {
                   className="w-full"
                   onClick={() => {
                     if (chapterId && moduleId) {
-                      navigate(`/training/chapter/${chapterId}/module/${moduleId}/next-situation`);
+                      navigate(
+                        `/training/chapter/${chapterId}/module/${moduleId}/next-situation`,
+                      );
                     } else if (moduleId && chapterId) {
-                      navigate(`/training/next-situation?moduleId=${moduleId}&fromChapter=${chapterId}`);
+                      navigate(
+                        `/training/next-situation?moduleId=${moduleId}&fromChapter=${chapterId}`,
+                      );
                     } else if (moduleId) {
                       navigate(`/training/next-situation?moduleId=${moduleId}`);
                     } else {
@@ -504,38 +519,57 @@ export default function SituationView() {
               </CardHeader>
               <CardContent className="space-y-4">
                 {attemptsData.attempts.slice(0, 3).map((attempt: any) => (
-                  <div key={attempt.id || Math.random()} className="border rounded-md p-4 space-y-2">
+                  <div
+                    key={attempt.id || Math.random()}
+                    className="border rounded-md p-4 space-y-2"
+                  >
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium capitalize">{attempt.leadershipStyle || 'Unknown'} Style</span>
+                        <span className="font-medium capitalize">
+                          {attempt.leadershipStyle || "Unknown"} Style
+                        </span>
                         <span className="text-sm text-muted-foreground">
-                          {attempt.createdAt ? new Date(attempt.createdAt).toLocaleString() : 'Unknown date'}
+                          {attempt.createdAt
+                            ? new Date(attempt.createdAt).toLocaleString()
+                            : "Unknown date"}
                         </span>
                       </div>
-                      <span className="font-semibold">Score: {attempt.score || 0}/100</span>
+                      <span className="font-semibold">
+                        Score: {attempt.score || 0}/100
+                      </span>
                     </div>
-                    
+
                     <div className="text-sm">
-                      <p className="line-clamp-2">{attempt.response || 'No response text available'}</p>
+                      <p className="line-clamp-2">
+                        {attempt.response || "No response text available"}
+                      </p>
                     </div>
 
                     {attempt.evaluation ? (
                       <div className="grid grid-cols-4 gap-2 text-xs">
                         <div className="flex flex-col items-center p-1 bg-muted rounded">
                           <span>Style</span>
-                          <span className="font-semibold">{attempt.evaluation.styleMatchScore || 0}%</span>
+                          <span className="font-semibold">
+                            {attempt.evaluation.styleMatchScore || 0}%
+                          </span>
                         </div>
                         <div className="flex flex-col items-center p-1 bg-muted rounded">
                           <span>Clarity</span>
-                          <span className="font-semibold">{attempt.evaluation.clarity || 0}%</span>
+                          <span className="font-semibold">
+                            {attempt.evaluation.clarity || 0}%
+                          </span>
                         </div>
                         <div className="flex flex-col items-center p-1 bg-muted rounded">
                           <span>Empathy</span>
-                          <span className="font-semibold">{attempt.evaluation.empathy || 0}%</span>
+                          <span className="font-semibold">
+                            {attempt.evaluation.empathy || 0}%
+                          </span>
                         </div>
                         <div className="flex flex-col items-center p-1 bg-muted rounded">
                           <span>Persuasion</span>
-                          <span className="font-semibold">{attempt.evaluation.persuasiveness || 0}%</span>
+                          <span className="font-semibold">
+                            {attempt.evaluation.persuasiveness || 0}%
+                          </span>
                         </div>
                       </div>
                     ) : (
@@ -545,7 +579,7 @@ export default function SituationView() {
                     )}
                   </div>
                 ))}
-                
+
                 {attemptsData.attempts.length > 3 && (
                   <div className="text-center">
                     <Button variant="link" size="sm">
@@ -561,7 +595,8 @@ export default function SituationView() {
             <CardHeader>
               <CardTitle>Example Responses</CardTitle>
               <CardDescription>
-                See how different leadership styles would approach this situation
+                See how different leadership styles would approach this
+                situation
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -581,14 +616,14 @@ export default function SituationView() {
                       {situation.styleResponses?.empathetic}
                     </p>
                   </div>
-                  
+
                   <div>
                     <h4 className="font-medium mb-2">Inspirational Style</h4>
                     <p className="text-sm bg-muted p-3 rounded-md">
                       {situation.styleResponses?.inspirational}
                     </p>
                   </div>
-                  
+
                   <div>
                     <h4 className="font-medium mb-2">Commanding Style</h4>
                     <p className="text-sm bg-muted p-3 rounded-md">
@@ -618,7 +653,7 @@ function SituationViewSkeleton() {
         <div className="lg:col-span-2 border rounded-lg p-6 animate-pulse">
           <div className="h-7 w-52 bg-muted rounded mb-2"></div>
           <div className="h-5 w-72 bg-muted rounded mb-8"></div>
-          
+
           <div className="bg-muted p-4 rounded-md mb-4">
             <div className="h-6 w-28 bg-gray-200 rounded mb-2"></div>
             <div className="space-y-2">
@@ -627,7 +662,7 @@ function SituationViewSkeleton() {
               <div className="h-4 w-2/3 bg-gray-200 rounded"></div>
             </div>
           </div>
-          
+
           <div className="bg-primary-foreground border border-primary/20 p-4 rounded-md mb-4">
             <div className="h-6 w-28 bg-gray-200 rounded mb-2"></div>
             <div className="space-y-2">
