@@ -117,88 +117,15 @@ export default function SubmissionFlow({
           </CardContent>
         </Card>
       ) : aiEvaluation ? (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-green-500" />
-              AI Analysis Complete
-            </CardTitle>
-            <CardDescription>
-              Detailed feedback on your leadership communication
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Scoring Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center p-3 bg-muted rounded-lg">
-                <div className="text-2xl font-bold text-blue-600">
-                  {aiEvaluation.styleMatchScore}%
-                </div>
-                <div className="text-sm text-muted-foreground">Style Match</div>
-              </div>
-              <div className="text-center p-3 bg-muted rounded-lg">
-                <div className="text-2xl font-bold text-green-600">
-                  {aiEvaluation.clarity}%
-                </div>
-                <div className="text-sm text-muted-foreground">Clarity</div>
-              </div>
-              <div className="text-center p-3 bg-muted rounded-lg">
-                <div className="text-2xl font-bold text-purple-600">
-                  {aiEvaluation.empathy}%
-                </div>
-                <div className="text-sm text-muted-foreground">Empathy</div>
-              </div>
-              <div className="text-center p-3 bg-muted rounded-lg">
-                <div className="text-2xl font-bold text-orange-600">
-                  {aiEvaluation.persuasiveness}%
-                </div>
-                <div className="text-sm text-muted-foreground">Persuasiveness</div>
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Strengths */}
-            <div>
-              <h4 className="font-medium mb-2 text-green-700">Strengths</h4>
-              <div className="space-y-1">
-                {aiEvaluation.strengths?.map((strength: string, index: number) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <Badge variant="secondary" className="bg-green-100 text-green-800">
-                      ✓
-                    </Badge>
-                    <span className="text-sm">{strength}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Areas for Improvement */}
-            {aiEvaluation.weaknesses?.length > 0 && (
-              <div>
-                <h4 className="font-medium mb-2 text-amber-700">Areas for Growth</h4>
-                <div className="space-y-1">
-                  {aiEvaluation.weaknesses.map((weakness: string, index: number) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <Badge variant="secondary" className="bg-amber-100 text-amber-800">
-                        →
-                      </Badge>
-                      <span className="text-sm">{weakness}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Detailed Feedback */}
-            <div>
-              <h4 className="font-medium mb-2">Detailed Feedback</h4>
-              <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
-                <p className="text-sm leading-relaxed">{aiEvaluation.improvement}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <AnalysisResults
+          evaluation={aiEvaluation}
+          score={Math.round((aiEvaluation.styleMatchScore + aiEvaluation.clarity + aiEvaluation.empathy + aiEvaluation.persuasiveness) / 4)}
+          passed={Math.round((aiEvaluation.styleMatchScore + aiEvaluation.clarity + aiEvaluation.empathy + aiEvaluation.persuasiveness) / 4) >= 70}
+          leadershipStyle={leadershipStyle}
+          onNextScenario={onNextScenario}
+          onRetry={onRetry}
+          onReturnToDashboard={() => navigate("/training")}
+        />
       ) : null}
 
       {/* Navigation Options */}
