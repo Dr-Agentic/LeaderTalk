@@ -7,15 +7,13 @@ import { storage } from "./storage";
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export async function transcribeAndAnalyzeAudio(
-  audioPath: string,
   recording: Recording,
-  leaders: Leader[]
+  audioPath: string
 ): Promise<{ transcription: string; analysis: AnalysisResult }> {
   try {
     console.log("Starting transcription and analysis of audio:", {
       audioPath,
-      recordingId: recording.id,
-      leadersCount: leaders.length
+      recordingId: recording.id
     });
     
     // Check if OpenAI API key is available
@@ -66,7 +64,8 @@ export async function transcribeAndAnalyzeAudio(
     }
     
     try {
-      // Step 2: Analyze the transcription
+      // Step 2: Get leaders and analyze the transcription
+      const leaders = await storage.getLeaders();
       const analysis = await analyzeTranscription(transcription, leaders);
       return { transcription, analysis };
     } catch (analysisError) {
