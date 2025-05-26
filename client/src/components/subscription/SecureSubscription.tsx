@@ -477,13 +477,13 @@ export default function SecureSubscription() {
                 ) : (
                   (() => {
                     const currentPriceId = currentSubscription?.subscription?.priceId;
-                    const planPriceId = plan.pricing[billingInterval]?.stripePriceId;
+                    // Check if current plan matches this specific plan's price ID
+                    const planPriceId = plan.pricing?.stripePriceId;
                     const isCurrentPlan = currentPriceId === planPriceId;
                     
                     console.log('🔍 Price ID comparison:', {
                       currentPriceId,
                       planPriceId,
-                      billingInterval,
                       isCurrentPlan,
                       planName: plan.name
                     });

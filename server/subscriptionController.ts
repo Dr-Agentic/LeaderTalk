@@ -451,6 +451,7 @@ export async function getCurrentSubscriptionFormatted(req: Request, res: Respons
         status: subscriptionData.status,
         plan: subscriptionData.plan,
         planId: subscriptionData.planId,
+        priceId: subscriptionData.priceId, // Add the Stripe price ID
         isFree: subscriptionData.isFree,
         
         // Formatted amounts
