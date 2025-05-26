@@ -202,7 +202,7 @@ export function registerRecordingRoutes(app: Express) {
         }
       }
 
-      // Return immediately, then process audio in background
+      // Start processing in background (non-blocking)
       console.log(`[RECORDING ${recording.id}] Starting background transcription and analysis...`);
       console.log(`[RECORDING ${recording.id}] Audio file details:`, {
         originalName: req.file.originalname,
@@ -210,8 +210,10 @@ export function registerRecordingRoutes(app: Express) {
         size: req.file.size
       });
       
-      // Start processing in background (don't await)
-      processAudioInBackground(recording, req.file.buffer);
+      // Process audio in background without waiting
+      processAudioInBackground(recording.id, req.file.buffer).catch(error => {
+        console.error(`[RECORDING ${recording.id}] Background processing failed:`, error);
+      });
       
       // Return immediately with the recording in "processing" status
       res.json(recording);
