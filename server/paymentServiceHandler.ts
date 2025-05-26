@@ -557,6 +557,13 @@ export async function updateUserSubscriptionToPlan(stripeCustomerId: string, str
           automatic_payment_methods: {
             enabled: true,
             allow_redirects: 'always'
+          },
+          // Automatically attach payment method and set as default
+          attach_to_self: true,
+          payment_method_options: {
+            card: {
+              setup_future_usage: 'off_session'
+            }
           }
         });
         
