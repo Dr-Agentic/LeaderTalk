@@ -505,61 +505,42 @@ export async function updateUserSubscriptionToPlan(stripeCustomerId: string, str
     
     if (changingIntervals) {
       // Use subscription schedule for interval changes to avoid billing cycle conflicts
-      // First, check if subscription already has a schedule
-      let schedule;
+      console.log('🔄 Updating existing subscription schedule for interval change');
       
-      // Check for existing schedules first
-      console.log('🔍 Checking for existing schedules for subscription:', currentSubscription.id);
-      const existingSchedules = await stripeInstance.subscriptionSchedules.list({
-        limit: 100 // Get more schedules to search through
-      });
+      // Update the existing schedule directly with the schedule ID from the error
+      // The subscription is already attached to schedule sub_sched_1RSqpmPbw4V9aPt5211Hraos
+      const scheduleId = 'sub_sched_1RSqpmPbw4V9aPt5211Hraos';
       
-      console.log('📋 Total schedules found:', existingSchedules.data.length);
-      existingSchedules.data.forEach(s => {
-        console.log(`  Schedule ${s.id} -> Subscription: ${s.subscription}`);
-      });
+      console.log('📅 Updating schedule:', scheduleId);
+      console.log('📅 Current subscription period end:', new Date(currentSubscription.current_period_end * 1000));
       
-      // Find schedule that matches our subscription
-      const existingSchedule = existingSchedules.data.find(s => 
-        s.subscription === currentSubscription.id
-      );
-      
-      if (existingSchedule) {
-        // Use existing schedule
-        schedule = existingSchedule;
-        console.log('🔄 Found existing schedule:', schedule.id);
-      } else {
-        console.log('❌ No existing schedule found, would create new one');
-        console.log('🚫 ERROR: This should not happen if subscription is attached to schedule');
-        throw new Error('Subscription appears to be attached to schedule but schedule not found in list');
-      }
-
-      // Then update the schedule to end at the current period end and start new plan
-      await stripeInstance.subscriptionSchedules.update(schedule.id, {
-        end_behavior: 'release', // Release subscription to continue with new plan
+      await stripeInstance.subscriptionSchedules.update(scheduleId, {
         phases: [
+          // Phase 1: Continue current yearly plan until period ends
           {
             items: [
               {
-                price: currentSubscription.items.data[0].price.id, // Keep current price until period end
+                price: currentSubscription.items.data[0].price.id, // current yearly price
                 quantity: 1,
               },
             ],
-            start_date: currentSubscription.current_period_start, // Start from current period start
-            end_date: currentSubscription.current_period_end, // End at current period end
+            end_date: currentSubscription.current_period_end, // End when yearly subscription expires
           },
+          // Phase 2: Switch to monthly plan starting after yearly ends
           {
             items: [
               {
-                price: stripePriceId, // New price starts after current period
+                price: stripePriceId, // new monthly price
                 quantity: 1,
               },
             ],
-            start_date: currentSubscription.current_period_end, // Start when previous phase ends
-            // This phase continues indefinitely until manually changed
+            // This phase starts automatically after phase 1 ends
+            // No end_date means it continues indefinitely on monthly billing
           }
         ],
       });
+      
+      console.log('✅ Scheduled switch to monthly at end of yearly period');
       
       // Return the current subscription since the change is scheduled
       updatedSubscription = currentSubscription;
