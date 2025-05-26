@@ -408,6 +408,51 @@ export async function updateUserSubscriptionToPlan(stripeCustomerId: string, str
       apiVersion: "2023-10-16",
     });
 
+    // FIRST: Check if customer has payment methods before attempting subscription update
+    console.log('🔍 Checking customer payment methods before subscription update:', stripeCustomerId);
+    
+    const paymentMethods = await stripeInstance.paymentMethods.list({
+      customer: stripeCustomerId,
+      type: 'card'
+    });
+    
+    console.log('💳 Customer payment methods found:', {
+      customerId: stripeCustomerId,
+      methodCount: paymentMethods.data.length,
+      methods: paymentMethods.data.map(pm => ({
+        id: pm.id,
+        type: pm.type,
+        created: pm.created,
+        card: pm.card ? {
+          brand: pm.card.brand,
+          last4: pm.card.last4
+        } : null
+      }))
+    });
+
+    // If no payment methods exist, create setup intent immediately
+    if (paymentMethods.data.length === 0) {
+      console.log('❌ No payment methods found - creating setup intent');
+      
+      const setupIntent = await stripeInstance.setupIntents.create({
+        customer: stripeCustomerId,
+        usage: 'off_session',
+        automatic_payment_methods: {
+          enabled: true,
+          allow_redirects: 'always'
+        }
+      });
+      
+      return {
+        success: true,
+        requiresPayment: true,
+        clientSecret: setupIntent.client_secret,
+        message: "Please add a payment method to update your subscription"
+      };
+    }
+
+    console.log('✅ Payment methods exist - proceeding with subscription update');
+
     // Get current active subscription
     const subscriptions = await stripeInstance.subscriptions.list({
       customer: stripeCustomerId,
