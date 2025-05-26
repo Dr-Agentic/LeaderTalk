@@ -183,7 +183,7 @@ export default function Training() {
   );
 }
 
-function ProgressOverview({ progress }: { progress: Progress }) {
+function ProgressOverview({ progress, chaptersCount }: { progress: Progress; chaptersCount?: number }) {
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
       <Card>
@@ -239,14 +239,14 @@ function ProgressOverview({ progress }: { progress: Progress }) {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">
-            {progress.chapters.filter(c => c.completedSituations > 0).length} / {progress.chapters.length}
+            {chaptersCount ? `0 / ${chaptersCount}` : '0 / 0'}
           </div>
           <Progress 
-            value={(progress.chapters.filter(c => c.completedSituations > 0).length / Math.max(1, progress.chapters.length)) * 100} 
+            value={0} 
             className="h-2 mt-2" 
           />
           <p className="text-xs text-muted-foreground mt-2">
-            {progress.chapters.filter(c => c.progress === 100).length} chapters fully completed
+            0 chapters fully completed
           </p>
         </CardContent>
       </Card>
