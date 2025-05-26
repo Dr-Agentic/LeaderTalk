@@ -5,6 +5,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { CheckCircle, Loader2, ExternalLink, Check, CreditCard, AlertTriangle } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import { loadStripe } from '@stripe/stripe-js';
@@ -181,6 +191,7 @@ export default function SecureSubscription() {
   const [selectedPlan, setSelectedPlan] = useState<BillingProduct | null>(null);
   const [billingInterval, setBillingInterval] = useState<'monthly' | 'yearly'>('monthly');
   const [paymentSetup, setPaymentSetup] = useState<{ clientSecret: string; planId: string } | null>(null);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
   const { toast } = useToast();
 
   // Fetch current subscription
@@ -501,11 +512,7 @@ export default function SecureSubscription() {
               after which your account will switch to the free Starter plan. No refunds will be provided.
             </p>
             <button
-              onClick={() => {
-                if (confirm("Are you sure you want to cancel your subscription? You'll continue to have access until the end of your billing period, with no refund provided.")) {
-                  cancelSubscription.mutate();
-                }
-              }}
+              onClick={() => setShowCancelDialog(true)}
               disabled={cancelSubscription.isPending}
               className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
             >
