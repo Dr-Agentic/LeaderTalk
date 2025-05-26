@@ -173,7 +173,7 @@ export default function BillingCycleHistory() {
                   <Cell
                     key={`cell-${index}`}
                     fill={entry.wordsUsed === 0 ? "hsl(var(--muted))" : "hsl(var(--primary))"}
-                    fillOpacity={entry.wordsUsed === 0 ? 0.3 : 1}
+                    fillOpacity={entry.wordsUsed === 0 ? 0.6 : 1}
                     stroke={
                       entry.isCurrent ? "hsl(var(--primary))" : "transparent"
                     }
