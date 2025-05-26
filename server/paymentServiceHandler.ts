@@ -451,7 +451,30 @@ export async function updateUserSubscriptionToPlan(stripeCustomerId: string, str
       };
     }
 
-    console.log('✅ Payment methods exist - proceeding with subscription update');
+    console.log('✅ Payment methods exist - ensuring default payment method is set');
+    
+    // Check if customer has a default payment method set
+    const customer = await stripeInstance.customers.retrieve(stripeCustomerId);
+    
+    if (typeof customer !== 'string' && !customer.deleted) {
+      const invoiceSettings = customer.invoice_settings;
+      const defaultPaymentMethod = invoiceSettings?.default_payment_method;
+      
+      console.log('🔍 Current default payment method:', defaultPaymentMethod);
+      
+      // If no default payment method is set, set the first available one
+      if (!defaultPaymentMethod && paymentMethods.data.length > 0) {
+        console.log('🔧 Setting default payment method:', paymentMethods.data[0].id);
+        
+        await stripeInstance.customers.update(stripeCustomerId, {
+          invoice_settings: {
+            default_payment_method: paymentMethods.data[0].id
+          }
+        });
+        
+        console.log('✅ Default payment method set successfully');
+      }
+    }
 
     // Get current active subscription
     const subscriptions = await stripeInstance.subscriptions.list({
