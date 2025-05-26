@@ -129,7 +129,7 @@ export default function Training() {
         <TabsContent value="progress" className="space-y-6">
           {progress && (
             <>
-              <ProgressOverview progress={progress} />
+              <ProgressOverview progress={progress} chaptersCount={chaptersData?.length} />
               <RecentCompletions />
             </>
           )}
