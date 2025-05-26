@@ -482,19 +482,25 @@ export function registerTrainingRoutes(app: Express) {
   app.get("/api/training/situations-direct/:situationId", (req, res) => {
     try {
       const situationId = parseInt(req.params.situationId);
+      console.log(`Looking for scenario ID: ${situationId}`);
       
       // Find the scenario across all chapters and modules
       for (let chapterNum = 1; chapterNum <= 5; chapterNum++) {
         const filePath = path.join(__dirname, '../../attached_assets', `chapter${chapterNum}_expanded.json`);
+        console.log(`Checking file: ${filePath}`);
         
         if (fs.existsSync(filePath)) {
+          console.log(`File exists: ${filePath}`);
           const chapterData = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+          console.log(`Chapter ${chapterNum} has ${chapterData.modules?.length || 0} modules`);
           
           if (chapterData.modules) {
             for (const module of chapterData.modules) {
               if (module.scenarios) {
+                console.log(`Module ${module.id} has ${module.scenarios.length} scenarios`);
                 const scenario = module.scenarios.find((s: any) => s.id === situationId);
                 if (scenario) {
+                  console.log(`Found scenario ${situationId} in module ${module.id}`);
                   // Include module and chapter info for context
                   return res.json({
                     ...scenario,
@@ -507,9 +513,12 @@ export function registerTrainingRoutes(app: Express) {
               }
             }
           }
+        } else {
+          console.log(`File does not exist: ${filePath}`);
         }
       }
       
+      console.log(`Scenario ${situationId} not found in any chapter`);
       res.status(404).json({ error: "Scenario not found" });
     } catch (error) {
       console.error("Error loading scenario:", error);
