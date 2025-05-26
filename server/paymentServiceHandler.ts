@@ -465,7 +465,11 @@ export async function updateUserSubscriptionToPlan(stripeCustomerId: string, str
         const setupIntent = await stripeInstance.setupIntents.create({
           customer: stripeCustomerId,
           usage: 'off_session',
-          payment_method_types: ['card']
+          payment_method_types: ['card', 'paypal', 'us_bank_account'],
+          automatic_payment_methods: {
+            enabled: true,
+            allow_redirects: 'always'
+          }
         });
         
         return {
