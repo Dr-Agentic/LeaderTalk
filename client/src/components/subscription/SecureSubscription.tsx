@@ -325,8 +325,9 @@ export default function SecureSubscription() {
   };
 
   const handleSubscribe = (plan: BillingProduct) => {
-    if (plan.pricing.stripePriceId) {
-      updateSubscription.mutate({ stripePriceId: plan.pricing.stripePriceId });
+    const priceId = plan.pricing[billingInterval]?.stripePriceId;
+    if (priceId) {
+      updateSubscription.mutate({ stripePriceId: priceId });
     }
   };
 
@@ -475,13 +476,13 @@ export default function SecureSubscription() {
                   </>
                 ) : (
                   (() => {
-                    const currentPlan = currentSubscription?.subscription?.plan;
-                    const planCode = plan.code;
-                    const isCurrentPlan = currentPlan === planCode;
+                    const currentProductId = currentSubscription?.subscription?.planId;
+                    const planProductId = plan.stripeProductId;
+                    const isCurrentPlan = currentProductId === planProductId;
                     
-                    console.log('🔍 Plan comparison:', {
-                      currentPlan,
-                      planCode, 
+                    console.log('🔍 Product ID comparison:', {
+                      currentProductId,
+                      planProductId,
                       isCurrentPlan,
                       planName: plan.name
                     });
