@@ -142,26 +142,23 @@ export default function BillingCycleHistory() {
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={billingCycleData}
-              margin={{ top: 20, right: 20, left: 20, bottom: 5 }}
+              margin={{ top: 20, right: 20, left: 50, bottom: 80 }}
             >
               <XAxis
                 dataKey="month"
-                fontSize={12}
                 tickLine={false}
                 axisLine={false}
                 interval={0}
-                angle={0}
-                textAnchor="middle"
+                tick={{ fontSize: 10, textAnchor: 'middle', fill: '#374151' }}
                 height={60}
-                tick={{ fontSize: 10, textAnchor: 'middle', fill: 'hsl(var(--foreground))' }}
               />
               <YAxis
-                fontSize={12}
                 tickLine={false}
                 axisLine={false}
                 tickFormatter={(value) => value.toLocaleString()}
                 domain={[0, Math.max(maxUsage * 1.2, avgLimit * 1.1)]}
-                tick={{ fontSize: 10, fill: 'hsl(var(--foreground))' }}
+                tick={{ fontSize: 10, fill: '#374151' }}
+                width={40}
               />
               <Tooltip content={<CustomTooltip />} />
 
