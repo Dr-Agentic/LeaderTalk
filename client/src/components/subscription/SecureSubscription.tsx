@@ -514,7 +514,7 @@ export default function SecureSubscription() {
             </p>
             <Button
               onClick={() => {
-                const starterProduct = products?.find(p => p.features.plan.toLowerCase().includes('starter'));
+                const starterProduct = plans?.find(p => p.code.toLowerCase().includes('starter'));
                 if (starterProduct) {
                   updateSubscription.mutate({ stripePriceId: starterProduct.prices.monthly.stripePriceId });
                 }
