@@ -666,7 +666,8 @@ export async function getHistoricalBillingCycleUsage(userId: number, monthlyCycl
       const usageReport = await storage.wordUsageReport(cycleStart, cycleEnd, userId);
       
       const isCurrent = i === 0; // First cycle is current
-      const cycleLabel = isCurrent ? 'Current' : cycleStart.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+      const cycleLabel = isCurrent ? 'Current' : 
+        `${cycleStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} -\n${cycleEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
 
       const cycleData = {
         cycleLabel,
