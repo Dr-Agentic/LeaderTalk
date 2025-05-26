@@ -57,6 +57,11 @@ export async function transcribeAndAnalyzeAudio(
       
     } catch (transcriptError) {
       console.error("Error transcribing audio:", transcriptError);
+      console.error("Transcription error details:", {
+        message: transcriptError instanceof Error ? transcriptError.message : 'Unknown error',
+        stack: transcriptError instanceof Error ? transcriptError.stack : 'No stack trace',
+        audioPath: audioPath
+      });
       return {
         transcription: "Failed to transcribe audio",
         analysis: createDefaultAnalysis("We had trouble processing your audio. Please ensure it's a clear recording.")
