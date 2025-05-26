@@ -228,6 +228,13 @@ export function registerRecordingRoutes(app: Express) {
       
       try {
         console.log(`[RECORDING ${recording.id}] Starting transcription and analysis...`);
+        console.log(`[RECORDING ${recording.id}] Audio file details:`, {
+          originalName: req.file.originalname,
+          mimetype: req.file.mimetype,
+          filename: req.file.filename,
+          path: req.file.path,
+          size: req.file.size
+        });
         const { transcription, analysis } = await transcribeAndAnalyzeAudio(recording, audioPath);
         console.log(`[RECORDING ${recording.id}] Transcription completed, updating database...`);
         

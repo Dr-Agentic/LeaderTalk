@@ -299,19 +299,34 @@ async function transcribeAudio(audioPath: string): Promise<string> {
       console.warn("Could not analyze audio file header", headerError);
     }
     
-    // Create readable stream
-    const audioReadStream = fs.createReadStream(audioPath);
+    // Create a copy with .webm extension for OpenAI (it needs proper file extension)
+    const webmPath = audioPath + '.webm';
+    fs.copyFileSync(audioPath, webmPath);
     
     // Log file info before sending to OpenAI
-    console.log(`Sending audio file ${audioPath} to OpenAI for transcription`);
+    console.log(`Sending audio file ${webmPath} to OpenAI for transcription`);
     
-    // Send to OpenAI
-    const transcription = await openai.audio.transcriptions.create({
-      file: audioReadStream,
-      model: "whisper-1",
-      response_format: "text",
-      // Using auto language detection (removed explicit language parameter)
-    });
+    let transcription;
+    try {
+      // Send to OpenAI with proper extension
+      transcription = await openai.audio.transcriptions.create({
+        file: fs.createReadStream(webmPath),
+        model: "whisper-1",
+        response_format: "text",
+        // Using auto language detection (removed explicit language parameter)
+      });
+      
+      // Clean up temporary file
+      fs.unlinkSync(webmPath);
+    } catch (error) {
+      // Clean up temporary file on error
+      try {
+        fs.unlinkSync(webmPath);
+      } catch (cleanupError) {
+        console.error('Failed to cleanup temporary file:', cleanupError);
+      }
+      throw error;
+    }
     
     // Log the transcription for debugging
     console.log(`Transcription received, first 50 chars: "${transcription.substring(0, 50)}..."`);
