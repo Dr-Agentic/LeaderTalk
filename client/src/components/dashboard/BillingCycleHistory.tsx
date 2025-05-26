@@ -27,18 +27,21 @@ interface BillingCycleData {
 function CustomTooltip({ active, payload, label }: any) {
   if (active && payload && payload.length) {
     const data = payload[0].payload as BillingCycleData;
-    
+
     return (
       <div className="bg-background border rounded-md shadow-md p-3 text-sm">
         <p className="font-semibold text-primary">{data.cycleLabel}</p>
         <p className="text-xs text-muted-foreground mb-2">
-          {new Date(data.cycleStart).toLocaleDateString()} - {new Date(data.cycleEnd).toLocaleDateString()}
+          {new Date(data.cycleStart).toLocaleDateString()} -{" "}
+          {new Date(data.cycleEnd).toLocaleDateString()}
         </p>
         <p className="text-sm">
-          Words used: <span className="font-medium">{data.wordsUsed.toLocaleString()}</span>
+          Words used:{" "}
+          <span className="font-medium">{data.wordsUsed.toLocaleString()}</span>
         </p>
         <p className="text-sm">
-          Word limit: <span className="font-medium">{data.wordLimit.toLocaleString()}</span>
+          Word limit:{" "}
+          <span className="font-medium">{data.wordLimit.toLocaleString()}</span>
         </p>
         <p className="text-sm">
           Usage: <span className="font-medium">{data.usagePercentage}%</span>
@@ -64,8 +67,9 @@ export default function BillingCycleHistory() {
   });
 
   // Check if we have valid subscription data
-  const hasValidSubscription = subscriptionData?.success && subscriptionData.subscription;
-  
+  const hasValidSubscription =
+    subscriptionData?.success && subscriptionData.subscription;
+
   if (!hasValidSubscription) {
     return (
       <Card className="mb-6">
@@ -79,7 +83,9 @@ export default function BillingCycleHistory() {
           <div className="h-64 flex flex-col items-center justify-center text-muted-foreground">
             <CalendarDays className="h-12 w-12 mb-4 opacity-50" />
             <p>No subscription data available</p>
-            <p className="text-sm mt-2">Please set up your subscription to view billing cycle history</p>
+            <p className="text-sm mt-2">
+              Please set up your subscription to view billing cycle history
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -87,32 +93,32 @@ export default function BillingCycleHistory() {
   }
 
   const subscription = subscriptionData.subscription;
-  const currentUsage = currentUsageData || { currentUsage: 0, wordLimit: 500 };
+  const currentUsage = currentUsageData || {
+    currentUsage: "error",
+    wordLimit: "BillingCycleHistory",
+  };
 
-  // Generate billing cycle history data
+  // Generate billing cycle history data using server-calculated monthly periods
   const generateCycleHistory = (): BillingCycleData[] => {
     const cycles: BillingCycleData[] = [];
-    const currentPeriodStart = new Date(subscription.currentPeriodStart);
-    const currentPeriodEnd = new Date(subscription.currentPeriodEnd);
     
-    // Calculate cycle length in months (typically 1 month)
-    const cycleLength = 1; // Most subscriptions are monthly
+    // Use the correct monthly billing cycle dates from the server
+    const currentCycleStart = new Date(currentUsage.billingCycle.startDate);
+    const currentCycleEnd = new Date(currentUsage.billingCycle.endDate);
     
-    // Generate 6 cycles: current + 5 previous
+    // Generate 6 cycles: current + 5 previous monthly cycles
     for (let i = 0; i < 6; i++) {
-      const cycleStart = subMonths(currentPeriodStart, i);
-      const cycleEnd = subMonths(currentPeriodEnd, i);
-      
+      const cycleStart = subMonths(currentCycleStart, i);
+      const cycleEnd = subMonths(currentCycleEnd, i);
+
       const isCurrent = i === 0;
-      const cycleLabel = isCurrent ? 'Current' : format(cycleStart, 'MMM yyyy');
-      
-      // For current cycle, use actual usage data
-      // For historical cycles, we'd need to implement historical usage API
-      // For now, show the current cycle data and indicate historical data needs implementation
+      const cycleLabel = isCurrent ? "Current" : format(cycleStart, "MMM yyyy");
+
+      // For current cycle, use actual usage data; for historical cycles, show 0 (no historical data yet)
       const wordsUsed = isCurrent ? currentUsage.currentUsage : 0;
       const wordLimit = currentUsage.wordLimit;
       const usagePercentage = Math.round((wordsUsed / wordLimit) * 100);
-      
+
       cycles.push({
         cycleLabel,
         cycleStart: cycleStart.toISOString(),
@@ -120,16 +126,16 @@ export default function BillingCycleHistory() {
         wordsUsed,
         wordLimit,
         usagePercentage,
-        isCurrent
+        isCurrent,
       });
     }
-    
+
     // Reverse to show oldest to newest
     return cycles.reverse();
   };
 
   const cycleHistory = generateCycleHistory();
-  const maxUsage = Math.max(...cycleHistory.map(c => c.wordsUsed));
+  const maxUsage = Math.max(...cycleHistory.map((c) => c.wordsUsed));
   const avgLimit = cycleHistory[0]?.wordLimit || 500;
 
   // Get bar color based on usage percentage
@@ -150,7 +156,7 @@ export default function BillingCycleHistory() {
               Billing Cycle History
             </CardTitle>
             <p className="text-sm text-muted-foreground mt-1">
-              Word usage across your last 6 billing cycles
+              Word usage across your last 6 monthly cycles
             </p>
           </div>
           <div className="text-right">
@@ -182,25 +188,23 @@ export default function BillingCycleHistory() {
                 domain={[0, Math.max(maxUsage * 1.2, avgLimit * 1.1)]}
               />
               <Tooltip content={<CustomTooltip />} />
-              
+
               {/* Reference line for word limit */}
-              <ReferenceLine 
-                y={avgLimit} 
-                stroke="hsl(var(--muted-foreground))" 
+              <ReferenceLine
+                y={avgLimit}
+                stroke="hsl(var(--muted-foreground))"
                 strokeDasharray="5 5"
                 label={{ value: "Limit", position: "topRight" }}
               />
-              
-              <Bar
-                dataKey="wordsUsed"
-                name="Words Used"
-                radius={[4, 4, 0, 0]}
-              >
+
+              <Bar dataKey="wordsUsed" name="Words Used" radius={[4, 4, 0, 0]}>
                 {cycleHistory.map((entry, index) => (
                   <Cell
                     key={`cell-${index}`}
                     fill={getBarColor(entry)}
-                    stroke={entry.isCurrent ? "hsl(var(--primary))" : "transparent"}
+                    stroke={
+                      entry.isCurrent ? "hsl(var(--primary))" : "transparent"
+                    }
                     strokeWidth={entry.isCurrent ? 2 : 0}
                   />
                 ))}
@@ -208,7 +212,7 @@ export default function BillingCycleHistory() {
             </BarChart>
           </ResponsiveContainer>
         </div>
-        
+
         {/* Summary stats */}
         <div className="mt-6 grid grid-cols-3 gap-4 pt-4 border-t">
           <div className="text-center">
@@ -219,22 +223,28 @@ export default function BillingCycleHistory() {
           </div>
           <div className="text-center">
             <p className="text-2xl font-bold">
-              {Math.round(currentUsage.currentUsage / currentUsage.wordLimit * 100)}%
+              {Math.round(
+                (currentUsage.currentUsage / currentUsage.wordLimit) * 100,
+              )}
+              %
             </p>
             <p className="text-xs text-muted-foreground">Usage Rate</p>
           </div>
           <div className="text-center">
             <p className="text-2xl font-bold">
-              {(currentUsage.wordLimit - currentUsage.currentUsage).toLocaleString()}
+              {(
+                currentUsage.wordLimit - currentUsage.currentUsage
+              ).toLocaleString()}
             </p>
             <p className="text-xs text-muted-foreground">Remaining</p>
           </div>
         </div>
-        
+
         <div className="mt-4 p-3 bg-muted/30 rounded-lg">
           <p className="text-sm text-muted-foreground">
-            <span className="font-medium">Note:</span> Historical data shows past billing cycles. 
-            Only current cycle shows actual usage data. Historical usage tracking will be enhanced in future updates.
+            <span className="font-medium">Note:</span> Historical data shows
+            past billing cycles. Only current cycle shows actual usage data.
+            Historical usage tracking will be enhanced in future updates.
           </p>
         </div>
       </CardContent>
