@@ -503,8 +503,11 @@ export function registerTrainingRoutes(app: Express) {
                   console.log(`Found scenario ${situationId} in module ${module.id}`);
                   // Include module and chapter info for context
                   return res.json({
-                    ...scenario,
+                    id: scenario.id,
+                    description: scenario.description,
+                    context: scenario.context,
                     userPrompt: scenario.user_prompt, // Map user_prompt to userPrompt for frontend
+                    styleResponses: scenario.style_responses,
                     moduleId: module.id,
                     moduleTitle: module.module_title,
                     chapterId: chapterData.id,
