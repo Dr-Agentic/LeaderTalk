@@ -18,6 +18,7 @@ import { useMicrophonePermission } from "@/hooks/useMicrophonePermission";
 import { apiRequest } from "@/lib/queryClient";
 import { H2, Paragraph } from "@/components/ui/typography";
 import { Mic, Pause, Play, OctagonMinus, AlertCircle } from "lucide-react";
+import { useLocation } from "wouter";
 import { WordLimitExceededMessage, SubscriptionErrorMessage } from "@/components/WordLimitMessages";
 import WordLimitErrorMessage from "@/components/WordLimitErrorMessage";
 import { useQuery } from "@tanstack/react-query";
@@ -30,6 +31,7 @@ interface RecordingSectionProps {
 export default function RecordingSection({
   onRecordingComplete,
 }: RecordingSectionProps) {
+  const [, setLocation] = useLocation();
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
