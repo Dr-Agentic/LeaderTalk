@@ -529,23 +529,27 @@ export async function getBillingCycleWordUsageAnalytics(userId: number) {
     let usagePeriodEnd: Date;
     
     if (subscriptionData.interval === 'year') {
-      // For annual plans, word usage is tracked monthly starting from subscription date
+      // For annual plans, calculate current monthly word usage period
       const subscriptionStart = subscriptionData.currentPeriodStart;
       const now = new Date();
+      const billingDay = subscriptionStart.getDate(); // 26th in your case
       
-      // Calculate how many complete months since subscription started
-      const monthsSinceStart = (now.getFullYear() - subscriptionStart.getFullYear()) * 12 + 
-                               (now.getMonth() - subscriptionStart.getMonth());
+      // Find current monthly cycle based on billing day
+      let currentMonthStart: Date;
+      if (now.getDate() >= billingDay) {
+        // We're in the current month's cycle
+        currentMonthStart = new Date(now.getFullYear(), now.getMonth(), billingDay);
+      } else {
+        // We're in the previous month's cycle
+        currentMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, billingDay);
+      }
       
-      // Current monthly period starts from subscription day of month
-      usagePeriodStart = new Date(subscriptionStart.getFullYear(), 
-                                  subscriptionStart.getMonth() + monthsSinceStart, 
-                                  subscriptionStart.getDate());
+      // Monthly cycle ends the day before next billing day
+      const nextMonthStart = new Date(currentMonthStart.getFullYear(), currentMonthStart.getMonth() + 1, billingDay);
+      const currentMonthEnd = new Date(nextMonthStart.getTime() - 1);
       
-      // Next period starts one month later
-      usagePeriodEnd = new Date(subscriptionStart.getFullYear(), 
-                                subscriptionStart.getMonth() + monthsSinceStart + 1, 
-                                subscriptionStart.getDate() - 1, 23, 59, 59, 999);
+      usagePeriodStart = currentMonthStart;
+      usagePeriodEnd = currentMonthEnd;
     } else {
       // For monthly plans, use Stripe billing cycle
       usagePeriodStart = subscriptionData.currentPeriodStart;
@@ -612,77 +616,7 @@ export async function getBillingCycleWordUsageAnalytics(userId: number) {
   }
 }
 
-/**
- * Generate billing cycle history for annual plans with monthly word usage periods
- */
-export async function getBillingCycleWordUsageHistory(userId: number, numberOfCycles: number = 6) {
-  try {
-    console.log(`🧪 Generating ${numberOfCycles}-cycle history for user ${userId}`);
-    
-    const user = await storage.getUser(userId);
-    if (!user?.stripeSubscriptionId) {
-      throw new Error(`User ${userId} has no Stripe subscription ID`);
-    }
 
-    const subscriptionData = await getUserSubscription(user.stripeSubscriptionId);
-    console.log(`✅ Retrieved subscription for history: ${subscriptionData.plan} (${subscriptionData.interval})`);
-
-    const historicalCycles = [];
-    const subscriptionStart = subscriptionData.currentPeriodStart;
-
-    // Generate cycles based on subscription type
-    for (let i = 0; i < numberOfCycles; i++) {
-      let cycleStart: Date;
-      let cycleEnd: Date;
-
-      if (subscriptionData.interval === 'year') {
-        // For annual plans, create monthly cycles from subscription date
-        const monthsBack = (numberOfCycles - 1) - i; // Start from oldest
-        cycleStart = new Date(subscriptionStart.getFullYear(), 
-                              subscriptionStart.getMonth() - monthsBack, 
-                              subscriptionStart.getDate());
-        cycleEnd = new Date(subscriptionStart.getFullYear(), 
-                            subscriptionStart.getMonth() - monthsBack + 1, 
-                            subscriptionStart.getDate() - 1, 23, 59, 59, 999);
-      } else {
-        // For monthly plans, use actual Stripe billing cycles
-        // This would need implementation for monthly plans
-        cycleStart = new Date(subscriptionStart.getTime() - (i * 30 * 24 * 60 * 60 * 1000));
-        cycleEnd = new Date(cycleStart.getTime() + (30 * 24 * 60 * 60 * 1000) - 1);
-      }
-
-      // Get usage data for this cycle
-      const usageReport = await storage.wordUsageReport(cycleStart, cycleEnd, userId);
-      
-      const isCurrent = i === numberOfCycles - 1; // Last cycle is current
-      const cycleLabel = isCurrent ? 'Current' : cycleStart.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-
-      historicalCycles.push({
-        cycleLabel,
-        cycleStart: cycleStart.toISOString(),
-        cycleEnd: cycleEnd.toISOString(),
-        wordsUsed: usageReport.totalWordCount,
-        wordLimit: subscriptionData.wordLimit,
-        usagePercentage: Math.round((usageReport.totalWordCount / subscriptionData.wordLimit) * 100),
-        isCurrent,
-        recordingCount: usageReport.recordingCount
-      });
-
-      console.log(`📊 Cycle ${i + 1}: ${cycleLabel} - ${usageReport.totalWordCount} words`);
-    }
-
-    return {
-      userId,
-      subscription: subscriptionData,
-      historicalCycles,
-      generatedAt: new Date()
-    };
-
-  } catch (error) {
-    console.error("❌ ERROR in getBillingCycleWordUsageHistory:", error);
-    throw error;
-  }
-}
 
 /**
  * Update a user's subscription to a new plan
