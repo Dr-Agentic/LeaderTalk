@@ -299,29 +299,29 @@ async function transcribeAudio(audioPath: string): Promise<string> {
       console.warn("Could not analyze audio file header", headerError);
     }
     
-    // Create a copy with .webm extension for OpenAI (it needs proper file extension)
-    const webmPath = audioPath + '.webm';
-    fs.copyFileSync(audioPath, webmPath);
+    // Create a .wav copy for OpenAI (most reliable format)
+    const wavPath = audioPath + '.wav';
+    fs.copyFileSync(audioPath, wavPath);
     
     // Log file info before sending to OpenAI
-    console.log(`Sending audio file ${webmPath} to OpenAI for transcription`);
+    console.log(`Sending audio file ${wavPath} to OpenAI for transcription`);
     
     let transcription;
     try {
-      // Send to OpenAI with proper extension
+      // Send to OpenAI with .wav extension (most supported format)
       transcription = await openai.audio.transcriptions.create({
-        file: fs.createReadStream(webmPath),
+        file: fs.createReadStream(wavPath),
         model: "whisper-1",
         response_format: "text",
         // Using auto language detection (removed explicit language parameter)
       });
       
       // Clean up temporary file
-      fs.unlinkSync(webmPath);
+      fs.unlinkSync(wavPath);
     } catch (error) {
       // Clean up temporary file on error
       try {
-        fs.unlinkSync(webmPath);
+        fs.unlinkSync(wavPath);
       } catch (cleanupError) {
         console.error('Failed to cleanup temporary file:', cleanupError);
       }
