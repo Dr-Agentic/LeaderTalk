@@ -153,7 +153,7 @@ export default function BillingCycleHistory() {
                 angle={0}
                 textAnchor="middle"
                 height={60}
-                tick={{ fontSize: 10, textAnchor: 'middle' }}
+                tick={{ fontSize: 10, textAnchor: 'middle', fill: 'hsl(var(--foreground))' }}
               />
               <YAxis
                 fontSize={12}
@@ -161,6 +161,7 @@ export default function BillingCycleHistory() {
                 axisLine={false}
                 tickFormatter={(value) => value.toLocaleString()}
                 domain={[0, Math.max(maxUsage * 1.2, avgLimit * 1.1)]}
+                tick={{ fontSize: 10, fill: 'hsl(var(--foreground))' }}
               />
               <Tooltip content={<CustomTooltip />} />
 
