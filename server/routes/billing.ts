@@ -8,7 +8,8 @@ import {
 import { 
   getBillingProducts,
   getCurrentSubscriptionFormatted,
-  updateUserSubscription
+  updateUserSubscription,
+  cancelSubscription
 } from "../subscriptionController";
 
 const requireAuth = (req: Request, res: Response, next: Function) => {
@@ -74,23 +75,7 @@ export function registerBillingRoutes(app: Express) {
   });
 
   // POST /api/billing/subscriptions/cancel - Cancel current subscription
-  app.post('/api/billing/subscriptions/cancel', requireAuth, async (req, res) => {
-    try {
-      const userId = req.session!.userId!;
-      
-      // Implementation would go through paymentServiceHandler
-      // For now, return structured response
-      res.json({
-        success: true,
-        message: "Subscription cancellation initiated",
-        status: "pending_cancellation"
-      });
-      
-    } catch (error) {
-      console.error("Error canceling subscription:", error);
-      res.status(500).json({ error: "Failed to cancel subscription" });
-    }
-  });
+  app.post('/api/billing/subscriptions/cancel', requireAuth, cancelSubscription);
 
   // POST /api/billing/subscriptions/update - Update current subscription plan
   app.post('/api/billing/subscriptions/update', requireAuth, async (req, res) => {

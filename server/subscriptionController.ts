@@ -619,3 +619,37 @@ export async function updateUserSubscription(userId: number, stripePriceId: stri
     };
   }
 }
+
+export async function cancelSubscription(req: Request, res: Response) {
+  try {
+    const { userId, user } = await validateUserAccess(req);
+
+    if (!user.stripeSubscriptionId) {
+      return res.status(400).json({
+        success: false,
+        error: "No active subscription found to cancel"
+      });
+    }
+
+    const result = await cancelUserSubscription(user.stripeSubscriptionId);
+
+    if (!result.success) {
+      return res.status(400).json({
+        success: false,
+        error: result.error
+      });
+    }
+
+    res.json({
+      success: true,
+      message: result.message
+    });
+
+  } catch (error) {
+    console.error("Error canceling subscription:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to cancel subscription"
+    });
+  }
+}

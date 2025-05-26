@@ -501,25 +501,30 @@ export default function SecureSubscription() {
         </Elements>
       )}
 
-      {/* Cancellation Section - Only for paid plans */}
+      {/* Downgrade Section - Only for paid plans */}
       {currentSubscription?.subscription && !currentSubscription.subscription.isFree && (
-        <Card className="border-red-200 bg-red-50">
+        <Card className="border-blue-200 bg-blue-50">
           <CardContent className="p-6">
-            <div className="flex items-center space-x-2 text-red-800 mb-3">
-              <AlertTriangle className="h-5 w-5" />
-              <h3 className="text-lg font-semibold">Cancel Subscription</h3>
+            <div className="flex items-center space-x-2 text-blue-800 mb-3">
+              <Info className="h-5 w-5" />
+              <h3 className="text-lg font-semibold">Switch to Starter Plan</h3>
             </div>
-            <p className="text-sm text-red-700 mb-4">
-              Cancel your Executive subscription. You'll continue to enjoy all premium features until {currentSubscription.subscription.formattedNextRenewal}, 
-              after which your account will switch to the free Starter plan. No refunds will be provided.
+            <p className="text-sm text-blue-700 mb-4">
+              Switch back to the free Starter plan (500 words/month). You can upgrade again anytime.
             </p>
-            <button
-              onClick={() => setShowCancelDialog(true)}
-              disabled={cancelSubscription.isPending}
-              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+            <Button
+              onClick={() => {
+                const starterProduct = products?.find(p => p.features.plan.toLowerCase().includes('starter'));
+                if (starterProduct) {
+                  updateSubscription.mutate({ stripePriceId: starterProduct.prices.monthly.stripePriceId });
+                }
+              }}
+              disabled={updateSubscription.isPending}
+              variant="outline"
+              className="border-blue-300 text-blue-700 hover:bg-blue-100"
             >
-              {cancelSubscription.isPending ? 'Cancelling...' : 'Cancel Subscription'}
-            </button>
+              {updateSubscription.isPending ? 'Switching...' : 'Switch to Starter'}
+            </Button>
           </CardContent>
         </Card>
       )}
