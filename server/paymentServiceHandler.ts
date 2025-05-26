@@ -524,6 +524,7 @@ export async function updateUserSubscriptionToPlan(stripeCustomerId: string, str
                 quantity: 1,
               },
             ],
+            start_date: currentSubscription.current_period_start, // Start from current period start
             end_date: currentSubscription.current_period_end, // End when yearly subscription expires
           },
           // Phase 2: Switch to monthly plan starting after yearly ends
@@ -534,7 +535,7 @@ export async function updateUserSubscriptionToPlan(stripeCustomerId: string, str
                 quantity: 1,
               },
             ],
-            // This phase starts automatically after phase 1 ends
+            start_date: currentSubscription.current_period_end, // Start when yearly ends
             // No end_date means it continues indefinitely on monthly billing
           }
         ],
