@@ -524,20 +524,33 @@ export async function getBillingCycleWordUsageAnalytics(userId: number) {
       `✅ Retrieved subscription data: ${subscriptionData.plan} (${subscriptionData.wordLimit} words)`,
     );
 
-    // 2. Calculate subscription period with precise timing (end - 1 millisecond)
-    const subscriptionStart = subscriptionData.currentPeriodStart;
-    const subscriptionEndExclusive = new Date(
-      subscriptionData.currentPeriodEnd.getTime() - 1,
-    );
+    // 2. Calculate word usage period - monthly cycles regardless of payment frequency
+    let usagePeriodStart: Date;
+    let usagePeriodEnd: Date;
+    
+    if (subscriptionData.interval === 'year') {
+      // For annual plans, word usage is tracked monthly
+      const now = new Date();
+      const currentMonth = now.getMonth();
+      const currentYear = now.getFullYear();
+      
+      // Current month usage period (1st to last day of month)
+      usagePeriodStart = new Date(currentYear, currentMonth, 1);
+      usagePeriodEnd = new Date(currentYear, currentMonth + 1, 0, 23, 59, 59, 999);
+    } else {
+      // For monthly plans, use Stripe billing cycle
+      usagePeriodStart = subscriptionData.currentPeriodStart;
+      usagePeriodEnd = new Date(subscriptionData.currentPeriodEnd.getTime() - 1);
+    }
 
     console.log(
-      `📅 Billing cycle: ${subscriptionStart.toISOString()} to ${subscriptionEndExclusive.toISOString()}`,
+      `📅 Word usage period: ${usagePeriodStart.toISOString()} to ${usagePeriodEnd.toISOString()}`,
     );
 
     // 3. Generate detailed word usage report for this exact timeframe
     const usageReport = await storage.wordUsageReport(
-      subscriptionStart,
-      subscriptionEndExclusive,
+      usagePeriodStart,
+      usagePeriodEnd,
       userId,
     );
 
@@ -553,10 +566,9 @@ export async function getBillingCycleWordUsageAnalytics(userId: number) {
     const remainingWords = Math.max(0, wordLimit - usageReport.totalWordCount);
     const hasExceededLimit = usageReport.totalWordCount > wordLimit;
 
-    // 5. Calculate days remaining in billing cycle
+    // 5. Calculate days remaining in word usage cycle
     const now = new Date();
-    const msRemaining =
-      subscriptionData.currentPeriodEnd.getTime() - now.getTime();
+    const msRemaining = usagePeriodEnd.getTime() - now.getTime();
     const daysRemaining = Math.max(
       0,
       Math.ceil(msRemaining / (1000 * 60 * 60 * 24)),
@@ -579,8 +591,8 @@ export async function getBillingCycleWordUsageAnalytics(userId: number) {
         hasExceededLimit,
         billingCycleProgress: {
           daysRemaining,
-          cycleStart: subscriptionStart,
-          cycleEnd: subscriptionData.currentPeriodEnd,
+          cycleStart: usagePeriodStart,
+          cycleEnd: usagePeriodEnd,
         },
       },
     };
