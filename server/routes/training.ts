@@ -477,4 +477,43 @@ export function registerTrainingRoutes(app: Express) {
       res.status(500).json({ error: "Failed to fetch next situation" });
     }
   });
+
+  // Get a specific situation/scenario from JSON files
+  app.get("/api/training/situations-direct/:situationId", (req, res) => {
+    try {
+      const situationId = parseInt(req.params.situationId);
+      
+      // Find the scenario across all chapters and modules
+      for (let chapterNum = 1; chapterNum <= 5; chapterNum++) {
+        const filePath = path.join(__dirname, '../../attached_assets', `chapter${chapterNum}_expanded.json`);
+        
+        if (fs.existsSync(filePath)) {
+          const chapterData = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+          
+          if (chapterData.modules) {
+            for (const module of chapterData.modules) {
+              if (module.scenarios) {
+                const scenario = module.scenarios.find((s: any) => s.id === situationId);
+                if (scenario) {
+                  // Include module and chapter info for context
+                  return res.json({
+                    ...scenario,
+                    moduleId: module.id,
+                    moduleTitle: module.module_title,
+                    chapterId: chapterData.id,
+                    chapterTitle: chapterData.chapter_title
+                  });
+                }
+              }
+            }
+          }
+        }
+      }
+      
+      res.status(404).json({ error: "Scenario not found" });
+    } catch (error) {
+      console.error("Error loading scenario:", error);
+      res.status(500).json({ error: "Failed to load scenario" });
+    }
+  });
 }
