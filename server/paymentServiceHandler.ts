@@ -512,10 +512,17 @@ export async function updateUserSubscriptionToPlan(stripeCustomerId: string, str
       };
     }
 
+    // Get updated subscription details for enhanced messaging
+    const updatedSubscriptionData = await getUserSubscription(updatedSubscription.id);
+    
     return {
       success: true,
       requiresPayment: false,
-      message: "Subscription updated successfully"
+      message: "Subscription updated successfully",
+      newPlan: updatedSubscriptionData.plan,
+      amount: updatedSubscriptionData.amount,
+      interval: updatedSubscriptionData.interval,
+      nextRenewal: new Date(updatedSubscriptionData.nextRenewalTimestamp * 1000).toLocaleDateString()
     };
 
   } catch (error: any) {

@@ -212,7 +212,7 @@ export default function SecureSubscription() {
       
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       if (data.requiresPayment && data.clientSecret) {
         // Show payment setup form
         setPaymentSetup({
@@ -224,10 +224,8 @@ export default function SecureSubscription() {
           description: "Please add a payment method to complete the subscription change.",
         });
       } else {
-        toast({
-          title: "Success!",
-          description: "Your subscription has been updated successfully",
-        });
+        // Enhanced success messaging based on subscription change type
+        showSubscriptionSuccessMessage(data, variables);
         queryClient.invalidateQueries({ queryKey: ['/api/billing/subscriptions/current'] });
       }
     },
@@ -239,6 +237,79 @@ export default function SecureSubscription() {
       });
     }
   });
+
+  // Cancellation mutation for paid subscriptions
+  const cancelSubscription = useMutation({
+    mutationFn: async () => {
+      const response = await fetch('/api/billing/subscriptions/cancel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to cancel subscription');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Subscription Cancelled",
+        description: `Your subscription has been cancelled. You'll continue to enjoy Executive features until ${subscriptionData?.subscription?.formattedNextRenewal}, then switch to the free Starter plan.`,
+        duration: 8000,
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/billing/subscriptions/current'] });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to cancel subscription. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Enhanced success messaging based on subscription change type
+  const showSubscriptionSuccessMessage = (data: any, variables: any) => {
+    const currentPlan = subscription?.subscription?.plan || '';
+    const newPlan = data.newPlan || '';
+    const amount = data.amount || 0;
+    const interval = data.interval || '';
+    const nextRenewal = data.nextRenewal || '';
+
+    // Determine subscription change type and show appropriate message
+    if (currentPlan === 'leadertalk_starter' && newPlan.includes('exec')) {
+      // Free to Paid Upgrade
+      toast({
+        title: "🎉 Congratulations! Welcome to Executive!",
+        description: `You've successfully upgraded to our premium plan! You'll be billed ${amount} ${interval}ly starting ${nextRenewal}. Your subscription will renew automatically until cancelled.`,
+        duration: 8000,
+      });
+    } else if (interval === 'year' && currentPlan.includes('monthly')) {
+      // Monthly to Yearly
+      toast({
+        title: "🎉 Congratulations! Annual Savings Activated!",
+        description: `You've switched to our annual plan! You'll continue with your monthly plan until the cycle ends, then your annual subscription (${amount}/year) begins and renews automatically until cancelled.`,
+        duration: 8000,
+      });
+    } else if (newPlan === 'leadertalk_starter' && currentPlan.includes('exec')) {
+      // Paid to Free Downgrade
+      toast({
+        title: "Subscription Updated",
+        description: `You've switched to our free starter plan. No refunds will be provided - you'll continue enjoying your Executive benefits until ${nextRenewal}, then switch to the Starter plan.`,
+        duration: 8000,
+      });
+    } else {
+      // General success message
+      toast({
+        title: "Success!",
+        description: "Your subscription has been updated successfully",
+        duration: 5000,
+      });
+    }
+  };
 
   const handleSubscribe = (plan: BillingProduct) => {
     if (plan.pricing.stripePriceId) {
