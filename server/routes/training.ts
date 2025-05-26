@@ -504,6 +504,7 @@ export function registerTrainingRoutes(app: Express) {
                   // Include module and chapter info for context
                   return res.json({
                     ...scenario,
+                    userPrompt: scenario.user_prompt, // Map user_prompt to userPrompt for frontend
                     moduleId: module.id,
                     moduleTitle: module.module_title,
                     chapterId: chapterData.id,
