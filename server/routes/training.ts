@@ -9,6 +9,8 @@ import {
 } from "@shared/schema";
 import { eq, desc, inArray, and, sql } from "drizzle-orm";
 import { z } from "zod";
+import * as fs from 'fs';
+import * as path from 'path';
 
 const requireAuth = (req: Request, res: Response, next: Function) => {
   if (!req.session?.userId) {
@@ -21,8 +23,38 @@ export function registerTrainingRoutes(app: Express) {
   // Get all chapters - direct access for frontend
   app.get("/api/training/chapters-direct", requireAuth, async (req, res) => {
     try {
-      const allChapters = await db.select().from(chapters).orderBy(chapters.order);
-      res.json(allChapters);
+      // Load each chapter file
+      const chapterFiles = [
+        'chapter1_expanded.json',
+        'chapter2_expanded.json',
+        'chapter3_expanded.json',
+        'chapter4_expanded.json',
+        'chapter5_expanded.json'
+      ];
+      
+      const chapters = [];
+      const projectRoot = process.cwd();
+      
+      for (const chapterFile of chapterFiles) {
+        const filePath = path.join(projectRoot, 'attached_assets', chapterFile);
+        
+        if (fs.existsSync(filePath)) {
+          const rawData = fs.readFileSync(filePath, 'utf-8');
+          const chapterData = JSON.parse(rawData);
+          chapters.push(chapterData);
+        } else {
+          console.warn(`Chapter file not found: ${filePath}`);
+        }
+      }
+      
+      // Sort chapters by their order property
+      chapters.sort((a, b) => {
+        const orderA = a.order || a.id;
+        const orderB = b.order || b.id;
+        return orderA - orderB;
+      });
+      
+      res.json(chapters);
     } catch (error) {
       console.error("Error fetching chapters:", error);
       res.status(500).json({ error: "Failed to fetch chapters" });
