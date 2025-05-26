@@ -509,8 +509,14 @@ export async function updateUserSubscriptionToPlan(stripeCustomerId: string, str
       let schedule;
       
       // Check for existing schedules first
+      console.log('🔍 Checking for existing schedules for subscription:', currentSubscription.id);
       const existingSchedules = await stripeInstance.subscriptionSchedules.list({
         limit: 100 // Get more schedules to search through
+      });
+      
+      console.log('📋 Total schedules found:', existingSchedules.data.length);
+      existingSchedules.data.forEach(s => {
+        console.log(`  Schedule ${s.id} -> Subscription: ${s.subscription}`);
       });
       
       // Find schedule that matches our subscription
@@ -523,11 +529,9 @@ export async function updateUserSubscriptionToPlan(stripeCustomerId: string, str
         schedule = existingSchedule;
         console.log('🔄 Found existing schedule:', schedule.id);
       } else {
-        // Create new schedule
-        schedule = await stripeInstance.subscriptionSchedules.create({
-          from_subscription: currentSubscription.id,
-        });
-        console.log('📅 Created new schedule:', schedule.id);
+        console.log('❌ No existing schedule found, would create new one');
+        console.log('🚫 ERROR: This should not happen if subscription is attached to schedule');
+        throw new Error('Subscription appears to be attached to schedule but schedule not found in list');
       }
 
       // Then update the schedule to end at the current period end and start new plan
