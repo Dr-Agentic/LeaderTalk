@@ -507,26 +507,27 @@ export async function updateUserSubscriptionToPlan(stripeCustomerId: string, str
       // Use subscription schedule for interval changes to avoid billing cycle conflicts
       // First, check if subscription already has a schedule
       let schedule;
-      try {
-        // Try to create a new schedule from the subscription
+      
+      // Check for existing schedules first
+      const existingSchedules = await stripeInstance.subscriptionSchedules.list({
+        limit: 100 // Get more schedules to search through
+      });
+      
+      // Find schedule that matches our subscription
+      const existingSchedule = existingSchedules.data.find(s => 
+        s.subscription === currentSubscription.id
+      );
+      
+      if (existingSchedule) {
+        // Use existing schedule
+        schedule = existingSchedule;
+        console.log('🔄 Found existing schedule:', schedule.id);
+      } else {
+        // Create new schedule
         schedule = await stripeInstance.subscriptionSchedules.create({
           from_subscription: currentSubscription.id,
         });
-      } catch (error: any) {
-        if (error.message.includes('already attached to a schedule')) {
-          // Get the existing schedule ID from the error message or subscription
-          const schedules = await stripeInstance.subscriptionSchedules.list({
-            subscription: currentSubscription.id,
-            limit: 1
-          });
-          if (schedules.data.length > 0) {
-            schedule = schedules.data[0];
-          } else {
-            throw error;
-          }
-        } else {
-          throw error;
-        }
+        console.log('📅 Created new schedule:', schedule.id);
       }
 
       // Then update the schedule to end at the current period end and start new plan
