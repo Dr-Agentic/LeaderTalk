@@ -399,11 +399,11 @@ export default function SecureSubscription() {
         {plans?.map((plan) => (
           <Card 
             key={plan.id} 
-            className={`relative transition-all duration-200 hover:shadow-lg ${
+            className={`relative flex flex-col h-full transition-all duration-200 hover:shadow-lg ${
               selectedPlan?.id === plan.id ? 'ring-2 ring-primary' : ''
             }`}
           >
-            <CardHeader>
+            <CardHeader className="flex-shrink-0">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   {plan.productIcon && (
@@ -422,75 +422,80 @@ export default function SecureSubscription() {
               <CardDescription>{plan.description}</CardDescription>
             </CardHeader>
             
-            <CardContent className="space-y-4">
-              {/* Pricing */}
-              <div className="text-center">
-                <div className="text-3xl font-bold text-gray-900">
-                  {plan.pricing.formattedPrice}
-                </div>
-                {plan.pricing.formattedSavings && (
-                  <div className="text-sm text-green-600 font-medium mt-1">
-                    {plan.pricing.formattedSavings}
+            <CardContent className="flex-1 flex flex-col justify-between space-y-4">
+              <div className="space-y-4">
+                {/* Pricing */}
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-gray-900">
+                    {plan.pricing.formattedPrice}
                   </div>
-                )}
-              </div>
-              
-              <Separator />
-              
-              {/* Features */}
-              <div className="space-y-2">
-                <div className="flex items-center text-sm">
-                  <Check className="h-4 w-4 text-green-500 mr-2" />
-                  <span>{plan.features.wordLimit.toLocaleString()} words/month</span>
+                  {plan.pricing.formattedSavings && (
+                    <div className="text-sm text-green-600 font-medium mt-1">
+                      {plan.pricing.formattedSavings}
+                    </div>
+                  )}
                 </div>
-                {plan.features.advancedAnalytics && (
+                
+                <Separator />
+                
+                {/* Features */}
+                <div className="space-y-2">
                   <div className="flex items-center text-sm">
                     <Check className="h-4 w-4 text-green-500 mr-2" />
-                    <span>Advanced analytics</span>
+                    <span>{plan.features.wordLimit.toLocaleString()} words/month</span>
                   </div>
-                )}
-                {plan.features.prioritySupport && (
-                  <div className="flex items-center text-sm">
-                    <Check className="h-4 w-4 text-green-500 mr-2" />
-                    <span>Priority support</span>
-                  </div>
-                )}
-                {plan.billingType === 'yearly' && (
-                  <div className="flex items-center text-sm">
-                    <Check className="h-4 w-4 text-blue-500 mr-2" />
-                    <span className="text-blue-600 font-medium">Best value option</span>
-                  </div>
-                )}
+                  {plan.features.advancedAnalytics && (
+                    <div className="flex items-center text-sm">
+                      <Check className="h-4 w-4 text-green-500 mr-2" />
+                      <span>Advanced analytics</span>
+                    </div>
+                  )}
+                  {plan.features.prioritySupport && (
+                    <div className="flex items-center text-sm">
+                      <Check className="h-4 w-4 text-green-500 mr-2" />
+                      <span>Priority support</span>
+                    </div>
+                  )}
+                  {plan.billingType === 'yearly' && (
+                    <div className="flex items-center text-sm">
+                      <Check className="h-4 w-4 text-blue-500 mr-2" />
+                      <span className="text-blue-600 font-medium">Best value option</span>
+                    </div>
+                  )}
+                </div>
               </div>
               
+              {/* Button anchored to bottom */}
               <Button 
-                className="w-full" 
+                className="w-full mt-auto text-sm py-2 px-3 h-auto min-h-[40px]" 
                 onClick={() => handleSubscribe(plan)}
                 disabled={updateSubscription.isPending}
                 variant={plan.isPopular ? "default" : "outline"}
               >
-                {updateSubscription.isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  (() => {
-                    const currentPriceId = currentSubscription?.subscription?.priceId;
-                    // Check if current plan matches this specific plan's price ID
-                    const planPriceId = plan.pricing?.stripePriceId;
-                    const isCurrentPlan = currentPriceId === planPriceId;
-                    
-                    console.log('🔍 Price ID comparison:', {
-                      currentPriceId,
-                      planPriceId,
-                      isCurrentPlan,
-                      planName: plan.name
-                    });
-                    
-                    return isCurrentPlan ? "Current Plan" : `Subscribe to ${plan.name}`;
-                  })()
-                )}
+                <span className="text-center leading-tight">
+                  {updateSubscription.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    (() => {
+                      const currentPriceId = currentSubscription?.subscription?.priceId;
+                      // Check if current plan matches this specific plan's price ID
+                      const planPriceId = plan.pricing?.stripePriceId;
+                      const isCurrentPlan = currentPriceId === planPriceId;
+                      
+                      console.log('🔍 Price ID comparison:', {
+                        currentPriceId,
+                        planPriceId,
+                        isCurrentPlan,
+                        planName: plan.name
+                      });
+                      
+                      return isCurrentPlan ? "Current Plan" : `Subscribe to ${plan.name}`;
+                    })()
+                  )}
+                </span>
               </Button>
             </CardContent>
           </Card>
