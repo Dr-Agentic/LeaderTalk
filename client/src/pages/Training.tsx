@@ -263,44 +263,19 @@ function RecentCompletions() {
         <CardDescription>Your latest completed leadership exercises</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          <div className="flex justify-between items-center border-b pb-2">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-green-500" />
-              <div>
-                <p className="font-medium">Managing Team Conflict</p>
-                <p className="text-sm text-muted-foreground">Empathetic style • Score: 85</p>
-              </div>
-            </div>
-            <p className="text-sm text-muted-foreground">2 hours ago</p>
+        <div className="flex flex-col items-center justify-center py-8 text-center">
+          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+            <CheckCircle className="h-8 w-8 text-blue-600" />
           </div>
-          
-          <div className="flex justify-between items-center border-b pb-2">
-            <div className="flex items-center gap-2">
-              <XCircle className="h-5 w-5 text-red-500" />
-              <div>
-                <p className="font-medium">Motivating Team Members</p>
-                <p className="text-sm text-muted-foreground">Inspirational style • Score: 62</p>
-              </div>
-            </div>
-            <p className="text-sm text-muted-foreground">Yesterday</p>
-          </div>
-
-          <div className="flex justify-between items-center border-b pb-2">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-green-500" />
-              <div>
-                <p className="font-medium">Crisis Management</p>
-                <p className="text-sm text-muted-foreground">Commanding style • Score: 92</p>
-              </div>
-            </div>
-            <p className="text-sm text-muted-foreground">3 days ago</p>
-          </div>
+          <h3 className="font-medium text-gray-900 mb-2">Your Progress Will Show Here</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            Complete your first leadership exercise to see your progress and scores
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Start with the chapters below to begin your leadership journey
+          </p>
         </div>
       </CardContent>
-      <CardFooter>
-        <Button variant="outline" className="w-full">View All Activities</Button>
-      </CardFooter>
     </Card>
   );
 }
