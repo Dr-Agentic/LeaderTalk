@@ -299,29 +299,47 @@ async function transcribeAudio(audioPath: string): Promise<string> {
       console.warn("Could not analyze audio file header", headerError);
     }
     
-    // Create a .wav copy for OpenAI (most reliable format)
-    const wavPath = audioPath + '.wav';
-    fs.copyFileSync(audioPath, wavPath);
+    // Convert audio to WAV format using FFmpeg for OpenAI compatibility
+    const wavPath = audioPath.replace(/\.[^/.]+$/, '') + '.wav';
     
-    // Log file info before sending to OpenAI
-    console.log(`Sending audio file ${wavPath} to OpenAI for transcription`);
-    
-    let transcription;
     try {
-      // Send to OpenAI with .wav extension (most supported format)
-      transcription = await openai.audio.transcriptions.create({
+      // Use FFmpeg to convert the audio file to WAV format
+      const { exec } = require('child_process');
+      await new Promise((resolve, reject) => {
+        const command = `ffmpeg -i "${audioPath}" -acodec pcm_s16le -ar 16000 "${wavPath}" -y`;
+        exec(command, (error, stdout, stderr) => {
+          if (error) {
+            console.error('FFmpeg conversion error:', error);
+            reject(error);
+          } else {
+            console.log('Audio converted successfully to WAV format');
+            resolve(stdout);
+          }
+        });
+      });
+      
+      // Log file info before sending to OpenAI
+      console.log(`Sending converted audio file ${wavPath} to OpenAI for transcription`);
+      
+      // Send to OpenAI with properly converted WAV file
+      const transcription = await openai.audio.transcriptions.create({
         file: fs.createReadStream(wavPath),
         model: "whisper-1",
         response_format: "text",
         // Using auto language detection (removed explicit language parameter)
       });
       
-      // Clean up temporary file
+      // Clean up temporary files
       fs.unlinkSync(wavPath);
+      
+      return transcription;
+      
     } catch (error) {
-      // Clean up temporary file on error
+      // Clean up temporary files on error
       try {
-        fs.unlinkSync(wavPath);
+        if (fs.existsSync(wavPath)) {
+          fs.unlinkSync(wavPath);
+        }
       } catch (cleanupError) {
         console.error('Failed to cleanup temporary file:', cleanupError);
       }
