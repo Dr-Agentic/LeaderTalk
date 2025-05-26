@@ -319,6 +319,35 @@ export function registerTrainingRoutes(app: Express) {
     }
   });
 
+  // Get situation attempts for a specific situation
+  app.get("/api/training/situations/:situationId/attempts", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session?.userId;
+      if (!userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      const situationId = parseInt(req.params.situationId);
+      if (isNaN(situationId)) {
+        return res.status(400).json({ error: "Invalid situation ID" });
+      }
+
+      // Get all attempts for this situation by the current user
+      const attempts = await db
+        .select()
+        .from(situationAttempts)
+        .where(eq(situationAttempts.situationId, situationId))
+        .where(eq(situationAttempts.userId, userId))
+        .orderBy(desc(situationAttempts.createdAt));
+
+      res.json({ attempts });
+    } catch (error) {
+      console.error("Error fetching situation attempts:", error);
+      // Return empty array instead of error to avoid breaking the UI
+      res.json({ attempts: [] });
+    }
+  });
+
   // NEW: AI-Powered Complete Submission Endpoint
   app.post("/api/training/submit-with-ai-evaluation", requireAuth, async (req, res) => {
     try {
