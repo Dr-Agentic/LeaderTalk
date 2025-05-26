@@ -176,12 +176,13 @@ export function registerRecordingRoutes(app: Express) {
       }
 
       // Create recording record first
+      console.log(`[UPLOAD] Creating recording for user ${userId}, title: ${title}`);
       const recording = await storage.createRecording({
         userId,
         title,
-        duration: duration ? parseInt(duration) : 0,
-        status: 'processing'
+        duration: duration ? parseInt(duration) : 0
       });
+      console.log(`[UPLOAD] Recording created with ID: ${recording.id}`);
 
       // Process audio file asynchronously
       const audioPath = req.file.path;
