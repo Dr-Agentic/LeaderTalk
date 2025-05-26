@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { CheckCircle, Clock, ArrowRight, Home, RotateCcw } from "lucide-react";
 import { useLocation } from "wouter";
+import AnalysisResults from "./AnalysisResults";
 
 interface SubmissionFlowProps {
   userResponse: string;
