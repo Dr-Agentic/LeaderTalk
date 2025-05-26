@@ -11,6 +11,7 @@ import { eq, desc, inArray, and, sql } from "drizzle-orm";
 import { z } from "zod";
 import * as fs from 'fs';
 import * as path from 'path';
+import { trainingService } from "../services/trainingService";
 
 const requireAuth = (req: Request, res: Response, next: Function) => {
   if (!req.session?.userId) {
@@ -318,7 +319,46 @@ export function registerTrainingRoutes(app: Express) {
     }
   });
 
-  // Submit situation attempt
+  // NEW: AI-Powered Complete Submission Endpoint
+  app.post("/api/training/submit-with-ai-evaluation", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session?.userId;
+      if (!userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      const { scenarioId, userResponse } = req.body;
+      
+      if (!scenarioId || !userResponse?.trim()) {
+        return res.status(400).json({ error: "Scenario ID and response are required" });
+      }
+
+      console.log(`Processing AI evaluation for user ${userId}, scenario ${scenarioId}`);
+      
+      // Process complete submission with AI evaluation
+      const result = await trainingService.processTrainingSubmission({
+        scenarioId: parseInt(scenarioId),
+        userResponse: userResponse.trim(),
+        userId
+      });
+
+      if (!result.success) {
+        return res.status(400).json({ error: result.error || "Failed to process submission" });
+      }
+
+      res.json({
+        success: true,
+        attemptId: result.attemptId,
+        evaluation: result.evaluation,
+        message: "Response evaluated successfully with AI feedback"
+      });
+    } catch (error) {
+      console.error("Error in AI-powered submission:", error);
+      res.status(500).json({ error: "Failed to process AI evaluation" });
+    }
+  });
+
+  // Submit situation attempt (Legacy endpoint - keeping for backward compatibility)
   app.post("/api/situation-attempts", requireAuth, async (req, res) => {
     try {
       const userId = req.session?.userId;
@@ -328,10 +368,13 @@ export function registerTrainingRoutes(app: Express) {
 
       // Validate the evaluation data
       const evaluation: AttemptEvaluation = {
-        score: req.body.evaluation?.score || 0,
-        feedback: req.body.evaluation?.feedback || "",
+        styleMatchScore: req.body.evaluation?.styleMatchScore || 0,
+        clarity: req.body.evaluation?.clarity || 0,
+        empathy: req.body.evaluation?.empathy || 0,
+        persuasiveness: req.body.evaluation?.persuasiveness || 0,
         strengths: req.body.evaluation?.strengths || [],
-        improvements: req.body.evaluation?.improvements || []
+        weaknesses: req.body.evaluation?.weaknesses || [],
+        improvement: req.body.evaluation?.improvement || ""
       };
 
       const attemptData = insertSituationAttemptSchema.parse({
