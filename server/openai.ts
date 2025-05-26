@@ -299,52 +299,14 @@ async function transcribeAudio(audioPath: string): Promise<string> {
       console.warn("Could not analyze audio file header", headerError);
     }
     
-    // Convert audio to WAV format using FFmpeg for OpenAI compatibility
-    const wavPath = audioPath.replace(/\.[^/.]+$/, '') + '.wav';
+    // Send audio directly to OpenAI
+    console.log(`Sending audio file ${audioPath} to OpenAI for transcription`);
     
-    try {
-      // Use FFmpeg to convert the audio file to WAV format
-      const { exec } = require('child_process');
-      await new Promise((resolve, reject) => {
-        const command = `ffmpeg -i "${audioPath}" -acodec pcm_s16le -ar 16000 "${wavPath}" -y`;
-        exec(command, (error, stdout, stderr) => {
-          if (error) {
-            console.error('FFmpeg conversion error:', error);
-            reject(error);
-          } else {
-            console.log('Audio converted successfully to WAV format');
-            resolve(stdout);
-          }
-        });
-      });
-      
-      // Log file info before sending to OpenAI
-      console.log(`Sending converted audio file ${wavPath} to OpenAI for transcription`);
-      
-      // Send to OpenAI with properly converted WAV file
-      const transcription = await openai.audio.transcriptions.create({
-        file: fs.createReadStream(wavPath),
-        model: "whisper-1",
-        response_format: "text",
-        // Using auto language detection (removed explicit language parameter)
-      });
-      
-      // Clean up temporary files
-      fs.unlinkSync(wavPath);
-      
-      return transcription;
-      
-    } catch (error) {
-      // Clean up temporary files on error
-      try {
-        if (fs.existsSync(wavPath)) {
-          fs.unlinkSync(wavPath);
-        }
-      } catch (cleanupError) {
-        console.error('Failed to cleanup temporary file:', cleanupError);
-      }
-      throw error;
-    }
+    const transcription = await openai.audio.transcriptions.create({
+      file: fs.createReadStream(audioPath),
+      model: "whisper-1",
+      response_format: "text",
+    });
     
     // Log the transcription for debugging
     console.log(`Transcription received, first 50 chars: "${transcription.substring(0, 50)}..."`);
