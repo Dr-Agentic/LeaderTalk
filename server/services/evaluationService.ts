@@ -19,12 +19,13 @@ export interface ScenarioContext {
 }
 
 export interface EvaluationResult {
-  score: number;
-  feedback: string;
+  styleMatchScore: number;
+  clarity: number;
+  empathy: number;
+  persuasiveness: number;
   strengths: string[];
-  improvements: string[];
-  styleAlignment: number;
-  overallAssessment: string;
+  weaknesses: string[];
+  improvement: string;
 }
 
 export class EvaluationService {
@@ -93,12 +94,13 @@ Please evaluate this leadership response on the following criteria:
 **Required Response Format:**
 Please respond in this exact JSON format:
 {
-  "score": [overall effectiveness score 1-100],
-  "styleAlignment": [style alignment score 1-100],
+  "styleMatchScore": [style alignment score 1-100],
+  "clarity": [communication clarity score 1-100],
+  "empathy": [empathy demonstration score 1-100], 
+  "persuasiveness": [persuasive impact score 1-100],
   "strengths": ["strength 1", "strength 2", "strength 3"],
-  "improvements": ["improvement 1", "improvement 2", "improvement 3"],
-  "feedback": "Detailed constructive feedback paragraph",
-  "overallAssessment": "Brief 2-3 sentence summary"
+  "weaknesses": ["weakness 1", "weakness 2"],
+  "improvement": "Detailed constructive feedback paragraph with specific actionable advice"
 }
 
 Focus on actionable, specific feedback that helps the user improve their leadership communication skills.
@@ -116,12 +118,13 @@ Focus on actionable, specific feedback that helps the user improve their leaders
       const parsed = JSON.parse(jsonMatch[0]);
       
       return {
-        score: Math.max(1, Math.min(100, parsed.score || 70)),
-        styleAlignment: Math.max(1, Math.min(100, parsed.styleAlignment || 70)),
-        feedback: parsed.feedback || 'Good effort on your leadership response.',
+        styleMatchScore: Math.max(1, Math.min(100, parsed.styleMatchScore || 70)),
+        clarity: Math.max(1, Math.min(100, parsed.clarity || 75)),
+        empathy: Math.max(1, Math.min(100, parsed.empathy || 70)),
+        persuasiveness: Math.max(1, Math.min(100, parsed.persuasiveness || 70)),
         strengths: Array.isArray(parsed.strengths) ? parsed.strengths.slice(0, 5) : ['Clear communication'],
-        improvements: Array.isArray(parsed.improvements) ? parsed.improvements.slice(0, 5) : ['Continue practicing'],
-        overallAssessment: parsed.overallAssessment || 'Solid leadership communication attempt.'
+        weaknesses: Array.isArray(parsed.weaknesses) ? parsed.weaknesses.slice(0, 3) : ['Continue practicing'],
+        improvement: parsed.improvement || 'Good effort on your leadership response. Continue developing your communication skills.'
       };
     } catch (error) {
       console.error('Error parsing AI evaluation:', error);
@@ -131,12 +134,13 @@ Focus on actionable, specific feedback that helps the user improve their leaders
 
   private createFallbackEvaluation(userResponse: string, scenario: ScenarioContext): EvaluationResult {
     return {
-      score: 75,
-      styleAlignment: 70,
-      feedback: `Thank you for your thoughtful response to this ${scenario.requiredLeadershipStyle} leadership scenario. Your communication shows engagement with the situation presented.`,
+      styleMatchScore: 75,
+      clarity: 70,
+      empathy: 75,
+      persuasiveness: 70,
       strengths: ['Engaged with the scenario', 'Provided a complete response', 'Showed leadership thinking'],
-      improvements: ['Continue developing your leadership voice', 'Practice adapting communication style', 'Focus on specific leadership techniques'],
-      overallAssessment: 'A solid attempt at leadership communication that shows good engagement with the scenario.'
+      weaknesses: ['Continue developing your leadership voice', 'Practice adapting communication style'],
+      improvement: `Thank you for your thoughtful response to this ${scenario.requiredLeadershipStyle} leadership scenario. Your communication shows engagement with the situation presented. Focus on specific leadership techniques to enhance your impact.`
     };
   }
 }

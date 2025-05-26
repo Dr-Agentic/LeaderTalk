@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, and } from 'drizzle-orm';
 import { db } from '../db';
 import { situationAttempts } from '../../shared/schema';
 import { evaluationService, type ScenarioContext, type EvaluationResult } from './evaluationService';
@@ -54,16 +54,9 @@ export class TrainingService {
         situationId: submission.scenarioId,
         response: submission.userResponse,
         leadershipStyle: requiredStyle,
-        score: evaluation.score,
-        feedback: evaluation.feedback,
-        evaluation: {
-          score: evaluation.score,
-          feedback: evaluation.feedback,
-          strengths: evaluation.strengths,
-          improvements: evaluation.improvements,
-          styleAlignment: evaluation.styleAlignment,
-          overallAssessment: evaluation.overallAssessment
-        }
+        score: evaluation.styleMatchScore, // Use styleMatchScore as overall score
+        feedback: evaluation.improvement,
+        evaluation: evaluation // Store the complete evaluation object
       };
 
       const result = await db
@@ -150,16 +143,19 @@ export class TrainingService {
    */
   async getUserAttempts(userId: number, scenarioId?: number) {
     try {
-      let query = db
-        .select()
-        .from(situationAttempts)
-        .where(eq(situationAttempts.userId, userId));
-
+      const conditions = [eq(situationAttempts.userId, userId)];
+      
       if (scenarioId) {
-        query = query.where(eq(situationAttempts.situationId, scenarioId));
+        conditions.push(eq(situationAttempts.situationId, scenarioId));
       }
 
-      return await query.orderBy(desc(situationAttempts.createdAt));
+      const attempts = await db
+        .select()
+        .from(situationAttempts)
+        .where(conditions.length > 1 ? and(...conditions) : conditions[0])
+        .orderBy(desc(situationAttempts.createdAt));
+
+      return attempts;
     } catch (error) {
       console.error('Error fetching user attempts:', error);
       return [];
