@@ -1,5 +1,5 @@
 import { Express, Request, Response } from "express";
-import { getBillingCycleWordUsageAnalytics, getUserBillingCycle } from "../subscriptionController";
+import { getBillingCycleWordUsageAnalytics, getUserBillingCycle, getHistoricalBillingCycleUsage } from "../subscriptionController";
 import { getUserWordLimit } from "../paymentServiceHandler";
 
 const requireAuth = (req: Request, res: Response, next: Function) => {
@@ -10,7 +10,7 @@ const requireAuth = (req: Request, res: Response, next: Function) => {
 };
 
 export function registerUsageRoutes(app: Express) {
-  // Get billing cycle information
+  // Get billing cycle information (current cycle or historical cycles)
   app.get('/api/usage/billing-cycle', requireAuth, async (req, res) => {
     try {
       const userId = req.session?.userId;
@@ -18,22 +18,35 @@ export function registerUsageRoutes(app: Express) {
         return res.status(401).json({ error: "Authentication required" });
       }
 
-      const billingData = await getBillingCycleWordUsageAnalytics(userId);
+      const monthlyCycles = parseInt(req.query.monthlyCycles as string);
       
-      const response = {
-        currentUsage: billingData.analytics.currentUsage,
-        wordLimit: billingData.analytics.wordLimit,
-        usagePercentage: billingData.analytics.usagePercentage,
-        hasExceededLimit: billingData.analytics.hasExceededLimit,
-        billingCycle: {
-          startDate: billingData.analytics.billingCycleProgress.cycleStart.toISOString().split('T')[0],
-          endDate: billingData.analytics.billingCycleProgress.cycleEnd.toISOString().split('T')[0],
-          daysRemaining: billingData.analytics.billingCycleProgress.daysRemaining
-        }
-      };
+      if (monthlyCycles && monthlyCycles > 1) {
+        // Return historical billing cycles
+        const historyData = await getHistoricalBillingCycleUsage(userId, monthlyCycles);
+        console.log(`✅ Returning ${monthlyCycles} monthly cycles of historical data`);
+        res.json({
+          success: true,
+          ...historyData
+        });
+      } else {
+        // Return current billing cycle analytics (existing behavior)
+        const billingData = await getBillingCycleWordUsageAnalytics(userId);
+        
+        const response = {
+          currentUsage: billingData.analytics.currentUsage,
+          wordLimit: billingData.analytics.wordLimit,
+          usagePercentage: billingData.analytics.usagePercentage,
+          hasExceededLimit: billingData.analytics.hasExceededLimit,
+          billingCycle: {
+            startDate: billingData.analytics.billingCycleProgress.cycleStart.toISOString().split('T')[0],
+            endDate: billingData.analytics.billingCycleProgress.cycleEnd.toISOString().split('T')[0],
+            daysRemaining: billingData.analytics.billingCycleProgress.daysRemaining
+          }
+        };
 
-      console.log('✅ Returning billing cycle data:', response);
-      res.json(response);
+        console.log('✅ Returning current billing cycle data:', response);
+        res.json(response);
+      }
     } catch (error) {
       console.error("Error fetching billing cycle data:", error);
       res.status(500).json({ error: "Failed to fetch billing cycle data" });
