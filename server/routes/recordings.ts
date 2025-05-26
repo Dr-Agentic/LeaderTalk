@@ -159,9 +159,11 @@ export function registerRecordingRoutes(app: Express) {
 
   // Upload and process audio file
   app.post("/api/recordings/upload", requireAuth, upload.single('audio'), async (req, res) => {
+    console.log(`[UPLOAD ROUTE] POST request received from user ${req.session?.userId}`);
     try {
       const userId = req.session?.userId;
       if (!userId) {
+        console.log(`[UPLOAD ROUTE] Authentication failed - no userId`);
         return res.status(401).json({ error: "Authentication required" });
       }
 
@@ -177,12 +179,18 @@ export function registerRecordingRoutes(app: Express) {
 
       // Create recording record first
       console.log(`[UPLOAD] Creating recording for user ${userId}, title: ${title}`);
-      const recording = await storage.createRecording({
-        userId,
-        title,
-        duration: duration ? parseInt(duration) : 0
-      });
-      console.log(`[UPLOAD] Recording created with ID: ${recording.id}`);
+      let recording;
+      try {
+        recording = await storage.createRecording({
+          userId,
+          title,
+          duration: duration ? parseInt(duration) : 0
+        });
+        console.log(`[UPLOAD] Recording created with ID: ${recording.id}`);
+      } catch (createError) {
+        console.error(`[UPLOAD] Failed to create recording:`, createError);
+        return res.status(500).json({ error: "Failed to create recording" });
+      }
 
       // Process audio file asynchronously
       const audioPath = req.file.path;
