@@ -13,8 +13,8 @@ export function LegalModal({ isOpen, onClose, type }: LegalModalProps) {
   
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[85vh] flex flex-col p-0">
-        <DialogHeader className="px-6 pt-6 pb-4 border-b">
+      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col p-0 overflow-hidden">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b flex-shrink-0">
           <DialogTitle className="text-xl font-semibold">
             {isTerms ? 'Terms of Service' : 'Privacy Policy'}
           </DialogTitle>
@@ -26,11 +26,11 @@ export function LegalModal({ isOpen, onClose, type }: LegalModalProps) {
           </DialogDescription>
         </DialogHeader>
         
-        <ScrollArea className="flex-1 px-6 py-4" style={{ maxHeight: 'calc(85vh - 140px)' }}>
-          <div className="space-y-6 text-sm leading-relaxed pr-4">
+        <div className="flex-1 overflow-auto px-6 py-4 min-h-0">
+          <div className="space-y-6 text-sm leading-relaxed pr-2">
             {isTerms ? <TermsContent /> : <PrivacyContent />}
           </div>
-        </ScrollArea>
+        </div>
         
         <DialogFooter className="px-6 pb-6 pt-4 border-t bg-muted/30">
           <Button onClick={onClose} className="w-full" size="lg">
