@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, CheckCircle, AlertCircle, ArrowLeft, Trophy, Target, MessageSquare } from "lucide-react";
+import { Loader2, CheckCircle, AlertCircle, ArrowLeft, Trophy, Target, MessageSquare, Heart, Zap, Shield } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
