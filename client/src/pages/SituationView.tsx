@@ -250,9 +250,7 @@ export default function SituationView() {
             </Button>
           </Link>
           
-          <Badge variant="outline" className="text-sm">
-            {situation.assignedLeadershipStyle} Style
-          </Badge>
+
         </div>
 
         {/* Input Phase */}
@@ -282,21 +280,14 @@ export default function SituationView() {
               const styleInfo = getLeadershipStyleInfo(situation.assignedLeadershipStyle);
               const StyleIcon = styleInfo.icon;
               return (
-                <Card className={`${styleInfo.borderColor} border-2 ${styleInfo.bgColor}`}>
-                  <CardContent className="pt-6">
-                    <div className="flex items-center justify-center space-x-3">
-                      <StyleIcon className={`h-8 w-8 ${styleInfo.color}`} />
-                      <div className="text-center">
-                        <p className="text-lg font-semibold text-gray-900 mb-1">
-                          For this situation, you are requested to show your leadership in {styleInfo.label}
-                        </p>
-                        <p className={`text-sm font-medium ${styleInfo.color}`}>
-                          Focus on demonstrating {situation.assignedLeadershipStyle?.toLowerCase()} leadership qualities
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <div className={`${styleInfo.borderColor} border ${styleInfo.bgColor} rounded-lg p-3`}>
+                  <div className="flex items-center space-x-2">
+                    <StyleIcon className={`h-5 w-5 ${styleInfo.color}`} />
+                    <p className="text-sm font-medium text-gray-800">
+                      For this situation, you are requested to show your leadership in {styleInfo.label}
+                    </p>
+                  </div>
+                </div>
               );
             })()}
 
