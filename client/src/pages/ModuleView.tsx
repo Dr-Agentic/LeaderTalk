@@ -94,7 +94,7 @@ export default function ModuleView() {
     }
   }, [module, chapterId]);
 
-  const isLoading = authLoading || isModuleLoading || isProgressLoading;
+  const isLoading = authLoading || isModuleLoading || isStatsLoading;
 
   if (isLoading) {
     return <ModuleViewSkeleton />;
@@ -119,41 +119,19 @@ export default function ModuleView() {
     );
   }
 
-  // Get completion status for each situation
+  // Get completion status for each situation from real statistics
   const getSituationProgress = (situationId: number) => {
-    if (!progress) return null;
+    if (!moduleStats || !moduleStats.situationStats) return null;
     
-    // Progress data doesn't have chapters structure yet - simplified for now
-    const chapter = null;
-    const moduleProgress = null;
-    
-    if (!moduleProgress) return null;
-    
-    // Assuming we have access to detailed situation progress data
-    // In a real implementation, this would come from the API
-    const situationProgress = {
-      status: "not-started" as "not-started" | "completed" | "failed",
-      score: 0
+    return moduleStats.situationStats.find(stat => stat.situationId === situationId) || {
+      status: "not-started",
+      score: null,
+      completedAt: null
     };
-    
-    // This is simplified - in practice you would have a list of completed situations
-    // with their scores from the API
-    if (moduleProgress.completedSituations > 0) {
-      const situationOrder = module.situations.findIndex(s => s.id === situationId);
-      if (situationOrder < moduleProgress.completedSituations) {
-        situationProgress.status = Math.random() > 0.3 ? "completed" : "failed";
-        situationProgress.score = situationProgress.status === "completed" 
-          ? Math.floor(70 + Math.random() * 30) 
-          : Math.floor(30 + Math.random() * 40);
-      }
-    }
-    
-    return situationProgress;
   };
 
-  // Calculate module completion percentage
-  const moduleCompletion = progress && Array.isArray(progress) && progress.length > 0 ? 
-    progress.find(p => p.moduleId === moduleId)?.progress || 0 : 0;
+  // Use real module completion percentage from statistics
+  const moduleCompletion = moduleStats?.completionPercentage || 0;
 
   return (
     <AppLayout
