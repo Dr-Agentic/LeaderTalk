@@ -1,8 +1,14 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Image, Alert, TextInput } from 'react-native';
-import { Button } from 'react-native-paper';
-import { MaterialIcons } from '@expo/vector-icons';
+import { View, StyleSheet, Image, Alert, TextInput as RNTextInput } from 'react-native';
 import { signIn } from '../lib/auth';
+import { MaterialIcons } from '@expo/vector-icons';
+import { H1, H2, Paragraph, SmallText, H4 } from '../components/ui/Typography';
+import { Button } from '../components/ui/Button';
+import { Card, CardContent } from '../components/ui/Card';
+import { Input } from '../components/ui/Input';
+import { Separator } from '../components/ui/Separator';
+import { colors } from '../theme/colors';
+import { fonts } from '../theme/fonts';
 
 export default function LoginScreen() {
   const [isLoading, setIsLoading] = useState(false);
@@ -10,6 +16,16 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
 
   const handleSignIn = async () => {
+    if (!email.trim()) {
+      Alert.alert('Email Required', 'Please enter your email address.');
+      return;
+    }
+    
+    if (!password.trim()) {
+      Alert.alert('Password Required', 'Please enter your password.');
+      return;
+    }
+    
     setIsLoading(true);
     try {
       await signIn(email, password);
@@ -46,11 +62,56 @@ export default function LoginScreen() {
           style={styles.logo}
           resizeMode="contain"
         />
-        <Text style={styles.appName}>LeaderTalk</Text>
-        <Text style={styles.tagline}>
+        <H1 style={styles.appName}>LeaderTalk</H1>
+        <Paragraph style={styles.tagline}>
           Transform your communication skills with AI-powered coaching
-        </Text>
+        </Paragraph>
       </View>
+
+      <Card style={styles.card}>
+        <CardContent>
+          <H2 style={styles.cardTitle}>Sign In</H2>
+          
+          <Input
+            placeholder="Email"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+          
+          <Input
+            placeholder="Password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+          />
+          
+          <Button
+            onPress={handleSignIn}
+            loading={isLoading}
+            disabled={isLoading}
+            style={styles.signInButton}
+          >
+            Sign In
+          </Button>
+
+          <View style={styles.divider}>
+            <View style={styles.dividerLine} />
+            <SmallText style={styles.dividerText}>OR</SmallText>
+            <View style={styles.dividerLine} />
+          </View>
+
+          <Button
+            variant="outline"
+            onPress={handleDemoLogin}
+            disabled={isLoading}
+            style={styles.demoButton}
+          >
+            Try Demo
+          </Button>
+        </CardContent>
+      </Card>
 
       <View style={styles.featuresContainer}>
         <FeatureItem
@@ -69,62 +130,16 @@ export default function LoginScreen() {
           description="Practice with structured learning modules"
         />
       </View>
-
-      <View style={styles.authContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
-        
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
-        
-        <Button
-          mode="contained"
-          onPress={handleSignIn}
-          loading={isLoading}
-          disabled={isLoading}
-          style={styles.signInButton}
-          contentStyle={styles.buttonContent}
-        >
-          Sign In
-        </Button>
-
-        <Button
-          mode="outlined"
-          onPress={handleDemoLogin}
-          disabled={isLoading}
-          style={styles.demoButton}
-          contentStyle={styles.buttonContent}
-        >
-          Try Demo
-        </Button>
-      </View>
     </View>
   );
 }
 
-interface FeatureItemProps {
-  icon: keyof typeof MaterialIcons.glyphMap;
-  title: string;
-  description: string;
-}
-
-const FeatureItem = ({ icon, title, description }: FeatureItemProps) => (
+const FeatureItem = ({ icon, title, description }) => (
   <View style={styles.featureItem}>
-    <MaterialIcons name={icon} size={24} color="#e53e3e" />
+    <MaterialIcons name={icon} size={24} color={colors.primary} />
     <View style={styles.featureTextContainer}>
-      <Text style={styles.featureTitle}>{title}</Text>
-      <Text style={styles.featureDescription}>{description}</Text>
+      <H4 style={styles.featureTitle}>{title}</H4>
+      <SmallText style={styles.featureDescription}>{description}</SmallText>
     </View>
   </View>
 );
@@ -133,7 +148,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 24,
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.background,
   },
   logoContainer: {
     alignItems: 'center',
@@ -146,18 +161,40 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   appName: {
-    fontSize: 32,
-    fontWeight: 'bold',
     marginBottom: 8,
   },
   tagline: {
-    fontSize: 16,
-    color: '#6b7280',
     textAlign: 'center',
     marginHorizontal: 20,
+    color: colors.mutedForeground,
+  },
+  card: {
+    marginBottom: 32,
+  },
+  cardTitle: {
+    marginBottom: 16,
+  },
+  signInButton: {
+    marginTop: 8,
+  },
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 16,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: colors.border,
+  },
+  dividerText: {
+    marginHorizontal: 8,
+  },
+  demoButton: {
+    borderColor: colors.primary,
   },
   featuresContainer: {
-    marginBottom: 20,
+    marginTop: 16,
   },
   featureItem: {
     flexDirection: 'row',
@@ -169,34 +206,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   featureTitle: {
-    fontSize: 16,
-    fontWeight: '600',
     marginBottom: 4,
   },
   featureDescription: {
-    fontSize: 14,
-    color: '#6b7280',
-  },
-  authContainer: {
-    marginBottom: 40,
-  },
-  input: {
-    height: 50,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    marginBottom: 16,
-    paddingHorizontal: 16,
-    backgroundColor: '#f9fafb',
-  },
-  signInButton: {
-    marginBottom: 16,
-    backgroundColor: '#e53e3e',
-  },
-  demoButton: {
-    borderColor: '#e53e3e',
-  },
-  buttonContent: {
-    height: 48,
+    color: colors.mutedForeground,
   },
 });
