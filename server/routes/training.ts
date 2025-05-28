@@ -98,7 +98,9 @@ export function registerTrainingRoutes(app: Express) {
       res.json({
         ...situation,
         chapterId,
-        moduleId
+        moduleId,
+        userPrompt: situation.user_prompt,
+        assignedLeadershipStyle: "empathetic" // Default for now, can be randomized later
       });
     } catch (error) {
       res.status(404).json({ error: "Situation not found" });
