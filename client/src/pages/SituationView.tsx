@@ -25,13 +25,13 @@ export default function SituationView() {
 
   // Fetch situation data
   const { data: situation, isLoading } = useQuery({
-    queryKey: [`/api/training/situations-direct/${situationId}`],
-    enabled: !!situationId,
+    queryKey: [`/api/training/chapters/${chapterId}/modules/${moduleId}/situations/${situationId}`],
+    enabled: !!(chapterId && moduleId && situationId),
   });
 
   // Fetch user's attempts for this situation
   const { data: attemptsData } = useQuery({
-    queryKey: [`/api/training/situations/${situationId}/attempts`],
+    queryKey: [`/api/training/attempts`],
     enabled: !!situationId,
   });
 
