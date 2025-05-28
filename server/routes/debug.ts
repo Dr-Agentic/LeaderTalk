@@ -29,19 +29,8 @@ export function registerDebugRoutes(app: Express) {
       cookieHeader
     };
 
-    // Enhanced logging for debugging
-    console.log("Session check:", {
-      sessionExists,
-      sessionId: req.sessionID,
-      userId,
-      isLoggedIn,
-      cookiePresent,
-      sessionAge,
-      cookieExists,
-      cookieHeader: req.headers.cookie,
-      fullSessionId: req.sessionID,
-      sessionData: req.session
-    });
+    // Minimal logging for debugging
+    // console.log("Session check:", { sessionExists, userId, isLoggedIn });
 
     res.json(debugInfo);
   });
