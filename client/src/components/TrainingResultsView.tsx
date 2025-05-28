@@ -1,9 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Check, AlertCircle, ArrowRight } from "lucide-react";
+import { Check, AlertCircle, ArrowRight, Trophy, Target, TrendingUp } from "lucide-react";
 
 interface TrainingResultsViewProps {
   evaluation: {
+    overallScore: number;
     improvement: string;
     styleMatchScore: number;
     clarity: number;
@@ -17,6 +18,23 @@ interface TrainingResultsViewProps {
   onContinue: () => void;
 }
 
+// Helper function to get score-based icon and styling
+const getScoreIcon = (score: number) => {
+  if (score > 80) {
+    return { icon: Trophy, color: "text-green-600", bgColor: "bg-green-50", borderColor: "border-green-200" };
+  } else if (score > 60) {
+    return { icon: Target, color: "text-yellow-600", bgColor: "bg-yellow-50", borderColor: "border-yellow-200" };
+  } else {
+    return { icon: TrendingUp, color: "text-blue-600", bgColor: "bg-blue-50", borderColor: "border-blue-200" };
+  }
+};
+
+const getScoreColor = (score: number) => {
+  if (score > 80) return "text-green-600";
+  if (score > 60) return "text-yellow-600";
+  return "text-blue-600";
+};
+
 export default function TrainingResultsView({ 
   evaluation, 
   assignedStyle, 
@@ -24,37 +42,57 @@ export default function TrainingResultsView({
   onContinue 
 }: TrainingResultsViewProps) {
   const passed = evaluation.styleMatchScore >= 70;
+  const scoreInfo = getScoreIcon(evaluation.overallScore);
+  const ScoreIcon = scoreInfo.icon;
 
   return (
     <div className="space-y-6">
-      {/* Header Card */}
+      {/* Overall Score Card */}
+      <Card className={`${scoreInfo.borderColor} ${scoreInfo.bgColor}`}>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-3">
+            <ScoreIcon className={`h-8 w-8 ${scoreInfo.color}`} />
+            <div>
+              <div className="text-2xl font-bold">Overall Score</div>
+              <div className={`text-4xl font-bold ${scoreInfo.color}`}>{evaluation.overallScore}%</div>
+            </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center">
+            <p className={`text-lg font-medium ${scoreInfo.color}`}>
+              {evaluation.overallScore > 80 ? "Excellent Leadership Response!" : 
+               evaluation.overallScore > 60 ? "Good Progress - Keep Building!" : 
+               "Great Start - Room to Grow!"}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Detailed Scores Card */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            {passed ? (
-              <Check className="h-6 w-6 text-green-500" />
-            ) : (
-              <AlertCircle className="h-6 w-6 text-yellow-500" />
-            )}
-            AI Analysis Complete
+            <Target className="h-6 w-6 text-primary" />
+            Detailed Analysis
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             <div className="text-center p-4 bg-muted rounded-lg">
-              <div className="text-2xl font-bold text-primary">{evaluation.styleMatchScore}%</div>
+              <div className={`text-2xl font-bold ${getScoreColor(evaluation.styleMatchScore)}`}>{evaluation.styleMatchScore}%</div>
               <div className="text-sm text-muted-foreground">Style Match</div>
             </div>
             <div className="text-center p-4 bg-muted rounded-lg">
-              <div className="text-2xl font-bold text-primary">{evaluation.clarity}%</div>
+              <div className={`text-2xl font-bold ${getScoreColor(evaluation.clarity)}`}>{evaluation.clarity}%</div>
               <div className="text-sm text-muted-foreground">Clarity</div>
             </div>
             <div className="text-center p-4 bg-muted rounded-lg">
-              <div className="text-2xl font-bold text-primary">{evaluation.empathy}%</div>
+              <div className={`text-2xl font-bold ${getScoreColor(evaluation.empathy)}`}>{evaluation.empathy}%</div>
               <div className="text-sm text-muted-foreground">Empathy</div>
             </div>
             <div className="text-center p-4 bg-muted rounded-lg">
-              <div className="text-2xl font-bold text-primary">{evaluation.persuasiveness}%</div>
+              <div className={`text-2xl font-bold ${getScoreColor(evaluation.persuasiveness)}`}>{evaluation.persuasiveness}%</div>
               <div className="text-sm text-muted-foreground">Persuasion</div>
             </div>
           </div>
