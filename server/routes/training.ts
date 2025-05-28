@@ -48,32 +48,60 @@ export function registerTrainingRoutes(app: Express) {
     }
   });
 
-  app.get("/api/training/situations/:id", requireAuth, async (req, res) => {
+  app.get("/api/training/chapters/:chapterId", requireAuth, async (req, res) => {
     try {
-      const situationId = parseInt(req.params.id);
+      const chapterId = parseInt(req.params.chapterId);
+      const chapterData = loadChapterData(chapterId);
+      res.json(chapterData);
+    } catch (error) {
+      res.status(404).json({ error: "Chapter not found" });
+    }
+  });
+
+  app.get("/api/training/chapters/:chapterId/modules/:moduleId", requireAuth, async (req, res) => {
+    try {
+      const chapterId = parseInt(req.params.chapterId);
+      const moduleId = parseInt(req.params.moduleId);
       
-      for (let i = 1; i <= 5; i++) {
-        try {
-          const chapterData = loadChapterData(i);
-          for (const module of chapterData.modules) {
-            for (const scenario of module.scenarios) {
-              if (scenario.id === situationId) {
-                return res.json({
-                  ...scenario,
-                  chapterId: i,
-                  moduleId: module.id
-                });
-              }
-            }
-          }
-        } catch (error) {
-          continue;
-        }
+      const chapterData = loadChapterData(chapterId);
+      const module = chapterData.modules.find((m: any) => m.id === moduleId);
+      
+      if (!module) {
+        return res.status(404).json({ error: "Module not found" });
       }
       
-      res.status(404).json({ error: "Situation not found" });
+      res.json(module);
     } catch (error) {
-      res.status(500).json({ error: "Failed to load situation" });
+      res.status(404).json({ error: "Module not found" });
+    }
+  });
+
+  app.get("/api/training/chapters/:chapterId/modules/:moduleId/situations/:situationId", requireAuth, async (req, res) => {
+    try {
+      const chapterId = parseInt(req.params.chapterId);
+      const moduleId = parseInt(req.params.moduleId);
+      const situationId = parseInt(req.params.situationId);
+      
+      const chapterData = loadChapterData(chapterId);
+      const module = chapterData.modules.find((m: any) => m.id === moduleId);
+      
+      if (!module) {
+        return res.status(404).json({ error: "Module not found" });
+      }
+      
+      const situation = module.scenarios.find((s: any) => s.id === situationId);
+      
+      if (!situation) {
+        return res.status(404).json({ error: "Situation not found" });
+      }
+      
+      res.json({
+        ...situation,
+        chapterId,
+        moduleId
+      });
+    } catch (error) {
+      res.status(404).json({ error: "Situation not found" });
     }
   });
 
