@@ -1,5 +1,5 @@
 import { db } from './db';
-import { chapters, modules, situations } from '@shared/schema';
+import { chapters, modules } from '@shared/schema';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -133,19 +133,8 @@ export async function importTrainingData() {
         
         console.log(`Imported module: ${moduleData.module_title}`);
         
-        // Insert each situation in the module
-        for (const scenarioData of moduleData.scenarios) {
-          await db.insert(situations).values({
-            id: scenarioData.id,
-            moduleId: newModule.id,
-            description: scenarioData.description,
-            userPrompt: scenarioData.user_prompt,
-            styleResponses: scenarioData.style_responses,
-            order: scenarioData.id % 100 // Using the ones digit of ID as order
-          });
-          
-          console.log(`Imported situation: ${scenarioData.description.substring(0, 30)}...`);
-        }
+        // Note: Situations are now loaded from JSON files directly, not stored in database
+        console.log(`Module has ${moduleData.scenarios.length} scenarios available in JSON`);
       }
     }
     

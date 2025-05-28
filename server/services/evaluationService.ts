@@ -19,6 +19,7 @@ export interface ScenarioContext {
 }
 
 export interface EvaluationResult {
+  overallScore: number;
   styleMatchScore: number;
   clarity: number;
   empathy: number;
@@ -94,6 +95,7 @@ Please evaluate this leadership response on the following criteria:
 **Required Response Format:**
 Please respond in this exact JSON format:
 {
+  "overallScore": [overall effectiveness score 1-100],
   "styleMatchScore": [style alignment score 1-100],
   "clarity": [communication clarity score 1-100],
   "empathy": [empathy demonstration score 1-100], 
@@ -118,6 +120,7 @@ Focus on actionable, specific feedback that helps the user improve their leaders
       const parsed = JSON.parse(jsonMatch[0]);
       
       return {
+        overallScore: Math.max(1, Math.min(100, parsed.overallScore || 70)),
         styleMatchScore: Math.max(1, Math.min(100, parsed.styleMatchScore || 70)),
         clarity: Math.max(1, Math.min(100, parsed.clarity || 75)),
         empathy: Math.max(1, Math.min(100, parsed.empathy || 70)),
@@ -134,6 +137,7 @@ Focus on actionable, specific feedback that helps the user improve their leaders
 
   private createFallbackEvaluation(userResponse: string, scenario: ScenarioContext): EvaluationResult {
     return {
+      overallScore: 72,
       styleMatchScore: 75,
       clarity: 70,
       empathy: 75,

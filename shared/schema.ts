@@ -191,6 +191,7 @@ export type LeadershipInsight = {
 };
 
 export type AttemptEvaluation = {
+  overallScore: number;
   styleMatchScore: number;
   clarity: number;
   empathy: number;
