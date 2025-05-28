@@ -1,27 +1,48 @@
 import { useState, useEffect } from "react";
-import { useParams, useLocation } from "wouter";
+import { useParams, useLocation, Link } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import AppLayout from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
-import { Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, CheckCircle, AlertCircle, ArrowLeft, Trophy, Target, MessageSquare } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import TrainingResultsView from "@/components/TrainingResultsView";
+import { useAuth } from "@/hooks/useAuth";
 
 type SubmissionPhase = 'input' | 'submitting' | 'complete';
+
+interface Situation {
+  id: number;
+  description: string;
+  userPrompt: string;
+  assignedLeadershipStyle: string;
+}
+
+interface EvaluationResult {
+  styleMatchScore: number;
+  clarity: number;
+  empathy: number;
+  persuasiveness: number;
+  overallScore: number;
+  strengths: string[];
+  weaknesses: string[];
+  improvement: string;
+  passed: boolean;
+}
 
 export default function SituationView() {
   const { chapterId, moduleId, situationId } = useParams();
   const [, navigate] = useLocation();
   const { toast } = useToast();
+  const { user } = useAuth();
   
   const [response, setResponse] = useState("");
   const [submissionPhase, setSubmissionPhase] = useState<SubmissionPhase>('input');
   const [progress, setProgress] = useState(0);
-  const [aiEvaluation, setAiEvaluation] = useState<any>(null);
+  const [evaluation, setEvaluation] = useState<EvaluationResult | null>(null);
 
   // Fetch situation data
   const { data: situation, isLoading } = useQuery({
@@ -38,6 +59,7 @@ export default function SituationView() {
   // Progress bar simulation during submission
   useEffect(() => {
     if (submissionPhase === 'submitting') {
+      setProgress(0);
       const interval = setInterval(() => {
         setProgress(prev => {
           if (prev >= 90) return prev; // Cap at 90% until we get results
@@ -49,26 +71,24 @@ export default function SituationView() {
     }
   }, [submissionPhase]);
 
-  // AI Evaluation Mutation
+  // Submit response mutation
   const submitMutation = useMutation({
     mutationFn: async (data: { situationId: number; response: string; leadershipStyle: string }) => {
       return apiRequest("POST", "/api/training/submit-with-ai-evaluation", data);
     },
     onSuccess: (data) => {
-      console.log("AI submission successful:", data);
+      console.log("Submission successful:", data);
       
       // Complete the progress bar
       setProgress(100);
       
       // Set evaluation data
       if (data.evaluation) {
-        setAiEvaluation(data.evaluation);
+        setEvaluation(data.evaluation);
         setSubmissionPhase('complete');
         
-        // Invalidate queries
-        queryClient.invalidateQueries({
-          queryKey: [`/api/training/situations/${situationId}/attempts`],
-        });
+        // Invalidate queries to refresh data
+        queryClient.invalidateQueries({ queryKey: [`/api/training/attempts`] });
         queryClient.invalidateQueries({ queryKey: ["/api/training/progress"] });
 
         toast({
@@ -102,32 +122,53 @@ export default function SituationView() {
     if (!response.trim()) {
       toast({
         title: "Response Required",
-        description: "Please provide a response before submitting.",
+        description: "Please provide your response before submitting.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!situation) {
+      toast({
+        title: "Error",
+        description: "Situation data not loaded. Please refresh and try again.",
         variant: "destructive",
       });
       return;
     }
 
     setSubmissionPhase('submitting');
-    setProgress(10);
-
     submitMutation.mutate({
       situationId: parseInt(situationId!),
       response: response.trim(),
-      leadershipStyle: situation?.assignedLeadershipStyle || 'empathetic'
+      leadershipStyle: situation.assignedLeadershipStyle,
     });
   };
 
-  const handleContinue = () => {
-    // Navigate to next situation or back to training overview
-    navigate("/training");
+  const handleTryAgain = () => {
+    setResponse("");
+    setSubmissionPhase('input');
+    setProgress(0);
+    setEvaluation(null);
+  };
+
+  const getScoreColor = (score: number) => {
+    if (score >= 80) return "text-green-600";
+    if (score >= 60) return "text-yellow-600";
+    return "text-red-600";
+  };
+
+  const getScoreBadgeVariant = (score: number) => {
+    if (score >= 80) return "default";
+    if (score >= 60) return "secondary";
+    return "destructive";
   };
 
   if (isLoading) {
     return (
-      <AppLayout showBackButton backTo="/training" backLabel="Back to Training">
-        <div className="flex items-center justify-center h-96">
-          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+      <AppLayout pageTitle="Loading Exercise...">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
         </div>
       </AppLayout>
     );
@@ -135,78 +176,65 @@ export default function SituationView() {
 
   if (!situation) {
     return (
-      <AppLayout showBackButton backTo="/training" backLabel="Back to Training">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Situation Not Found</h1>
-          <p className="mb-6">The requested training situation could not be found.</p>
+      <AppLayout pageTitle="Exercise Not Found">
+        <div className="max-w-2xl mx-auto text-center">
+          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold mb-2">Exercise Not Found</h1>
+          <p className="text-muted-foreground mb-6">
+            The requested training exercise could not be found.
+          </p>
+          <Link href="/training">
+            <Button>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Training
+            </Button>
+          </Link>
         </div>
       </AppLayout>
     );
   }
 
+  // Filter attempts for this specific situation
+  const situationAttempts = attemptsData?.filter((attempt: any) => 
+    attempt.situationId === parseInt(situationId!)
+  ) || [];
+
   return (
-    <AppLayout showBackButton backTo="/training" backLabel="Back to Training">
+    <AppLayout pageTitle="Leadership Exercise">
       <div className="max-w-4xl mx-auto space-y-6">
         
-        {/* Submission Progress View */}
-        {submissionPhase === 'submitting' && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Loader2 className="h-5 w-5 animate-spin" />
-                Analyzing Your Response...
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Progress value={progress} className="w-full" />
-              <div className="text-center text-sm text-muted-foreground">
-                AI is evaluating your leadership response and providing personalized feedback...
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        {/* Header with Navigation */}
+        <div className="flex items-center justify-between">
+          <Link href={`/training/chapter/${chapterId}/module/${moduleId}`}>
+            <Button variant="outline" size="sm">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Module
+            </Button>
+          </Link>
+          
+          <Badge variant="outline" className="text-sm">
+            {situation.assignedLeadershipStyle} Style
+          </Badge>
+        </div>
 
-        {/* Results View */}
-        {submissionPhase === 'complete' && aiEvaluation && (
-          <TrainingResultsView
-            evaluation={aiEvaluation}
-            assignedStyle={situation.assignedLeadershipStyle || 'empathetic'}
-            userResponse={response}
-            onContinue={handleContinue}
-          />
-        )}
-
-        {/* Input View */}
+        {/* Input Phase */}
         {submissionPhase === 'input' && (
-          <>
-            {/* Situation Header */}
+          <div className="space-y-6">
+            {/* Situation Description */}
             <Card>
               <CardHeader>
-                <CardTitle>Chapter {chapterId} • Module {moduleId} • Situation {situationId}</CardTitle>
+                <CardTitle className="flex items-center">
+                  <Target className="h-5 w-5 text-primary mr-2" />
+                  Scenario
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="p-4 bg-muted rounded-lg">
-                    <h3 className="font-medium mb-2">Situation:</h3>
-                    <p>{situation.description}</p>
-                  </div>
-
-                  {situation.assignedLeadershipStyle && (
-                    <div className="p-4 bg-primary/10 rounded-lg">
-                      <h3 className="font-medium mb-2">Your Leadership Style:</h3>
-                      <p className="text-xl font-semibold capitalize text-primary">
-                        {situation.assignedLeadershipStyle}
-                      </p>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Respond using a {situation.assignedLeadershipStyle} leadership approach.
-                      </p>
-                    </div>
-                  )}
-
-                  <div className="p-4 bg-accent/20 rounded-lg">
-                    <h3 className="font-medium mb-2">Your Task:</h3>
-                    <p>{situation.userPrompt}</p>
-                  </div>
+                <p className="text-lg leading-relaxed mb-4">
+                  {situation.description}
+                </p>
+                <div className="bg-muted/50 p-4 rounded-lg">
+                  <p className="font-medium text-primary mb-2">Your Task:</p>
+                  <p>{situation.userPrompt}</p>
                 </div>
               </CardContent>
             </Card>
@@ -214,61 +242,198 @@ export default function SituationView() {
             {/* Response Input */}
             <Card>
               <CardHeader>
-                <CardTitle>Your Response</CardTitle>
+                <CardTitle className="flex items-center">
+                  <MessageSquare className="h-5 w-5 text-primary mr-2" />
+                  Your Response
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <Textarea
-                  placeholder="Type your leadership response here..."
-                  className="min-h-32"
+                  placeholder="Type your response here... Consider your leadership style and the situation requirements."
                   value={response}
                   onChange={(e) => setResponse(e.target.value)}
-                  disabled={submissionPhase === 'submitting'}
+                  rows={6}
+                  className="min-h-[150px]"
                 />
-                
-                <Button 
-                  onClick={handleSubmit}
-                  disabled={submissionPhase === 'submitting' || !response.trim()}
-                  className="w-full"
-                  size="lg"
-                >
-                  {submissionPhase === 'submitting' ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Submitting for AI Analysis...
-                    </>
-                  ) : (
-                    "Submit Response for AI Analysis"
-                  )}
-                </Button>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">
+                    {response.length} characters
+                  </span>
+                  <Button 
+                    onClick={handleSubmit}
+                    disabled={!response.trim() || submitMutation.isPending}
+                    size="lg"
+                  >
+                    Submit Response
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Submitting Phase */}
+        {submissionPhase === 'submitting' && (
+          <Card>
+            <CardContent className="py-12">
+              <div className="text-center space-y-6">
+                <div className="flex justify-center">
+                  <Loader2 className="h-12 w-12 text-primary animate-spin" />
+                </div>
+                <div className="space-y-3">
+                  <h3 className="text-xl font-semibold">Analyzing Your Response</h3>
+                  <p className="text-muted-foreground">
+                    Our AI is evaluating your leadership approach and providing personalized feedback...
+                  </p>
+                  <div className="max-w-xs mx-auto">
+                    <Progress value={progress} className="h-2" />
+                    <p className="text-sm text-muted-foreground mt-2">
+                      {Math.round(progress)}% complete
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Results Phase */}
+        {submissionPhase === 'complete' && evaluation && (
+          <div className="space-y-6">
+            {/* Overall Results */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Trophy className="h-5 w-5 text-primary mr-2" />
+                  Evaluation Results
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                  <div className="text-center">
+                    <div className={`text-2xl font-bold ${getScoreColor(evaluation.styleMatchScore)}`}>
+                      {evaluation.styleMatchScore}%
+                    </div>
+                    <div className="text-sm text-muted-foreground">Style Match</div>
+                  </div>
+                  <div className="text-center">
+                    <div className={`text-2xl font-bold ${getScoreColor(evaluation.clarity)}`}>
+                      {evaluation.clarity}%
+                    </div>
+                    <div className="text-sm text-muted-foreground">Clarity</div>
+                  </div>
+                  <div className="text-center">
+                    <div className={`text-2xl font-bold ${getScoreColor(evaluation.empathy)}`}>
+                      {evaluation.empathy}%
+                    </div>
+                    <div className="text-sm text-muted-foreground">Empathy</div>
+                  </div>
+                  <div className="text-center">
+                    <div className={`text-2xl font-bold ${getScoreColor(evaluation.persuasiveness)}`}>
+                      {evaluation.persuasiveness}%
+                    </div>
+                    <div className="text-sm text-muted-foreground">Persuasiveness</div>
+                  </div>
+                </div>
+
+                <div className="text-center">
+                  <Badge variant={getScoreBadgeVariant(evaluation.overallScore)} className="text-lg px-4 py-2">
+                    Overall Score: {evaluation.overallScore}%
+                    {evaluation.passed ? " - PASSED" : " - NEEDS IMPROVEMENT"}
+                  </Badge>
+                </div>
               </CardContent>
             </Card>
 
-            {/* Previous Attempts */}
-            {attemptsData?.attempts && attemptsData.attempts.length > 0 && (
+            {/* Detailed Feedback */}
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Strengths */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Previous Attempts</CardTitle>
+                  <CardTitle className="text-green-600">Strengths</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
-                    {attemptsData.attempts.map((attempt: any, index: number) => (
-                      <div key={attempt.id} className="p-3 border rounded-lg">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="text-sm font-medium">Attempt {index + 1}</span>
-                          {attempt.evaluation && (
-                            <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
-                              Score: {attempt.evaluation.styleMatchScore}%
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-sm italic">"{attempt.response}"</p>
-                      </div>
+                  <ul className="space-y-2">
+                    {evaluation.strengths.map((strength, index) => (
+                      <li key={index} className="flex items-start">
+                        <CheckCircle className="h-4 w-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                        <span className="text-sm">{strength}</span>
+                      </li>
                     ))}
-                  </div>
+                  </ul>
                 </CardContent>
               </Card>
-            )}
-          </>
+
+              {/* Areas for Improvement */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-orange-600">Areas for Improvement</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2">
+                    {evaluation.weaknesses.map((weakness, index) => (
+                      <li key={index} className="flex items-start">
+                        <AlertCircle className="h-4 w-4 text-orange-500 mr-2 mt-0.5 flex-shrink-0" />
+                        <span className="text-sm">{weakness}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Improvement Suggestions */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Personalized Recommendations</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground leading-relaxed">
+                  {evaluation.improvement}
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Action Buttons */}
+            <div className="flex justify-center space-x-4">
+              <Button variant="outline" onClick={handleTryAgain}>
+                Try Again
+              </Button>
+              <Link href={`/training/chapter/${chapterId}/module/${moduleId}`}>
+                <Button>
+                  Continue Training
+                </Button>
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* Previous Attempts */}
+        {situationAttempts.length > 0 && submissionPhase === 'input' && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Previous Attempts</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {situationAttempts.slice(0, 3).map((attempt: any, index: number) => (
+                  <div key={attempt.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-md">
+                    <div>
+                      <div className="font-medium">Attempt #{situationAttempts.length - index}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {new Date(attempt.createdAt).toLocaleDateString()}
+                      </div>
+                    </div>
+                    {attempt.score && (
+                      <Badge variant={getScoreBadgeVariant(attempt.score)}>
+                        {attempt.score}%
+                      </Badge>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         )}
       </div>
     </AppLayout>
