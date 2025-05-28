@@ -68,9 +68,9 @@ export default function ModuleView() {
 
   // Fetch the module with its situations directly from JSON files
   const { data: module, isLoading: isModuleLoading } = useQuery({
-    queryKey: [`/api/training/modules-direct/${moduleId}`],
+    queryKey: [`/api/training/chapters/${chapterId}/modules/${moduleId}`],
     queryFn: getQueryFn({ on401: "throw" }),
-    enabled: !!moduleId && isAuthenticated,
+    enabled: !!(chapterId && moduleId) && isAuthenticated,
   });
 
   // Fetch user progress to show completion status for each situation
