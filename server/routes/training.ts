@@ -99,7 +99,6 @@ export function registerTrainingRoutes(app: Express) {
         ...situation,
         chapterId,
         moduleId,
-        userPrompt: situation.user_prompt,
         assignedLeadershipStyle: "empathetic" // Default for now, can be randomized later
       });
     } catch (error) {

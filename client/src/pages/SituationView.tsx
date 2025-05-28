@@ -17,7 +17,7 @@ type SubmissionPhase = 'input' | 'submitting' | 'complete';
 interface Situation {
   id: number;
   description: string;
-  userPrompt: string;
+  user_prompt: string;
   assignedLeadershipStyle: string;
 }
 
@@ -234,7 +234,7 @@ export default function SituationView() {
                 </p>
                 <div className="bg-muted/50 p-4 rounded-lg">
                   <p className="font-medium text-primary mb-2">Your Task:</p>
-                  <p>{situation.userPrompt}</p>
+                  <p>{situation.user_prompt}</p>
                 </div>
               </CardContent>
             </Card>
