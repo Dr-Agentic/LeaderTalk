@@ -14,6 +14,44 @@ import { useAuth } from "@/hooks/useAuth";
 
 type SubmissionPhase = 'input' | 'submitting' | 'complete';
 
+// Helper function to get icon and styling for leadership styles
+const getLeadershipStyleInfo = (style: string) => {
+  switch (style?.toLowerCase()) {
+    case 'empathetic':
+      return {
+        icon: Heart,
+        color: 'text-rose-600',
+        bgColor: 'bg-rose-50',
+        borderColor: 'border-rose-200',
+        label: 'Empathetic Style'
+      };
+    case 'inspirational':
+      return {
+        icon: Zap,
+        color: 'text-amber-600',
+        bgColor: 'bg-amber-50',
+        borderColor: 'border-amber-200',
+        label: 'Inspirational Style'
+      };
+    case 'commanding':
+      return {
+        icon: Shield,
+        color: 'text-blue-600',
+        bgColor: 'bg-blue-50',
+        borderColor: 'border-blue-200',
+        label: 'Commanding Style'
+      };
+    default:
+      return {
+        icon: Target,
+        color: 'text-gray-600',
+        bgColor: 'bg-gray-50',
+        borderColor: 'border-gray-200',
+        label: 'Leadership Style'
+      };
+  }
+};
+
 interface Situation {
   id: number;
   description: string;
@@ -238,6 +276,29 @@ export default function SituationView() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Leadership Style Display */}
+            {(() => {
+              const styleInfo = getLeadershipStyleInfo(situation.assignedLeadershipStyle);
+              const StyleIcon = styleInfo.icon;
+              return (
+                <Card className={`${styleInfo.borderColor} border-2 ${styleInfo.bgColor}`}>
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-center space-x-3">
+                      <StyleIcon className={`h-8 w-8 ${styleInfo.color}`} />
+                      <div className="text-center">
+                        <p className="text-lg font-semibold text-gray-900 mb-1">
+                          For this situation, you are requested to show your leadership in {styleInfo.label}
+                        </p>
+                        <p className={`text-sm font-medium ${styleInfo.color}`}>
+                          Focus on demonstrating {situation.assignedLeadershipStyle?.toLowerCase()} leadership qualities
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })()}
 
             {/* Response Input */}
             <Card>
