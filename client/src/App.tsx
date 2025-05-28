@@ -144,7 +144,7 @@ function Router() {
       {isAuthenticated && onboardingComplete && <Route path="/training/next-situation" component={NextSituation} />}
       {/* New hierarchical routes */}
       {isAuthenticated && onboardingComplete && <Route path="/training/chapter/:chapterId/module/:moduleId" component={ModuleView} />}
-      {isAuthenticated && onboardingComplete && <Route path="/training/chapter/:chapterId/module/:moduleId/situation/:id" component={SituationView} />}
+      {isAuthenticated && onboardingComplete && <Route path="/training/chapter/:chapterId/module/:moduleId/situation/:situationId" component={SituationView} />}
       {isAuthenticated && onboardingComplete && <Route path="/training/chapter/:chapterId/next-situation" component={NextSituation} />}
       
       {/* Recording page */}
