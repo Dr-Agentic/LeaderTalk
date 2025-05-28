@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Alert, ScrollView } from 'react-native';
-import { Button, Card, Title, Paragraph, Switch, Divider, Dialog, Portal } from 'react-native-paper';
+import { View, StyleSheet, ScrollView, Alert, Switch as RNSwitch } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 import { signOut } from '../lib/auth';
+import { H1, H2, H3, Paragraph, SmallText } from '../components/ui/Typography';
+import { Card, CardHeader, CardContent, CardFooter } from '../components/ui/Card';
+import { Button } from '../components/ui/Button';
+import { Separator } from '../components/ui/Separator';
+import { colors } from '../theme/colors';
 
 // Mock user data
 const mockUserData = {
@@ -63,135 +68,200 @@ export default function SettingsScreen() {
 
   // Handle delete account
   const handleDeleteAccount = async () => {
-    setDeleteDialogVisible(false);
-    try {
-      await signOut(); // Just sign out in mock implementation
-      // Navigation will be handled by AppNavigator
-    } catch (error) {
-      console.error('Account deletion error:', error);
-    }
+    Alert.alert(
+      'Delete Account',
+      'Are you sure you want to delete your account? This action cannot be undone and will remove all your data including recordings, transcripts, and training progress.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Delete', 
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await signOut(); // Just sign out in mock implementation
+              // Navigation will be handled by AppNavigator
+            } catch (error) {
+              console.error('Account deletion error:', error);
+            }
+          } 
+        },
+      ]
+    );
   };
 
   // Format date
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString();
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
   return (
     <ScrollView style={styles.container}>
+      <View style={styles.header}>
+        <H1>Settings</H1>
+        <Paragraph style={styles.subtitle}>
+          Manage your account and preferences
+        </Paragraph>
+      </View>
+
       {/* Account Information */}
       <Card style={styles.card}>
-        <Card.Content>
-          <Title>Account Information</Title>
-          <Paragraph>Name: {user.name}</Paragraph>
-          <Paragraph>Email: {user.email}</Paragraph>
-          <Paragraph>Profession: {user.profession}</Paragraph>
-        </Card.Content>
+        <CardHeader>
+          <H2>Account Information</H2>
+        </CardHeader>
+        <CardContent>
+          <View style={styles.infoRow}>
+            <Paragraph style={styles.infoLabel}>Name</Paragraph>
+            <Paragraph>{user.name}</Paragraph>
+          </View>
+          
+          <View style={styles.infoRow}>
+            <Paragraph style={styles.infoLabel}>Email</Paragraph>
+            <Paragraph>{user.email}</Paragraph>
+          </View>
+          
+          <View style={styles.infoRow}>
+            <Paragraph style={styles.infoLabel}>Profession</Paragraph>
+            <Paragraph>{user.profession}</Paragraph>
+          </View>
+        </CardContent>
       </Card>
       
       {/* Word Usage */}
       <Card style={styles.card}>
-        <Card.Content>
-          <Title>Word Usage</Title>
-          <View style={styles.usageContainer}>
-            <View style={styles.usageRow}>
-              <Text>Current Period:</Text>
-              <Text>
-                {formatDate(user.wordUsage.periodStartDate)} - {formatDate(user.wordUsage.periodEndDate)}
-              </Text>
-            </View>
-            
-            <View style={styles.usageRow}>
-              <Text>Words Used:</Text>
-              <Text>
-                {user.wordUsage.currentPeriodWords} / {user.wordUsage.maxWords}
-              </Text>
-            </View>
-            
-            <View style={styles.usageRow}>
-              <Text>Days Remaining:</Text>
-              <Text>{user.wordUsage.daysRemaining}</Text>
-            </View>
-            
-            <View style={styles.usageBarContainer}>
+        <CardHeader>
+          <H2>Word Usage</H2>
+        </CardHeader>
+        <CardContent>
+          <View style={styles.infoRow}>
+            <Paragraph style={styles.infoLabel}>Current Period</Paragraph>
+            <Paragraph>
+              {formatDate(user.wordUsage.periodStartDate)} - {formatDate(user.wordUsage.periodEndDate)}
+            </Paragraph>
+          </View>
+          
+          <View style={styles.infoRow}>
+            <Paragraph style={styles.infoLabel}>Words Used</Paragraph>
+            <Paragraph>
+              {user.wordUsage.currentPeriodWords} / {user.wordUsage.maxWords}
+            </Paragraph>
+          </View>
+          
+          <View style={styles.infoRow}>
+            <Paragraph style={styles.infoLabel}>Days Remaining</Paragraph>
+            <Paragraph>{user.wordUsage.daysRemaining}</Paragraph>
+          </View>
+          
+          <View style={styles.usageBarContainer}>
+            <View style={styles.usageBar}>
               <View 
                 style={[
-                  styles.usageBar, 
+                  styles.usageBarFill, 
                   { 
                     width: `${(user.wordUsage.currentPeriodWords / user.wordUsage.maxWords) * 100}%`,
-                    backgroundColor: user.wordUsage.currentPeriodWords > user.wordUsage.maxWords * 0.8 ? '#f44336' : '#4caf50'
+                    backgroundColor: user.wordUsage.currentPeriodWords > user.wordUsage.maxWords * 0.8 ? colors.destructive : '#10b981'
                   }
                 ]} 
               />
             </View>
           </View>
-        </Card.Content>
+        </CardContent>
       </Card>
       
       {/* App Settings */}
       <Card style={styles.card}>
-        <Card.Content>
-          <Title>App Settings</Title>
-          
+        <CardHeader>
+          <H2>App Settings</H2>
+        </CardHeader>
+        <CardContent>
           <View style={styles.settingRow}>
-            <Text>Push Notifications</Text>
-            <Switch 
-              value={notificationsEnabled} 
-              onValueChange={handleNotificationsToggle} 
+            <Paragraph>Push Notifications</Paragraph>
+            <RNSwitch
+              value={notificationsEnabled}
+              onValueChange={handleNotificationsToggle}
+              trackColor={{ false: '#e5e7eb', true: colors.primary }}
+              thumbColor="#ffffff"
             />
           </View>
           
-          <Divider style={styles.divider} />
+          <Separator />
           
           <View style={styles.settingRow}>
-            <Text>Show Controversial Leaders</Text>
-            <Switch 
-              value={controversialLeadersEnabled} 
-              onValueChange={handleControversialLeadersToggle} 
+            <Paragraph>Show Controversial Leaders</Paragraph>
+            <RNSwitch
+              value={controversialLeadersEnabled}
+              onValueChange={handleControversialLeadersToggle}
+              trackColor={{ false: '#e5e7eb', true: colors.primary }}
+              thumbColor="#ffffff"
             />
           </View>
-        </Card.Content>
+        </CardContent>
       </Card>
       
       {/* Account Actions */}
       <Card style={styles.card}>
-        <Card.Content>
-          <Title>Account Actions</Title>
+        <CardHeader>
+          <H2>Account Actions</H2>
+        </CardHeader>
+        <CardContent>
           <Button 
-            mode="outlined" 
+            variant="outline" 
             onPress={handleLogout}
             style={styles.actionButton}
+            icon={<MaterialIcons name="logout" size={20} color={colors.foreground} />}
           >
             Logout
           </Button>
           
           <Button 
-            mode="outlined" 
-            onPress={() => setDeleteDialogVisible(true)}
+            variant="outline" 
+            onPress={handleDeleteAccount}
             style={[styles.actionButton, styles.dangerButton]}
-            textColor="#f44336"
+            icon={<MaterialIcons name="delete" size={20} color={colors.destructive} />}
           >
             Delete Account
           </Button>
-        </Card.Content>
+        </CardContent>
       </Card>
       
-      {/* Delete Account Dialog */}
-      <Portal>
-        <Dialog visible={deleteDialogVisible} onDismiss={() => setDeleteDialogVisible(false)}>
-          <Dialog.Title>Delete Account</Dialog.Title>
-          <Dialog.Content>
-            <Paragraph>
-              Are you sure you want to delete your account? This action cannot be undone and will remove all your data including recordings, transcripts, and training progress.
-            </Paragraph>
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button onPress={() => setDeleteDialogVisible(false)}>Cancel</Button>
-            <Button onPress={handleDeleteAccount} textColor="#f44336">Delete</Button>
-          </Dialog.Actions>
-        </Dialog>
-      </Portal>
+      {/* About */}
+      <Card style={styles.card}>
+        <CardHeader>
+          <H2>About</H2>
+        </CardHeader>
+        <CardContent>
+          <View style={styles.infoRow}>
+            <Paragraph style={styles.infoLabel}>Version</Paragraph>
+            <Paragraph>1.0.0</Paragraph>
+          </View>
+          
+          <Separator />
+          
+          <Button 
+            variant="link" 
+            style={styles.linkButton}
+            icon={<MaterialIcons name="description" size={20} color={colors.primary} />}
+          >
+            Terms of Service
+          </Button>
+          
+          <Button 
+            variant="link" 
+            style={styles.linkButton}
+            icon={<MaterialIcons name="privacy-tip" size={20} color={colors.primary} />}
+          >
+            Privacy Policy
+          </Button>
+          
+          <Button 
+            variant="link" 
+            style={styles.linkButton}
+            icon={<MaterialIcons name="help" size={20} color={colors.primary} />}
+          >
+            Help & Support
+          </Button>
+        </CardContent>
+      </Card>
     </ScrollView>
   );
 }
@@ -199,27 +269,39 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
-    padding: 16,
+    backgroundColor: colors.background,
   },
-  card: {
-    marginBottom: 16,
+  header: {
+    padding: 24,
+    paddingBottom: 16,
   },
-  usageContainer: {
+  subtitle: {
+    color: colors.mutedForeground,
     marginTop: 8,
   },
-  usageRow: {
+  card: {
+    marginHorizontal: 24,
+    marginBottom: 24,
+  },
+  infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 4,
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  infoLabel: {
+    color: colors.mutedForeground,
   },
   usageBarContainer: {
-    height: 8,
-    backgroundColor: '#e0e0e0',
-    borderRadius: 4,
     marginTop: 8,
   },
   usageBar: {
+    height: 8,
+    backgroundColor: '#e5e7eb',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  usageBarFill: {
     height: '100%',
     borderRadius: 4,
   },
@@ -229,13 +311,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 8,
   },
-  divider: {
-    marginVertical: 8,
-  },
   actionButton: {
-    marginTop: 8,
+    marginBottom: 16,
   },
   dangerButton: {
-    borderColor: '#f44336',
+    borderColor: colors.destructive,
+  },
+  dangerText: {
+    color: colors.destructive,
+  },
+  linkButton: {
+    alignItems: 'flex-start',
+    paddingVertical: 8,
+    paddingHorizontal: 0,
   },
 });

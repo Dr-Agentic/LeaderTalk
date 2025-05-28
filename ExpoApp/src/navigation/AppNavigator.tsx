@@ -3,8 +3,10 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { MaterialIcons } from '@expo/vector-icons';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, View, TouchableOpacity } from 'react-native';
 import { onAuthStateChanged, User, initializeAuth } from '../lib/auth';
+import { H3 } from '../components/ui/Typography';
+import { colors } from '../theme/colors';
 
 // Import screens
 import LoginScreen from '../screens/LoginScreen';
@@ -48,6 +50,20 @@ const AuthStack = createStackNavigator<AuthStackParamList>();
 const MainStack = createStackNavigator<MainStackParamList>();
 const Tab = createBottomTabNavigator<TabParamList>();
 
+// Custom header button
+const HeaderBackButton = ({ onPress }) => (
+  <TouchableOpacity 
+    onPress={onPress} 
+    style={{ 
+      flexDirection: 'row', 
+      alignItems: 'center', 
+      paddingHorizontal: 16 
+    }}
+  >
+    <MaterialIcons name="arrow-back" size={24} color={colors.primary} />
+  </TouchableOpacity>
+);
+
 // Auth navigator
 const AuthNavigator = () => (
   <AuthStack.Navigator screenOptions={{ headerShown: false }}>
@@ -63,34 +79,99 @@ const TabNavigator = () => (
         let iconName: keyof typeof MaterialIcons.glyphMap = 'home';
 
         if (route.name === 'Dashboard') {
-          iconName = focused ? 'dashboard' : 'dashboard';
+          iconName = 'dashboard';
         } else if (route.name === 'Recording') {
           iconName = focused ? 'mic' : 'mic-none';
         } else if (route.name === 'Transcripts') {
-          iconName = focused ? 'list' : 'list';
+          iconName = 'list';
         } else if (route.name === 'Training') {
-          iconName = focused ? 'school' : 'school';
+          iconName = 'school';
         } else if (route.name === 'Settings') {
-          iconName = focused ? 'settings' : 'settings';
+          iconName = 'settings';
         }
 
         return <MaterialIcons name={iconName} size={size} color={color} />;
       },
-      tabBarActiveTintColor: '#e53e3e',
-      tabBarInactiveTintColor: 'gray',
+      tabBarActiveTintColor: colors.primary,
+      tabBarInactiveTintColor: colors.mutedForeground,
+      tabBarStyle: {
+        borderTopWidth: 1,
+        borderTopColor: colors.border,
+        height: 60,
+        paddingBottom: 8,
+        paddingTop: 8,
+      },
+      headerStyle: {
+        backgroundColor: colors.background,
+        elevation: 0,
+        shadowOpacity: 0,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.border,
+      },
+      headerTitleStyle: {
+        fontWeight: '600',
+      },
+      headerTintColor: colors.foreground,
     })}
   >
-    <Tab.Screen name="Dashboard" component={DashboardScreen} />
-    <Tab.Screen name="Recording" component={RecordingScreen} />
-    <Tab.Screen name="Transcripts" component={AllTranscriptsScreen} />
-    <Tab.Screen name="Training" component={TrainingScreen} />
-    <Tab.Screen name="Settings" component={SettingsScreen} />
+    <Tab.Screen 
+      name="Dashboard" 
+      component={DashboardScreen} 
+      options={{ 
+        headerShown: false,
+      }}
+    />
+    <Tab.Screen 
+      name="Recording" 
+      component={RecordingScreen} 
+      options={{ 
+        headerShown: false,
+      }}
+    />
+    <Tab.Screen 
+      name="Transcripts" 
+      component={AllTranscriptsScreen} 
+      options={{ 
+        headerShown: false,
+      }}
+    />
+    <Tab.Screen 
+      name="Training" 
+      component={TrainingScreen} 
+      options={{ 
+        headerShown: false,
+      }}
+    />
+    <Tab.Screen 
+      name="Settings" 
+      component={SettingsScreen} 
+      options={{ 
+        headerShown: false,
+      }}
+    />
   </Tab.Navigator>
 );
 
 // Main navigator
 const MainNavigator = () => (
-  <MainStack.Navigator>
+  <MainStack.Navigator
+    screenOptions={({ navigation }) => ({
+      headerStyle: {
+        backgroundColor: colors.background,
+        elevation: 0,
+        shadowOpacity: 0,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.border,
+      },
+      headerTitleStyle: {
+        fontWeight: '600',
+      },
+      headerTintColor: colors.foreground,
+      headerLeft: (props) => (
+        <HeaderBackButton onPress={navigation.goBack} />
+      ),
+    })}
+  >
     <MainStack.Screen 
       name="Tabs" 
       component={TabNavigator} 
@@ -99,7 +180,7 @@ const MainNavigator = () => (
     <MainStack.Screen 
       name="TranscriptView" 
       component={TranscriptViewScreen}
-      options={{ title: 'Transcript' }}
+      options={{ headerShown: false }}
     />
     <MainStack.Screen 
       name="ModuleView" 
@@ -125,7 +206,7 @@ export default function AppNavigator() {
   const [onboardingComplete, setOnboardingComplete] = useState(false);
   const [user, setUser] = useState<User | null>(null);
 
-  // Check authentication status
+  // Initialize auth and check authentication status
   useEffect(() => {
     // Initialize auth first
     const init = async () => {
@@ -151,8 +232,13 @@ export default function AppNavigator() {
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#e53e3e" />
+      <View style={{ 
+        flex: 1, 
+        justifyContent: 'center', 
+        alignItems: 'center',
+        backgroundColor: colors.background
+      }}>
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }

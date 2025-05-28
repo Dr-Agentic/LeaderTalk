@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, Modal, TextInput, ScrollView } from 'react-native';
+import { View, StyleSheet, Alert, Modal, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { Button, ProgressBar, Checkbox } from 'react-native-paper';
 import { useRecording } from '../hooks/useRecording';
 import { useMicrophonePermission } from '../hooks/useMicrophonePermission';
 import { apiRequest } from '../lib/api';
 import { Recording, WordUsageData } from '../types';
 import { useQuery } from '@tanstack/react-query';
+import { H1, H2, Paragraph, SmallText } from '../components/ui/Typography';
+import { Button } from '../components/ui/Button';
+import { Card, CardContent } from '../components/ui/Card';
+import { Input } from '../components/ui/Input';
+import { colors } from '../theme/colors';
 
 export default function RecordingScreen() {
   const navigation = useNavigation();
@@ -204,123 +208,154 @@ export default function RecordingScreen() {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Record a Conversation</Text>
-        <Text style={styles.subtitle}>
+        <H1>Record a Conversation</H1>
+        <Paragraph style={styles.subtitle}>
           Record your conversations to get AI-powered insights on your communication style.
-        </Text>
+        </Paragraph>
       </View>
 
-      <View style={styles.recordingContainer}>
-        {/* Word limit warning */}
-        {hasExceededWordLimit && (
-          <View style={styles.warningBanner}>
-            <MaterialIcons name="warning" size={24} color="#fff" />
-            <Text style={styles.warningText}>
-              You've reached your monthly word limit. Please upgrade your subscription to continue.
-            </Text>
-          </View>
-        )}
+      <Card style={styles.card}>
+        <CardContent>
+          {/* Word limit warning */}
+          {hasExceededWordLimit && (
+            <View style={styles.warningBanner}>
+              <MaterialIcons name="warning" size={24} color="#fff" />
+              <Paragraph style={styles.warningText}>
+                You've reached your monthly word limit. Please upgrade your subscription to continue.
+              </Paragraph>
+            </View>
+          )}
 
-        {/* Recording Button */}
-        <TouchableOpacity
-          style={[
-            styles.recordButton,
-            isRecording
-              ? isPaused
-                ? styles.pausedButton
-                : styles.activeButton
-              : hasExceededWordLimit
-                ? styles.disabledButton
-                : styles.inactiveButton,
-          ]}
-          onPress={!isRecording && !hasExceededWordLimit ? handleStartRecording : undefined}
-          disabled={hasExceededWordLimit}
-        >
-          <MaterialIcons
-            name="mic"
-            size={48}
-            color={isRecording ? 'white' : '#e53e3e'}
-          />
-        </TouchableOpacity>
-
-        <Text style={styles.recordingStatus}>
-          {isRecording
-            ? isPaused
-              ? 'Recording Paused'
-              : 'Recording in Progress'
-            : 'Start Recording'}
-        </Text>
-
-        <Text style={styles.recordingTime}>
-          {isRecording
-            ? `${formatTime(duration)} / 50:00`
-            : 'Click to start recording your conversation.\nLeaderTalk will analyze your communication patterns.'}
-        </Text>
-
-        {/* Microphone permission warning */}
-        {isDenied && !isRecording && (
-          <View style={styles.permissionWarning}>
-            <MaterialIcons name="error" size={16} color="#e53e3e" />
-            <Text style={styles.permissionWarningText}>
-              Microphone access denied. Please enable it in your device settings to record conversations.
-            </Text>
-          </View>
-        )}
-
-        {/* Recording Controls */}
-        {isRecording && (
-          <View style={styles.controlsContainer}>
-            <View style={styles.buttonContainer}>
-              <Button
-                mode="contained"
-                onPress={handlePauseResumeRecording}
-                style={[styles.controlButton, isPaused ? styles.resumeButton : styles.pauseButton]}
-                icon={isPaused ? 'play' : 'pause'}
+          <View style={styles.recordingContainer}>
+            {/* Recording Button */}
+            <View style={styles.recordButtonContainer}>
+              <View
+                style={[
+                  styles.recordButton,
+                  isRecording
+                    ? isPaused
+                      ? styles.pausedButton
+                      : styles.activeButton
+                    : hasExceededWordLimit
+                      ? styles.disabledButton
+                      : styles.inactiveButton,
+                ]}
               >
-                {isPaused ? 'Resume' : 'Pause'}
-              </Button>
-
-              <Button
-                mode="outlined"
-                onPress={handleStopRecording}
-                style={styles.controlButton}
-                icon="stop"
-              >
-                Stop
-              </Button>
+                <MaterialIcons
+                  name="mic"
+                  size={48}
+                  color={isRecording ? 'white' : colors.primary}
+                  onPress={!isRecording && !hasExceededWordLimit ? handleStartRecording : undefined}
+                  style={hasExceededWordLimit ? styles.disabledIcon : {}}
+                />
+              </View>
             </View>
 
-            <View style={styles.progressContainer}>
-              <ProgressBar progress={recordingProgress / 100} color="#e53e3e" style={styles.progressBar} />
-              <View style={styles.timeLabels}>
-                <Text style={styles.timeLabel}>0:00</Text>
-                <Text style={styles.timeLabel}>50:00</Text>
+            <H2 style={styles.recordingStatus}>
+              {isRecording
+                ? isPaused
+                  ? 'Recording Paused'
+                  : 'Recording in Progress'
+                : 'Start Recording'}
+            </H2>
+
+            <Paragraph style={styles.recordingTime}>
+              {isRecording
+                ? `${formatTime(duration)} / 50:00`
+                : 'Tap the microphone to start recording your conversation.\nLeaderTalk will analyze your communication patterns.'}
+            </Paragraph>
+
+            {/* Microphone permission warning */}
+            {isDenied && !isRecording && (
+              <View style={styles.permissionWarning}>
+                <MaterialIcons name="error" size={16} color={colors.destructive} />
+                <SmallText style={styles.permissionWarningText}>
+                  Microphone access denied. Please enable it in your device settings to record conversations.
+                </SmallText>
+              </View>
+            )}
+
+            {/* Recording Controls */}
+            {isRecording && (
+              <View style={styles.controlsContainer}>
+                <View style={styles.buttonContainer}>
+                  <Button
+                    variant={isPaused ? 'default' : 'destructive'}
+                    onPress={handlePauseResumeRecording}
+                    style={styles.controlButton}
+                    icon={<MaterialIcons name={isPaused ? 'play-arrow' : 'pause'} size={20} color="white" />}
+                  >
+                    {isPaused ? 'Resume' : 'Pause'}
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    onPress={handleStopRecording}
+                    style={styles.controlButton}
+                    icon={<MaterialIcons name="stop" size={20} color={colors.foreground} />}
+                  >
+                    Stop
+                  </Button>
+                </View>
+
+                <View style={styles.progressContainer}>
+                  <View style={styles.progressBar}>
+                    <View 
+                      style={[
+                        styles.progressFill, 
+                        { width: `${recordingProgress}%` }
+                      ]} 
+                    />
+                  </View>
+                  <View style={styles.timeLabels}>
+                    <SmallText style={styles.timeLabel}>0:00</SmallText>
+                    <SmallText style={styles.timeLabel}>50:00</SmallText>
+                  </View>
+                </View>
+              </View>
+            )}
+
+            {/* Settings */}
+            <View style={styles.settingsContainer}>
+              <View style={styles.settingRow}>
+                <MaterialIcons 
+                  name={detectSpeakers ? 'check-box' : 'check-box-outline-blank'} 
+                  size={24} 
+                  color={isRecording ? colors.mutedForeground : colors.primary}
+                  onPress={() => !isRecording && setDetectSpeakers(!detectSpeakers)}
+                />
+                <Paragraph 
+                  style={[
+                    styles.settingLabel, 
+                    isRecording && styles.disabledText
+                  ]}
+                  onPress={() => !isRecording && setDetectSpeakers(!detectSpeakers)}
+                >
+                  Auto-detect speakers
+                </Paragraph>
+              </View>
+
+              <View style={styles.settingRow}>
+                <MaterialIcons 
+                  name={createTranscript ? 'check-box' : 'check-box-outline-blank'} 
+                  size={24} 
+                  color={isRecording ? colors.mutedForeground : colors.primary}
+                  onPress={() => !isRecording && setCreateTranscript(!createTranscript)}
+                />
+                <Paragraph 
+                  style={[
+                    styles.settingLabel, 
+                    isRecording && styles.disabledText
+                  ]}
+                  onPress={() => !isRecording && setCreateTranscript(!createTranscript)}
+                >
+                  Create transcript
+                </Paragraph>
               </View>
             </View>
           </View>
-        )}
-
-        {/* Settings */}
-        <View style={styles.settingsContainer}>
-          <View style={styles.checkboxContainer}>
-            <Checkbox
-              status={detectSpeakers ? 'checked' : 'unchecked'}
-              onPress={() => setDetectSpeakers(!detectSpeakers)}
-              disabled={isRecording}
-            />
-            <Text style={styles.checkboxLabel}>Auto-detect speakers</Text>
-          </View>
-
-          <View style={styles.checkboxContainer}>
-            <Checkbox
-              status={createTranscript ? 'checked' : 'unchecked'}
-              onPress={() => setCreateTranscript(!createTranscript)}
-              disabled={isRecording}
-            />
-            <Text style={styles.checkboxLabel}>Create transcript</Text>
-          </View>
-        </View>
-      </View>
+        </CardContent>
+      </Card>
 
       {/* Title Dialog */}
       <Modal
@@ -331,28 +366,27 @@ export default function RecordingScreen() {
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Name Your Recording</Text>
-            <Text style={styles.modalSubtitle}>
+            <H2 style={styles.modalTitle}>Name Your Recording</H2>
+            <Paragraph style={styles.modalSubtitle}>
               Give your recording a descriptive title to help you identify it later.
-            </Text>
+            </Paragraph>
 
-            <TextInput
-              style={styles.input}
+            <Input
               placeholder="e.g., Team Meeting Discussion"
               value={recordingTitle}
               onChangeText={setRecordingTitle}
+              style={styles.modalInput}
             />
 
             <View style={styles.modalButtons}>
               <Button
-                mode="outlined"
+                variant="outline"
                 onPress={() => setShowTitleDialog(false)}
                 style={styles.modalButton}
               >
                 Cancel
               </Button>
               <Button
-                mode="contained"
                 onPress={handleSaveRecording}
                 loading={isProcessing}
                 disabled={isProcessing}
@@ -371,46 +405,37 @@ export default function RecordingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: colors.background,
   },
   header: {
-    padding: 16,
-    backgroundColor: 'white',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 8,
+    padding: 24,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#6b7280',
+    color: colors.mutedForeground,
+    marginTop: 8,
   },
-  recordingContainer: {
-    backgroundColor: 'white',
-    borderRadius: 8,
-    margin: 16,
-    padding: 24,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+  card: {
+    margin: 24,
   },
   warningBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ef4444',
-    padding: 12,
+    backgroundColor: colors.destructive,
+    padding: 16,
     borderRadius: 8,
-    marginBottom: 16,
-    width: '100%',
+    marginBottom: 24,
   },
   warningText: {
     color: 'white',
-    marginLeft: 8,
+    marginLeft: 12,
     flex: 1,
+  },
+  recordingContainer: {
+    alignItems: 'center',
+    paddingVertical: 24,
+  },
+  recordButtonContainer: {
+    marginBottom: 24,
   },
   recordButton: {
     width: 120,
@@ -418,7 +443,6 @@ const styles = StyleSheet.create({
     borderRadius: 60,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
     borderWidth: 2,
   },
   inactiveButton: {
@@ -426,8 +450,8 @@ const styles = StyleSheet.create({
     borderColor: '#fecaca',
   },
   activeButton: {
-    backgroundColor: '#e53e3e',
-    borderColor: '#dc2626',
+    backgroundColor: colors.primary,
+    borderColor: '#b91c1c',
   },
   pausedButton: {
     backgroundColor: '#f59e0b',
@@ -437,14 +461,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#e5e7eb',
     borderColor: '#d1d5db',
   },
+  disabledIcon: {
+    opacity: 0.5,
+  },
   recordingStatus: {
-    fontSize: 18,
-    fontWeight: '600',
     marginBottom: 8,
   },
   recordingTime: {
-    fontSize: 14,
-    color: '#6b7280',
+    color: colors.mutedForeground,
     textAlign: 'center',
     marginBottom: 16,
   },
@@ -452,14 +476,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fee2e2',
-    padding: 8,
-    borderRadius: 4,
+    padding: 12,
+    borderRadius: 6,
     marginBottom: 16,
     width: '100%',
   },
   permissionWarningText: {
-    fontSize: 12,
-    color: '#b91c1c',
+    color: colors.destructive,
     marginLeft: 8,
     flex: 1,
   },
@@ -470,51 +493,52 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginBottom: 16,
+    marginBottom: 24,
   },
   controlButton: {
     marginHorizontal: 8,
-    minWidth: 100,
-  },
-  pauseButton: {
-    backgroundColor: '#e53e3e',
-  },
-  resumeButton: {
-    backgroundColor: '#059669',
+    minWidth: 120,
   },
   progressContainer: {
     width: '100%',
-    marginBottom: 8,
+    marginBottom: 16,
   },
   progressBar: {
     height: 8,
+    backgroundColor: '#e5e7eb',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: colors.primary,
     borderRadius: 4,
   },
   timeLabels: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 4,
+    marginTop: 8,
   },
   timeLabel: {
-    fontSize: 12,
-    color: '#6b7280',
+    color: colors.mutedForeground,
   },
   settingsContainer: {
     width: '100%',
     marginTop: 24,
     borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
-    paddingTop: 16,
+    borderTopColor: colors.border,
+    paddingTop: 24,
   },
-  checkboxContainer: {
+  settingRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 16,
   },
-  checkboxLabel: {
-    marginLeft: 8,
-    fontSize: 14,
-    color: '#374151',
+  settingLabel: {
+    marginLeft: 12,
+  },
+  disabledText: {
+    color: colors.mutedForeground,
   },
   modalContainer: {
     flex: 1,
@@ -523,34 +547,28 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContent: {
-    backgroundColor: 'white',
-    borderRadius: 8,
+    backgroundColor: colors.background,
+    borderRadius: 12,
     padding: 24,
-    width: '80%',
+    width: '85%',
     maxWidth: 400,
   },
   modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
     marginBottom: 8,
   },
   modalSubtitle: {
-    fontSize: 14,
-    color: '#6b7280',
-    marginBottom: 16,
+    color: colors.mutedForeground,
+    marginBottom: 24,
   },
-  input: {
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 4,
-    padding: 12,
-    marginBottom: 16,
+  modalInput: {
+    marginBottom: 24,
   },
   modalButtons: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
   },
   modalButton: {
-    marginLeft: 8,
+    marginLeft: 12,
+    minWidth: 100,
   },
 });
