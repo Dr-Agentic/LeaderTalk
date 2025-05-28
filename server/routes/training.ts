@@ -95,11 +95,15 @@ export function registerTrainingRoutes(app: Express) {
         return res.status(404).json({ error: "Situation not found" });
       }
       
+      // Randomly assign one of the three leadership styles
+      const leadershipStyles = ["empathetic", "inspirational", "commanding"];
+      const randomStyle = leadershipStyles[Math.floor(Math.random() * leadershipStyles.length)];
+      
       res.json({
         ...situation,
         chapterId,
         moduleId,
-        assignedLeadershipStyle: "empathetic" // Default for now, can be randomized later
+        assignedLeadershipStyle: randomStyle
       });
     } catch (error) {
       res.status(404).json({ error: "Situation not found" });
