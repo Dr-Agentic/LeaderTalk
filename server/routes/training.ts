@@ -1,13 +1,12 @@
 import { Express, Request, Response } from "express";
-import { storage } from "../storage";
 import { db } from "../db";
 import { 
-  chapters, modules, situations, userProgress, situationAttempts,
-  insertChapterSchema, insertModuleSchema, insertSituationSchema,
-  insertUserProgressSchema, updateUserProgressSchema,
-  insertSituationAttemptSchema, AttemptEvaluation
+  situationAttempts,
+  userProgress,
+  insertSituationAttemptSchema,
+  insertUserProgressSchema
 } from "@shared/schema";
-import { eq, desc, inArray, and, sql } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 import { z } from "zod";
 import * as fs from 'fs';
 import * as path from 'path';
