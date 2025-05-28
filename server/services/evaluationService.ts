@@ -119,12 +119,27 @@ Focus on actionable, specific feedback that helps the user improve their leaders
 
       const parsed = JSON.parse(jsonMatch[0]);
       
+      // Normalize individual scores
+      const styleMatchScore = Math.max(1, Math.min(100, parsed.styleMatchScore || 70));
+      const clarity = Math.max(1, Math.min(100, parsed.clarity || 75));
+      const empathy = Math.max(1, Math.min(100, parsed.empathy || 70));
+      const persuasiveness = Math.max(1, Math.min(100, parsed.persuasiveness || 70));
+      
+      // Calculate overall score if missing - use weighted average with emphasis on style match
+      const calculatedOverallScore = Math.round(
+        (styleMatchScore * 0.4 + clarity * 0.2 + empathy * 0.2 + persuasiveness * 0.2)
+      );
+      
+      const overallScore = Math.max(1, Math.min(100, 
+        parsed.overallScore || calculatedOverallScore
+      ));
+      
       return {
-        overallScore: Math.max(1, Math.min(100, parsed.overallScore || 70)),
-        styleMatchScore: Math.max(1, Math.min(100, parsed.styleMatchScore || 70)),
-        clarity: Math.max(1, Math.min(100, parsed.clarity || 75)),
-        empathy: Math.max(1, Math.min(100, parsed.empathy || 70)),
-        persuasiveness: Math.max(1, Math.min(100, parsed.persuasiveness || 70)),
+        overallScore,
+        styleMatchScore,
+        clarity,
+        empathy,
+        persuasiveness,
         strengths: Array.isArray(parsed.strengths) ? parsed.strengths.slice(0, 5) : ['Clear communication'],
         weaknesses: Array.isArray(parsed.weaknesses) ? parsed.weaknesses.slice(0, 3) : ['Continue practicing'],
         improvement: parsed.improvement || 'Good effort on your leadership response. Continue developing your communication skills.'
