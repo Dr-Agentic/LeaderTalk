@@ -129,6 +129,13 @@ export default function SituationView() {
         // Invalidate queries to refresh data
         queryClient.invalidateQueries({ queryKey: [`/api/training/attempts`] });
         queryClient.invalidateQueries({ queryKey: ["/api/training/progress"] });
+        
+        // Invalidate module stats to show updated completion status
+        if (situation?.chapterId && situation?.moduleId) {
+          queryClient.invalidateQueries({ 
+            queryKey: [`/api/training/module/${situation.moduleId}/stats?chapterId=${situation.chapterId}`] 
+          });
+        }
 
         toast({
           title: "Analysis Complete!",

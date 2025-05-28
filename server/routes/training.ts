@@ -135,11 +135,16 @@ export function registerTrainingRoutes(app: Express) {
         return res.status(500).json({ error: result.error || "Failed to process submission" });
       }
 
-      // Return the evaluation data
+      // Return the evaluation data with cache invalidation hints
       res.json({
         success: true,
         attemptId: result.attemptId,
-        evaluation: result.evaluation
+        evaluation: result.evaluation,
+        invalidateCache: [
+          `/api/training/module/${situationId}/stats`,
+          `/api/training/situation/${situationId}/stats`,
+          `/api/training/attempts`
+        ]
       });
 
     } catch (error) {
