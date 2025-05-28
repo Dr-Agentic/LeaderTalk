@@ -82,15 +82,7 @@ export const modules = pgTable("modules", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-export const situations = pgTable("situations", {
-  id: serial("id").primaryKey(),
-  moduleId: integer("module_id").notNull(),
-  description: text("description").notNull(),
-  userPrompt: text("user_prompt").notNull(),
-  styleResponses: jsonb("style_responses").$type<StyleResponses>(),
-  order: integer("order").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+
 
 export const userProgress = pgTable("user_progress", {
   id: serial("id").primaryKey(),
@@ -251,10 +243,7 @@ export const insertModuleSchema = createInsertSchema(modules).omit({
   createdAt: true,
 });
 
-export const insertSituationSchema = createInsertSchema(situations).omit({
-  id: true,
-  createdAt: true,
-});
+
 
 export const insertUserProgressSchema = createInsertSchema(userProgress).omit({
   id: true,
@@ -325,11 +314,9 @@ export type InsertRecording = z.infer<typeof insertRecordingSchema>;
 export type UpdateRecording = z.infer<typeof updateRecordingSchema>;
 export type Chapter = typeof chapters.$inferSelect;
 export type Module = typeof modules.$inferSelect;
-export type Situation = typeof situations.$inferSelect;
 export type UserProgress = typeof userProgress.$inferSelect;
 export type InsertChapter = z.infer<typeof insertChapterSchema>;
 export type InsertModule = z.infer<typeof insertModuleSchema>;
-export type InsertSituation = z.infer<typeof insertSituationSchema>;
 export type InsertUserProgress = z.infer<typeof insertUserProgressSchema>;
 export type UpdateUserProgress = z.infer<typeof updateUserProgressSchema>;
 export type SituationAttempt = typeof situationAttempts.$inferSelect;
