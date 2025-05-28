@@ -112,7 +112,8 @@ export default function SituationView() {
   // Submit response mutation
   const submitMutation = useMutation({
     mutationFn: async (data: { situationId: number; response: string; leadershipStyle: string }) => {
-      return apiRequest("POST", "/api/training/submit-with-ai-evaluation", data);
+      const response = await apiRequest("POST", "/api/training/submit-with-ai-evaluation", data);
+      return response.json();
     },
     onSuccess: (data) => {
       console.log("Submission successful:", data);
