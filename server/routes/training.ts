@@ -9,6 +9,7 @@ import {
 import { eq, desc, and } from "drizzle-orm";
 import * as fs from 'fs';
 import * as path from 'path';
+import { TrainingService } from "../services/trainingService";
 
 const requireAuth = (req: Request, res: Response, next: Function) => {
   if (!req.session?.userId) {
@@ -107,6 +108,43 @@ export function registerTrainingRoutes(app: Express) {
       });
     } catch (error) {
       res.status(404).json({ error: "Situation not found" });
+    }
+  });
+
+  // AI Evaluation endpoint
+  app.post("/api/training/submit-with-ai-evaluation", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId;
+      const { situationId, response, leadershipStyle } = req.body;
+
+      if (!situationId || !response) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+
+      // Initialize training service
+      const trainingService = new TrainingService();
+
+      // Process the submission with AI evaluation
+      const result = await trainingService.processTrainingSubmission({
+        scenarioId: situationId,
+        userResponse: response,
+        userId: userId
+      });
+
+      if (!result.success) {
+        return res.status(500).json({ error: result.error || "Failed to process submission" });
+      }
+
+      // Return the evaluation data
+      res.json({
+        success: true,
+        attemptId: result.attemptId,
+        evaluation: result.evaluation
+      });
+
+    } catch (error) {
+      console.error("AI evaluation submission error:", error);
+      res.status(500).json({ error: "Failed to process AI evaluation" });
     }
   });
 
