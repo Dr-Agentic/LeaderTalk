@@ -6,7 +6,7 @@ import {
   insertSituationAttemptSchema,
   insertUserProgressSchema
 } from "@shared/schema";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, inArray } from "drizzle-orm";
 import * as fs from 'fs';
 import * as path from 'path';
 import { TrainingService } from "../services/trainingService";
@@ -208,6 +208,203 @@ export function registerTrainingRoutes(app: Express) {
       res.json(progress);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch progress" });
+    }
+  });
+
+  // Get statistics for a specific situation (last attempt's score)
+  app.get("/api/training/situation/:situationId/stats", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId;
+      const situationId = parseInt(req.params.situationId);
+      
+      // Get the most recent attempt for this situation
+      const latestAttempt = await db
+        .select()
+        .from(situationAttempts)
+        .where(
+          and(
+            eq(situationAttempts.userId, userId),
+            eq(situationAttempts.situationId, situationId)
+          )
+        )
+        .orderBy(desc(situationAttempts.createdAt))
+        .limit(1);
+      
+      if (latestAttempt.length === 0) {
+        return res.json({
+          status: "not-started",
+          score: null,
+          completedAt: null
+        });
+      }
+      
+      const attempt = latestAttempt[0];
+      const overallScore = attempt.evaluation?.overallScore || 0;
+      
+      res.json({
+        status: overallScore >= 70 ? "completed" : "failed",
+        score: overallScore,
+        completedAt: attempt.createdAt,
+        evaluation: attempt.evaluation
+      });
+    } catch (error) {
+      console.error("Error fetching situation stats:", error);
+      res.status(500).json({ error: "Failed to fetch situation statistics" });
+    }
+  });
+
+  // Get statistics for a module (aggregating all situations in the module)
+  app.get("/api/training/module/:moduleId/stats", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId;
+      const moduleId = parseInt(req.params.moduleId);
+      
+      // First, get the module data to know which situations belong to it
+      const chapterId = parseInt(req.query.chapterId as string);
+      if (!chapterId) {
+        return res.status(400).json({ error: "chapterId is required" });
+      }
+      
+      const chapterData = loadChapterData(chapterId);
+      const module = chapterData.modules.find((m: any) => m.id === moduleId);
+      
+      if (!module) {
+        return res.status(404).json({ error: "Module not found" });
+      }
+      
+      const situationIds = module.scenarios.map((s: any) => s.id);
+      
+      // Get latest attempts for all situations in this module
+      const attempts = await db
+        .select()
+        .from(situationAttempts)
+        .where(
+          and(
+            eq(situationAttempts.userId, userId),
+            inArray(situationAttempts.situationId, situationIds)
+          )
+        )
+        .orderBy(desc(situationAttempts.createdAt));
+      
+      // Group by situation ID and get the latest attempt for each
+      const latestAttempts = new Map();
+      attempts.forEach(attempt => {
+        if (!latestAttempts.has(attempt.situationId)) {
+          latestAttempts.set(attempt.situationId, attempt);
+        }
+      });
+      
+      const completedSituations = Array.from(latestAttempts.values())
+        .filter(attempt => (attempt.evaluation?.overallScore || 0) >= 70);
+      
+      const totalSituations = situationIds.length;
+      const completedCount = completedSituations.length;
+      const averageScore = latestAttempts.size > 0 
+        ? Math.round(Array.from(latestAttempts.values())
+            .reduce((sum, attempt) => sum + (attempt.evaluation?.overallScore || 0), 0) / latestAttempts.size)
+        : 0;
+      
+      res.json({
+        totalSituations,
+        completedSituations: completedCount,
+        completionPercentage: Math.round((completedCount / totalSituations) * 100),
+        averageScore,
+        situationStats: situationIds.map(id => {
+          const attempt = latestAttempts.get(id);
+          return {
+            situationId: id,
+            status: attempt 
+              ? (attempt.evaluation?.overallScore >= 70 ? "completed" : "failed")
+              : "not-started",
+            score: attempt?.evaluation?.overallScore || null,
+            completedAt: attempt?.createdAt || null
+          };
+        })
+      });
+    } catch (error) {
+      console.error("Error fetching module stats:", error);
+      res.status(500).json({ error: "Failed to fetch module statistics" });
+    }
+  });
+
+  // Get statistics for a chapter (aggregating all modules in the chapter)
+  app.get("/api/training/chapter/:chapterId/stats", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId;
+      const chapterId = parseInt(req.params.chapterId);
+      
+      const chapterData = loadChapterData(chapterId);
+      
+      // Get all situation IDs from all modules in this chapter
+      const allSituationIds: number[] = [];
+      chapterData.modules.forEach((module: any) => {
+        module.scenarios.forEach((scenario: any) => {
+          allSituationIds.push(scenario.id);
+        });
+      });
+      
+      // Get latest attempts for all situations in this chapter
+      const attempts = await db
+        .select()
+        .from(situationAttempts)
+        .where(
+          and(
+            eq(situationAttempts.userId, userId),
+            inArray(situationAttempts.situationId, allSituationIds)
+          )
+        )
+        .orderBy(desc(situationAttempts.createdAt));
+      
+      // Group by situation ID and get the latest attempt for each
+      const latestAttempts = new Map();
+      attempts.forEach(attempt => {
+        if (!latestAttempts.has(attempt.situationId)) {
+          latestAttempts.set(attempt.situationId, attempt);
+        }
+      });
+      
+      const completedSituations = Array.from(latestAttempts.values())
+        .filter(attempt => (attempt.evaluation?.overallScore || 0) >= 70);
+      
+      const totalSituations = allSituationIds.length;
+      const completedCount = completedSituations.length;
+      const averageScore = latestAttempts.size > 0 
+        ? Math.round(Array.from(latestAttempts.values())
+            .reduce((sum, attempt) => sum + (attempt.evaluation?.overallScore || 0), 0) / latestAttempts.size)
+        : 0;
+      
+      // Calculate module-level stats
+      const moduleStats = chapterData.modules.map((module: any) => {
+        const moduleSituationIds = module.scenarios.map((s: any) => s.id);
+        const moduleAttempts = moduleSituationIds
+          .map(id => latestAttempts.get(id))
+          .filter(Boolean);
+        
+        const moduleCompleted = moduleAttempts
+          .filter(attempt => (attempt.evaluation?.overallScore || 0) >= 70).length;
+        
+        return {
+          moduleId: module.id,
+          totalSituations: moduleSituationIds.length,
+          completedSituations: moduleCompleted,
+          completionPercentage: Math.round((moduleCompleted / moduleSituationIds.length) * 100),
+          averageScore: moduleAttempts.length > 0
+            ? Math.round(moduleAttempts.reduce((sum, attempt) => 
+                sum + (attempt.evaluation?.overallScore || 0), 0) / moduleAttempts.length)
+            : 0
+        };
+      });
+      
+      res.json({
+        totalSituations,
+        completedSituations: completedCount,
+        completionPercentage: Math.round((completedCount / totalSituations) * 100),
+        averageScore,
+        moduleStats
+      });
+    } catch (error) {
+      console.error("Error fetching chapter stats:", error);
+      res.status(500).json({ error: "Failed to fetch chapter statistics" });
     }
   });
 

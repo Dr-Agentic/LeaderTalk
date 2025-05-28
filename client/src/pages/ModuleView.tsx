@@ -73,11 +73,11 @@ export default function ModuleView() {
     enabled: !!(chapterId && moduleId) && isAuthenticated,
   });
 
-  // Fetch user progress to show completion status for each situation
-  const { data: progress, isLoading: isProgressLoading } = useQuery({
-    queryKey: ["/api/training/progress"],
+  // Fetch module statistics with real completion data
+  const { data: moduleStats, isLoading: isStatsLoading } = useQuery({
+    queryKey: [`/api/training/module/${moduleId}/stats?chapterId=${chapterId}`],
     queryFn: getQueryFn({ on401: "throw" }),
-    enabled: isAuthenticated,
+    enabled: !!(chapterId && moduleId) && isAuthenticated,
   });
 
   // If user is not authenticated, redirect to login
