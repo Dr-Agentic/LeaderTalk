@@ -85,6 +85,7 @@ export default function DashboardScreen() {
             title="Innovation Leadership"
             description="Master the art of leading through change and driving innovation in your organization"
             onPress={() => navigation.navigate('Training')}
+            gradientColors={['#FF6B6B', '#FF8E53']}
           />
 
           <FeatureCard
@@ -92,6 +93,7 @@ export default function DashboardScreen() {
             title="Strategic Thinking"
             description="Develop strategic mindset and learn to make decisions that shape the future"
             onPress={() => navigation.navigate('Training')}
+            gradientColors={['#4ECDC4', '#26A69A']}
           />
 
           <FeatureCard
@@ -99,6 +101,7 @@ export default function DashboardScreen() {
             title="Team Dynamics"
             description="Build high-performing teams and create cultures of excellence and collaboration"
             onPress={() => navigation.navigate('Training')}
+            gradientColors={['#8A2BE2', '#5E35B1']}
           />
         </View>
 
@@ -110,7 +113,7 @@ export default function DashboardScreen() {
             title="Record Conversation"
             description="Record a conversation to get AI-powered insights on your communication style"
             onPress={() => navigation.navigate('Recording')}
-            accentColor="#4ECDC4"
+            gradientColors={['#4ECDC4', '#2196F3']}
           />
 
           <FeatureCard
@@ -118,7 +121,7 @@ export default function DashboardScreen() {
             title="View Transcripts"
             description="Review your past conversations and track your communication progress"
             onPress={() => navigation.navigate('Transcripts')}
-            accentColor="#4ECDC4"
+            gradientColors={['#4ECDC4', '#2196F3']}
           />
         </View>
         
@@ -146,17 +149,28 @@ const StatCard = ({ number, label }) => (
   </LinearGradient>
 );
 
-// FeatureCard Component
-const FeatureCard = ({ icon, title, description, onPress, accentColor = '#FF6B6B' }) => (
+// FeatureCard Component with gradient icon background
+const FeatureCard = ({ 
+  icon, 
+  title, 
+  description, 
+  onPress, 
+  gradientColors = ['#FF6B6B', '#FF8E53'] 
+}) => (
   <TouchableOpacity 
     style={styles.card}
     onPress={onPress}
     activeOpacity={0.8}
   >
     <View style={styles.cardHeader}>
-      <View style={[styles.cardIcon, { backgroundColor: accentColor }]}>
+      <LinearGradient
+        colors={gradientColors}
+        style={styles.cardIcon}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      >
         <Text style={styles.iconText}>{icon}</Text>
-      </View>
+      </LinearGradient>
       <Text style={styles.cardTitle}>{title}</Text>
     </View>
     <Text style={styles.cardDescription}>{description}</Text>
