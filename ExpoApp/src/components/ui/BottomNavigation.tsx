@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { colors } from '../../theme/colors';
 
 interface NavItem {
   icon: string;
@@ -11,7 +10,7 @@ interface NavItem {
 interface BottomNavigationProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
-  items: NavItem[];
+  items?: NavItem[];
 }
 
 export const BottomNavigation = ({ 
@@ -51,11 +50,11 @@ const styles = StyleSheet.create({
     right: 0,
     flexDirection: 'row',
     justifyContent: 'space-around',
-    backgroundColor: colors.navBackground,
+    backgroundColor: 'rgba(10, 10, 10, 0.95)',
     paddingVertical: 12,
     paddingBottom: 34, // Extra padding for iPhone home indicator
     borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopColor: 'rgba(255, 255, 255, 0.1)',
   },
   navItem: {
     alignItems: 'center',
@@ -64,7 +63,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   activeNavItem: {
-    backgroundColor: colors.navActive,
+    backgroundColor: 'rgba(138, 43, 226, 0.2)',
   },
   navIcon: {
     fontSize: 20,
@@ -72,11 +71,11 @@ const styles = StyleSheet.create({
   },
   navLabel: {
     fontSize: 11,
-    color: colors.navText,
+    color: 'rgba(255, 255, 255, 0.7)',
     fontWeight: '500',
   },
   activeNavLabel: {
-    color: colors.navActiveText,
+    color: '#8A2BE2',
   },
 });
 

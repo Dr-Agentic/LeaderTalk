@@ -1,23 +1,22 @@
 import React from 'react';
 import { View, StyleSheet, ViewProps } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { colors } from '../../theme/colors';
 
 interface GradientCardProps extends ViewProps {
   children: React.ReactNode;
-  colors?: string[];
+  gradientColors?: string[];
   style?: any;
 }
 
 export const GradientCard = ({ 
   children, 
-  colors = [colors.primaryLight, 'rgba(255, 107, 107, 0.1)'],
+  gradientColors = ['rgba(138, 43, 226, 0.1)', 'rgba(255, 107, 107, 0.1)'],
   style,
   ...props 
 }: GradientCardProps) => {
   return (
     <LinearGradient
-      colors={colors}
+      colors={gradientColors}
       style={[styles.card, style]}
       {...props}
     >
@@ -31,7 +30,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     padding: 24,
     borderWidth: 1,
-    borderColor: colors.borderAccent,
+    borderColor: 'rgba(138, 43, 226, 0.2)',
   },
 });
 

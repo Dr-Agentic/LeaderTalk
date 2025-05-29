@@ -3,35 +3,13 @@ import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-na
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
-import Animated, { 
-  useSharedValue, 
-  useAnimatedScrollHandler, 
-  useAnimatedStyle 
-} from 'react-native-reanimated';
 import { colors } from '../theme/colors';
 import GradientCard from '../components/ui/GradientCard';
-import FeatureCard from '../components/ui/FeatureCard';
-import StatCard from '../components/ui/StatCard';
 import BottomNavigation from '../components/ui/BottomNavigation';
 
 export default function DashboardScreen() {
   const navigation = useNavigation();
   const [activeTab, setActiveTab] = useState('home');
-  const scrollY = useSharedValue(0);
-
-  const onScroll = useAnimatedScrollHandler({
-    onScroll: (event) => {
-      scrollY.value = event.contentOffset.y;
-    },
-  });
-
-  // Header animation style
-  const headerStyle = useAnimatedStyle(() => {
-    return {
-      opacity: 1 - (scrollY.value * 0.01 > 0.6 ? 0.6 : scrollY.value * 0.01),
-      transform: [{ translateY: scrollY.value > 100 ? -100 : 0 }],
-    };
-  });
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
@@ -59,10 +37,10 @@ export default function DashboardScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
-      <LinearGradient colors={colors.backgroundGradient} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={["#0a0a0a", "#1a0033", "#0a0a0a"]} style={StyleSheet.absoluteFill} />
 
       {/* Header */}
-      <Animated.View style={[styles.header, headerStyle]}>
+      <View style={styles.header}>
         <Text style={styles.logo}>LeaderTalk</Text>
         <TouchableOpacity 
           style={styles.profilePic}
@@ -70,15 +48,10 @@ export default function DashboardScreen() {
         >
           <Text style={styles.profileText}>JD</Text>
         </TouchableOpacity>
-      </Animated.View>
+      </View>
 
       {/* Content */}
-      <Animated.ScrollView 
-        contentContainerStyle={styles.scrollContent} 
-        onScroll={onScroll} 
-        scrollEventThrottle={16}
-        showsVerticalScrollIndicator={false}
-      >
+      <View style={styles.scrollContent}>
         {/* Hero Section */}
         <GradientCard style={styles.heroSection}>
           <Text style={styles.heroTitle}>Elevate Your{'\n'}Leadership</Text>
@@ -133,7 +106,7 @@ export default function DashboardScreen() {
             title="Record Conversation"
             description="Record a conversation to get AI-powered insights on your communication style"
             onPress={() => navigation.navigate('Recording')}
-            iconBackgroundColor={colors.accent2}
+            accentColor="#4ECDC4"
           />
 
           <FeatureCard
@@ -141,13 +114,10 @@ export default function DashboardScreen() {
             title="View Transcripts"
             description="Review your past conversations and track your communication progress"
             onPress={() => navigation.navigate('Transcripts')}
-            iconBackgroundColor={colors.accent2}
+            accentColor="#4ECDC4"
           />
         </View>
-
-        {/* Add some space at the bottom for the navigation bar */}
-        <View style={{ height: 100 }} />
-      </Animated.ScrollView>
+      </View>
 
       {/* Bottom Navigation */}
       <BottomNavigation 
@@ -158,10 +128,38 @@ export default function DashboardScreen() {
   );
 }
 
+// StatCard Component
+const StatCard = ({ number, label }) => (
+  <LinearGradient
+    colors={['rgba(138, 43, 226, 0.1)', 'rgba(255, 107, 107, 0.1)']}
+    style={styles.statCard}
+  >
+    <Text style={styles.statNumber}>{number}</Text>
+    <Text style={styles.statLabel}>{label}</Text>
+  </LinearGradient>
+);
+
+// FeatureCard Component
+const FeatureCard = ({ icon, title, description, onPress, accentColor = '#FF6B6B' }) => (
+  <TouchableOpacity 
+    style={styles.card}
+    onPress={onPress}
+    activeOpacity={0.8}
+  >
+    <View style={styles.cardHeader}>
+      <View style={[styles.cardIcon, { backgroundColor: accentColor }]}>
+        <Text style={styles.iconText}>{icon}</Text>
+      </View>
+      <Text style={styles.cardTitle}>{title}</Text>
+    </View>
+    <Text style={styles.cardDescription}>{description}</Text>
+  </TouchableOpacity>
+);
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#0a0a0a',
   },
   header: {
     padding: 24,
@@ -173,21 +171,22 @@ const styles = StyleSheet.create({
   logo: {
     fontSize: 24,
     fontWeight: '800',
-    color: colors.text,
+    color: '#ffffff',
   },
   profilePic: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: colors.primary,
+    backgroundColor: '#8A2BE2',
     justifyContent: 'center',
     alignItems: 'center',
   },
   profileText: {
-    color: colors.text,
+    color: '#ffffff',
     fontWeight: '600',
   },
   scrollContent: {
+    flex: 1,
     paddingTop: 8,
     paddingBottom: 100,
   },
@@ -195,27 +194,27 @@ const styles = StyleSheet.create({
     margin: 24,
   },
   heroTitle: {
-    color: colors.text,
+    color: '#ffffff',
     fontSize: 32,
     fontWeight: '800',
     marginBottom: 12,
     lineHeight: 38,
   },
   heroSubtitle: {
-    color: colors.textSecondary,
+    color: 'rgba(255, 255, 255, 0.7)',
     fontSize: 16,
     marginBottom: 24,
     lineHeight: 22,
   },
   ctaButton: {
-    backgroundColor: colors.primary,
+    backgroundColor: '#8A2BE2',
     paddingVertical: 16,
     paddingHorizontal: 32,
     borderRadius: 16,
     alignSelf: 'flex-start',
   },
   ctaText: {
-    color: colors.text,
+    color: '#ffffff',
     fontWeight: '600',
     fontSize: 16,
   },
@@ -225,8 +224,29 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     marginBottom: 32,
   },
+  statCard: {
+    flex: 1,
+    borderRadius: 16,
+    padding: 20,
+    alignItems: 'center',
+    marginHorizontal: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(138, 43, 226, 0.2)',
+  },
+  statNumber: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#ffffff',
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.6)',
+    fontWeight: '500',
+    letterSpacing: 0.5,
+  },
   sectionTitle: {
-    color: colors.text,
+    color: '#ffffff',
     fontSize: 24,
     fontWeight: '700',
     paddingHorizontal: 24,
@@ -235,5 +255,40 @@ const styles = StyleSheet.create({
   },
   cardsContainer: {
     paddingHorizontal: 24,
+  },
+  card: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    padding: 24,
+    borderRadius: 20,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  cardIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+  },
+  iconText: {
+    fontSize: 20,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#ffffff',
+    flex: 1,
+  },
+  cardDescription: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.7)',
+    lineHeight: 20,
   },
 });
