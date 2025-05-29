@@ -1,37 +1,37 @@
-// Theme colors based on the web client
+// Theme colors based on app-template3.js
 export const colors = {
   // Primary colors
-  primary: '#e53e3e', // Red color from the web client
-  primaryForeground: '#ffffff',
-  
-  // Background colors
-  background: '#ffffff',
-  foreground: '#000000',
-  
-  // Card colors
-  card: '#ffffff',
-  cardForeground: '#000000',
+  primary: '#8A2BE2', // Purple
+  primaryLight: 'rgba(138, 43, 226, 0.1)',
+  primaryBorder: 'rgba(138, 43, 226, 0.2)',
   
   // Accent colors
-  accent: '#f5f5f5',
-  accentForeground: '#000000',
+  accent1: '#FF6B6B', // Pink/Red
+  accent2: '#4ECDC4', // Teal
   
-  // Secondary colors
-  secondary: '#f9fafb',
-  secondaryForeground: '#000000',
+  // Background colors
+  background: '#0a0a0a',
+  backgroundGradient: ["#0a0a0a", "#1a0033", "#0a0a0a"],
+  cardBackground: 'rgba(255, 255, 255, 0.05)',
   
-  // Muted colors
-  muted: '#f1f5f9',
-  mutedForeground: '#6b7280',
-  
-  // Destructive colors
-  destructive: '#ef4444',
-  destructiveForeground: '#ffffff',
+  // Text colors
+  text: '#ffffff',
+  textSecondary: 'rgba(255, 255, 255, 0.7)',
+  textMuted: 'rgba(255, 255, 255, 0.6)',
   
   // Border colors
-  border: '#e2e8f0',
-  input: '#e2e8f0',
+  border: 'rgba(255, 255, 255, 0.1)',
+  borderAccent: 'rgba(138, 43, 226, 0.2)',
   
-  // Ring color for focus states
-  ring: '#e53e3e',
+  // Navigation colors
+  navBackground: 'rgba(10, 10, 10, 0.95)',
+  navActive: 'rgba(138, 43, 226, 0.2)',
+  navText: 'rgba(255, 255, 255, 0.7)',
+  navActiveText: '#8A2BE2',
+  
+  // Status colors
+  success: '#10b981',
+  error: '#ef4444',
+  warning: '#f59e0b',
+  info: '#3b82f6',
 };

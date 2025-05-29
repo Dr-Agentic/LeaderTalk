@@ -1,19 +1,14 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Image, Alert, TextInput as RNTextInput } from 'react-native';
+import { View, Text, StyleSheet, Image, Alert, TextInput, SafeAreaView, TouchableOpacity } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { StatusBar } from 'expo-status-bar';
 import { signIn } from '../lib/auth';
-import { MaterialIcons } from '@expo/vector-icons';
-import { H1, H2, Paragraph, SmallText, H4 } from '../components/ui/Typography';
-import { Button } from '../components/ui/Button';
-import { Card, CardContent } from '../components/ui/Card';
-import { Input } from '../components/ui/Input';
-import { Separator } from '../components/ui/Separator';
 import { colors } from '../theme/colors';
-import { fonts } from '../theme/fonts';
 
 export default function LoginScreen() {
-  const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSignIn = async () => {
     if (!email.trim()) {
@@ -29,7 +24,7 @@ export default function LoginScreen() {
     setIsLoading(true);
     try {
       await signIn(email, password);
-      // The AppNavigator will handle navigation after auth state changes
+      // The App.tsx will handle navigation after auth state changes
     } catch (error) {
       console.error('Sign-in error:', error);
       Alert.alert('Authentication Error', 'Failed to sign in. Please try again.');
@@ -55,104 +50,105 @@ export default function LoginScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.logoContainer}>
-        <Image
-          source={require('../../assets/icon.png')}
-          style={styles.logo}
-          resizeMode="contain"
-        />
-        <H1 style={styles.appName}>LeaderTalk</H1>
-        <Paragraph style={styles.tagline}>
-          Transform your communication skills with AI-powered coaching
-        </Paragraph>
-      </View>
+    <SafeAreaView style={styles.container}>
+      <StatusBar style="light" />
+      <LinearGradient colors={colors.backgroundGradient} style={StyleSheet.absoluteFill} />
+      
+      <View style={styles.content}>
+        <View style={styles.logoContainer}>
+          <Image
+            source={require('../../assets/icon.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+          <Text style={styles.appName}>LeaderTalk</Text>
+          <Text style={styles.tagline}>
+            Transform your communication skills with AI-powered coaching
+          </Text>
+        </View>
 
-      <Card style={styles.card}>
-        <CardContent>
-          <H2 style={styles.cardTitle}>Sign In</H2>
+        <LinearGradient
+          colors={[colors.primaryLight, 'rgba(255, 107, 107, 0.1)']}
+          style={styles.formContainer}
+        >
+          <Text style={styles.formTitle}>Sign In</Text>
           
-          <Input
+          <TextInput
+            style={styles.input}
             placeholder="Email"
+            placeholderTextColor={colors.textMuted}
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
           />
           
-          <Input
+          <TextInput
+            style={styles.input}
             placeholder="Password"
+            placeholderTextColor={colors.textMuted}
             value={password}
             onChangeText={setPassword}
             secureTextEntry
           />
           
-          <Button
+          <TouchableOpacity
+            style={[styles.button, styles.primaryButton, isLoading && styles.disabledButton]}
             onPress={handleSignIn}
-            loading={isLoading}
             disabled={isLoading}
-            style={styles.signInButton}
           >
-            Sign In
-          </Button>
+            <Text style={styles.buttonText}>
+              {isLoading ? 'Signing In...' : 'Sign In'}
+            </Text>
+          </TouchableOpacity>
 
           <View style={styles.divider}>
             <View style={styles.dividerLine} />
-            <SmallText style={styles.dividerText}>OR</SmallText>
+            <Text style={styles.dividerText}>OR</Text>
             <View style={styles.dividerLine} />
           </View>
 
-          <Button
-            variant="outline"
+          <TouchableOpacity
+            style={[styles.button, styles.secondaryButton, isLoading && styles.disabledButton]}
             onPress={handleDemoLogin}
             disabled={isLoading}
-            style={styles.demoButton}
           >
-            Try Demo
-          </Button>
-        </CardContent>
-      </Card>
+            <Text style={styles.secondaryButtonText}>Try Demo</Text>
+          </TouchableOpacity>
+        </LinearGradient>
 
-      <View style={styles.featuresContainer}>
-        <FeatureItem
-          icon="mic"
-          title="Record & Analyze"
-          description="Record conversations and get AI-powered analysis"
-        />
-        <FeatureItem
-          icon="insights"
-          title="Leadership Insights"
-          description="Learn from communication styles of selected leaders"
-        />
-        <FeatureItem
-          icon="school"
-          title="Training Modules"
-          description="Practice with structured learning modules"
-        />
+        <View style={styles.featuresContainer}>
+          {[
+            { icon: '🚀', title: 'Record & Analyze', desc: 'Record conversations and get AI-powered analysis' },
+            { icon: '🎯', title: 'Leadership Insights', desc: 'Learn from communication styles of selected leaders' },
+            { icon: '💡', title: 'Training Modules', desc: 'Practice with structured learning modules' },
+          ].map((feature, index) => (
+            <View key={index} style={styles.featureItem}>
+              <Text style={styles.featureIcon}>{feature.icon}</Text>
+              <View style={styles.featureTextContainer}>
+                <Text style={styles.featureTitle}>{feature.title}</Text>
+                <Text style={styles.featureDescription}>{feature.desc}</Text>
+              </View>
+            </View>
+          ))}
+        </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
-
-const FeatureItem = ({ icon, title, description }) => (
-  <View style={styles.featureItem}>
-    <MaterialIcons name={icon} size={24} color={colors.primary} />
-    <View style={styles.featureTextContainer}>
-      <H4 style={styles.featureTitle}>{title}</H4>
-      <SmallText style={styles.featureDescription}>{description}</SmallText>
-    </View>
-  </View>
-);
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 24,
     backgroundColor: colors.background,
+  },
+  content: {
+    flex: 1,
+    padding: 24,
   },
   logoContainer: {
     alignItems: 'center',
-    marginTop: 60,
+    marginTop: 20,
     marginBottom: 40,
   },
   logo: {
@@ -161,26 +157,70 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   appName: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: colors.text,
     marginBottom: 8,
   },
   tagline: {
+    fontSize: 16,
+    color: colors.textSecondary,
     textAlign: 'center',
-    marginHorizontal: 20,
-    color: colors.mutedForeground,
+    lineHeight: 22,
   },
-  card: {
+  formContainer: {
+    borderRadius: 24,
+    padding: 24,
     marginBottom: 32,
+    borderWidth: 1,
+    borderColor: colors.borderAccent,
   },
-  cardTitle: {
+  formTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 24,
+  },
+  input: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 12,
+    padding: 16,
     marginBottom: 16,
+    color: colors.text,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-  signInButton: {
-    marginTop: 8,
+  button: {
+    borderRadius: 16,
+    padding: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  primaryButton: {
+    backgroundColor: colors.primary,
+  },
+  secondaryButton: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: colors.primary,
+  },
+  disabledButton: {
+    opacity: 0.7,
+  },
+  buttonText: {
+    color: colors.text,
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  secondaryButtonText: {
+    color: colors.primary,
+    fontWeight: '600',
+    fontSize: 16,
   },
   divider: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 16,
+    marginVertical: 24,
   },
   dividerLine: {
     flex: 1,
@@ -188,10 +228,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.border,
   },
   dividerText: {
-    marginHorizontal: 8,
-  },
-  demoButton: {
-    borderColor: colors.primary,
+    color: colors.textMuted,
+    paddingHorizontal: 16,
+    fontSize: 14,
   },
   featuresContainer: {
     marginTop: 16,
@@ -201,14 +240,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
+  featureIcon: {
+    fontSize: 24,
+    marginRight: 16,
+  },
   featureTextContainer: {
-    marginLeft: 16,
     flex: 1,
   },
   featureTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
     marginBottom: 4,
   },
   featureDescription: {
-    color: colors.mutedForeground,
+    fontSize: 14,
+    color: colors.textSecondary,
   },
 });
