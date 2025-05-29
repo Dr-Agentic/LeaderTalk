@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
@@ -50,8 +50,12 @@ export default function DashboardScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Content */}
-      <View style={styles.scrollContent}>
+      {/* Content - Changed from View to ScrollView to enable scrolling */}
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Hero Section */}
         <GradientCard style={styles.heroSection}>
           <Text style={styles.heroTitle}>Elevate Your{'\n'}Leadership</Text>
@@ -117,7 +121,10 @@ export default function DashboardScreen() {
             accentColor="#4ECDC4"
           />
         </View>
-      </View>
+        
+        {/* Add padding at the bottom to ensure content is scrollable past the bottom navigation */}
+        <View style={styles.bottomPadding} />
+      </ScrollView>
 
       {/* Bottom Navigation */}
       <BottomNavigation 
@@ -185,10 +192,11 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontWeight: '600',
   },
-  scrollContent: {
+  scrollView: {
     flex: 1,
+  },
+  scrollContent: {
     paddingTop: 8,
-    paddingBottom: 100,
   },
   heroSection: {
     margin: 24,
@@ -290,5 +298,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: 'rgba(255, 255, 255, 0.7)',
     lineHeight: 20,
+  },
+  bottomPadding: {
+    height: 120, // Extra padding at the bottom to ensure content is scrollable past the navigation bar
   },
 });
