@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, TextInput, SafeAreaView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { MaterialIcons } from '@expo/vector-icons';
-import { H1, H3, Paragraph, SmallText } from '../components/ui/Typography';
-import { Card, CardContent } from '../components/ui/Card';
-import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
+import { LinearGradient } from 'expo-linear-gradient';
+import { StatusBar } from 'expo-status-bar';
+import Animated, { useSharedValue, useAnimatedScrollHandler, useAnimatedStyle } from 'react-native-reanimated';
 import { colors } from '../theme/colors';
+import BottomNavigation from '../components/ui/BottomNavigation';
 
 // Mock data for recordings
 const mockRecordings = [
@@ -59,8 +58,25 @@ const mockRecordings = [
 
 export default function AllTranscriptsScreen() {
   const navigation = useNavigation();
+  const [activeTab, setActiveTab] = useState('progress');
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredRecordings, setFilteredRecordings] = useState(mockRecordings);
+  
+  const scrollY = useSharedValue(0);
+
+  const onScroll = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y;
+    },
+  });
+
+  // Header animation style
+  const headerStyle = useAnimatedStyle(() => {
+    return {
+      opacity: 1 - (scrollY.value * 0.01 > 0.6 ? 0.6 : scrollY.value * 0.01),
+      transform: [{ translateY: scrollY.value > 100 ? -100 : 0 }],
+    };
+  });
 
   // Format duration from seconds to MM:SS
   const formatDuration = (seconds: number): string => {
@@ -88,48 +104,88 @@ export default function AllTranscriptsScreen() {
     }
   };
 
-  // Render sentiment indicator
-  const renderSentimentIndicator = (positive: number, negative: number, neutral: number) => {
-    return (
-      <View style={styles.sentimentContainer}>
-        <View style={[styles.sentimentBar, styles.sentimentPositive, { flex: positive }]} />
-        <View style={[styles.sentimentBar, styles.sentimentNegative, { flex: negative }]} />
-        <View style={[styles.sentimentBar, styles.sentimentNeutral, { flex: neutral }]} />
-      </View>
-    );
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    
+    // Navigate to the appropriate screen based on the tab
+    switch (tab) {
+      case 'home':
+        navigation.navigate('Dashboard');
+        break;
+      case 'explore':
+        // Navigate to explore screen when implemented
+        break;
+      case 'sessions':
+        navigation.navigate('Recording');
+        break;
+      case 'progress':
+        // Already on transcripts screen
+        break;
+      case 'profile':
+        navigation.navigate('Settings');
+        break;
+    }
   };
 
   // Render recording item
   const renderRecordingItem = ({ item }) => (
     <TouchableOpacity
+      style={styles.recordingCard}
       onPress={() => navigation.navigate('TranscriptView', { id: item.id })}
+      activeOpacity={0.8}
     >
-      <Card style={styles.recordingCard}>
-        <CardContent>
-          <View style={styles.recordingHeader}>
-            <H3>{item.title}</H3>
-            <MaterialIcons name="chevron-right" size={24} color={colors.mutedForeground} />
-          </View>
-          
-          <View style={styles.recordingMeta}>
-            <View style={styles.metaItem}>
-              <MaterialIcons name="calendar-today" size={16} color={colors.mutedForeground} />
-              <SmallText style={styles.metaText}>{formatDate(item.date)}</SmallText>
-            </View>
-            
-            <View style={styles.metaItem}>
-              <MaterialIcons name="access-time" size={16} color={colors.mutedForeground} />
-              <SmallText style={styles.metaText}>{formatDuration(item.duration)}</SmallText>
-            </View>
-          </View>
-          
-          {renderSentimentIndicator(
-            item.positivePercentage, 
-            item.negativePercentage, 
-            item.neutralPercentage
-          )}
-        </CardContent>
-      </Card>
+      <View style={styles.cardHeader}>
+        <Text style={styles.recordingTitle}>{item.title}</Text>
+        <Text style={styles.recordingDate}>{formatDate(item.date)}</Text>
+      </View>
+      
+      <View style={styles.recordingMeta}>
+        <View style={styles.metaItem}>
+          <Text style={styles.metaIcon}>🕒</Text>
+          <Text style={styles.metaText}>{formatDuration(item.duration)}</Text>
+        </View>
+      </View>
+      
+      <View style={styles.sentimentContainer}>
+        <View 
+          style={[
+            styles.sentimentBar, 
+            styles.positiveBar, 
+            { flex: item.positivePercentage }
+          ]} 
+        />
+        <View 
+          style={[
+            styles.sentimentBar, 
+            styles.negativeBar, 
+            { flex: item.negativePercentage }
+          ]} 
+        />
+        <View 
+          style={[
+            styles.sentimentBar, 
+            styles.neutralBar, 
+            { flex: item.neutralPercentage }
+          ]} 
+        />
+      </View>
+      
+      <View style={styles.sentimentLabels}>
+        <View style={styles.sentimentLabel}>
+          <View style={[styles.sentimentDot, styles.positiveDot]} />
+          <Text style={styles.sentimentText}>{item.positivePercentage}% Positive</Text>
+        </View>
+        
+        <View style={styles.sentimentLabel}>
+          <View style={[styles.sentimentDot, styles.negativeDot]} />
+          <Text style={styles.sentimentText}>{item.negativePercentage}% Negative</Text>
+        </View>
+        
+        <View style={styles.sentimentLabel}>
+          <View style={[styles.sentimentDot, styles.neutralDot]} />
+          <Text style={styles.sentimentText}>{item.neutralPercentage}% Neutral</Text>
+        </View>
+      </View>
     </TouchableOpacity>
   );
 
@@ -138,68 +194,83 @@ export default function AllTranscriptsScreen() {
     <View style={styles.emptyState}>
       {searchQuery ? (
         <>
-          <MaterialIcons name="search-off" size={48} color={colors.mutedForeground} />
-          <Paragraph style={styles.emptyStateTitle}>No results found</Paragraph>
-          <SmallText style={styles.emptyStateText}>
+          <Text style={styles.emptyIcon}>🔍</Text>
+          <Text style={styles.emptyTitle}>No results found</Text>
+          <Text style={styles.emptyText}>
             Try adjusting your search query
-          </SmallText>
+          </Text>
         </>
       ) : (
         <>
-          <MaterialIcons name="mic-none" size={48} color={colors.mutedForeground} />
-          <Paragraph style={styles.emptyStateTitle}>No recordings yet</Paragraph>
-          <SmallText style={styles.emptyStateText}>
+          <Text style={styles.emptyIcon}>🎙️</Text>
+          <Text style={styles.emptyTitle}>No recordings yet</Text>
+          <Text style={styles.emptyText}>
             Start by recording a conversation to get insights
-          </SmallText>
-          <Button 
+          </Text>
+          <TouchableOpacity 
+            style={styles.emptyButton}
             onPress={() => navigation.navigate('Recording')}
-            style={styles.emptyStateButton}
           >
-            Start Recording
-          </Button>
+            <Text style={styles.emptyButtonText}>Start Recording</Text>
+          </TouchableOpacity>
         </>
       )}
     </View>
   );
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <H1>All Recordings</H1>
-        <Paragraph style={styles.subtitle}>
-          View and analyze your past conversations
-        </Paragraph>
-      </View>
-      
+    <SafeAreaView style={styles.container}>
+      <StatusBar style="light" />
+      <LinearGradient colors={colors.backgroundGradient} style={StyleSheet.absoluteFill} />
+
+      {/* Header */}
+      <Animated.View style={[styles.header, headerStyle]}>
+        <TouchableOpacity onPress={() => navigation.navigate('Dashboard')}>
+          <Text style={styles.backButton}>← Back</Text>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Transcripts</Text>
+        <View style={{ width: 50 }} />
+      </Animated.View>
+
+      {/* Search and New Button */}
       <View style={styles.searchContainer}>
         <View style={styles.searchInputContainer}>
-          <MaterialIcons name="search" size={20} color={colors.mutedForeground} style={styles.searchIcon} />
-          <Input
+          <Text style={styles.searchIcon}>🔍</Text>
+          <TextInput
+            style={styles.searchInput}
             placeholder="Search recordings..."
+            placeholderTextColor={colors.textMuted}
             value={searchQuery}
             onChangeText={handleSearch}
-            style={styles.searchInput}
           />
         </View>
         
-        <Button
-          variant="outline"
-          onPress={() => navigation.navigate('Recording')}
-          icon={<MaterialIcons name="add" size={20} color={colors.primary} />}
+        <TouchableOpacity
           style={styles.newButton}
+          onPress={() => navigation.navigate('Recording')}
         >
-          New
-        </Button>
+          <Text style={styles.newButtonText}>+ New</Text>
+        </TouchableOpacity>
       </View>
-      
+
+      {/* Recordings List */}
       <FlatList
         data={filteredRecordings}
         renderItem={renderRecordingItem}
         keyExtractor={item => item.id.toString()}
         contentContainerStyle={styles.listContainer}
         ListEmptyComponent={renderEmptyState}
+        showsVerticalScrollIndicator={false}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
       />
-    </View>
+
+      {/* Bottom Navigation */}
+      <BottomNavigation 
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+      />
+    </SafeAreaView>
   );
 }
 
@@ -209,52 +280,88 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   header: {
-    padding: 24,
-    paddingBottom: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    zIndex: 10,
   },
-  subtitle: {
-    color: colors.mutedForeground,
-    marginTop: 8,
+  backButton: {
+    color: colors.primary,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  headerTitle: {
+    color: colors.text,
+    fontSize: 18,
+    fontWeight: '700',
   },
   searchContainer: {
     flexDirection: 'row',
     paddingHorizontal: 24,
     paddingBottom: 16,
+    alignItems: 'center',
   },
   searchInputContainer: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 12,
+    paddingHorizontal: 12,
     marginRight: 12,
-    position: 'relative',
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   searchIcon: {
-    position: 'absolute',
-    left: 12,
-    zIndex: 1,
+    fontSize: 16,
+    marginRight: 8,
   },
   searchInput: {
     flex: 1,
-    paddingLeft: 40,
     height: 44,
-    marginBottom: 0,
+    color: colors.text,
+    fontSize: 16,
   },
   newButton: {
-    borderColor: colors.primary,
-    height: 44,
+    backgroundColor: colors.primary,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+  },
+  newButtonText: {
+    color: colors.text,
+    fontWeight: '600',
   },
   listContainer: {
     padding: 24,
     paddingTop: 8,
+    paddingBottom: 100,
   },
   recordingCard: {
+    backgroundColor: colors.cardBackground,
+    borderRadius: 16,
+    padding: 20,
     marginBottom: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-  recordingHeader: {
+  cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 12,
+  },
+  recordingTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text,
+    flex: 1,
+  },
+  recordingDate: {
+    fontSize: 14,
+    color: colors.textMuted,
   },
   recordingMeta: {
     flexDirection: 'row',
@@ -265,27 +372,59 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 16,
   },
+  metaIcon: {
+    fontSize: 16,
+    marginRight: 6,
+  },
   metaText: {
-    marginLeft: 4,
-    color: colors.mutedForeground,
+    fontSize: 14,
+    color: colors.textSecondary,
   },
   sentimentContainer: {
     flexDirection: 'row',
-    height: 6,
-    borderRadius: 3,
+    height: 8,
+    borderRadius: 4,
     overflow: 'hidden',
+    marginBottom: 12,
   },
   sentimentBar: {
     height: '100%',
   },
-  sentimentPositive: {
-    backgroundColor: '#10b981', // green
+  positiveBar: {
+    backgroundColor: colors.success,
   },
-  sentimentNegative: {
-    backgroundColor: '#ef4444', // red
+  negativeBar: {
+    backgroundColor: colors.error,
   },
-  sentimentNeutral: {
-    backgroundColor: '#6b7280', // gray
+  neutralBar: {
+    backgroundColor: colors.textMuted,
+  },
+  sentimentLabels: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  sentimentLabel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  sentimentDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 6,
+  },
+  positiveDot: {
+    backgroundColor: colors.success,
+  },
+  negativeDot: {
+    backgroundColor: colors.error,
+  },
+  neutralDot: {
+    backgroundColor: colors.textMuted,
+  },
+  sentimentText: {
+    fontSize: 12,
+    color: colors.textMuted,
   },
   emptyState: {
     alignItems: 'center',
@@ -293,17 +432,30 @@ const styles = StyleSheet.create({
     padding: 24,
     marginTop: 48,
   },
-  emptyStateTitle: {
-    marginTop: 16,
-    marginBottom: 8,
-    fontWeight: '500',
+  emptyIcon: {
+    fontSize: 48,
+    marginBottom: 16,
   },
-  emptyStateText: {
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 8,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: colors.textSecondary,
     textAlign: 'center',
-    color: colors.mutedForeground,
     marginBottom: 24,
   },
-  emptyStateButton: {
-    minWidth: 160,
+  emptyButton: {
+    backgroundColor: colors.primary,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+  },
+  emptyButtonText: {
+    color: colors.text,
+    fontWeight: '600',
   },
 });

@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, Alert, Switch as RNSwitch } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { View, Text, StyleSheet, Alert, ScrollView, Switch, TouchableOpacity, SafeAreaView } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { StatusBar } from 'expo-status-bar';
 import { signOut } from '../lib/auth';
-import { H1, H2, H3, Paragraph, SmallText } from '../components/ui/Typography';
-import { Card, CardHeader, CardContent, CardFooter } from '../components/ui/Card';
-import { Button } from '../components/ui/Button';
-import { Separator } from '../components/ui/Separator';
 import { colors } from '../theme/colors';
+import BottomNavigation from '../components/ui/BottomNavigation';
+import GradientCard from '../components/ui/GradientCard';
 
 // Mock user data
 const mockUserData = {
@@ -27,21 +27,18 @@ const mockUserData = {
 };
 
 export default function SettingsScreen() {
-  const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
+  const navigation = useNavigation();
+  const [activeTab, setActiveTab] = useState('profile');
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [controversialLeadersEnabled, setControversialLeadersEnabled] = useState(false);
   
   // Use mock user data
   const user = mockUserData;
 
-  // Handle notification toggle
-  const handleNotificationsToggle = () => {
-    setNotificationsEnabled(!notificationsEnabled);
-  };
-
-  // Handle controversial leaders toggle
-  const handleControversialLeadersToggle = () => {
-    setControversialLeadersEnabled(!controversialLeadersEnabled);
+  // Format date
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
   // Handle logout
@@ -89,67 +86,84 @@ export default function SettingsScreen() {
     );
   };
 
-  // Format date
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    
+    // Navigate to the appropriate screen based on the tab
+    switch (tab) {
+      case 'home':
+        navigation.navigate('Dashboard');
+        break;
+      case 'explore':
+        // Navigate to explore screen when implemented
+        break;
+      case 'sessions':
+        navigation.navigate('Recording');
+        break;
+      case 'progress':
+        navigation.navigate('Transcripts');
+        break;
+      case 'profile':
+        // Already on settings screen
+        break;
+    }
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <SafeAreaView style={styles.container}>
+      <StatusBar style="light" />
+      <LinearGradient colors={colors.backgroundGradient} style={StyleSheet.absoluteFill} />
+
+      {/* Header */}
       <View style={styles.header}>
-        <H1>Settings</H1>
-        <Paragraph style={styles.subtitle}>
-          Manage your account and preferences
-        </Paragraph>
+        <Text style={styles.headerTitle}>Settings</Text>
       </View>
 
-      {/* Account Information */}
-      <Card style={styles.card}>
-        <CardHeader>
-          <H2>Account Information</H2>
-        </CardHeader>
-        <CardContent>
+      <ScrollView 
+        style={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Account Information */}
+        <GradientCard style={styles.card}>
+          <Text style={styles.cardTitle}>Account Information</Text>
+          
           <View style={styles.infoRow}>
-            <Paragraph style={styles.infoLabel}>Name</Paragraph>
-            <Paragraph>{user.name}</Paragraph>
+            <Text style={styles.infoLabel}>Name</Text>
+            <Text style={styles.infoValue}>{user.name}</Text>
           </View>
           
           <View style={styles.infoRow}>
-            <Paragraph style={styles.infoLabel}>Email</Paragraph>
-            <Paragraph>{user.email}</Paragraph>
+            <Text style={styles.infoLabel}>Email</Text>
+            <Text style={styles.infoValue}>{user.email}</Text>
           </View>
           
           <View style={styles.infoRow}>
-            <Paragraph style={styles.infoLabel}>Profession</Paragraph>
-            <Paragraph>{user.profession}</Paragraph>
+            <Text style={styles.infoLabel}>Profession</Text>
+            <Text style={styles.infoValue}>{user.profession}</Text>
           </View>
-        </CardContent>
-      </Card>
-      
-      {/* Word Usage */}
-      <Card style={styles.card}>
-        <CardHeader>
-          <H2>Word Usage</H2>
-        </CardHeader>
-        <CardContent>
+        </GradientCard>
+        
+        {/* Word Usage */}
+        <GradientCard style={styles.card}>
+          <Text style={styles.cardTitle}>Word Usage</Text>
+          
           <View style={styles.infoRow}>
-            <Paragraph style={styles.infoLabel}>Current Period</Paragraph>
-            <Paragraph>
+            <Text style={styles.infoLabel}>Current Period</Text>
+            <Text style={styles.infoValue}>
               {formatDate(user.wordUsage.periodStartDate)} - {formatDate(user.wordUsage.periodEndDate)}
-            </Paragraph>
+            </Text>
           </View>
           
           <View style={styles.infoRow}>
-            <Paragraph style={styles.infoLabel}>Words Used</Paragraph>
-            <Paragraph>
+            <Text style={styles.infoLabel}>Words Used</Text>
+            <Text style={styles.infoValue}>
               {user.wordUsage.currentPeriodWords} / {user.wordUsage.maxWords}
-            </Paragraph>
+            </Text>
           </View>
           
           <View style={styles.infoRow}>
-            <Paragraph style={styles.infoLabel}>Days Remaining</Paragraph>
-            <Paragraph>{user.wordUsage.daysRemaining}</Paragraph>
+            <Text style={styles.infoLabel}>Days Remaining</Text>
+            <Text style={styles.infoValue}>{user.wordUsage.daysRemaining}</Text>
           </View>
           
           <View style={styles.usageBarContainer}>
@@ -159,110 +173,94 @@ export default function SettingsScreen() {
                   styles.usageBarFill, 
                   { 
                     width: `${(user.wordUsage.currentPeriodWords / user.wordUsage.maxWords) * 100}%`,
-                    backgroundColor: user.wordUsage.currentPeriodWords > user.wordUsage.maxWords * 0.8 ? colors.destructive : '#10b981'
+                    backgroundColor: user.wordUsage.currentPeriodWords > user.wordUsage.maxWords * 0.8 ? colors.error : colors.success
                   }
                 ]} 
               />
             </View>
           </View>
-        </CardContent>
-      </Card>
-      
-      {/* App Settings */}
-      <Card style={styles.card}>
-        <CardHeader>
-          <H2>App Settings</H2>
-        </CardHeader>
-        <CardContent>
+        </GradientCard>
+        
+        {/* App Settings */}
+        <GradientCard style={styles.card}>
+          <Text style={styles.cardTitle}>App Settings</Text>
+          
           <View style={styles.settingRow}>
-            <Paragraph>Push Notifications</Paragraph>
-            <RNSwitch
+            <Text style={styles.settingLabel}>Push Notifications</Text>
+            <Switch
               value={notificationsEnabled}
-              onValueChange={handleNotificationsToggle}
-              trackColor={{ false: '#e5e7eb', true: colors.primary }}
-              thumbColor="#ffffff"
+              onValueChange={setNotificationsEnabled}
+              trackColor={{ false: colors.border, true: colors.primary }}
+              thumbColor={colors.text}
             />
           </View>
           
-          <Separator />
+          <View style={styles.divider} />
           
           <View style={styles.settingRow}>
-            <Paragraph>Show Controversial Leaders</Paragraph>
-            <RNSwitch
+            <Text style={styles.settingLabel}>Show Controversial Leaders</Text>
+            <Switch
               value={controversialLeadersEnabled}
-              onValueChange={handleControversialLeadersToggle}
-              trackColor={{ false: '#e5e7eb', true: colors.primary }}
-              thumbColor="#ffffff"
+              onValueChange={setControversialLeadersEnabled}
+              trackColor={{ false: colors.border, true: colors.primary }}
+              thumbColor={colors.text}
             />
           </View>
-        </CardContent>
-      </Card>
-      
-      {/* Account Actions */}
-      <Card style={styles.card}>
-        <CardHeader>
-          <H2>Account Actions</H2>
-        </CardHeader>
-        <CardContent>
-          <Button 
-            variant="outline" 
-            onPress={handleLogout}
-            style={styles.actionButton}
-            icon={<MaterialIcons name="logout" size={20} color={colors.foreground} />}
-          >
-            Logout
-          </Button>
+        </GradientCard>
+        
+        {/* Account Actions */}
+        <GradientCard style={styles.card}>
+          <Text style={styles.cardTitle}>Account Actions</Text>
           
-          <Button 
-            variant="outline" 
-            onPress={handleDeleteAccount}
-            style={[styles.actionButton, styles.dangerButton]}
-            icon={<MaterialIcons name="delete" size={20} color={colors.destructive} />}
+          <TouchableOpacity 
+            style={styles.actionButton}
+            onPress={handleLogout}
           >
-            Delete Account
-          </Button>
-        </CardContent>
-      </Card>
-      
-      {/* About */}
-      <Card style={styles.card}>
-        <CardHeader>
-          <H2>About</H2>
-        </CardHeader>
-        <CardContent>
+            <Text style={styles.actionButtonText}>Logout</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={[styles.actionButton, styles.dangerButton]}
+            onPress={handleDeleteAccount}
+          >
+            <Text style={styles.dangerButtonText}>Delete Account</Text>
+          </TouchableOpacity>
+        </GradientCard>
+        
+        {/* About */}
+        <GradientCard style={styles.card}>
+          <Text style={styles.cardTitle}>About</Text>
+          
           <View style={styles.infoRow}>
-            <Paragraph style={styles.infoLabel}>Version</Paragraph>
-            <Paragraph>1.0.0</Paragraph>
+            <Text style={styles.infoLabel}>Version</Text>
+            <Text style={styles.infoValue}>1.0.0</Text>
           </View>
           
-          <Separator />
+          <View style={styles.divider} />
           
-          <Button 
-            variant="link" 
-            style={styles.linkButton}
-            icon={<MaterialIcons name="description" size={20} color={colors.primary} />}
-          >
-            Terms of Service
-          </Button>
+          <TouchableOpacity style={styles.linkButton}>
+            <Text style={styles.linkButtonText}>Terms of Service</Text>
+          </TouchableOpacity>
           
-          <Button 
-            variant="link" 
-            style={styles.linkButton}
-            icon={<MaterialIcons name="privacy-tip" size={20} color={colors.primary} />}
-          >
-            Privacy Policy
-          </Button>
+          <TouchableOpacity style={styles.linkButton}>
+            <Text style={styles.linkButtonText}>Privacy Policy</Text>
+          </TouchableOpacity>
           
-          <Button 
-            variant="link" 
-            style={styles.linkButton}
-            icon={<MaterialIcons name="help" size={20} color={colors.primary} />}
-          >
-            Help & Support
-          </Button>
-        </CardContent>
-      </Card>
-    </ScrollView>
+          <TouchableOpacity style={styles.linkButton}>
+            <Text style={styles.linkButtonText}>Help & Support</Text>
+          </TouchableOpacity>
+        </GradientCard>
+
+        {/* Add some space at the bottom for the navigation bar */}
+        <View style={{ height: 100 }} />
+      </ScrollView>
+
+      {/* Bottom Navigation */}
+      <BottomNavigation 
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+      />
+    </SafeAreaView>
   );
 }
 
@@ -272,32 +270,48 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   header: {
-    padding: 24,
-    paddingBottom: 16,
+    paddingHorizontal: 24,
+    paddingVertical: 16,
   },
-  subtitle: {
-    color: colors.mutedForeground,
-    marginTop: 8,
+  headerTitle: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: colors.text,
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: 24,
   },
   card: {
-    marginHorizontal: 24,
-    marginBottom: 24,
+    marginBottom: 16,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 16,
   },
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   infoLabel: {
-    color: colors.mutedForeground,
+    fontSize: 16,
+    color: colors.textMuted,
+  },
+  infoValue: {
+    fontSize: 16,
+    color: colors.text,
+    fontWeight: '500',
   },
   usageBarContainer: {
     marginTop: 8,
   },
   usageBar: {
     height: 8,
-    backgroundColor: '#e5e7eb',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderRadius: 4,
     overflow: 'hidden',
   },
@@ -311,18 +325,42 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 8,
   },
+  settingLabel: {
+    fontSize: 16,
+    color: colors.text,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: colors.border,
+    marginVertical: 12,
+  },
   actionButton: {
-    marginBottom: 16,
+    backgroundColor: colors.primary,
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  actionButtonText: {
+    color: colors.text,
+    fontWeight: '600',
+    fontSize: 16,
   },
   dangerButton: {
-    borderColor: colors.destructive,
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: colors.error,
   },
-  dangerText: {
-    color: colors.destructive,
+  dangerButtonText: {
+    color: colors.error,
+    fontWeight: '600',
+    fontSize: 16,
   },
   linkButton: {
-    alignItems: 'flex-start',
-    paddingVertical: 8,
-    paddingHorizontal: 0,
+    paddingVertical: 12,
+  },
+  linkButtonText: {
+    color: colors.primary,
+    fontSize: 16,
   },
 });

@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import { MaterialIcons } from '@expo/vector-icons';
-import { H1, H2, H3, Paragraph, SmallText } from '../components/ui/Typography';
-import { Card, CardHeader, CardContent } from '../components/ui/Card';
-import { Button } from '../components/ui/Button';
-import { Separator } from '../components/ui/Separator';
+import { LinearGradient } from 'expo-linear-gradient';
+import { StatusBar } from 'expo-status-bar';
+import Animated, { useSharedValue, useAnimatedScrollHandler, useAnimatedStyle } from 'react-native-reanimated';
 import { colors } from '../theme/colors';
+import BottomNavigation from '../components/ui/BottomNavigation';
+import GradientCard from '../components/ui/GradientCard';
 
 // Mock data for transcript
 const mockTranscript = {
@@ -88,6 +88,23 @@ export default function TranscriptViewScreen() {
   const [transcript, setTranscript] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('transcript');
+  const [navTab, setNavTab] = useState('progress');
+  
+  const scrollY = useSharedValue(0);
+
+  const onScroll = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y;
+    },
+  });
+
+  // Header animation style
+  const headerStyle = useAnimatedStyle(() => {
+    return {
+      opacity: 1 - (scrollY.value * 0.01 > 0.6 ? 0.6 : scrollY.value * 0.01),
+      transform: [{ translateY: scrollY.value > 100 ? -100 : 0 }],
+    };
+  });
 
   // Format duration from seconds to MM:SS
   const formatDuration = (seconds: number): string => {
@@ -113,11 +130,11 @@ export default function TranscriptViewScreen() {
   const getSentimentColor = (sentiment: string): string => {
     switch (sentiment) {
       case 'positive':
-        return '#10b981'; // green
+        return colors.success;
       case 'negative':
-        return '#ef4444'; // red
+        return colors.error;
       default:
-        return '#6b7280'; // gray for neutral
+        return colors.textMuted; // gray for neutral
     }
   };
 
@@ -130,30 +147,68 @@ export default function TranscriptViewScreen() {
     }, 1000);
   }, [id]);
 
+  const handleTabChange = (tab: string) => {
+    setNavTab(tab);
+    
+    // Navigate to the appropriate screen based on the tab
+    switch (tab) {
+      case 'home':
+        navigation.navigate('Dashboard');
+        break;
+      case 'explore':
+        // Navigate to explore screen when implemented
+        break;
+      case 'sessions':
+        navigation.navigate('Recording');
+        break;
+      case 'progress':
+        navigation.navigate('Transcripts');
+        break;
+      case 'profile':
+        navigation.navigate('Settings');
+        break;
+    }
+  };
+
   if (isLoading) {
     return (
-      <View style={[styles.container, styles.loadingContainer]}>
-        <View style={styles.loadingIndicator}>
-          <MaterialIcons name="hourglass-top" size={48} color={colors.primary} />
-          <H2 style={styles.loadingText}>Loading transcript...</H2>
+      <SafeAreaView style={styles.container}>
+        <StatusBar style="light" />
+        <LinearGradient colors={colors.backgroundGradient} style={StyleSheet.absoluteFill} />
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingIcon}>⏳</Text>
+          <Text style={styles.loadingText}>Loading transcript...</Text>
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <H1>{transcript.title}</H1>
+    <SafeAreaView style={styles.container}>
+      <StatusBar style="light" />
+      <LinearGradient colors={colors.backgroundGradient} style={StyleSheet.absoluteFill} />
+
+      {/* Header */}
+      <Animated.View style={[styles.header, headerStyle]}>
+        <TouchableOpacity onPress={() => navigation.navigate('Transcripts')}>
+          <Text style={styles.backButton}>← Back</Text>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Transcript</Text>
+        <View style={{ width: 50 }} />
+      </Animated.View>
+
+      {/* Transcript Info */}
+      <View style={styles.infoContainer}>
+        <Text style={styles.title}>{transcript.title}</Text>
         <View style={styles.metaContainer}>
           <View style={styles.metaItem}>
-            <MaterialIcons name="calendar-today" size={16} color={colors.mutedForeground} />
-            <SmallText style={styles.metaText}>{formatDate(transcript.date)}</SmallText>
+            <Text style={styles.metaIcon}>📅</Text>
+            <Text style={styles.metaText}>{formatDate(transcript.date)}</Text>
           </View>
           
           <View style={styles.metaItem}>
-            <MaterialIcons name="access-time" size={16} color={colors.mutedForeground} />
-            <SmallText style={styles.metaText}>{formatDuration(transcript.duration)}</SmallText>
+            <Text style={styles.metaIcon}>🕒</Text>
+            <Text style={styles.metaText}>{formatDuration(transcript.duration)}</Text>
           </View>
         </View>
       </View>
@@ -164,41 +219,31 @@ export default function TranscriptViewScreen() {
           style={[styles.tab, activeTab === 'transcript' && styles.activeTab]}
           onPress={() => setActiveTab('transcript')}
         >
-          <MaterialIcons 
-            name="chat" 
-            size={20} 
-            color={activeTab === 'transcript' ? colors.primary : colors.mutedForeground} 
-          />
-          <Paragraph style={[
-            styles.tabText, 
-            activeTab === 'transcript' && styles.activeTabText
-          ]}>
+          <Text style={[styles.tabText, activeTab === 'transcript' && styles.activeTabText]}>
             Transcript
-          </Paragraph>
+          </Text>
         </TouchableOpacity>
         
         <TouchableOpacity
           style={[styles.tab, activeTab === 'analysis' && styles.activeTab]}
           onPress={() => setActiveTab('analysis')}
         >
-          <MaterialIcons 
-            name="insights" 
-            size={20} 
-            color={activeTab === 'analysis' ? colors.primary : colors.mutedForeground} 
-          />
-          <Paragraph style={[
-            styles.tabText, 
-            activeTab === 'analysis' && styles.activeTabText
-          ]}>
+          <Text style={[styles.tabText, activeTab === 'analysis' && styles.activeTabText]}>
             Analysis
-          </Paragraph>
+          </Text>
         </TouchableOpacity>
       </View>
 
-      {/* Transcript Tab */}
-      {activeTab === 'transcript' && (
-        <Card style={styles.card}>
-          <CardContent>
+      {/* Content */}
+      <ScrollView 
+        style={styles.content}
+        showsVerticalScrollIndicator={false}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
+      >
+        {/* Transcript Tab */}
+        {activeTab === 'transcript' && (
+          <View style={styles.transcriptContainer}>
             {transcript.segments.map((segment, index) => (
               <View key={segment.id} style={styles.segmentContainer}>
                 <View style={styles.segmentHeader}>
@@ -206,59 +251,58 @@ export default function TranscriptViewScreen() {
                     <View 
                       style={[
                         styles.speakerIndicator, 
-                        { backgroundColor: segment.speaker === 'You' ? colors.primary : '#6b7280' }
+                        { backgroundColor: segment.speaker === 'You' ? colors.primary : colors.textMuted }
                       ]} 
                     />
-                    <H3 style={styles.speakerName}>{segment.speaker}</H3>
+                    <Text style={styles.speakerName}>{segment.speaker}</Text>
                   </View>
-                  <SmallText style={styles.timestamp}>{formatTimestamp(segment.start)}</SmallText>
+                  <Text style={styles.timestamp}>{formatTimestamp(segment.start)}</Text>
                 </View>
                 
                 <View style={[
                   styles.segmentContent,
                   { borderLeftColor: getSentimentColor(segment.sentiment) }
                 ]}>
-                  <Paragraph>{segment.text}</Paragraph>
+                  <Text style={styles.segmentText}>{segment.text}</Text>
                 </View>
                 
-                {index < transcript.segments.length - 1 && <Separator />}
+                {index < transcript.segments.length - 1 && (
+                  <View style={styles.segmentDivider} />
+                )}
               </View>
             ))}
-          </CardContent>
-        </Card>
-      )}
+          </View>
+        )}
 
-      {/* Analysis Tab */}
-      {activeTab === 'analysis' && (
-        <View>
-          {/* Sentiment Analysis */}
-          <Card style={styles.card}>
-            <CardHeader>
-              <H2>Sentiment Analysis</H2>
-            </CardHeader>
-            <CardContent>
-              <View style={styles.sentimentContainer}>
-                <View style={styles.sentimentItem}>
-                  <View style={[styles.sentimentIndicator, { backgroundColor: '#10b981' }]} />
-                  <View style={styles.sentimentTextContainer}>
-                    <Paragraph style={styles.sentimentLabel}>Positive</Paragraph>
-                    <H3>{transcript.positivePercentage}%</H3>
+        {/* Analysis Tab */}
+        {activeTab === 'analysis' && (
+          <View style={styles.analysisContainer}>
+            {/* Sentiment Analysis */}
+            <GradientCard style={styles.analysisCard}>
+              <Text style={styles.cardTitle}>Sentiment Analysis</Text>
+              
+              <View style={styles.sentimentStats}>
+                <View style={styles.sentimentStat}>
+                  <View style={[styles.sentimentIndicator, { backgroundColor: colors.success }]} />
+                  <View>
+                    <Text style={styles.sentimentLabel}>Positive</Text>
+                    <Text style={styles.sentimentValue}>{transcript.positivePercentage}%</Text>
                   </View>
                 </View>
                 
-                <View style={styles.sentimentItem}>
-                  <View style={[styles.sentimentIndicator, { backgroundColor: '#ef4444' }]} />
-                  <View style={styles.sentimentTextContainer}>
-                    <Paragraph style={styles.sentimentLabel}>Negative</Paragraph>
-                    <H3>{transcript.negativePercentage}%</H3>
+                <View style={styles.sentimentStat}>
+                  <View style={[styles.sentimentIndicator, { backgroundColor: colors.error }]} />
+                  <View>
+                    <Text style={styles.sentimentLabel}>Negative</Text>
+                    <Text style={styles.sentimentValue}>{transcript.negativePercentage}%</Text>
                   </View>
                 </View>
                 
-                <View style={styles.sentimentItem}>
-                  <View style={[styles.sentimentIndicator, { backgroundColor: '#6b7280' }]} />
-                  <View style={styles.sentimentTextContainer}>
-                    <Paragraph style={styles.sentimentLabel}>Neutral</Paragraph>
-                    <H3>{transcript.neutralPercentage}%</H3>
+                <View style={styles.sentimentStat}>
+                  <View style={[styles.sentimentIndicator, { backgroundColor: colors.textMuted }]} />
+                  <View>
+                    <Text style={styles.sentimentLabel}>Neutral</Text>
+                    <Text style={styles.sentimentValue}>{transcript.neutralPercentage}%</Text>
                   </View>
                 </View>
               </View>
@@ -269,7 +313,7 @@ export default function TranscriptViewScreen() {
                     style={[
                       styles.sentimentBarSegment, 
                       { 
-                        backgroundColor: '#10b981',
+                        backgroundColor: colors.success,
                         flex: transcript.positivePercentage,
                       }
                     ]} 
@@ -278,7 +322,7 @@ export default function TranscriptViewScreen() {
                     style={[
                       styles.sentimentBarSegment, 
                       { 
-                        backgroundColor: '#ef4444',
+                        backgroundColor: colors.error,
                         flex: transcript.negativePercentage,
                       }
                     ]} 
@@ -287,78 +331,81 @@ export default function TranscriptViewScreen() {
                     style={[
                       styles.sentimentBarSegment, 
                       { 
-                        backgroundColor: '#6b7280',
+                        backgroundColor: colors.textMuted,
                         flex: transcript.neutralPercentage,
                       }
                     ]} 
                   />
                 </View>
               </View>
-            </CardContent>
-          </Card>
-          
-          {/* Strengths & Weaknesses */}
-          <Card style={styles.card}>
-            <CardHeader>
-              <H2>Communication Insights</H2>
-            </CardHeader>
-            <CardContent>
-              <H3 style={styles.insightTitle}>Strengths</H3>
+            </GradientCard>
+            
+            {/* Strengths & Weaknesses */}
+            <GradientCard style={styles.analysisCard}>
+              <Text style={styles.cardTitle}>Communication Insights</Text>
+              
+              <Text style={styles.insightTitle}>Strengths</Text>
               {transcript.analysis.strengths.map((strength, index) => (
                 <View key={index} style={styles.insightItem}>
-                  <MaterialIcons name="check-circle" size={20} color="#10b981" />
-                  <Paragraph style={styles.insightText}>{strength}</Paragraph>
+                  <Text style={styles.insightIcon}>✅</Text>
+                  <Text style={styles.insightText}>{strength}</Text>
                 </View>
               ))}
               
-              <Separator />
+              <View style={styles.divider} />
               
-              <H3 style={styles.insightTitle}>Areas for Improvement</H3>
+              <Text style={styles.insightTitle}>Areas for Improvement</Text>
               {transcript.analysis.weaknesses.map((weakness, index) => (
                 <View key={index} style={styles.insightItem}>
-                  <MaterialIcons name="info" size={20} color="#f59e0b" />
-                  <Paragraph style={styles.insightText}>{weakness}</Paragraph>
+                  <Text style={styles.insightIcon}>ℹ️</Text>
+                  <Text style={styles.insightText}>{weakness}</Text>
                 </View>
               ))}
-            </CardContent>
-          </Card>
-          
-          {/* Leadership Alternatives */}
-          <Card style={styles.card}>
-            <CardHeader>
-              <H2>Leadership Alternatives</H2>
-            </CardHeader>
-            <CardContent>
+            </GradientCard>
+            
+            {/* Leadership Alternatives */}
+            <GradientCard style={styles.analysisCard}>
+              <Text style={styles.cardTitle}>Leadership Alternatives</Text>
+              
               {transcript.analysis.leaderAlternatives.map((alternative, index) => (
                 <View key={index} style={styles.alternativeContainer}>
                   <View style={styles.alternativeHeader}>
-                    <H3 style={styles.alternativeLeader}>{alternative.leaderName}</H3>
+                    <Text style={styles.alternativeLeader}>{alternative.leaderName}</Text>
                   </View>
                   
                   <View style={styles.alternativeContent}>
                     <View style={styles.alternativeSection}>
-                      <SmallText style={styles.alternativeLabel}>You said:</SmallText>
-                      <Paragraph style={styles.alternativeText}>{alternative.originalText}</Paragraph>
+                      <Text style={styles.alternativeLabel}>You said:</Text>
+                      <Text style={styles.alternativeText}>{alternative.originalText}</Text>
                     </View>
                     
                     <View style={styles.alternativeArrow}>
-                      <MaterialIcons name="arrow-downward" size={24} color={colors.mutedForeground} />
+                      <Text style={styles.alternativeArrowIcon}>⬇️</Text>
                     </View>
                     
                     <View style={styles.alternativeSection}>
-                      <SmallText style={styles.alternativeLabel}>{alternative.leaderName} might say:</SmallText>
-                      <Paragraph style={[styles.alternativeText, styles.alternativeSuggestion]}>
+                      <Text style={styles.alternativeLabel}>{alternative.leaderName} might say:</Text>
+                      <Text style={[styles.alternativeText, styles.alternativeSuggestion]}>
                         {alternative.alternativeText}
-                      </Paragraph>
+                      </Text>
                     </View>
                   </View>
                 </View>
               ))}
-            </CardContent>
-          </Card>
-        </View>
-      )}
-    </ScrollView>
+            </GradientCard>
+          </View>
+        )}
+
+        {/* Add some space at the bottom for the navigation bar */}
+        <View style={{ height: 100 }} />
+      </ScrollView>
+
+      {/* Bottom Navigation */}
+      <BottomNavigation 
+        activeTab={navTab}
+        onTabChange={handleTabChange}
+      />
+    </SafeAreaView>
   );
 }
 
@@ -368,31 +415,62 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   loadingContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  loadingIndicator: {
-    alignItems: 'center',
+  loadingIcon: {
+    fontSize: 48,
+    marginBottom: 16,
   },
   loadingText: {
-    marginTop: 16,
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text,
   },
   header: {
-    padding: 24,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    zIndex: 10,
+  },
+  backButton: {
+    color: colors.primary,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  headerTitle: {
+    color: colors.text,
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  infoContainer: {
+    paddingHorizontal: 24,
     paddingBottom: 16,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 8,
   },
   metaContainer: {
     flexDirection: 'row',
-    marginTop: 8,
   },
   metaItem: {
     flexDirection: 'row',
     alignItems: 'center',
     marginRight: 16,
   },
+  metaIcon: {
+    fontSize: 16,
+    marginRight: 6,
+  },
   metaText: {
-    marginLeft: 4,
-    color: colors.mutedForeground,
+    fontSize: 14,
+    color: colors.textSecondary,
   },
   tabContainer: {
     flexDirection: 'row',
@@ -400,26 +478,27 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   tab: {
-    flexDirection: 'row',
-    alignItems: 'center',
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 8,
     marginRight: 8,
   },
   activeTab: {
-    backgroundColor: colors.accent,
+    backgroundColor: colors.navActive,
   },
   tabText: {
-    marginLeft: 8,
-    color: colors.mutedForeground,
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.textSecondary,
   },
   activeTabText: {
     color: colors.primary,
   },
-  card: {
-    marginHorizontal: 24,
-    marginBottom: 24,
+  content: {
+    flex: 1,
+  },
+  transcriptContainer: {
+    paddingHorizontal: 24,
   },
   segmentContainer: {
     marginBottom: 16,
@@ -441,22 +520,47 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   speakerName: {
+    fontSize: 16,
     fontWeight: '600',
+    color: colors.text,
   },
   timestamp: {
-    color: colors.mutedForeground,
+    fontSize: 14,
+    color: colors.textMuted,
   },
   segmentContent: {
     paddingLeft: 12,
     borderLeftWidth: 2,
     marginLeft: 6,
   },
-  sentimentContainer: {
+  segmentText: {
+    fontSize: 16,
+    color: colors.textSecondary,
+    lineHeight: 22,
+  },
+  segmentDivider: {
+    height: 1,
+    backgroundColor: colors.border,
+    marginVertical: 16,
+  },
+  analysisContainer: {
+    paddingHorizontal: 24,
+  },
+  analysisCard: {
+    marginBottom: 16,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 16,
+  },
+  sentimentStats: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 24,
+    marginBottom: 16,
   },
-  sentimentItem: {
+  sentimentStat: {
     alignItems: 'center',
     flex: 1,
   },
@@ -466,12 +570,15 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 8,
   },
-  sentimentTextContainer: {
-    alignItems: 'center',
-  },
   sentimentLabel: {
-    color: colors.mutedForeground,
+    fontSize: 14,
+    color: colors.textMuted,
     marginBottom: 4,
+  },
+  sentimentValue: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.text,
   },
   sentimentBarContainer: {
     marginBottom: 8,
@@ -486,40 +593,60 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   insightTitle: {
-    marginBottom: 16,
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 12,
   },
   insightItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     marginBottom: 12,
   },
+  insightIcon: {
+    fontSize: 16,
+    marginRight: 12,
+  },
   insightText: {
-    marginLeft: 12,
+    fontSize: 16,
+    color: colors.textSecondary,
     flex: 1,
+    lineHeight: 22,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: colors.border,
+    marginVertical: 16,
   },
   alternativeContainer: {
-    marginBottom: 24,
+    marginBottom: 16,
   },
   alternativeHeader: {
     marginBottom: 12,
   },
   alternativeLeader: {
+    fontSize: 16,
+    fontWeight: '600',
     color: colors.primary,
   },
   alternativeContent: {
-    backgroundColor: colors.accent,
-    borderRadius: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 12,
     padding: 16,
   },
   alternativeSection: {
-    marginBottom: 16,
+    marginBottom: 12,
   },
   alternativeLabel: {
+    fontSize: 14,
+    color: colors.textMuted,
     marginBottom: 4,
-    color: colors.mutedForeground,
   },
   alternativeText: {
+    fontSize: 16,
+    color: colors.textSecondary,
     fontStyle: 'italic',
+    lineHeight: 22,
   },
   alternativeSuggestion: {
     color: colors.primary,
@@ -527,5 +654,8 @@ const styles = StyleSheet.create({
   alternativeArrow: {
     alignItems: 'center',
     marginVertical: 8,
+  },
+  alternativeArrowIcon: {
+    fontSize: 16,
   },
 });

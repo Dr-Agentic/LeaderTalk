@@ -1,20 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Alert, Modal, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Alert, Modal, SafeAreaView, TouchableOpacity, TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { StatusBar } from 'expo-status-bar';
+import Animated, { useSharedValue, useAnimatedScrollHandler, useAnimatedStyle } from 'react-native-reanimated';
 import { useRecording } from '../hooks/useRecording';
 import { useMicrophonePermission } from '../hooks/useMicrophonePermission';
 import { apiRequest } from '../lib/api';
 import { Recording, WordUsageData } from '../types';
 import { useQuery } from '@tanstack/react-query';
-import { H1, H2, Paragraph, SmallText } from '../components/ui/Typography';
-import { Button } from '../components/ui/Button';
-import { Card, CardContent } from '../components/ui/Card';
-import { Input } from '../components/ui/Input';
 import { colors } from '../theme/colors';
+import BottomNavigation from '../components/ui/BottomNavigation';
+import GradientCard from '../components/ui/GradientCard';
 
 export default function RecordingScreen() {
   const navigation = useNavigation();
+  const [activeTab, setActiveTab] = useState('sessions');
   const [recordingTitle, setRecordingTitle] = useState('');
   const [showTitleDialog, setShowTitleDialog] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -22,6 +23,22 @@ export default function RecordingScreen() {
   const [createTranscript, setCreateTranscript] = useState(true);
   const [recordingProgress, setRecordingProgress] = useState(0);
   const MAX_RECORDING_TIME = 50 * 60; // 50 minutes in seconds
+  
+  const scrollY = useSharedValue(0);
+
+  const onScroll = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y;
+    },
+  });
+
+  // Header animation style
+  const headerStyle = useAnimatedStyle(() => {
+    return {
+      opacity: 1 - (scrollY.value * 0.01 > 0.6 ? 0.6 : scrollY.value * 0.01),
+      transform: [{ translateY: scrollY.value > 100 ? -100 : 0 }],
+    };
+  });
 
   // Query for checking word limits
   const { 
@@ -205,157 +222,174 @@ export default function RecordingScreen() {
     }
   };
 
-  return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <H1>Record a Conversation</H1>
-        <Paragraph style={styles.subtitle}>
-          Record your conversations to get AI-powered insights on your communication style.
-        </Paragraph>
-      </View>
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    
+    // Navigate to the appropriate screen based on the tab
+    switch (tab) {
+      case 'home':
+        navigation.navigate('Dashboard');
+        break;
+      case 'explore':
+        // Navigate to explore screen when implemented
+        break;
+      case 'sessions':
+        // Already on recording screen
+        break;
+      case 'progress':
+        navigation.navigate('Transcripts');
+        break;
+      case 'profile':
+        navigation.navigate('Settings');
+        break;
+    }
+  };
 
-      <Card style={styles.card}>
-        <CardContent>
+  return (
+    <SafeAreaView style={styles.container}>
+      <StatusBar style="light" />
+      <LinearGradient colors={colors.backgroundGradient} style={StyleSheet.absoluteFill} />
+
+      {/* Header */}
+      <Animated.View style={[styles.header, headerStyle]}>
+        <TouchableOpacity onPress={() => navigation.navigate('Dashboard')}>
+          <Text style={styles.backButton}>← Back</Text>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Record</Text>
+        <View style={{ width: 50 }} />
+      </Animated.View>
+
+      {/* Content */}
+      <Animated.ScrollView 
+        contentContainerStyle={styles.scrollContent} 
+        onScroll={onScroll} 
+        scrollEventThrottle={16}
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={styles.title}>Record a Conversation</Text>
+        <Text style={styles.subtitle}>
+          Record your conversations to get AI-powered insights on your communication style.
+        </Text>
+
+        {/* Recording Card */}
+        <GradientCard style={styles.recordingCard}>
           {/* Word limit warning */}
           {hasExceededWordLimit && (
             <View style={styles.warningBanner}>
-              <MaterialIcons name="warning" size={24} color="#fff" />
-              <Paragraph style={styles.warningText}>
+              <Text style={styles.warningIcon}>⚠️</Text>
+              <Text style={styles.warningText}>
                 You've reached your monthly word limit. Please upgrade your subscription to continue.
-              </Paragraph>
+              </Text>
             </View>
           )}
 
-          <View style={styles.recordingContainer}>
-            {/* Recording Button */}
-            <View style={styles.recordButtonContainer}>
-              <View
-                style={[
-                  styles.recordButton,
-                  isRecording
-                    ? isPaused
-                      ? styles.pausedButton
-                      : styles.activeButton
-                    : hasExceededWordLimit
-                      ? styles.disabledButton
-                      : styles.inactiveButton,
-                ]}
-              >
-                <MaterialIcons
-                  name="mic"
-                  size={48}
-                  color={isRecording ? 'white' : colors.primary}
-                  onPress={!isRecording && !hasExceededWordLimit ? handleStartRecording : undefined}
-                  style={hasExceededWordLimit ? styles.disabledIcon : {}}
-                />
-              </View>
-            </View>
-
-            <H2 style={styles.recordingStatus}>
-              {isRecording
+          {/* Recording Button */}
+          <TouchableOpacity
+            style={[
+              styles.recordButton,
+              isRecording
                 ? isPaused
-                  ? 'Recording Paused'
-                  : 'Recording in Progress'
-                : 'Start Recording'}
-            </H2>
+                  ? styles.pausedButton
+                  : styles.activeButton
+                : hasExceededWordLimit
+                  ? styles.disabledButton
+                  : styles.inactiveButton,
+            ]}
+            onPress={!isRecording && !hasExceededWordLimit ? handleStartRecording : undefined}
+            disabled={hasExceededWordLimit}
+          >
+            <Text style={styles.micIcon}>🎙️</Text>
+          </TouchableOpacity>
 
-            <Paragraph style={styles.recordingTime}>
-              {isRecording
-                ? `${formatTime(duration)} / 50:00`
-                : 'Tap the microphone to start recording your conversation.\nLeaderTalk will analyze your communication patterns.'}
-            </Paragraph>
+          <Text style={styles.recordingStatus}>
+            {isRecording
+              ? isPaused
+                ? 'Recording Paused'
+                : 'Recording in Progress'
+              : 'Tap to Start Recording'}
+          </Text>
 
-            {/* Microphone permission warning */}
-            {isDenied && !isRecording && (
-              <View style={styles.permissionWarning}>
-                <MaterialIcons name="error" size={16} color={colors.destructive} />
-                <SmallText style={styles.permissionWarningText}>
-                  Microphone access denied. Please enable it in your device settings to record conversations.
-                </SmallText>
-              </View>
-            )}
+          <Text style={styles.recordingTime}>
+            {isRecording
+              ? `${formatTime(duration)} / 50:00`
+              : 'Tap the microphone to start recording your conversation.\nLeaderTalk will analyze your communication patterns.'}
+          </Text>
 
-            {/* Recording Controls */}
-            {isRecording && (
-              <View style={styles.controlsContainer}>
-                <View style={styles.buttonContainer}>
-                  <Button
-                    variant={isPaused ? 'default' : 'destructive'}
-                    onPress={handlePauseResumeRecording}
-                    style={styles.controlButton}
-                    icon={<MaterialIcons name={isPaused ? 'play-arrow' : 'pause'} size={20} color="white" />}
-                  >
-                    {isPaused ? 'Resume' : 'Pause'}
-                  </Button>
+          {/* Microphone permission warning */}
+          {isDenied && !isRecording && (
+            <View style={styles.permissionWarning}>
+              <Text style={styles.warningIcon}>⚠️</Text>
+              <Text style={styles.permissionWarningText}>
+                Microphone access denied. Please enable it in your device settings to record conversations.
+              </Text>
+            </View>
+          )}
 
-                  <Button
-                    variant="outline"
-                    onPress={handleStopRecording}
-                    style={styles.controlButton}
-                    icon={<MaterialIcons name="stop" size={20} color={colors.foreground} />}
-                  >
-                    Stop
-                  </Button>
+          {/* Recording Controls */}
+          {isRecording && (
+            <View style={styles.controlsContainer}>
+              <View style={styles.progressContainer}>
+                <View style={styles.progressBar}>
+                  <View 
+                    style={[
+                      styles.progressFill, 
+                      { width: `${recordingProgress}%` }
+                    ]} 
+                  />
                 </View>
-
-                <View style={styles.progressContainer}>
-                  <View style={styles.progressBar}>
-                    <View 
-                      style={[
-                        styles.progressFill, 
-                        { width: `${recordingProgress}%` }
-                      ]} 
-                    />
-                  </View>
-                  <View style={styles.timeLabels}>
-                    <SmallText style={styles.timeLabel}>0:00</SmallText>
-                    <SmallText style={styles.timeLabel}>50:00</SmallText>
-                  </View>
+                <View style={styles.timeLabels}>
+                  <Text style={styles.timeLabel}>0:00</Text>
+                  <Text style={styles.timeLabel}>50:00</Text>
                 </View>
               </View>
-            )}
 
-            {/* Settings */}
-            <View style={styles.settingsContainer}>
-              <View style={styles.settingRow}>
-                <MaterialIcons 
-                  name={detectSpeakers ? 'check-box' : 'check-box-outline-blank'} 
-                  size={24} 
-                  color={isRecording ? colors.mutedForeground : colors.primary}
-                  onPress={() => !isRecording && setDetectSpeakers(!detectSpeakers)}
-                />
-                <Paragraph 
-                  style={[
-                    styles.settingLabel, 
-                    isRecording && styles.disabledText
-                  ]}
-                  onPress={() => !isRecording && setDetectSpeakers(!detectSpeakers)}
+              <View style={styles.buttonContainer}>
+                <TouchableOpacity
+                  style={[styles.controlButton, isPaused ? styles.resumeButton : styles.pauseButton]}
+                  onPress={handlePauseResumeRecording}
                 >
-                  Auto-detect speakers
-                </Paragraph>
-              </View>
+                  <Text style={styles.buttonText}>{isPaused ? '▶️ Resume' : '⏸️ Pause'}</Text>
+                </TouchableOpacity>
 
-              <View style={styles.settingRow}>
-                <MaterialIcons 
-                  name={createTranscript ? 'check-box' : 'check-box-outline-blank'} 
-                  size={24} 
-                  color={isRecording ? colors.mutedForeground : colors.primary}
-                  onPress={() => !isRecording && setCreateTranscript(!createTranscript)}
-                />
-                <Paragraph 
-                  style={[
-                    styles.settingLabel, 
-                    isRecording && styles.disabledText
-                  ]}
-                  onPress={() => !isRecording && setCreateTranscript(!createTranscript)}
+                <TouchableOpacity
+                  style={[styles.controlButton, styles.stopButton]}
+                  onPress={handleStopRecording}
                 >
-                  Create transcript
-                </Paragraph>
+                  <Text style={styles.buttonText}>⏹️ Stop</Text>
+                </TouchableOpacity>
               </View>
             </View>
+          )}
+
+          {/* Settings */}
+          <View style={styles.settingsContainer}>
+            <TouchableOpacity 
+              style={styles.settingRow}
+              onPress={() => !isRecording && setDetectSpeakers(!detectSpeakers)}
+              disabled={isRecording}
+            >
+              <Text style={styles.checkboxIcon}>{detectSpeakers ? '☑️' : '⬜'}</Text>
+              <Text style={[styles.settingLabel, isRecording && styles.disabledText]}>
+                Auto-detect speakers
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.settingRow}
+              onPress={() => !isRecording && setCreateTranscript(!createTranscript)}
+              disabled={isRecording}
+            >
+              <Text style={styles.checkboxIcon}>{createTranscript ? '☑️' : '⬜'}</Text>
+              <Text style={[styles.settingLabel, isRecording && styles.disabledText]}>
+                Create transcript
+              </Text>
+            </TouchableOpacity>
           </View>
-        </CardContent>
-      </Card>
+        </GradientCard>
+
+        {/* Add some space at the bottom for the navigation bar */}
+        <View style={{ height: 100 }} />
+      </Animated.ScrollView>
 
       {/* Title Dialog */}
       <Modal
@@ -366,39 +400,47 @@ export default function RecordingScreen() {
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <H2 style={styles.modalTitle}>Name Your Recording</H2>
-            <Paragraph style={styles.modalSubtitle}>
+            <Text style={styles.modalTitle}>Name Your Recording</Text>
+            <Text style={styles.modalSubtitle}>
               Give your recording a descriptive title to help you identify it later.
-            </Paragraph>
+            </Text>
 
-            <Input
+            <TextInput
+              style={styles.input}
               placeholder="e.g., Team Meeting Discussion"
+              placeholderTextColor={colors.textMuted}
               value={recordingTitle}
               onChangeText={setRecordingTitle}
-              style={styles.modalInput}
             />
 
             <View style={styles.modalButtons}>
-              <Button
-                variant="outline"
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
                 onPress={() => setShowTitleDialog(false)}
-                style={styles.modalButton}
               >
-                Cancel
-              </Button>
-              <Button
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[styles.modalButton, styles.saveButton, isProcessing && styles.disabledButton]}
                 onPress={handleSaveRecording}
-                loading={isProcessing}
                 disabled={isProcessing}
-                style={styles.modalButton}
               >
-                {isProcessing ? 'Processing...' : 'Save Recording'}
-              </Button>
+                <Text style={styles.saveButtonText}>
+                  {isProcessing ? 'Processing...' : 'Save Recording'}
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
-    </ScrollView>
+
+      {/* Bottom Navigation */}
+      <BottomNavigation 
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+      />
+    </SafeAreaView>
   );
 }
 
@@ -408,34 +450,57 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   header: {
-    padding: 24,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    zIndex: 10,
+  },
+  backButton: {
+    color: colors.primary,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  headerTitle: {
+    color: colors.text,
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  scrollContent: {
+    paddingHorizontal: 24,
+    paddingBottom: 100,
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: colors.text,
+    marginBottom: 8,
   },
   subtitle: {
-    color: colors.mutedForeground,
-    marginTop: 8,
+    fontSize: 16,
+    color: colors.textSecondary,
+    marginBottom: 24,
+    lineHeight: 22,
   },
-  card: {
-    margin: 24,
+  recordingCard: {
+    padding: 24,
   },
   warningBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.destructive,
+    backgroundColor: 'rgba(239, 68, 68, 0.2)',
     padding: 16,
-    borderRadius: 8,
+    borderRadius: 12,
     marginBottom: 24,
+  },
+  warningIcon: {
+    fontSize: 20,
+    marginRight: 12,
   },
   warningText: {
-    color: 'white',
-    marginLeft: 12,
+    color: colors.text,
     flex: 1,
-  },
-  recordingContainer: {
-    alignItems: 'center',
-    paddingVertical: 24,
-  },
-  recordButtonContainer: {
-    marginBottom: 24,
   },
   recordButton: {
     width: 120,
@@ -443,69 +508,65 @@ const styles = StyleSheet.create({
     borderRadius: 60,
     justifyContent: 'center',
     alignItems: 'center',
+    alignSelf: 'center',
+    marginBottom: 24,
     borderWidth: 2,
   },
+  micIcon: {
+    fontSize: 48,
+  },
   inactiveButton: {
-    backgroundColor: '#fee2e2',
-    borderColor: '#fecaca',
+    backgroundColor: 'rgba(138, 43, 226, 0.1)',
+    borderColor: colors.primary,
   },
   activeButton: {
     backgroundColor: colors.primary,
-    borderColor: '#b91c1c',
+    borderColor: '#6b21a8',
   },
   pausedButton: {
-    backgroundColor: '#f59e0b',
-    borderColor: '#d97706',
+    backgroundColor: colors.accent1,
+    borderColor: '#b91c1c',
   },
   disabledButton: {
-    backgroundColor: '#e5e7eb',
-    borderColor: '#d1d5db',
-  },
-  disabledIcon: {
-    opacity: 0.5,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: colors.border,
+    opacity: 0.7,
   },
   recordingStatus: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.text,
+    textAlign: 'center',
     marginBottom: 8,
   },
   recordingTime: {
-    color: colors.mutedForeground,
+    fontSize: 14,
+    color: colors.textSecondary,
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: 24,
+    lineHeight: 20,
   },
   permissionWarning: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fee2e2',
-    padding: 12,
-    borderRadius: 6,
-    marginBottom: 16,
-    width: '100%',
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 24,
   },
   permissionWarningText: {
-    color: colors.destructive,
-    marginLeft: 8,
+    color: colors.text,
     flex: 1,
   },
   controlsContainer: {
-    width: '100%',
-    marginTop: 16,
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
     marginBottom: 24,
   },
-  controlButton: {
-    marginHorizontal: 8,
-    minWidth: 120,
-  },
   progressContainer: {
-    width: '100%',
     marginBottom: 16,
   },
   progressBar: {
     height: 8,
-    backgroundColor: '#e5e7eb',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderRadius: 4,
     overflow: 'hidden',
   },
@@ -520,11 +581,35 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   timeLabel: {
-    color: colors.mutedForeground,
+    fontSize: 12,
+    color: colors.textMuted,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 16,
+  },
+  controlButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    minWidth: 120,
+    alignItems: 'center',
+  },
+  pauseButton: {
+    backgroundColor: colors.primary,
+  },
+  resumeButton: {
+    backgroundColor: colors.accent2,
+  },
+  stopButton: {
+    backgroundColor: colors.accent1,
+  },
+  buttonText: {
+    color: colors.text,
+    fontWeight: '600',
   },
   settingsContainer: {
-    width: '100%',
-    marginTop: 24,
     borderTopWidth: 1,
     borderTopColor: colors.border,
     paddingTop: 24,
@@ -534,41 +619,77 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
   },
+  checkboxIcon: {
+    fontSize: 20,
+    marginRight: 12,
+  },
   settingLabel: {
-    marginLeft: 12,
+    fontSize: 16,
+    color: colors.text,
   },
   disabledText: {
-    color: colors.mutedForeground,
+    color: colors.textMuted,
   },
   modalContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
   },
   modalContent: {
     backgroundColor: colors.background,
-    borderRadius: 12,
+    borderRadius: 24,
     padding: 24,
     width: '85%',
-    maxWidth: 400,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.text,
     marginBottom: 8,
   },
   modalSubtitle: {
-    color: colors.mutedForeground,
+    fontSize: 14,
+    color: colors.textSecondary,
     marginBottom: 24,
   },
-  modalInput: {
+  input: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 12,
+    padding: 16,
     marginBottom: 24,
+    color: colors.text,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   modalButtons: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
+    gap: 12,
   },
   modalButton: {
-    marginLeft: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
     minWidth: 100,
+    alignItems: 'center',
+  },
+  cancelButton: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  saveButton: {
+    backgroundColor: colors.primary,
+  },
+  cancelButtonText: {
+    color: colors.textSecondary,
+    fontWeight: '600',
+  },
+  saveButtonText: {
+    color: colors.text,
+    fontWeight: '600',
   },
 });
