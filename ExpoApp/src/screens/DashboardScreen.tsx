@@ -48,14 +48,7 @@ export default function DashboardScreen() {
 
       {/* Header */}
       <View style={styles.header}>
-        <LinearGradient
-          colors={[colors.primary, colors.accent1, colors.accent2]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.logoGradient}
-        >
-          <Text style={styles.logo}>LeaderTalk</Text>
-        </LinearGradient>
+        <Text style={styles.logo}>LeaderTalk</Text>
         
         <TouchableOpacity 
           style={styles.profilePicContainer}
@@ -247,7 +240,7 @@ const styles = StyleSheet.create({
   logo: {
     fontSize: 24,
     fontWeight: '800',
-    color: 'transparent',
+    color: '#ffffff',
   },
   profilePicContainer: {
     width: 40,
