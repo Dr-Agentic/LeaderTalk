@@ -37,38 +37,68 @@ export default function DashboardScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
-      <LinearGradient colors={["#0a0a0a", "#1a0033", "#0a0a0a"]} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={colors.backgroundGradient} style={StyleSheet.absoluteFill} />
+
+      {/* Floating Elements */}
+      <View style={styles.floatingElements}>
+        <View style={[styles.floatingCircle, styles.circle1]} />
+        <View style={[styles.floatingCircle, styles.circle2]} />
+        <View style={[styles.floatingCircle, styles.circle3]} />
+      </View>
 
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.logo}>LeaderTalk</Text>
+        <LinearGradient
+          colors={[colors.primary, colors.accent1, colors.accent2]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.logoGradient}
+        >
+          <Text style={styles.logo}>LeaderTalk</Text>
+        </LinearGradient>
+        
         <TouchableOpacity 
-          style={styles.profilePic}
+          style={styles.profilePicContainer}
           onPress={() => navigation.navigate('Settings')}
         >
-          <Text style={styles.profileText}>JD</Text>
+          <LinearGradient
+            colors={colors.accentGradient}
+            style={styles.profilePic}
+          >
+            <Text style={styles.profileText}>JD</Text>
+          </LinearGradient>
         </TouchableOpacity>
       </View>
 
-      {/* Content - Changed from View to ScrollView to enable scrolling */}
+      {/* Content */}
       <ScrollView 
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         {/* Hero Section */}
-        <GradientCard style={styles.heroSection}>
+        <LinearGradient
+          colors={colors.heroGradient}
+          style={styles.heroSection}
+        >
           <Text style={styles.heroTitle}>Elevate Your{'\n'}Leadership</Text>
           <Text style={styles.heroSubtitle}>
             Connect with industry leaders and unlock your potential through meaningful conversations
           </Text>
-          <TouchableOpacity 
+          <LinearGradient
+            colors={colors.primaryGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
             style={styles.ctaButton}
-            onPress={() => navigation.navigate('Recording')}
           >
-            <Text style={styles.ctaText}>Start Recording</Text>
-          </TouchableOpacity>
-        </GradientCard>
+            <TouchableOpacity 
+              style={styles.ctaButtonTouchable}
+              onPress={() => navigation.navigate('Recording')}
+            >
+              <Text style={styles.ctaText}>Start Your Journey</Text>
+            </TouchableOpacity>
+          </LinearGradient>
+        </LinearGradient>
 
         {/* Stats */}
         <View style={styles.statsRow}>
@@ -85,7 +115,6 @@ export default function DashboardScreen() {
             title="Innovation Leadership"
             description="Master the art of leading through change and driving innovation in your organization"
             onPress={() => navigation.navigate('Training')}
-            gradientColors={['#FF6B6B', '#FF8E53']}
           />
 
           <FeatureCard
@@ -93,7 +122,6 @@ export default function DashboardScreen() {
             title="Strategic Thinking"
             description="Develop strategic mindset and learn to make decisions that shape the future"
             onPress={() => navigation.navigate('Training')}
-            gradientColors={['#4ECDC4', '#26A69A']}
           />
 
           <FeatureCard
@@ -101,7 +129,6 @@ export default function DashboardScreen() {
             title="Team Dynamics"
             description="Build high-performing teams and create cultures of excellence and collaboration"
             onPress={() => navigation.navigate('Training')}
-            gradientColors={['#8A2BE2', '#5E35B1']}
           />
         </View>
 
@@ -113,7 +140,6 @@ export default function DashboardScreen() {
             title="Record Conversation"
             description="Record a conversation to get AI-powered insights on your communication style"
             onPress={() => navigation.navigate('Recording')}
-            gradientColors={['#4ECDC4', '#2196F3']}
           />
 
           <FeatureCard
@@ -121,7 +147,6 @@ export default function DashboardScreen() {
             title="View Transcripts"
             description="Review your past conversations and track your communication progress"
             onPress={() => navigation.navigate('Transcripts')}
-            gradientColors={['#4ECDC4', '#2196F3']}
           />
         </View>
         
@@ -141,7 +166,7 @@ export default function DashboardScreen() {
 // StatCard Component
 const StatCard = ({ number, label }) => (
   <LinearGradient
-    colors={['rgba(138, 43, 226, 0.1)', 'rgba(255, 107, 107, 0.1)']}
+    colors={colors.statsGradient}
     style={styles.statCard}
   >
     <Text style={styles.statNumber}>{number}</Text>
@@ -150,13 +175,7 @@ const StatCard = ({ number, label }) => (
 );
 
 // FeatureCard Component with gradient icon background
-const FeatureCard = ({ 
-  icon, 
-  title, 
-  description, 
-  onPress, 
-  gradientColors = ['#FF6B6B', '#FF8E53'] 
-}) => (
+const FeatureCard = ({ icon, title, description, onPress }) => (
   <TouchableOpacity 
     style={styles.card}
     onPress={onPress}
@@ -164,7 +183,7 @@ const FeatureCard = ({
   >
     <View style={styles.cardHeader}>
       <LinearGradient
-        colors={gradientColors}
+        colors={colors.accentGradient}
         style={styles.cardIcon}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
@@ -180,7 +199,38 @@ const FeatureCard = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0a0a0a',
+    backgroundColor: colors.background,
+  },
+  floatingElements: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    pointerEvents: 'none',
+  },
+  floatingCircle: {
+    position: 'absolute',
+    borderRadius: 50,
+    backgroundColor: 'rgba(138, 43, 226, 0.1)',
+  },
+  circle1: {
+    width: 100,
+    height: 100,
+    top: '10%',
+    right: -20,
+  },
+  circle2: {
+    width: 60,
+    height: 60,
+    bottom: '20%',
+    left: -10,
+  },
+  circle3: {
+    width: 80,
+    height: 80,
+    top: '60%',
+    right: -30,
   },
   header: {
     padding: 24,
@@ -189,21 +239,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     zIndex: 10,
   },
+  logoGradient: {
+    borderRadius: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
   logo: {
     fontSize: 24,
     fontWeight: '800',
-    color: '#ffffff',
+    color: 'transparent',
   },
-  profilePic: {
+  profilePicContainer: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#8A2BE2',
+    overflow: 'hidden',
+  },
+  profilePic: {
+    width: '100%',
+    height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
   },
   profileText: {
-    color: '#ffffff',
+    color: colors.text,
     fontWeight: '600',
   },
   scrollView: {
@@ -214,29 +273,39 @@ const styles = StyleSheet.create({
   },
   heroSection: {
     margin: 24,
+    borderRadius: 24,
+    padding: 32,
+    borderWidth: 1,
+    borderColor: colors.heroBorder,
   },
   heroTitle: {
-    color: '#ffffff',
+    color: colors.text,
     fontSize: 32,
     fontWeight: '800',
     marginBottom: 12,
     lineHeight: 38,
   },
   heroSubtitle: {
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: colors.textSecondary,
     fontSize: 16,
     marginBottom: 24,
     lineHeight: 22,
   },
   ctaButton: {
-    backgroundColor: '#8A2BE2',
-    paddingVertical: 16,
-    paddingHorizontal: 32,
     borderRadius: 16,
     alignSelf: 'flex-start',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 25,
+    elevation: 8,
+  },
+  ctaButtonTouchable: {
+    paddingVertical: 16,
+    paddingHorizontal: 32,
   },
   ctaText: {
-    color: '#ffffff',
+    color: colors.text,
     fontWeight: '600',
     fontSize: 16,
   },
@@ -245,30 +314,30 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 24,
     marginBottom: 32,
+    gap: 16,
   },
   statCard: {
     flex: 1,
     borderRadius: 16,
     padding: 20,
     alignItems: 'center',
-    marginHorizontal: 4,
     borderWidth: 1,
-    borderColor: 'rgba(138, 43, 226, 0.2)',
+    borderColor: colors.statsBorder,
   },
   statNumber: {
     fontSize: 24,
     fontWeight: '800',
-    color: '#ffffff',
+    color: colors.text,
     marginBottom: 4,
   },
   statLabel: {
     fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.6)',
+    color: colors.textMuted,
     fontWeight: '500',
     letterSpacing: 0.5,
   },
   sectionTitle: {
-    color: '#ffffff',
+    color: colors.text,
     fontSize: 24,
     fontWeight: '700',
     paddingHorizontal: 24,
@@ -277,14 +346,14 @@ const styles = StyleSheet.create({
   },
   cardsContainer: {
     paddingHorizontal: 24,
+    gap: 16,
   },
   card: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: colors.cardBackground,
     padding: 24,
     borderRadius: 20,
-    marginBottom: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: colors.cardBorder,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -305,12 +374,12 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#ffffff',
+    color: colors.text,
     flex: 1,
   },
   cardDescription: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: colors.textSecondary,
     lineHeight: 20,
   },
   bottomPadding: {

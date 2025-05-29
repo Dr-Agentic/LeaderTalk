@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, ViewProps } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { colors } from '../../theme/colors';
 
 interface GradientCardProps extends ViewProps {
   children: React.ReactNode;
@@ -10,7 +11,7 @@ interface GradientCardProps extends ViewProps {
 
 export const GradientCard = ({ 
   children, 
-  gradientColors = ['rgba(138, 43, 226, 0.1)', 'rgba(255, 107, 107, 0.1)'],
+  gradientColors = colors.heroGradient,
   style,
   ...props 
 }: GradientCardProps) => {
@@ -30,7 +31,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     padding: 24,
     borderWidth: 1,
-    borderColor: 'rgba(138, 43, 226, 0.2)',
+    borderColor: colors.heroBorder,
   },
 });
 

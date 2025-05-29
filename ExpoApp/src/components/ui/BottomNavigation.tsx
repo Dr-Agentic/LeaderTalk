@@ -1,5 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { colors } from '../../theme/colors';
 
 interface NavItem {
   icon: string;
@@ -32,7 +34,9 @@ export const BottomNavigation = ({
           style={[styles.navItem, activeTab === item.tab && styles.activeNavItem]}
           onPress={() => onTabChange(item.tab)}
         >
-          <Text style={styles.navIcon}>{item.icon}</Text>
+          <View style={[styles.navIcon, activeTab === item.tab && styles.activeNavIcon]}>
+            <Text style={styles.navIconText}>{item.icon}</Text>
+          </View>
           <Text style={[styles.navLabel, activeTab === item.tab && styles.activeNavLabel]}>
             {item.label}
           </Text>
@@ -50,11 +54,11 @@ const styles = StyleSheet.create({
     right: 0,
     flexDirection: 'row',
     justifyContent: 'space-around',
-    backgroundColor: 'rgba(10, 10, 10, 0.95)',
-    paddingVertical: 12,
+    backgroundColor: colors.navBackground,
+    paddingVertical: 16,
     paddingBottom: 34, // Extra padding for iPhone home indicator
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.1)',
+    borderTopColor: colors.navBorder,
   },
   navItem: {
     alignItems: 'center',
@@ -63,19 +67,30 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   activeNavItem: {
-    backgroundColor: 'rgba(138, 43, 226, 0.2)',
+    backgroundColor: colors.navActive,
   },
   navIcon: {
-    fontSize: 20,
+    width: 24,
+    height: 24,
+    backgroundColor: 'rgba(138, 43, 226, 0.3)',
+    borderRadius: 6,
+    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: 4,
+  },
+  activeNavIcon: {
+    backgroundColor: colors.primary,
+  },
+  navIconText: {
+    fontSize: 12,
   },
   navLabel: {
     fontSize: 11,
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: colors.navText,
     fontWeight: '500',
   },
   activeNavLabel: {
-    color: '#8A2BE2',
+    color: colors.navActiveText,
   },
 });
 
