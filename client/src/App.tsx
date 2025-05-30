@@ -6,7 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/Dashboard";
 import Onboarding from "@/pages/Onboarding";
-import DirectLogin from "@/pages/DirectLogin";
+
 import TranscriptView from "@/pages/TranscriptView";
 import AllTranscripts from "@/pages/AllTranscripts";
 import Settings from "@/pages/Settings";
@@ -21,6 +21,7 @@ import NextSituation from "@/pages/NextSituation";
 import Recording from "@/pages/Recording";
 import TestSituation from "@/pages/TestSituation";
 import AuthCallback from "@/pages/AuthCallback";
+import Login from "@/pages/Login";
 import { useEffect, useState } from "react";
 import { apiRequest } from "./lib/queryClient";
 import { logInfo, logError, logDebug } from "@/lib/debugLogger";
@@ -157,14 +158,14 @@ function Router() {
       <Route path="/auth/callback" component={AuthCallback} />
       
       {/* Login routes - ensure both root and /login path work */}
-      {!isAuthenticated && <Route path="/" component={DirectLogin} />}
-      {!isAuthenticated && <Route path="/login" component={DirectLogin} />}
+      {!isAuthenticated && <Route path="/" component={Login} />}
+      {!isAuthenticated && <Route path="/login" component={Login} />}
       
       {/* Force redirect auth-required paths to login when not authenticated */}
-      {!isAuthenticated && <Route path="/dashboard" component={DirectLogin} />}
-      {!isAuthenticated && <Route path="/transcript/:id" component={DirectLogin} />}
-      {!isAuthenticated && <Route path="/transcripts" component={DirectLogin} />}
-      {!isAuthenticated && <Route path="/progress" component={DirectLogin} />}
+      {!isAuthenticated && <Route path="/dashboard" component={Login} />}
+      {!isAuthenticated && <Route path="/transcript/:id" component={Login} />}
+      {!isAuthenticated && <Route path="/transcripts" component={Login} />}
+      {!isAuthenticated && <Route path="/progress" component={Login} />}
       
       {/* Fallback route */}
       <Route component={NotFound} />
