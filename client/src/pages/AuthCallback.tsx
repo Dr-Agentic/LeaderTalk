@@ -3,15 +3,27 @@ import { useLocation } from 'wouter'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Loader2 } from 'lucide-react'
 import { handleAuthCallback } from '@/lib/supabaseAuth'
-// Debug logging replaced with console methods
+
+// Global flag to prevent multiple callback executions
+declare global {
+  interface Window {
+    __authCallbackProcessing?: boolean
+  }
+}
 
 export default function AuthCallback() {
   const [, navigate] = useLocation()
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
   const [error, setError] = useState<string | null>(null)
+  const [processed, setProcessed] = useState(false)
 
   useEffect(() => {
+    // Prevent multiple executions with a global flag
+    if (processed || (window as any).__authCallbackProcessing) return
+    ;(window as any).__authCallbackProcessing = true
+
     async function processAuthCallback() {
+      setProcessed(true)
       try {
         console.log("Processing Supabase auth callback")
         
@@ -45,29 +57,32 @@ export default function AuthCallback() {
             
             setStatus('success')
             
-            // Add a longer delay to ensure session and state are fully updated before redirect
-            setTimeout(() => {
-              // Check if user needs onboarding
-              if (userData.forceOnboarding || !userData.selectedLeaders?.length) {
-                console.log("Redirecting to onboarding for user setup")
-                navigate('/onboarding')
-              } else {
-                console.log("User onboarding complete, redirecting to dashboard")
-                navigate('/dashboard')
-              }
-            }, 500)
+            // Clear the processing flag
+            ;(window as any).__authCallbackProcessing = false
+            
+            // Direct redirect without delay to prevent race conditions
+            if (userData.forceOnboarding || !userData.selectedLeaders?.length) {
+              console.log("Redirecting to onboarding for user setup")
+              window.location.href = '/onboarding'
+            } else {
+              console.log("User onboarding complete, redirecting to dashboard")
+              window.location.href = '/dashboard'
+            }
           } else {
             const errorText = await response.text()
             console.error('Server authentication failed:', errorText)
+            ;(window as any).__authCallbackProcessing = false
             throw new Error(`Server authentication failed: ${response.status}`)
           }
         } else {
+          ;(window as any).__authCallbackProcessing = false
           throw new Error('No user data received from Supabase')
         }
       } catch (err: any) {
         console.error("Auth callback failed", err)
         setError(err.message || 'Authentication failed')
         setStatus('error')
+        ;(window as any).__authCallbackProcessing = false
         
         // Redirect to login after a delay
         setTimeout(() => {
@@ -77,7 +92,7 @@ export default function AuthCallback() {
     }
 
     processAuthCallback()
-  }, [navigate])
+  }, []) // Empty dependency array to run only once
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
