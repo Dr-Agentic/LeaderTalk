@@ -45,74 +45,70 @@ export default function QuickActions({ recordingsCount, weeklyImprovement }) {
         </div>
         <div className="mt-4 pt-4 border-t border-white/10">
           <div>
-            <Link href="/transcripts" className="font-sans text-sm font-medium text-primary hover:text-blue-900 flex items-center">
+            <Link href="/transcripts" className="font-sans text-sm font-medium text-white hover:text-purple-300 flex items-center">
               View all analyses <span className="ml-1">&rarr;</span>
             </Link>
           </div>
-        </CardFooter>
+        </div>
       </Card>
       
       {/* Weekly Improvement */}
-      <Card className="shadow-card hover:shadow-card-hover transition-shadow duration-300">
-        <CardContent className="p-card-inner pt-6 pb-5">
-          <div className="flex items-center">
-            <div className="flex-shrink-0 bg-gradient-primary rounded-md p-3">
-              <TrendingUp className="h-5 w-5 text-white" />
-            </div>
-            <div className="ml-5 w-0 flex-1">
-              <dl>
-                <dt><SmallText className="truncate">Weekly Improvement</SmallText></dt>
-                <dd className="flex items-baseline">
-                  <H4 className="flex items-center">
-                    {weeklyImprovement > 0 ? `+${weeklyImprovement}%` : `${weeklyImprovement}%`}
-                  </H4>
-                  {weeklyImprovement > 0 && (
-                    <p className="ml-2 flex items-baseline text-sm font-semibold text-green-600">
-                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                      </svg>
-                      <span className="sr-only">Increased by</span>
-                      vs last week
-                    </p>
-                  )}
-                </dd>
-              </dl>
-            </div>
+      <Card className="glass-card p-6">
+        <div className="flex items-center">
+          <div className="flex-shrink-0 p-3 rounded-md" style={{background: 'linear-gradient(135deg, #4ECDC4, #44A08D)'}}>
+            <TrendingUp className="h-5 w-5 text-white" />
           </div>
-        </CardContent>
-        <CardFooter className="bg-gray-50 px-card-inner py-3 border-t">
+          <div className="ml-5 w-0 flex-1">
+            <dl>
+              <dt><SmallText className="truncate text-white/70">Weekly Improvement</SmallText></dt>
+              <dd className="flex items-baseline">
+                <H4 className="flex items-center text-white">
+                  {weeklyImprovement > 0 ? `+${weeklyImprovement}%` : `${weeklyImprovement}%`}
+                </H4>
+                {weeklyImprovement > 0 && (
+                  <p className="ml-2 flex items-baseline text-sm font-semibold text-green-400">
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                    </svg>
+                    <span className="sr-only">Increased by</span>
+                    vs last week
+                  </p>
+                )}
+              </dd>
+            </dl>
+          </div>
+        </div>
+        <div className="mt-4 pt-4 border-t border-white/10">
           <div>
-            <Link href="/progress" className="font-sans text-sm font-medium text-primary hover:text-blue-900 flex items-center">
+            <Link href="/progress" className="font-sans text-sm font-medium text-white hover:text-purple-300 flex items-center">
               View progress <span className="ml-1">&rarr;</span>
             </Link>
           </div>
-        </CardFooter>
+        </div>
       </Card>
       
       {/* Training Module */}
-      <Card className="shadow-card hover:shadow-card-hover transition-shadow duration-300">
-        <CardContent className="p-card-inner pt-6 pb-5">
-          <div className="flex items-center">
-            <div className="flex-shrink-0 bg-gradient-secondary rounded-md p-3">
-              <GraduationCap className="h-5 w-5 text-white" />
-            </div>
-            <div className="ml-5 w-0 flex-1">
-              <dl>
-                <dt><SmallText className="truncate">Training Module</SmallText></dt>
-                <dd><H4>
-                  Improve your skills
-                </H4></dd>
-              </dl>
-            </div>
+      <Card className="glass-card p-6">
+        <div className="flex items-center">
+          <div className="flex-shrink-0 p-3 rounded-md" style={{background: 'linear-gradient(135deg, #667eea, #764ba2)'}}>
+            <GraduationCap className="h-5 w-5 text-white" />
           </div>
-        </CardContent>
-        <CardFooter className="bg-gray-50 px-card-inner py-3 border-t">
+          <div className="ml-5 w-0 flex-1">
+            <dl>
+              <dt><SmallText className="truncate text-white/70">Training Module</SmallText></dt>
+              <dd><H4 className="text-white">
+                Improve your skills
+              </H4></dd>
+            </dl>
+          </div>
+        </div>
+        <div className="mt-4 pt-4 border-t border-white/10">
           <div>
-            <Link href="/training" className="font-sans text-sm font-medium text-primary hover:text-blue-900 flex items-center">
+            <Link href="/training" className="font-sans text-sm font-medium text-white hover:text-purple-300 flex items-center">
               Start training <span className="ml-1">&rarr;</span>
             </Link>
           </div>
-        </CardFooter>
+        </div>
       </Card>
     </div>
   );

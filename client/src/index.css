@@ -213,36 +213,18 @@
     font-family: 'Ancizar Sans', 'Source Sans Pro', system-ui, sans-serif !important;
   }
   
-  /* Force all remaining backgrounds to dark */
+  /* Target specific light background classes only */
   .bg-gray-50,
   .bg-gray-100,
   .bg-gray-200,
   .bg-blue-50,
   .bg-indigo-100,
+  .bg-white,
   .hover\\:bg-gray-50:hover,
-  .hover\\:bg-gray-100:hover,
-  main,
-  .container,
-  [class*="bg-"],
-  div:not([class*="gradient"]):not([class*="glass"]) {
+  .hover\\:bg-gray-100:hover {
     background: rgba(255, 255, 255, 0.05) !important;
     backdrop-filter: blur(20px);
-  }
-  
-  /* Aggressive white background override */
-  * {
-    background-color: transparent !important;
-  }
-  
-  /* Restore specific backgrounds that should remain */
-  body, 
-  html,
-  .hero-section,
-  .glass-card,
-  .cta-button,
-  [style*="background"],
-  [class*="gradient"] {
-    background: revert !important;
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
   
   /* Text color overrides */

@@ -90,7 +90,7 @@ export default function AppLayout({
         />
         
         <main className="flex-1 overflow-y-auto relative z-10" style={{background: 'transparent'}}>
-          <div className="container px-4 py-6 mx-auto">
+          <div className="container px-4 py-6 mx-auto" style={{background: 'transparent'}}>
             {children}
           </div>
         </main>
