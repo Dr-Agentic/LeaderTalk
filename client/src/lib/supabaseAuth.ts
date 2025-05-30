@@ -29,16 +29,6 @@ export async function signInWithGoogle(): Promise<AuthUser | null> {
       userAgent: navigator.userAgent
     })
 
-    // First check if Google provider is configured
-    const { data: providers, error: providersError } = await supabase.auth.getOAuthSignInUrl('google')
-    
-    if (providersError) {
-      logError("Failed to get Google OAuth URL", providersError)
-      throw new Error(`Google OAuth not configured: ${providersError.message}`)
-    }
-
-    logDebug("Google OAuth URL generated", { url: providers.url })
-
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
@@ -56,6 +46,8 @@ export async function signInWithGoogle(): Promise<AuthUser | null> {
     }
 
     logInfo("Supabase Google authentication initiated successfully")
+    logDebug("OAuth data received", { url: data.url, provider: data.provider })
+    
     return null // User will be available after redirect
   } catch (error: any) {
     logError("Google sign-in error", error)

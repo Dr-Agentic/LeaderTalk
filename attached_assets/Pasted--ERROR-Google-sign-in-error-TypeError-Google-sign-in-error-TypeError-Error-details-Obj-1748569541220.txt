@@ -1,0 +1,15 @@
+[ERROR] Google sign-in error 
+TypeError {}
+
+Google sign in error: 
+TypeError {}
+
+Error details: 
+Object {code: undefined, message: "supabase.auth.getOAuthSignInUrl is not a function", stack: "TypeError: supabase.auth.getOAuthSignInUrl is not a function↵    at signInWithGoogle…"}
+code: undefined
+message: "supabase.auth.getOAuthSignInUrl is not a function"
+stack: "TypeError: supabase.auth.getOAuthSignInUrl is not a function↵ at signInWithGoogle (https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2y2pqhs8si0sg.spock.replit.dev/src/lib/supabaseAuth.ts:18:76)↵ at handleGoogleSignIn (https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2y2pqhs8si0sg.spock.replit.dev/src/pages/DirectLogin.tsx:194:13)↵ at HTMLUnknownElement.callCallback2 (https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2y2pqhs8si0sg.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-276SZO74.js?v=1ee7ad70:3674:22)↵ at Object.invokeGuardedCallbackDev (https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2y2pqhs8si0sg.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-276SZO74.js?v=1ee7ad70:3699:24)↵ at invokeGuardedCallback (https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2y2pqhs8si0sg.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-276SZO74.js?v=1ee7ad70:3733:39)↵ at invokeGuardedCallbackAndCatchFirstError (https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2y2pqhs8si0sg.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-276SZO74.js?v=1ee7ad70:3736:33)↵ at executeDispatch (https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2y2pqhs8si0sg.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-276SZO74.js?v=1ee7ad70:7014:11)↵ at processDispatchQueueItemsInOrder (https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2y2pqhs8si0sg.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-276SZO74.js?v=1ee7ad70:7034:15)↵ at processDispatchQueue (https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2y2pqhs8si0sg.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-276SZO74.js?v=1ee7ad70:7043:13)↵ at dispatchEventsForPlugins (https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2y2pqhs8si0sg.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-276SZO74.js?v=1ee7ad70:7051:11)"
+[[Prototype]]: Object
+
+[ERROR] Google sign-in error in UI component 
+Object {code: "unknown", message: "supabase.auth.getOAuthSignInUrl is not a function", stack: "TypeError: supabase.auth.getOAuthSignInUrl is not a function↵    at signInWithGoogle…", url: "https://447b9aa1-dbc9-48c2-96b3-b8e52a8a7e65-00-2y2pqhs8si0sg.spock.replit.dev/"}
