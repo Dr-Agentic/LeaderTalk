@@ -23,6 +23,10 @@
     background: rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
   }
   
   .glass-card::before {
@@ -38,6 +42,59 @@
   
   .glass-card:hover::before {
     left: 100%;
+  }
+  
+  .glass-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(138, 43, 226, 0.3);
+    box-shadow: 0 8px 25px rgba(138, 43, 226, 0.2);
+  }
+  
+  .hero-section {
+    background: linear-gradient(135deg, rgba(138, 43, 226, 0.1), rgba(255, 107, 107, 0.1));
+    border-radius: 24px;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(138, 43, 226, 0.2);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .hero-section::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: conic-gradient(transparent, rgba(138, 43, 226, 0.1), transparent);
+    animation: rotate 6s linear infinite;
+  }
+  
+  .rotate {
+    animation: rotate 6s linear infinite;
+  }
+  
+  .gradient-text {
+    background: linear-gradient(135deg, #8A2BE2, #FF6B6B, #4ECDC4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .cta-button {
+    background: linear-gradient(135deg, #8A2BE2, #FF6B6B);
+    border: none;
+    border-radius: 16px;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 25px rgba(138, 43, 226, 0.3);
+  }
+  
+  .cta-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 35px rgba(138, 43, 226, 0.4);
   }
 }
 
@@ -79,13 +136,14 @@
 
   body {
     @apply font-sans antialiased text-foreground;
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 25%, #0f172a 50%, #1e1b4b 75%, #1a1a2e 100%);
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a0033 50%, #0a0a0a 100%);
     min-height: 100vh;
     color: white;
+    font-family: 'Inter', sans-serif;
   }
   
   html {
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 25%, #0f172a 50%, #1e1b4b 75%, #1a1a2e 100%);
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a0033 50%, #0a0a0a 100%);
     min-height: 100vh;
   }
   

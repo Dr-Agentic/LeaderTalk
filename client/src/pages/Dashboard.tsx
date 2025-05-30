@@ -68,13 +68,22 @@ export default function Dashboard() {
     
   return (
     <AppLayout>
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-        <H1 className="text-white">Dashboard</H1>
-        <Link href="/transcripts" className="mt-2 sm:mt-0 inline-flex items-center text-sm font-medium text-white/70 hover:text-white">
-          View all transcripts
-          <ChevronRight className="ml-1 h-4 w-4" />
-        </Link>
-      </div>
+      <div className="p-6 space-y-8">
+        {/* Hero Section with template styling */}
+        <div className="hero-section p-8">
+          <div className="hero-content">
+            <h1 className="hero-title">Welcome back, {(user as any)?.username || 'Leader'}</h1>
+            <p className="hero-subtitle">
+              Continue your leadership journey and unlock your potential through AI-powered coaching
+            </p>
+            <button 
+              onClick={() => navigate('/training')}
+              className="cta-button px-8 py-4 text-lg"
+            >
+              Start Your Journey
+            </button>
+          </div>
+        </div>
       
       {isLoading ? (
         <DashboardSkeleton />

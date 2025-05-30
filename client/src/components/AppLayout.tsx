@@ -71,7 +71,12 @@ export default function AppLayout({
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900">
+    <div className="flex h-screen overflow-hidden" style={{background: 'linear-gradient(135deg, #0a0a0a 0%, #1a0033 50%, #0a0a0a 100%)'}}>
+      {/* Template-style background overlay */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-purple-600/10 to-pink-500/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gradient-to-r from-pink-500/10 to-blue-500/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '3s'}} />
+      </div>
       <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} user={user} />
       
       <div className="flex flex-col flex-1 w-full overflow-hidden">

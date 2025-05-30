@@ -44,7 +44,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, user }) {
             aria-hidden="true"
           ></div>
           
-          <div className="fixed inset-y-0 left-0 flex max-w-xs w-full bg-gradient-to-b from-gray-900 via-purple-900/20 to-gray-900 backdrop-blur-lg border-r border-purple-600/30">
+          <div className="fixed inset-y-0 left-0 flex max-w-xs w-full backdrop-blur-lg border-r border-white/10" style={{background: 'linear-gradient(135deg, #0f0f23 0%, #1a0033 50%, #0f0f23 100%)'}}>
             <div className="flex flex-col h-full w-64">
               <div className="flex items-center justify-between h-16 px-4 border-b border-purple-600/30">
                 <h1 className="text-xl font-bold text-white">LeaderTalk</h1>
@@ -65,9 +65,9 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, user }) {
       
       {/* Desktop sidebar */}
       <div className="hidden md:flex md:flex-shrink-0">
-        <div className="flex flex-col w-64 bg-gradient-to-b from-gray-900 via-purple-900/20 to-gray-900 backdrop-blur-lg border-r border-purple-600/30">
-          <div className="flex items-center justify-center h-16 flex-shrink-0 px-4 border-b border-purple-600/30">
-            <h1 className="text-xl font-bold text-white">LeaderTalk</h1>
+        <div className="flex flex-col w-64 backdrop-blur-lg border-r border-white/10" style={{background: 'linear-gradient(135deg, #0f0f23 0%, #1a0033 50%, #0f0f23 100%)'}}>
+          <div className="flex items-center justify-center h-16 flex-shrink-0 px-4 border-b border-white/10">
+            <h1 className="text-2xl font-bold gradient-text">LeaderTalk</h1>
           </div>
           
           <SidebarContent location={location} />
