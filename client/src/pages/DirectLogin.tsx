@@ -8,6 +8,7 @@ import { signInWithGoogle } from "@/lib/supabaseAuth";
 import { logDebug, logError, logInfo, logWarn } from "@/lib/debugLogger";
 import { Checkbox } from "@/components/ui/checkbox";
 import { LegalModal } from "@/components/LegalModal";
+import SimpleSupabaseLogin from "@/components/SimpleSupabaseLogin";
 
 export default function DirectLogin() {
   const { toast } = useToast();
@@ -349,6 +350,11 @@ export default function DirectLogin() {
             </svg>
             {isLoading ? "Signing in..." : "Sign in with Google"}
           </Button>
+        </div>
+
+        {/* Simple Supabase Test Component */}
+        <div className="mt-6">
+          <SimpleSupabaseLogin />
         </div>
 
         <div className="text-center text-xs text-slate-500 mt-6 pt-2 border-t border-slate-200">
