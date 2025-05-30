@@ -160,9 +160,9 @@ export default function AnalysisDisplay({ recording, leaders }) {
             <Link href={`/transcript/${recording.id}`} className="text-sm font-medium text-white/70 hover:text-white">
               Detailed analysis
             </Link>
-            <span className="text-sm font-medium text-white/50">
-              Practice exercises (Coming soon)
-            </span>
+            <Link href="/training" className="text-sm font-medium text-white/70 hover:text-white">
+              Practice exercises
+            </Link>
           </div>
         </CardFooter>
       </Card>
