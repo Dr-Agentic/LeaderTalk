@@ -19,8 +19,8 @@ export default function MobileDashboard() {
     queryKey: ['/api/leaders'],
   })
 
-  const recordingCount = recordings?.length || 0
-  const leaderCount = leaders?.length || 0
+  const recordingCount = Array.isArray(recordings) ? recordings.length : 0
+  const leaderCount = Array.isArray(leaders) ? leaders.length : 0
   const successRate = recordingCount > 0 ? Math.round((recordingCount / 10) * 100) : 0
 
   return (
