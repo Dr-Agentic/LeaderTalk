@@ -71,7 +71,7 @@ export default function AppLayout({
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
+    <div className="flex h-screen overflow-hidden bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900">
       <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} user={user} />
       
       <div className="flex flex-col flex-1 w-full overflow-hidden">

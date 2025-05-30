@@ -13,6 +13,29 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useState, useEffect } from "react";
 
+function calculateWeeklyImprovement(recordings: any) {
+  if (!recordings || recordings.length === 0) return 0;
+  
+  const now = new Date();
+  const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+  
+  const thisWeek = recordings.filter((r: any) => new Date(r.createdAt) >= oneWeekAgo);
+  const lastWeek = recordings.filter((r: any) => {
+    const date = new Date(r.createdAt);
+    return date >= twoWeeksAgo && date < oneWeekAgo;
+  });
+  
+  const thisWeekAvg = thisWeek.length > 0 
+    ? thisWeek.reduce((sum: number, r: any) => sum + (r.analysisResult?.overallScore || 0), 0) / thisWeek.length 
+    : 0;
+  const lastWeekAvg = lastWeek.length > 0 
+    ? lastWeek.reduce((sum: number, r: any) => sum + (r.analysisResult?.overallScore || 0), 0) / lastWeek.length 
+    : 0;
+  
+  return lastWeekAvg > 0 ? ((thisWeekAvg - lastWeekAvg) / lastWeekAvg) * 100 : 0;
+}
+
 export default function Dashboard() {
   const { toast } = useToast();
   const [, navigate] = useLocation();
@@ -28,7 +51,7 @@ export default function Dashboard() {
   
   const isLoading = recordingsLoading || leadersLoading;
   
-  const lastRecording = recordingsData && recordingsData.length > 0 
+  const lastRecording = recordingsData && Array.isArray(recordingsData) && recordingsData.length > 0 
     ? recordingsData[0] 
     : null;
     
@@ -46,8 +69,8 @@ export default function Dashboard() {
   return (
     <AppLayout>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-        <H1>Dashboard</H1>
-        <Link href="/transcripts" className="mt-2 sm:mt-0 inline-flex items-center text-sm font-medium text-primary hover:text-primary-dark">
+        <H1 className="text-white">Dashboard</H1>
+        <Link href="/transcripts" className="mt-2 sm:mt-0 inline-flex items-center text-sm font-medium text-white/70 hover:text-white">
           View all transcripts
           <ChevronRight className="ml-1 h-4 w-4" />
         </Link>
@@ -65,7 +88,7 @@ export default function Dashboard() {
           )}
           
           <QuickActions 
-            recordingsCount={recordingsData?.length || 0}
+            recordingsCount={Array.isArray(recordingsData) ? recordingsData.length : 0}
             weeklyImprovement={calculateWeeklyImprovement(recordingsData)}
           />
           
@@ -76,15 +99,15 @@ export default function Dashboard() {
             />
           )}
           
-          <Card className="mt-8">
+          <Card className="mt-8 bg-gradient-to-br from-purple-600/20 to-pink-500/20 backdrop-blur-lg border border-purple-600/30">
             <CardContent className="pt-6">
-              <H2>Record a Conversation</H2>
-              <Paragraph className="mt-2 mb-4">
+              <H2 className="text-white">Record a Conversation</H2>
+              <Paragraph className="mt-2 mb-4 text-white/70">
                 Record your conversations to get AI-powered insights on your communication style.
               </Paragraph>
               
               <Button 
-                className="mt-2 flex items-center" 
+                className="mt-2 flex items-center bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600" 
                 size="lg"
                 onClick={() => navigate('/recording')}
                 variant="default"
@@ -105,35 +128,14 @@ function DashboardSkeleton() {
     <div className="mt-6 space-y-8">
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {[1, 2, 3].map((i) => (
-          <Skeleton key={i} className="h-48 rounded-lg" />
+          <Skeleton key={i} className="h-48 rounded-lg bg-white/10" />
         ))}
       </div>
       
-      {/* Analysis display skeleton */}
-      <Skeleton className="h-96 rounded-lg" />
-      
-      {/* Recording section skeleton */}
-      <Skeleton className="h-72 rounded-lg" />
+      <div className="space-y-6">
+        <Skeleton className="h-8 w-48 bg-white/10" />
+        <Skeleton className="h-32 rounded-lg bg-white/10" />
+      </div>
     </div>
   );
-}
-
-function calculateWeeklyImprovement(recordings) {
-  if (!recordings || recordings.length < 2) return 0;
-  
-  // This is a simplified calculation for demonstration
-  // In a real app, you would do a more sophisticated analysis
-  const recentRecordings = recordings.slice(0, 2);
-  
-  if (recentRecordings[0].analysisResult?.overview?.score && 
-      recentRecordings[1].analysisResult?.overview?.score) {
-    const recent = recentRecordings[0].analysisResult.overview.score;
-    const previous = recentRecordings[1].analysisResult.overview.score;
-    
-    if (recent > previous) {
-      return Math.round(((recent - previous) / previous) * 100);
-    }
-  }
-  
-  return 0;
 }
