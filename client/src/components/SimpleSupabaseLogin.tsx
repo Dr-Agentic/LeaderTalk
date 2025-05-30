@@ -4,11 +4,12 @@ import { Button } from './ui/button'
 
 export default function SimpleSupabaseLogin() {
   const [loading, setLoading] = useState(false)
+  const [oauthUrl, setOauthUrl] = useState<string | null>(null)
 
-  const handleGoogleSignIn = async () => {
+  const generateOAuthUrl = async () => {
     try {
       setLoading(true)
-      console.log('Simple Google sign-in initiated')
+      console.log('Generating OAuth URL')
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -18,19 +19,18 @@ export default function SimpleSupabaseLogin() {
       })
 
       if (error) {
-        console.error('Error:', error)
+        console.error('Error generating OAuth URL:', error)
         return
       }
 
       console.log('OAuth data:', data)
       
-      // Direct navigation without any complex logic
       if (data.url) {
-        console.log('Redirecting to:', data.url)
-        window.open(data.url, '_self')
+        setOauthUrl(data.url)
+        console.log('OAuth URL generated:', data.url)
       }
     } catch (error) {
-      console.error('Sign-in error:', error)
+      console.error('OAuth URL generation error:', error)
     } finally {
       setLoading(false)
     }
@@ -39,13 +39,29 @@ export default function SimpleSupabaseLogin() {
   return (
     <div className="p-4 border rounded">
       <h3 className="text-lg font-semibold mb-4">Simple Supabase Test</h3>
-      <Button 
-        onClick={handleGoogleSignIn}
-        disabled={loading}
-        className="w-full"
-      >
-        {loading ? 'Redirecting...' : 'Test Google Sign-In'}
-      </Button>
+      
+      {!oauthUrl ? (
+        <Button 
+          onClick={generateOAuthUrl}
+          disabled={loading}
+          className="w-full"
+        >
+          {loading ? 'Generating URL...' : 'Generate OAuth URL'}
+        </Button>
+      ) : (
+        <div className="space-y-2">
+          <p className="text-sm text-green-600">OAuth URL generated successfully!</p>
+          <Button 
+            onClick={() => window.location.href = oauthUrl}
+            className="w-full"
+          >
+            Go to Google Sign-In
+          </Button>
+          <div className="text-xs text-gray-500 break-all">
+            URL: {oauthUrl}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
