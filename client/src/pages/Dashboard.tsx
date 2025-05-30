@@ -41,6 +41,10 @@ export default function Dashboard() {
   const [, navigate] = useLocation();
   const [showQuote, setShowQuote] = useState(true);
   
+  const { data: user } = useQuery({
+    queryKey: ['/api/users/me'],
+  });
+  
   const { data: recordingsData, isLoading: recordingsLoading } = useQuery({
     queryKey: ['/api/recordings'],
   });
@@ -89,45 +93,65 @@ export default function Dashboard() {
         <DashboardSkeleton />
       ) : (
         <>
+          {/* Stats Cards */}
+          <div className="grid grid-cols-3 gap-4 mb-8">
+            <div className="glass-card p-6 text-center">
+              <div className="text-3xl font-bold text-white mb-2">{Array.isArray(leaderData) ? leaderData.length : 0}</div>
+              <div className="text-sm text-white/60 uppercase tracking-wider">Leaders</div>
+            </div>
+            <div className="glass-card p-6 text-center">
+              <div className="text-3xl font-bold text-white mb-2">{Array.isArray(recordingsData) ? recordingsData.length : 0}</div>
+              <div className="text-sm text-white/60 uppercase tracking-wider">Sessions</div>
+            </div>
+            <div className="glass-card p-6 text-center">
+              <div className="text-3xl font-bold text-white mb-2">{recordingsData && Array.isArray(recordingsData) && recordingsData.length > 0 ? Math.round((recordingsData.length / 10) * 100) : 0}%</div>
+              <div className="text-sm text-white/60 uppercase tracking-wider">Progress</div>
+            </div>
+          </div>
+
+          {/* Featured Training Cards */}
+          <h2 className="section-title">Featured Training</h2>
+          <div className="cards-container">
+            <div className="glass-card cursor-pointer" onClick={() => navigate('/training')}>
+              <div className="flex items-start gap-4">
+                <div className="text-4xl">🚀</div>
+                <div>
+                  <h3 className="text-xl font-semibold text-white mb-2">Innovation Leadership</h3>
+                  <p className="text-white/70">Master the art of leading through change and driving innovation in your organization</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="glass-card cursor-pointer" onClick={() => navigate('/leadership-inspirations')}>
+              <div className="flex items-start gap-4">
+                <div className="text-4xl">🎯</div>
+                <div>
+                  <h3 className="text-xl font-semibold text-white mb-2">Leadership Inspirations</h3>
+                  <p className="text-white/70">Explore different leadership styles and learn from industry pioneers</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="glass-card cursor-pointer" onClick={() => navigate('/transcripts')}>
+              <div className="flex items-start gap-4">
+                <div className="text-4xl">📈</div>
+                <div>
+                  <h3 className="text-xl font-semibold text-white mb-2">Progress Analytics</h3>
+                  <p className="text-white/70">Review your past sessions and track your communication improvements</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {showQuote && (
             <div className="transition-all duration-500 ease-in-out transform" 
                  style={{ opacity: showQuote ? 1 : 0 }}>
               <QuoteDisplay />
             </div>
           )}
-          
-          <QuickActions 
-            recordingsCount={Array.isArray(recordingsData) ? recordingsData.length : 0}
-            weeklyImprovement={calculateWeeklyImprovement(recordingsData)}
-          />
-          
-          {lastRecording && lastRecording.analysisResult && (
-            <AnalysisDisplay 
-              recording={lastRecording}
-              leaders={leaderData}
-            />
-          )}
-          
-          <Card className="mt-8 bg-gradient-to-br from-purple-600/20 to-pink-500/20 backdrop-blur-lg border border-purple-600/30">
-            <CardContent className="pt-6">
-              <H2 className="text-white">Record a Conversation</H2>
-              <Paragraph className="mt-2 mb-4 text-white/70">
-                Record your conversations to get AI-powered insights on your communication style.
-              </Paragraph>
-              
-              <Button 
-                className="mt-2 flex items-center bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600" 
-                size="lg"
-                onClick={() => navigate('/recording')}
-                variant="default"
-              >
-                <Mic className="mr-2 h-5 w-5" />
-                Start Recording
-              </Button>
-            </CardContent>
-          </Card>
         </>
       )}
+      </div>
     </AppLayout>
   );
 }
