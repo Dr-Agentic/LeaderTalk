@@ -46,6 +46,7 @@
     "@revenuecat/purchases-js": "^1.3.0",
     "@stripe/react-stripe-js": "^3.7.0",
     "@stripe/stripe-js": "^7.3.0",
+    "@supabase/supabase-js": "^2.49.8",
     "@tailwindcss/vite": "^4.1.3",
     "@tanstack/react-query": "^5.60.5",
     "@types/cors": "^2.8.17",
