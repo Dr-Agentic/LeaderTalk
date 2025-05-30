@@ -20,6 +20,7 @@ import SituationView from "@/pages/SituationView";
 import NextSituation from "@/pages/NextSituation";
 import Recording from "@/pages/Recording";
 import TestSituation from "@/pages/TestSituation";
+import AuthCallback from "@/pages/AuthCallback";
 import { useEffect, useState } from "react";
 import { apiRequest } from "./lib/queryClient";
 import { logInfo, logError, logDebug } from "@/lib/debugLogger";
@@ -156,6 +157,9 @@ function Router() {
       {/* Onboarding routes */}
       {isAuthenticated && !onboardingComplete && <Route path="/" component={Onboarding} />}
       {isAuthenticated && <Route path="/onboarding" component={Onboarding} />}
+      
+      {/* Auth callback route - accessible without authentication */}
+      <Route path="/auth/callback" component={AuthCallback} />
       
       {/* Login routes - ensure both root and /login path work */}
       {!isAuthenticated && <Route path="/" component={DirectLogin} />}

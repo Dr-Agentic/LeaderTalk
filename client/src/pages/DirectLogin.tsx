@@ -4,7 +4,7 @@ import { Link } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
-import { signInWithGoogle } from "@/firebase";
+import { signInWithGoogle } from "@/lib/supabaseAuth";
 import { logDebug, logError, logInfo, logWarn } from "@/lib/debugLogger";
 import { Checkbox } from "@/components/ui/checkbox";
 import { LegalModal } from "@/components/LegalModal";
@@ -199,27 +199,25 @@ export default function DirectLogin() {
       setAuthStatus("🔍 Starting authentication...");
       console.log("🔴 Loading state set to true");
 
-      // Log Firebase configuration for debugging
+      // Log Supabase configuration for debugging
       const configInfo = {
-        apiKey: import.meta.env.VITE_FIREBASE_API_KEY
+        supabaseUrl: import.meta.env.VITE_SUPABASE_URL
           ? "Present (hidden)"
           : "Missing",
-        projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-        appId: import.meta.env.VITE_FIREBASE_APP_ID
+        supabaseAnonKey: import.meta.env.VITE_SUPABASE_ANON_KEY
           ? "Present (hidden)"
           : "Missing",
-        authDomain: `${import.meta.env.VITE_FIREBASE_PROJECT_ID || "demo-project"}.firebaseapp.com`,
         currentUrl: window.location.href,
         currentOrigin: window.location.origin,
         environment: import.meta.env.NODE_ENV,
       };
 
-      console.log("🔴 Firebase config being used:", configInfo);
-      console.log("Firebase config being used:", configInfo);
-      logDebug("Attempting Google sign-in with config", configInfo);
+      console.log("🔴 Supabase config being used:", configInfo);
+      console.log("Supabase config being used:", configInfo);
+      logDebug("Attempting Google sign-in with Supabase config", configInfo);
 
       console.log("🔴 About to call signInWithGoogle function...");
-      console.log("Starting Google sign-in popup...");
+      console.log("Starting Google sign-in redirect...");
       console.log("Force onboarding checkbox is:", forceOnboarding);
       logInfo("Google sign-in process initiated from UI");
 
@@ -233,121 +231,11 @@ export default function DirectLogin() {
 
       setAuthStatus("🚀 Opening Google authentication...");
       
-      // Use the popup authentication
-      const user = await signInWithGoogle();
+      // Use Supabase OAuth redirect - this will redirect the user to Google and back
+      await signInWithGoogle();
       
-      setAuthStatus("✅ Authentication successful! Processing...");
-      console.log("Google sign-in completed successfully", user);
-      logInfo("Google sign-in completed successfully in UI component");
-
-      // Handle force onboarding after authentication
-      if (user && forceOnboarding) {
-        console.log("Force onboarding detected - setting database flag");
-        logInfo("Force onboarding detected - setting database flag");
-
-        try {
-          // Set the force onboarding flag in the database
-          const flagResponse = await apiRequest("PATCH", "/api/users/me", {
-            forceOnboarding: true,
-          });
-
-          if (flagResponse.ok) {
-            console.log("Force onboarding flag set successfully");
-          } else {
-            console.log("Failed to set flag, but continuing to onboarding");
-          }
-        } catch (error) {
-          console.log("Error setting flag, but continuing to onboarding");
-        }
-
-        // Clean up and redirect to onboarding
-        sessionStorage.removeItem("forceOnboarding");
-        console.log("Redirecting to onboarding...");
-        window.location.href = "/onboarding";
-        return; // Exit immediately to prevent any other logic
-      }
-
-      // Normal routing logic for non-force onboarding users
-      if (user) {
-        logDebug("Checking user onboarding status for normal flow");
-        // Check if we need to show onboarding (no selected leaders, etc)
-        const userResponse = await apiRequest("GET", "/api/users/me");
-
-        if (userResponse.ok) {
-          const userData = await userResponse.json();
-          logDebug("User data received from server", {
-            hasSelectedLeaders: !!userData.selectedLeaders,
-            hasDateOfBirth: !!userData.dateOfBirth,
-            hasProfession: !!userData.profession,
-            hasGoals: !!userData.goals,
-            forceOnboarding: false,
-          });
-
-          // This should never be reached if forceOnboarding was true
-          if (forceOnboarding) {
-            console.log("Force onboarding requested, resetting user data...");
-            logInfo("Force onboarding requested, resetting user data");
-
-            try {
-              await apiRequest("PATCH", "/api/users/me", {
-                dateOfBirth: null,
-                profession: null,
-                goals: null,
-                selectedLeaders: null,
-                preferredLeadershipStyle: null,
-              });
-              console.log(
-                "User data reset successfully, redirecting to onboarding...",
-              );
-              logInfo(
-                "User data reset successfully, redirecting to onboarding",
-              );
-              window.location.href = "/onboarding";
-              return; // Important: Exit early to prevent further logic
-            } catch (resetError) {
-              console.error("Error resetting user data:", resetError);
-              logError("Error resetting user data", { error: resetError });
-              // Still go to onboarding even if reset fails
-              console.log(
-                "Reset failed but still redirecting to onboarding...",
-              );
-              window.location.href = "/onboarding";
-              return; // Important: Exit early
-            }
-          }
-
-          // Only check normal onboarding logic if force onboarding is NOT enabled
-          if (
-            !userData.selectedLeaders ||
-            !userData.dateOfBirth ||
-            !userData.profession ||
-            !userData.goals
-          ) {
-            console.log("User needs onboarding, redirecting to /onboarding...");
-            logInfo("User needs onboarding, redirecting to /onboarding");
-            window.location.href = "/onboarding";
-          } else {
-            // User has completed onboarding, go to dashboard
-            console.log("User already onboarded, redirecting to dashboard...");
-            logInfo("User already onboarded, redirecting to dashboard");
-            window.location.href = "/dashboard";
-          }
-        } else {
-          const responseText = await userResponse.text();
-          console.error("Failed to get user data from server:", responseText);
-          logError("Failed to get user data from server", {
-            status: userResponse.status,
-            statusText: userResponse.statusText,
-            responseText,
-          });
-
-          // If we can't determine, just go to dashboard
-          logWarn(
-            "Could not determine onboarding status, redirecting to home as fallback",
-          );
-          window.location.href = "/";
-        }
-      }
+      // Note: User will be redirected to Google, so the code below won't execute
+      // The callback handling will be done in the AuthCallback component
     } catch (error: any) {
       console.error("Google sign in error:", error);
       console.error("Error details:", {
