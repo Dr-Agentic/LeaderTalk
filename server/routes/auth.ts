@@ -149,27 +149,37 @@ export function registerAuthRoutes(app: Express) {
         }
       }
       
-      // Set user ID in session
-      req.session.userId = user!.id;
-      
-      // Save session and respond
-      req.session.save((err) => {
+      // Set user ID in session with explicit session regeneration
+      req.session.regenerate((err) => {
         if (err) {
-          console.error("Session save error:", err);
-          return res.status(500).json({ error: "Failed to save session" });
+          console.error("Session regeneration error:", err);
+          return res.status(500).json({ error: "Failed to regenerate session" });
         }
         
-        console.log("Supabase authentication successful for user:", user!.id);
-        res.json({ 
-          success: true, 
-          user: {
-            id: user!.id,
-            username: user!.username,
-            email: user!.email,
-            photoUrl: user!.photoUrl,
-            forceOnboarding: !user!.selectedLeaders?.length,
-            selectedLeaders: user!.selectedLeaders
+        // Set user ID in the new session
+        req.session.userId = user!.id;
+        
+        // Save session and respond
+        req.session.save((saveErr) => {
+          if (saveErr) {
+            console.error("Session save error:", saveErr);
+            return res.status(500).json({ error: "Failed to save session" });
           }
+          
+          console.log("Supabase authentication successful for user:", user!.id);
+          console.log("Session ID after auth:", req.sessionID);
+          
+          res.json({ 
+            success: true, 
+            user: {
+              id: user!.id,
+              username: user!.username,
+              email: user!.email,
+              photoUrl: user!.photoUrl,
+              forceOnboarding: !user!.selectedLeaders?.length,
+              selectedLeaders: user!.selectedLeaders
+            }
+          });
         });
       });
     } catch (error) {

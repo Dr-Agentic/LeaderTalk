@@ -22,13 +22,20 @@ export async function checkSession(): Promise<boolean> {
     if (!response.ok) {
       const errorMsg = `Session check failed: ${response.status} ${response.statusText}`;
       console.error(errorMsg);
-      console.error(errorMsg);
       sessionChecked = true;
       return false;
     }
     
     const data = await response.json();
-    console.log("Received session data", data);
+    
+    // Only log if this is a significant change to reduce noise
+    if (!currentSessionId || currentSessionId !== data.sessionId) {
+      console.log("Session data:", { 
+        sessionId: data.sessionId?.substring(0, 8) + '...',
+        isLoggedIn: data.isLoggedIn,
+        userId: data.userId 
+      });
+    }
     
     // Update our tracking variables
     sessionChecked = true;
@@ -38,12 +45,7 @@ export async function checkSession(): Promise<boolean> {
     currentSessionId = data.sessionId || '';
     
     if (previousSessionId && currentSessionId && previousSessionId !== currentSessionId) {
-      const msg = "Session ID changed - user likely logged out and back in";
-      console.log(msg);
-      console.log(msg, { 
-        previous: previousSessionId, 
-        current: currentSessionId 
-      });
+      console.log("Session ID changed - new authentication detected");
     }
     
     currentUserId = data.userId || null;

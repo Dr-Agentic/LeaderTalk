@@ -42,9 +42,10 @@ function Router() {
         // Then check session status through our debug endpoint
         const isLoggedIn = await checkSession();
 
-        if (window.location.pathname === "/login" || window.location.pathname === "/") {
-          // Skip further checks if we're already on login page to prevent redirect loops
-          if (!isLoggedIn) {
+        // Prevent redirect loops by checking current location
+        const currentPath = window.location.pathname;
+        if (currentPath === "/login" || currentPath === "/" || currentPath === "/auth/callback") {
+          if (!isLoggedIn && currentPath !== "/auth/callback") {
             console.log("On login page, session check shows not logged in");
             setIsAuthenticated(false);
             setLoading(false);

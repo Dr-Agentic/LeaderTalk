@@ -29,6 +29,7 @@ export default function AuthCallback() {
             headers: {
               'Content-Type': 'application/json',
             },
+            credentials: 'include', // Ensure cookies are included
             body: JSON.stringify({
               uid: user.uid,
               email: user.email,
@@ -44,14 +45,19 @@ export default function AuthCallback() {
             
             setStatus('success')
             
-            // Check if user needs onboarding
-            if (userData.forceOnboarding || !userData.selectedLeaders?.length) {
-              navigate('/onboarding')
-            } else {
-              navigate('/dashboard')
-            }
+            // Add a small delay to ensure session is fully saved before redirect
+            setTimeout(() => {
+              // Check if user needs onboarding
+              if (userData.forceOnboarding || !userData.selectedLeaders?.length) {
+                navigate('/onboarding')
+              } else {
+                navigate('/dashboard')
+              }
+            }, 100)
           } else {
-            throw new Error('Server authentication failed')
+            const errorText = await response.text()
+            console.error('Server authentication failed:', errorText)
+            throw new Error(`Server authentication failed: ${response.status}`)
           }
         } else {
           throw new Error('No user data received from Supabase')
