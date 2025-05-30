@@ -13,12 +13,12 @@ export default function AuthCallback() {
   useEffect(() => {
     async function processAuthCallback() {
       try {
-        logInfo("Processing Supabase auth callback")
+        console.log("Processing Supabase auth callback")
         
         const user = await handleAuthCallback()
         
         if (user) {
-          logInfo("Auth callback successful, authenticating with server", {
+          console.log("Auth callback successful, authenticating with server", {
             userId: user.uid,
             email: user.email
           })
@@ -40,7 +40,7 @@ export default function AuthCallback() {
 
           if (response.ok) {
             const userData = await response.json()
-            logInfo("Server authentication successful", { userId: userData.id })
+            console.log("Server authentication successful", { userId: userData.id })
             
             setStatus('success')
             
@@ -57,7 +57,7 @@ export default function AuthCallback() {
           throw new Error('No user data received from Supabase')
         }
       } catch (err: any) {
-        logError("Auth callback failed", err)
+        console.error("Auth callback failed", err)
         setError(err.message || 'Authentication failed')
         setStatus('error')
         

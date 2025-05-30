@@ -1,5 +1,5 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
-import { logInfo, logError, logDebug, logWarn } from "./debugLogger";
+// Debug logging replaced with console methods
 
 // Session state to track auth state
 let sessionChecked = false;
@@ -22,13 +22,13 @@ export async function checkSession(): Promise<boolean> {
     if (!response.ok) {
       const errorMsg = `Session check failed: ${response.status} ${response.statusText}`;
       console.error(errorMsg);
-      logError(errorMsg);
+      console.error(errorMsg);
       sessionChecked = true;
       return false;
     }
     
     const data = await response.json();
-    logDebug("Received session data", data);
+    console.log("Received session data", data);
     
     // Update our tracking variables
     sessionChecked = true;
@@ -40,7 +40,7 @@ export async function checkSession(): Promise<boolean> {
     if (previousSessionId && currentSessionId && previousSessionId !== currentSessionId) {
       const msg = "Session ID changed - user likely logged out and back in";
       console.log(msg);
-      logInfo(msg, { 
+      console.log(msg, { 
         previous: previousSessionId, 
         current: currentSessionId 
       });
@@ -52,7 +52,7 @@ export async function checkSession(): Promise<boolean> {
     if (data.sessionExists && data.isLoggedIn) {
       const msg = `Session confirmed valid, user ID: ${currentUserId || 'unknown'}`;
       console.log(msg);
-      logInfo(msg, { 
+      console.log(msg, { 
         userId: currentUserId,
         sessionId: data.sessionId,
         cookiePresent: data.cookiePresent,
@@ -62,7 +62,7 @@ export async function checkSession(): Promise<boolean> {
     } else if (data.sessionExists && !data.isLoggedIn) {
       const msg = "Session exists but not logged in (likely expired)";
       console.log(msg);
-      logWarn(msg, {
+      console.warn(msg, {
         sessionId: data.sessionId,
         cookiePresent: data.cookiePresent,
         cookieExists: data.cookieExists,
@@ -93,7 +93,7 @@ export async function checkSession(): Promise<boolean> {
     } else {
       const msg = "No valid session found";
       console.log(msg);
-      logWarn(msg, {
+      console.warn(msg, {
         sessionExists: data.sessionExists,
         cookiePresent: data.cookiePresent,
         cookieExists: data.cookieExists
@@ -102,7 +102,7 @@ export async function checkSession(): Promise<boolean> {
     }
   } catch (error: any) {
     console.error("Auth check error:", error);
-    logError("Auth check error", {
+    console.error("Auth check error", {
       message: error?.message || "Unknown error",
       stack: error?.stack || "No stack trace available"
     });
@@ -119,13 +119,13 @@ async function throwIfResNotOk(res: Response) {
       if (data.redirect && data.redirectUrl) {
         const msg = `Redirecting from API to: ${data.redirectUrl}`;
         console.log(msg);
-        logInfo(msg, { url: data.redirectUrl });
+        console.log(msg, { url: data.redirectUrl });
         window.location.href = data.redirectUrl;
         return; // Stop processing, redirection will happen
       }
     } catch (e: any) {
       // Not JSON or doesn't have redirect info, treat as error
-      logWarn("Received 302 but couldn't parse redirection info", {
+      console.warn("Received 302 but couldn't parse redirection info", {
         responseText: text,
         error: e?.message || "Unknown parse error"
       });
@@ -135,7 +135,7 @@ async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
     const errorMsg = `${res.status}: ${text}`;
-    logError("API request failed", {
+    console.error("API request failed", {
       status: res.status,
       statusText: res.statusText,
       responseText: text,
@@ -151,7 +151,7 @@ export async function apiRequest(
   data?: unknown | undefined,
 ): Promise<Response> {
   try {
-    logDebug("API request", { method, url, hasData: !!data });
+    console.log("API request", { method, url, hasData: !!data });
     
     // For authenticated API routes, check session first
     if (url.includes('/api/') && !url.includes('/api/auth/') && method !== 'GET') {
@@ -160,13 +160,13 @@ export async function apiRequest(
         if (!isLoggedIn) {
           const msg = "Session check prior to API call shows not logged in, redirecting...";
           console.log(msg);
-          logWarn(msg, { method, url });
+          console.warn(msg, { method, url });
           window.location.href = '/login';
           throw new Error("Unauthorized - Session invalid");
         }
       } catch (sessionError: any) {
         console.error("Session check error:", sessionError);
-        logError("Session check error before API call", {
+        console.error("Session check error before API call", {
           message: sessionError?.message || "Unknown error",
           url,
           method
@@ -213,7 +213,7 @@ export async function apiRequest(
       } catch (networkError: any) {
         retries++;
         if (retries > MAX_RETRIES) {
-          logError("Network request failed after retries", {
+          console.error("Network request failed after retries", {
             url,
             retries,
             error: networkError?.message || "Unknown network error"
@@ -221,7 +221,7 @@ export async function apiRequest(
           throw networkError; // Re-throw after max retries
         }
         
-        logWarn("Network request failed, retrying...", {
+        console.warn("Network request failed, retrying...", {
           url,
           retry: retries,
           error: networkError?.message
@@ -236,20 +236,20 @@ export async function apiRequest(
     if (res.status === 401 && url.includes('/api/') && !url.includes('/api/auth/')) {
       const msg = "Unauthorized response, checking session again...";
       console.log(msg);
-      logWarn(msg, { url, method, status: res.status });
+      console.warn(msg, { url, method, status: res.status });
       
       // Double-check session status
       const isLoggedIn = await checkSession();
       if (!isLoggedIn) {
         const redirectMsg = "Confirmed session is invalid, redirecting to login...";
         console.log(redirectMsg);
-        logWarn(redirectMsg, { url, method });
+        console.warn(redirectMsg, { url, method });
         window.location.href = '/login';
         return res; // Skip throwing error
       } else {
         const mismatchMsg = "Session appears valid but got 401 - possible server-side auth mismatch";
         console.log(mismatchMsg);
-        logError(mismatchMsg, { url, method });
+        console.error(mismatchMsg, { url, method });
         
         // In development, try to force a login to recover
         if (import.meta.env.DEV && window.location.hostname === 'localhost') {
@@ -274,11 +274,11 @@ export async function apiRequest(
     }
     
     await throwIfResNotOk(res);
-    logDebug("API request successful", { url, method, status: res.status });
+    console.log("API request successful", { url, method, status: res.status });
     return res;
   } catch (error: any) {
     console.error("API request error:", error);
-    logError("API request failed", {
+    console.error("API request failed", {
       url,
       method,
       message: error?.message || "Unknown error",
@@ -297,26 +297,26 @@ export const getQueryFn: <T>(options: {
     try {
       // If we're accessing authenticated resources, check session first
       const requestUrl = queryKey[0] as string;
-      logDebug("Query function called", { requestUrl });
+      console.log("Query function called", { requestUrl });
       
       if (requestUrl.includes('/api/') && !requestUrl.includes('/api/auth/') && !sessionChecked) {
         const msg = "Checking session before API call...";
         console.log(msg);
-        logDebug(msg, { requestUrl });
+        console.log(msg, { requestUrl });
         
         const isLoggedIn = await checkSession();
         
         if (!isLoggedIn) {
           const redirectMsg = "Not logged in, redirecting to login page";
           console.log(redirectMsg);
-          logWarn(redirectMsg, { requestUrl });
+          console.warn(redirectMsg, { requestUrl });
           window.location.href = '/login';
           return null;
         }
         
         const successMsg = "Session check successful, proceeding with API call";
         console.log(successMsg);
-        logInfo(successMsg, { requestUrl });
+        console.log(successMsg, { requestUrl });
       }
       
       // Add timestamp to URL to prevent caching
@@ -343,7 +343,7 @@ export const getQueryFn: <T>(options: {
         } catch (networkError: any) {
           retries++;
           if (retries > MAX_RETRIES) {
-            logError("Network request failed after retries", {
+            console.error("Network request failed after retries", {
               requestUrl,
               retries,
               error: networkError?.message || "Unknown network error"
@@ -351,7 +351,7 @@ export const getQueryFn: <T>(options: {
             throw networkError; // Re-throw after max retries
           }
           
-          logWarn("Network request failed, retrying...", {
+          console.warn("Network request failed, retrying...", {
             requestUrl,
             retry: retries,
             error: networkError?.message
@@ -368,37 +368,37 @@ export const getQueryFn: <T>(options: {
         if (requestUrl.includes('/api/') && !requestUrl.includes('/api/auth/')) {
           const recheckMsg = "Received 401, checking session again...";
           console.log(recheckMsg);
-          logWarn(recheckMsg, { requestUrl, status: res.status });
+          console.warn(recheckMsg, { requestUrl, status: res.status });
           
           const isLoggedIn = await checkSession();
           
           if (!isLoggedIn) {
             const expiredMsg = "Session expired, redirecting to login page";
             console.log(expiredMsg);
-            logWarn(expiredMsg, { requestUrl });
+            console.warn(expiredMsg, { requestUrl });
             window.location.href = '/login';
             return null;
           } else {
             const mismatchMsg = "Session valid but got 401 - session mismatch or server error";
             console.log(mismatchMsg);
-            logError(mismatchMsg, { requestUrl });
+            console.error(mismatchMsg, { requestUrl });
             throw new Error("Session error - please try refreshing the page");
           }
         }
         
         // Handle based on behavior option
         if (unauthorizedBehavior === "returnNull") {
-          logDebug("Returning null on 401 per behavior option", { requestUrl });
+          console.log("Returning null on 401 per behavior option", { requestUrl });
           return null;
         }
       }
 
       await throwIfResNotOk(res);
-      logDebug("Query successful", { requestUrl, status: res.status });
+      console.log("Query successful", { requestUrl, status: res.status });
       return await res.json();
     } catch (error: any) {
       console.error("Query error:", error);
-      logError("Query function error", {
+      console.error("Query function error", {
         requestUrl: queryKey[0] as string,
         message: error?.message || "Unknown error",
         stack: error?.stack

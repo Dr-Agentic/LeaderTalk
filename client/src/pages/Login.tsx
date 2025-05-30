@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { signInWithGoogle } from '@/lib/supabaseAuth'
 import { Loader2 } from 'lucide-react'
-import { logInfo, logError } from '@/lib/debugLogger'
+// Debug logging replaced with console methods
 
 export default function Login() {
   const [loading, setLoading] = useState(false)
@@ -11,10 +11,10 @@ export default function Login() {
   const handleGoogleSignIn = async () => {
     try {
       setLoading(true)
-      logInfo("Google sign-in process initiated from UI")
+      console.log("Google sign-in process initiated from UI")
       await signInWithGoogle()
     } catch (error: any) {
-      logError("Google sign-in error", error)
+      console.error("Google sign-in error", error)
       console.error('Google sign-in error:', error)
     } finally {
       setLoading(false)

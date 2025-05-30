@@ -4,7 +4,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { auth } from "@/firebase";
+// Firebase auth removed - now using server-side session
 import SimpleLeaderSelection from "@/components/onboarding/SimpleLeaderSelection";
 import OnboardingWelcome from "@/components/onboarding/OnboardingWelcome";
 import OnboardingPersonalInfo from "@/components/onboarding/OnboardingPersonalInfo";
@@ -23,14 +23,15 @@ export default function Onboarding() {
   useEffect(() => {
     const checkLoginStatus = async () => {
       try {
-        // Get the current Firebase user
-        const firebaseUser = auth.currentUser;
-        if (firebaseUser) {
-          console.log("Firebase user found:", {
-            uid: firebaseUser.uid,
-            email: firebaseUser.email,
-            displayName: firebaseUser.displayName,
-            hasPhotoUrl: !!firebaseUser.photoURL
+        // Check session status through server API
+        const response = await apiRequest("GET", "/api/users/me");
+        if (response.ok) {
+          const userData = await response.json();
+          console.log("Server user found:", {
+            id: userData.id,
+            email: userData.email,
+            displayName: userData.username,
+            hasPhotoUrl: !!userData.photoUrl
           });
           
           // Store Google profile data
