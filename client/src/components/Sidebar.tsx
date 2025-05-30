@@ -44,10 +44,10 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, user }) {
             aria-hidden="true"
           ></div>
           
-          <div className="fixed inset-y-0 left-0 flex max-w-xs w-full bg-white">
+          <div className="fixed inset-y-0 left-0 flex max-w-xs w-full bg-gradient-to-b from-gray-900 via-purple-900/20 to-gray-900 backdrop-blur-lg border-r border-purple-600/30">
             <div className="flex flex-col h-full w-64">
-              <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200">
-                <h1 className="text-xl font-bold text-primary">LeaderTalk</h1>
+              <div className="flex items-center justify-between h-16 px-4 border-b border-purple-600/30">
+                <h1 className="text-xl font-bold text-white">LeaderTalk</h1>
                 <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)}>
                   <X className="h-5 w-5" />
                 </Button>
@@ -65,9 +65,9 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, user }) {
       
       {/* Desktop sidebar */}
       <div className="hidden md:flex md:flex-shrink-0">
-        <div className="flex flex-col w-64 bg-white border-r border-gray-200">
-          <div className="flex items-center justify-center h-16 flex-shrink-0 px-4 border-b border-gray-200">
-            <h1 className="text-xl font-bold text-primary">LeaderTalk</h1>
+        <div className="flex flex-col w-64 bg-gradient-to-b from-gray-900 via-purple-900/20 to-gray-900 backdrop-blur-lg border-r border-purple-600/30">
+          <div className="flex items-center justify-center h-16 flex-shrink-0 px-4 border-b border-purple-600/30">
+            <h1 className="text-xl font-bold text-white">LeaderTalk</h1>
           </div>
           
           <SidebarContent location={location} />
@@ -111,15 +111,15 @@ function SidebarContent({ location }) {
               href={item.href}
               className={`flex items-center px-4 py-3 text-sm font-medium ${
                 location === item.href
-                  ? "text-primary bg-blue-50"
-                  : "text-gray-600 hover:bg-gray-50"
+                  ? "text-white bg-purple-600/30"
+                  : "text-white/70 hover:bg-purple-600/20"
               } rounded-md group`}
               onClick={() => setSidebarOpen(false)}
             >
               <item.icon className={`mr-3 h-5 w-5 ${
                 location === item.href
-                  ? "text-primary"
-                  : "text-gray-400 group-hover:text-primary"
+                  ? "text-white"
+                  : "text-white/60 group-hover:text-white"
               }`} />
               {item.name}
             </Link>

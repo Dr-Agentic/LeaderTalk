@@ -81,11 +81,47 @@
     @apply font-sans antialiased text-foreground;
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 25%, #0f172a 50%, #1e1b4b 75%, #1a1a2e 100%);
     min-height: 100vh;
+    color: white;
   }
   
   html {
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 25%, #0f172a 50%, #1e1b4b 75%, #1a1a2e 100%);
     min-height: 100vh;
+  }
+  
+  /* Dark theme defaults for common elements */
+  .bg-background {
+    background: rgba(15, 23, 42, 0.8) !important;
+  }
+  
+  .bg-card {
+    background: rgba(139, 69, 19, 0.1) !important;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+  }
+  
+  .bg-muted {
+    background: rgba(15, 23, 42, 0.5) !important;
+  }
+  
+  .text-muted-foreground {
+    color: rgba(255, 255, 255, 0.6) !important;
+  }
+  
+  .text-foreground {
+    color: white !important;
+  }
+  
+  /* Card components with glass effect */
+  [data-radix-popper-content-wrapper],
+  .bg-popover {
+    background: rgba(15, 23, 42, 0.9) !important;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    color: white !important;
   }
   
   h1 {

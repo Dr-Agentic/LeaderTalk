@@ -28,7 +28,7 @@ export default function AppHeader({
   };
   
   return (
-    <header className="sticky top-0 z-30 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-30 w-full border-b border-purple-600/30 bg-gray-900/95 backdrop-blur supports-[backdrop-filter]:bg-gray-900/60">
       <div className="flex h-14 items-center px-4 relative">
         {/* Left side with controls */}
         <div className="flex items-center gap-2">
@@ -36,7 +36,7 @@ export default function AppHeader({
           <Button
             variant="ghost"
             size="icon"
-            className="md:hidden inline-flex items-center justify-center text-gray-500 rounded-md hover:text-primary hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary"
+            className="md:hidden inline-flex items-center justify-center text-white/70 rounded-md hover:text-white hover:bg-purple-600/20 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-purple-500"
             onClick={() => setSidebarOpen(true)}
           >
             <span className="sr-only">Open sidebar</span>
@@ -61,7 +61,7 @@ export default function AppHeader({
         <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center justify-center">
           <Link href="/" className="flex items-center gap-2">
             <img src="/assets/images/LeaderTalk.png" alt="LeaderTalk Logo" className="h-8 w-auto" />
-            <h1 className="text-lg font-bold text-primary">LeaderTalk</h1>
+            <h1 className="text-lg font-bold text-white">LeaderTalk</h1>
           </Link>
         </div>
         
