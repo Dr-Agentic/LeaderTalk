@@ -3,7 +3,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Mic, BarChart, TrendingUp, GraduationCap } from "lucide-react";
 import { SmallText, H4 } from "@/components/ui/typography";
 
-export default function QuickActions({ recordingsCount, weeklyImprovement }) {
+export default function QuickActions({ recordingsCount, weeklyImprovement }: { recordingsCount: number; weeklyImprovement: number }) {
   return (
     <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
       {/* Record New Conversation */}
