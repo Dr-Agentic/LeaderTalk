@@ -4,7 +4,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-// Firebase auth removed - now using server-side session
+// Supabase auth removed - now using server-side session
 import SimpleLeaderSelection from "@/components/onboarding/SimpleLeaderSelection";
 import OnboardingWelcome from "@/components/onboarding/OnboardingWelcome";
 import OnboardingPersonalInfo from "@/components/onboarding/OnboardingPersonalInfo";
@@ -115,7 +115,7 @@ export default function Onboarding() {
           setIsRedirecting(false);
         } else {
           // Not logged in, redirect to login
-          console.log("No Firebase user found, redirecting to login");
+          console.log("No user session found, redirecting to login");
           window.location.href = '/login';
         }
       } catch (error) {

@@ -146,12 +146,12 @@ function SidebarFooter({ user }) {
       // 2. Clear all client-side query cache
       queryClient.clear();
       
-      // 3. Try Firebase signout
+      // 3. Try Supabase signout
       try {
         await signOut();
-        console.log("Firebase signout successful");
+        console.log("Supabase signout successful");
       } catch (e) {
-        console.log("Firebase signout skipped:", e);
+        console.log("Supabase signout skipped:", e);
       }
       
       // 4. Do server-side logout to clear session with cache-busting parameter

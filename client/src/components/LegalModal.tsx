@@ -188,7 +188,7 @@ function PrivacyContent() {
         <div className="space-y-3">
           <div>
             <h5 className="font-medium text-sm">Authentication</h5>
-            <p>We use Google Firebase for secure authentication. Please review Google's privacy policy for their data practices.</p>
+            <p>We use Google Supabase for secure authentication. Please review Google's privacy policy for their data practices.</p>
           </div>
           <div>
             <h5 className="font-medium text-sm">Payment Processing</h5>

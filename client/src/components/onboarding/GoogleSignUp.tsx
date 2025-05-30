@@ -8,37 +8,24 @@ export default function GoogleSignUp() {
   const [isLoading, setIsLoading] = useState(false);
   const [isDeveloperMode, setIsDeveloperMode] = useState(false);
   const { toast } = useToast();
-  const auth = getAuth();
   
   const handleSignIn = async () => {
     try {
       setIsLoading(true);
       
-      // Log Firebase configuration for debugging
-      const configInfo = {
-        apiKey: import.meta.env.VITE_FIREBASE_API_KEY ? "Present (hidden)" : "Missing",
-        projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-        appId: import.meta.env.VITE_FIREBASE_APP_ID ? "Present (hidden)" : "Missing",
-        authDomain: `${import.meta.env.VITE_FIREBASE_PROJECT_ID || "demo-project"}.firebaseapp.com`,
-        currentUrl: window.location.href,
-        currentOrigin: window.location.origin,
-        environment: import.meta.env.NODE_ENV
-      };
-      
-      console.log("Firebase config being used:", configInfo);
-      logDebug("Attempting Google sign-in with config", configInfo);
+      console.log("Attempting Google sign-in with Supabase");
       
       console.log("Starting Google sign-in popup...");
-      logInfo("Google sign-in process initiated from UI");
+      console.log("Google sign-in process initiated from UI");
       
       // Use the popup authentication (changed from redirect to fix CORS issues)
       const user = await signInWithGoogle();
       console.log("Google sign-in completed successfully", user);
-      logInfo("Google sign-in completed successfully in UI component");
+      console.log("Google sign-in completed successfully in UI component");
       
       // Redirect to dashboard or onboarding based on user data
       if (user) {
-        logDebug("Checking user onboarding status");
+        console.log("Checking user onboarding status");
         // Check if we need to show onboarding (no selected leaders, etc)
         const userResponse = await fetch('/api/users/me', {
           credentials: 'include'
@@ -46,7 +33,7 @@ export default function GoogleSignUp() {
         
         if (userResponse.ok) {
           const userData = await userResponse.json();
-          logDebug("User data received from server", { 
+          console.log("User data received from server", { 
             hasSelectedLeaders: !!userData.selectedLeaders,
             hasDateOfBirth: !!userData.dateOfBirth,
             hasProfession: !!userData.profession,
@@ -56,25 +43,25 @@ export default function GoogleSignUp() {
           // If user doesn't have onboarding data, go to onboarding
           if (!userData.selectedLeaders || !userData.dateOfBirth || !userData.profession || !userData.goals) {
             console.log("User needs onboarding, redirecting to /onboarding...");
-            logInfo("User needs onboarding, redirecting to /onboarding");
+            console.log("User needs onboarding, redirecting to /onboarding");
             window.location.href = "/onboarding";
           } else {
             // User has completed onboarding, go to dashboard
             console.log("User already onboarded, redirecting to dashboard...");
-            logInfo("User already onboarded, redirecting to dashboard");
+            console.log("User already onboarded, redirecting to dashboard");
             window.location.href = "/";
           }
         } else {
           const responseText = await userResponse.text();
           console.error("Failed to get user data from server:", responseText);
-          logError("Failed to get user data from server", {
+          console.error("Failed to get user data from server", {
             status: userResponse.status,
             statusText: userResponse.statusText,
             responseText
           });
           
           // If we can't determine, just go to dashboard
-          logWarn("Could not determine onboarding status, redirecting to home as fallback");
+          console.warn("Could not determine onboarding status, redirecting to home as fallback");
           window.location.href = "/";
         }
       }
@@ -86,7 +73,7 @@ export default function GoogleSignUp() {
         stack: error?.stack
       });
       
-      logError("Google sign-in error in UI component", {
+      console.error("Google sign-in error in UI component", {
         code: error?.code || "unknown",
         message: error?.message || "Unknown error",
         stack: error?.stack || "No stack trace",
@@ -108,24 +95,24 @@ export default function GoogleSignUp() {
     try {
       setIsLoading(true);
       console.log("Starting demo login process...");
-      logInfo("Demo login process initiated");
+      console.log("Demo login process initiated");
       
       // Use fetch instead of direct navigation to prevent full page reload
-      logDebug("Sending demo login request to /api/auth/force-login");
+      console.log("Sending demo login request to /api/auth/force-login");
       const response = await fetch("/api/auth/force-login");
       
       if (response.ok || response.redirected) {
         console.log("Demo login successful, checking onboarding status...");
-        logInfo("Demo login successful, checking onboarding status");
+        console.log("Demo login successful, checking onboarding status");
         
         try {
           // Check if user needs to complete onboarding
-          logDebug("Checking user profile for onboarding status");
+          console.log("Checking user profile for onboarding status");
           const userResponse = await apiRequest('GET', '/api/users/me');
           
           if (userResponse.ok) {
             const userData = await userResponse.json();
-            logDebug("User profile data received", { 
+            console.log("User profile data received", { 
               hasSelectedLeaders: !!userData.selectedLeaders,
               hasDateOfBirth: !!userData.dateOfBirth,
               hasProfession: !!userData.profession,
@@ -136,18 +123,18 @@ export default function GoogleSignUp() {
             if (userData.dateOfBirth && userData.profession && userData.goals && userData.selectedLeaders) {
               // Onboarding complete, go to dashboard
               console.log("Onboarding complete, redirecting to dashboard");
-              logInfo("Demo user onboarding complete, redirecting to dashboard");
+              console.log("Demo user onboarding complete, redirecting to dashboard");
               window.location.href = "/dashboard";
             } else {
               // Onboarding incomplete, go to onboarding
               console.log("Onboarding incomplete, redirecting to onboarding");
-              logInfo("Demo user needs onboarding, redirecting to onboarding page");
+              console.log("Demo user needs onboarding, redirecting to onboarding page");
               window.location.href = "/onboarding";
             }
           } else {
             // If we can't get user data, default to onboarding page
             console.log("Could not fetch user data, redirecting to onboarding as fallback");
-            logWarn("Could not fetch demo user data, redirecting to onboarding as fallback", {
+            console.warn("Could not fetch demo user data, redirecting to onboarding as fallback", {
               status: userResponse.status,
               statusText: userResponse.statusText
             });
@@ -155,19 +142,19 @@ export default function GoogleSignUp() {
           }
         } catch (userError: any) {
           console.error("Error checking user status:", userError);
-          logError("Error checking demo user status", {
+          console.error("Error checking demo user status", {
             message: userError?.message || "Unknown error",
             stack: userError?.stack || "No stack trace"
           });
           
           // If error occurred, still try to go to dashboard as fallback
-          logWarn("Error occurred during demo user check, redirecting to dashboard as fallback");
+          console.warn("Error occurred during demo user check, redirecting to dashboard as fallback");
           window.location.href = "/dashboard";
         }
       } else {
         const responseText = await response.text();
         console.error("Demo login failed:", responseText);
-        logError("Demo login failed", {
+        console.error("Demo login failed", {
           status: response.status,
           statusText: response.statusText,
           responseText
@@ -182,7 +169,7 @@ export default function GoogleSignUp() {
       }
     } catch (error: any) {
       console.error("Demo login error:", error);
-      logError("Demo login unexpected error", {
+      console.error("Demo login unexpected error", {
         message: error?.message || "Unknown error",
         stack: error?.stack || "No stack trace"
       });
