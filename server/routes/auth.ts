@@ -110,6 +110,67 @@ export function registerAuthRoutes(app: Express) {
     }
   });
 
+  // Supabase authentication callback endpoint
+  app.post("/api/auth/supabase-callback", async (req, res) => {
+    try {
+      const { uid, email, displayName, photoURL, emailVerified } = req.body;
+      
+      if (!uid || !email) {
+        return res.status(400).json({ error: "Invalid user data from Supabase" });
+      }
+      
+      console.log("Processing Supabase authentication for:", { uid, email, displayName });
+      
+      // Try to find existing user by email
+      let user = await storage.getUserByEmail(email);
+      
+      if (!user) {
+        // Create new user
+        console.log("Creating new user from Supabase data");
+        user = await storage.createUser({
+          username: displayName || email.split('@')[0],
+          email: email,
+          googleId: uid, // Store Supabase user ID as googleId for compatibility
+          profilePicture: photoURL || null
+        });
+        console.log("New user created:", user.id);
+      } else {
+        // Update existing user with Supabase ID if not set
+        if (!user.googleId) {
+          console.log("Updating existing user with Supabase ID");
+          user = await storage.updateUser(user.id, { googleId: uid });
+        }
+      }
+      
+      // Set user ID in session
+      req.session.userId = user.id;
+      
+      // Save session and respond
+      req.session.save((err) => {
+        if (err) {
+          console.error("Session save error:", err);
+          return res.status(500).json({ error: "Failed to save session" });
+        }
+        
+        console.log("Supabase authentication successful for user:", user.id);
+        res.json({ 
+          success: true, 
+          user: {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            profilePicture: user.profilePicture,
+            forceOnboarding: !user.selectedLeaders?.length,
+            selectedLeaders: user.selectedLeaders
+          }
+        });
+      });
+    } catch (error) {
+      console.error("Supabase authentication error:", error);
+      res.status(500).json({ error: "Internal server error during authentication" });
+    }
+  });
+
   // Demo login endpoint
   app.post("/api/auth/demo-login", async (req, res) => {
     try {
