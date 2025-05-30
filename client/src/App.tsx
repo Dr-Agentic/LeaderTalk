@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/Dashboard";
-import MobileDashboard from "@/pages/MobileDashboard";
+import ModernDashboard from "@/pages/ModernDashboard";
 import Onboarding from "@/pages/Onboarding";
 
 import TranscriptView from "@/pages/TranscriptView";
@@ -129,8 +129,8 @@ function Router() {
   return (
     <Switch>
       {/* Auth required routes */}
-      {isAuthenticated && onboardingComplete && <Route path="/" component={MobileDashboard} />}
-      {isAuthenticated && onboardingComplete && <Route path="/dashboard" component={MobileDashboard} />}
+      {isAuthenticated && onboardingComplete && <Route path="/" component={ModernDashboard} />}
+      {isAuthenticated && onboardingComplete && <Route path="/dashboard" component={ModernDashboard} />}
       {isAuthenticated && onboardingComplete && <Route path="/transcript/:id" component={TranscriptView} />}
       {isAuthenticated && onboardingComplete && <Route path="/transcripts" component={AllTranscripts} />}
       {isAuthenticated && onboardingComplete && <Route path="/progress" component={Progress} />}
