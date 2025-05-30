@@ -48,6 +48,12 @@ export async function signInWithGoogle(): Promise<AuthUser | null> {
     logInfo("Supabase Google authentication initiated successfully")
     logDebug("OAuth data received", { url: data.url, provider: data.provider })
     
+    // The signInWithOAuth should automatically redirect, but if it doesn't, manually redirect
+    if (data.url) {
+      logDebug("Manually redirecting to OAuth URL", { url: data.url })
+      window.location.href = data.url
+    }
+    
     return null // User will be available after redirect
   } catch (error: any) {
     logError("Google sign-in error", error)
