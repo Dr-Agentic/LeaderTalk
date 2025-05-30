@@ -26,8 +26,12 @@ export default function SimpleSupabaseLogin() {
       console.log('OAuth data:', data)
       
       if (data.url) {
-        setOauthUrl(data.url)
         console.log('OAuth URL generated:', data.url)
+        
+        // Add 5 second delay before showing the button
+        setTimeout(() => {
+          setOauthUrl(data.url)
+        }, 5000)
       }
     } catch (error) {
       console.error('OAuth URL generation error:', error)
