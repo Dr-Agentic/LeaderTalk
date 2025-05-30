@@ -1,10 +1,8 @@
 import { Button } from "@/components/ui/button";
-import { signInWithGoogle } from "@/firebase";
+import { signInWithGoogle } from "@/lib/supabaseAuth";
 import { useState } from "react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { getAuth } from "firebase/auth";
-import { logDebug, logError, logInfo, logWarn } from "@/lib/debugLogger";
 
 export default function GoogleSignUp() {
   const [isLoading, setIsLoading] = useState(false);

@@ -34,20 +34,18 @@ export default function Onboarding() {
             hasPhotoUrl: !!userData.photoUrl
           });
           
-          // Store Google profile data
+          // Store user profile data
           setGoogleProfile({
-            uid: firebaseUser.uid,
-            email: firebaseUser.email || '',
-            displayName: firebaseUser.displayName || '',
-            photoUrl: firebaseUser.photoURL || '',
-            firstName: firebaseUser.displayName?.split(' ')[0] || '',
-            lastName: firebaseUser.displayName?.split(' ').slice(1).join(' ') || '',
+            uid: userData.id,
+            email: userData.email || '',
+            displayName: userData.username || '',
+            photoUrl: userData.photoUrl || '',
+            firstName: userData.username?.split(' ')[0] || '',
+            lastName: userData.username?.split(' ').slice(1).join(' ') || '',
           });
           
-          // Check if user exists in our database
-          const res = await apiRequest('GET', '/api/users/me');
-          if (res.ok) {
-            const userData = await res.json();
+          // User data already retrieved above
+          if (userData) {
             console.log("User data received:", userData);
             
             // Check if this is a forced onboarding test FIRST, before any other logic
@@ -89,10 +87,10 @@ export default function Onboarding() {
             // User needs to be created
             try {
               const createResponse = await apiRequest('POST', '/api/users', {
-                googleId: firebaseUser.uid,
-                email: firebaseUser.email || `user_${firebaseUser.uid}@example.com`,
-                username: firebaseUser.displayName || (firebaseUser.email ? firebaseUser.email.split('@')[0] : `User_${firebaseUser.uid.substring(0, 6)}`),
-                photoUrl: firebaseUser.photoURL || '',
+                googleId: userData.id.toString(),
+                email: userData.email || `user_${userData.id}@example.com`,
+                username: userData.username || (userData.email ? userData.email.split('@')[0] : `User_${userData.id}`),
+                photoUrl: userData.photoUrl || '',
               });
               
               if (createResponse.ok) {
