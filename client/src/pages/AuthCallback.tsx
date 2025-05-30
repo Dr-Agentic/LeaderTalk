@@ -45,15 +45,17 @@ export default function AuthCallback() {
             
             setStatus('success')
             
-            // Add a small delay to ensure session is fully saved before redirect
+            // Add a longer delay to ensure session and state are fully updated before redirect
             setTimeout(() => {
               // Check if user needs onboarding
               if (userData.forceOnboarding || !userData.selectedLeaders?.length) {
+                console.log("Redirecting to onboarding for user setup")
                 navigate('/onboarding')
               } else {
+                console.log("User onboarding complete, redirecting to dashboard")
                 navigate('/dashboard')
               }
-            }, 100)
+            }, 500)
           } else {
             const errorText = await response.text()
             console.error('Server authentication failed:', errorText)

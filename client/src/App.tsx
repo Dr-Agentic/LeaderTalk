@@ -151,7 +151,7 @@ function Router() {
       {/* Test the new submission flow */}
       {isAuthenticated && onboardingComplete && <Route path="/test-situation" component={TestSituation} />}
       
-      {/* Onboarding routes */}
+      {/* Onboarding routes - make sure /onboarding always works when authenticated */}
       {isAuthenticated && !onboardingComplete && <Route path="/" component={Onboarding} />}
       {isAuthenticated && <Route path="/onboarding" component={Onboarding} />}
       
@@ -161,6 +161,9 @@ function Router() {
       {/* Login routes - ensure both root and /login path work */}
       {!isAuthenticated && <Route path="/" component={Login} />}
       {!isAuthenticated && <Route path="/login" component={Login} />}
+      
+      {/* Fallback route for authenticated users to prevent 404s */}
+      {isAuthenticated && <Route component={Dashboard} />}
       
       {/* Force redirect auth-required paths to login when not authenticated */}
       {!isAuthenticated && <Route path="/dashboard" component={Login} />}
