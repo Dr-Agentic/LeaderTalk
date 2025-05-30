@@ -26,23 +26,10 @@ export async function signInWithGoogle(): Promise<AuthUser | null> {
   try {
     console.log("Starting Supabase Google authentication")
 
-    const redirectUrl = window.location.origin + '/auth/callback'
-    console.log("Supabase OAuth redirect URL:", redirectUrl)
-    console.log("Current window location:", {
-      origin: window.location.origin,
-      href: window.location.href,
-      host: window.location.host
-    })
-    
-    // Wait 5 seconds to allow reading the logs
-    console.log("Waiting 5 seconds for log review...")
-    await new Promise(resolve => setTimeout(resolve, 5000))
-    console.log("Proceeding with authentication...")
-
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: redirectUrl,
+        redirectTo: window.location.origin + '/auth/callback',
         queryParams: {
           access_type: 'offline',
           prompt: 'consent',
