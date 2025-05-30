@@ -89,7 +89,7 @@ export default function AppLayout({
           title={determineTitle()}
         />
         
-        <main className="flex-1 overflow-y-auto bg-gray-50">
+        <main className="flex-1 overflow-y-auto relative z-10" style={{background: 'transparent'}}>
           <div className="container px-4 py-6 mx-auto">
             {children}
           </div>
