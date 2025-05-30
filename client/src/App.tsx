@@ -25,7 +25,7 @@ import { useEffect, useState } from "react";
 import { apiRequest } from "./lib/queryClient";
 import { logInfo, logError, logDebug } from "@/lib/debugLogger";
 import SplashScreen from "@/components/SplashScreen";
-import { handleRedirectResult } from "./firebase";
+// Firebase import removed - now using Supabase authentication
 
 function Router() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -36,12 +36,7 @@ function Router() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // Check for redirect result first (for iOS/Safari users returning from Google auth)
-        try {
-          await handleRedirectResult();
-        } catch (redirectError) {
-          console.log("No redirect result or error handling redirect:", redirectError);
-        }
+        // Note: Firebase redirect handling removed - now using Supabase authentication
 
         // Then check session status through our debug endpoint
         const isLoggedIn = await checkSession();
