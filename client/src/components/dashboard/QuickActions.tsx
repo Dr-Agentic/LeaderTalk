@@ -7,47 +7,43 @@ export default function QuickActions({ recordingsCount, weeklyImprovement }) {
   return (
     <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
       {/* Record New Conversation */}
-      <Card className="shadow-card hover:shadow-card-hover transition-shadow duration-300">
-        <CardContent className="p-card-inner pt-6 pb-5">
-          <div className="flex items-center">
-            <div className="flex-shrink-0 bg-gradient-primary rounded-md p-3">
-              <Mic className="h-5 w-5 text-white" />
-            </div>
-            <div className="ml-5 w-0 flex-1">
-              <dl>
-                <dt><SmallText className="truncate">Record Conversation</SmallText></dt>
-                <dd><H4>Start a new recording</H4></dd>
-              </dl>
-            </div>
+      <Card className="glass-card p-6">
+        <div className="flex items-center">
+          <div className="flex-shrink-0 p-3 rounded-md" style={{background: 'linear-gradient(135deg, #8A2BE2, #FF6B6B)'}}>
+            <Mic className="h-5 w-5 text-white" />
           </div>
-        </CardContent>
-        <CardFooter className="bg-gray-50 px-card-inner py-3 border-t">
+          <div className="ml-5 w-0 flex-1">
+            <dl>
+              <dt><SmallText className="truncate text-white/70">Record Conversation</SmallText></dt>
+              <dd><H4 className="text-white">Start a new recording</H4></dd>
+            </dl>
+          </div>
+        </div>
+        <div className="mt-4 pt-4 border-t border-white/10">
           <div>
-            <Link href="/recording" className="font-sans text-sm font-medium text-primary hover:text-blue-900 flex items-center">
+            <Link href="/recording" className="font-sans text-sm font-medium text-white hover:text-purple-300 flex items-center">
               Start recording <span className="ml-1">&rarr;</span>
             </Link>
           </div>
-        </CardFooter>
+        </div>
       </Card>
       
       {/* Recent Analyses */}
-      <Card className="shadow-card hover:shadow-card-hover transition-shadow duration-300">
-        <CardContent className="p-card-inner pt-6 pb-5">
-          <div className="flex items-center">
-            <div className="flex-shrink-0 bg-gradient-secondary rounded-md p-3">
-              <BarChart className="h-5 w-5 text-white" />
-            </div>
-            <div className="ml-5 w-0 flex-1">
-              <dl>
-                <dt><SmallText className="truncate">Recent Analyses</SmallText></dt>
-                <dd><H4>
-                  {recordingsCount} {recordingsCount === 1 ? 'recording' : 'recordings'}
-                </H4></dd>
-              </dl>
-            </div>
+      <Card className="glass-card p-6">
+        <div className="flex items-center">
+          <div className="flex-shrink-0 p-3 rounded-md" style={{background: 'linear-gradient(135deg, #FF6B6B, #4ECDC4)'}}>
+            <BarChart className="h-5 w-5 text-white" />
           </div>
-        </CardContent>
-        <CardFooter className="bg-gray-50 px-card-inner py-3 border-t">
+          <div className="ml-5 w-0 flex-1">
+            <dl>
+              <dt><SmallText className="truncate text-white/70">Recent Analyses</SmallText></dt>
+              <dd><H4 className="text-white">
+                {recordingsCount} {recordingsCount === 1 ? 'recording' : 'recordings'}
+              </H4></dd>
+            </dl>
+          </div>
+        </div>
+        <div className="mt-4 pt-4 border-t border-white/10">
           <div>
             <Link href="/transcripts" className="font-sans text-sm font-medium text-primary hover:text-blue-900 flex items-center">
               View all analyses <span className="ml-1">&rarr;</span>

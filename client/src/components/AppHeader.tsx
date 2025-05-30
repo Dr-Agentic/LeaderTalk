@@ -28,7 +28,7 @@ export default function AppHeader({
   };
   
   return (
-    <header className="sticky top-0 z-30 w-full border-b border-purple-600/30 bg-gray-900/95 backdrop-blur supports-[backdrop-filter]:bg-gray-900/60">
+    <header className="sticky top-0 z-30 w-full border-b border-white/10" style={{background: 'rgba(255, 255, 255, 0.05)', backdropFilter: 'blur(20px)'}}>
       <div className="flex h-14 items-center px-4 relative">
         {/* Left side with controls */}
         <div className="flex items-center gap-2">
