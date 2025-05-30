@@ -33,6 +33,11 @@ export async function signInWithGoogle(): Promise<AuthUser | null> {
       href: window.location.href,
       host: window.location.host
     })
+    
+    // Wait 5 seconds to allow reading the logs
+    console.log("Waiting 5 seconds for log review...")
+    await new Promise(resolve => setTimeout(resolve, 5000))
+    console.log("Proceeding with authentication...")
 
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
