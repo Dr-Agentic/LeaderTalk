@@ -24,16 +24,17 @@ export default function AuthCallback() {
           })
 
           // Send user data to our Express server for session creation
-          const response = await fetch('/api/users', {
+          const response = await fetch('/api/auth/supabase-callback', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              googleId: user.uid,
+              uid: user.uid,
               email: user.email,
-              username: user.displayName || user.email?.split('@')[0] || 'User',
-              photoUrl: user.photoURL
+              displayName: user.displayName,
+              photoURL: user.photoURL,
+              emailVerified: user.emailVerified
             }),
           })
 

@@ -3,6 +3,13 @@ import { storage } from "../storage";
 import { insertUserSchema } from "@shared/schema";
 import { z } from "zod";
 
+// Extend session type to include userId
+declare module 'express-session' {
+  interface SessionData {
+    userId: number;
+  }
+}
+
 export function registerAuthRoutes(app: Express) {
   // Logout endpoint
   app.get("/api/auth/logout", (req, res, next) => {
@@ -131,19 +138,19 @@ export function registerAuthRoutes(app: Express) {
           username: displayName || email.split('@')[0],
           email: email,
           googleId: uid, // Store Supabase user ID as googleId for compatibility
-          profilePicture: photoURL || null
+          photoUrl: photoURL || null
         });
         console.log("New user created:", user.id);
       } else {
         // Update existing user with Supabase ID if not set
         if (!user.googleId) {
           console.log("Updating existing user with Supabase ID");
-          user = await storage.updateUser(user.id, { googleId: uid });
+          user = await storage.updateUser(user.id, { photoUrl: photoURL || user.photoUrl });
         }
       }
       
       // Set user ID in session
-      req.session.userId = user.id;
+      req.session.userId = user!.id;
       
       // Save session and respond
       req.session.save((err) => {
@@ -152,16 +159,16 @@ export function registerAuthRoutes(app: Express) {
           return res.status(500).json({ error: "Failed to save session" });
         }
         
-        console.log("Supabase authentication successful for user:", user.id);
+        console.log("Supabase authentication successful for user:", user!.id);
         res.json({ 
           success: true, 
           user: {
-            id: user.id,
-            username: user.username,
-            email: user.email,
-            profilePicture: user.profilePicture,
-            forceOnboarding: !user.selectedLeaders?.length,
-            selectedLeaders: user.selectedLeaders
+            id: user!.id,
+            username: user!.username,
+            email: user!.email,
+            photoUrl: user!.photoUrl,
+            forceOnboarding: !user!.selectedLeaders?.length,
+            selectedLeaders: user!.selectedLeaders
           }
         });
       });
