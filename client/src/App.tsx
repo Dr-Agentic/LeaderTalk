@@ -51,6 +51,11 @@ function Router() {
             setLoading(false);
             return;
           }
+          // If we're on the auth callback page, let it handle the redirect
+          if (currentPath === "/auth/callback") {
+            setLoading(false);
+            return;
+          }
         }
 
         if (!isLoggedIn) {
