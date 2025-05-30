@@ -3,7 +3,7 @@ import { useLocation } from 'wouter'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Loader2 } from 'lucide-react'
 import { handleAuthCallback } from '@/lib/supabaseAuth'
-import { logInfo, logError } from '@/lib/debugLogger'
+// Debug logging replaced with console methods
 
 export default function AuthCallback() {
   const [, navigate] = useLocation()

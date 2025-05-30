@@ -24,7 +24,7 @@ import AuthCallback from "@/pages/AuthCallback";
 import Login from "@/pages/Login";
 import { useEffect, useState } from "react";
 import { apiRequest } from "./lib/queryClient";
-import { logInfo, logError, logDebug } from "@/lib/debugLogger";
+// Debug logging removed - using console.log for basic logging
 import SplashScreen from "@/components/SplashScreen";
 // Firebase import removed - now using Supabase authentication
 
