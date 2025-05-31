@@ -168,6 +168,9 @@ export function registerAuthRoutes(app: Express) {
           
           console.log("Supabase authentication successful for user:", user!.id);
           console.log("Session ID after auth:", req.sessionID);
+          console.log("Session userId set to:", req.session.userId);
+          console.log("Production mode:", process.env.NODE_ENV === 'production');
+          console.log("Cookie domain:", process.env.PROD_COOKIE_DOMAIN || process.env.COOKIE_DOMAIN);
           
           res.json({ 
             success: true, 
