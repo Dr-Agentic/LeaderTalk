@@ -149,40 +149,36 @@ export function registerAuthRoutes(app: Express) {
         }
       }
       
-      // Set user ID in session with explicit session regeneration
-      req.session.regenerate((err) => {
-        if (err) {
-          console.error("Session regeneration error:", err);
-          return res.status(500).json({ error: "Failed to regenerate session" });
+      // Set user ID in session directly (no regeneration to avoid production issues)
+      req.session.userId = user.id;
+      
+      console.log("Setting userId in session:", user.id);
+      console.log("Session ID before save:", req.sessionID);
+      console.log("Session object before save:", { userId: req.session.userId });
+      
+      // Save session and respond
+      req.session.save((saveErr) => {
+        if (saveErr) {
+          console.error("Session save error:", saveErr);
+          return res.status(500).json({ error: "Failed to save session" });
         }
         
-        // Set user ID in the new session
-        req.session.userId = user!.id;
+        console.log("Supabase authentication successful for user:", user.id);
+        console.log("Session ID after save:", req.sessionID);
+        console.log("Session userId after save:", req.session.userId);
+        console.log("Production mode:", process.env.NODE_ENV === 'production');
+        console.log("Cookie domain:", process.env.PROD_COOKIE_DOMAIN || process.env.COOKIE_DOMAIN);
         
-        // Save session and respond
-        req.session.save((saveErr) => {
-          if (saveErr) {
-            console.error("Session save error:", saveErr);
-            return res.status(500).json({ error: "Failed to save session" });
+        res.json({ 
+          success: true, 
+          user: {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            photoUrl: user.photoUrl,
+            forceOnboarding: !user.selectedLeaders?.length,
+            selectedLeaders: user.selectedLeaders
           }
-          
-          console.log("Supabase authentication successful for user:", user!.id);
-          console.log("Session ID after auth:", req.sessionID);
-          console.log("Session userId set to:", req.session.userId);
-          console.log("Production mode:", process.env.NODE_ENV === 'production');
-          console.log("Cookie domain:", process.env.PROD_COOKIE_DOMAIN || process.env.COOKIE_DOMAIN);
-          
-          res.json({ 
-            success: true, 
-            user: {
-              id: user!.id,
-              username: user!.username,
-              email: user!.email,
-              photoUrl: user!.photoUrl,
-              forceOnboarding: !user!.selectedLeaders?.length,
-              selectedLeaders: user!.selectedLeaders
-            }
-          });
         });
       });
     } catch (error) {
