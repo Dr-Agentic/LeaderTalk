@@ -127,10 +127,9 @@ Our AWS deployment uses the following services:
    # OpenAI
    OPENAI_API_KEY=your_openai_api_key
    
-   # Firebase
-   VITE_FIREBASE_API_KEY=your_firebase_api_key
-   VITE_FIREBASE_APP_ID=your_firebase_app_id
-   VITE_FIREBASE_PROJECT_ID=your_firebase_project_id
+   # Supabase
+   VITE_SUPABASE_URL=your_supabase_project_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
    
    # AWS
    AWS_S3_BUCKET=leadertalk-audio-files
