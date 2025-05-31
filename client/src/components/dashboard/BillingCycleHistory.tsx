@@ -30,25 +30,25 @@ function CustomTooltip({ active, payload, label }: any) {
     const data = payload[0].payload as BillingCycleData;
 
     return (
-      <div className="bg-background border rounded-md shadow-md p-3 text-sm">
+      <div className="bg-gray-800 border border-gray-600 rounded-md shadow-md p-3 text-sm">
         <p className="font-semibold text-primary">{data.cycleLabel}</p>
-        <p className="text-xs text-muted-foreground mb-2">
+        <p className="text-xs text-gray-300 mb-2">
           {new Date(data.cycleStart).toLocaleDateString()} -{" "}
           {new Date(data.cycleEnd).toLocaleDateString()}
         </p>
-        <p className="text-sm">
+        <p className="text-sm text-white">
           Words used:{" "}
           <span className="font-medium">{data.wordsUsed.toLocaleString()}</span>
         </p>
-        <p className="text-sm">
+        <p className="text-sm text-white">
           Word limit:{" "}
           <span className="font-medium">{data.wordLimit.toLocaleString()}</span>
         </p>
-        <p className="text-sm">
+        <p className="text-sm text-white">
           Usage: <span className="font-medium">{data.usagePercentage}%</span>
         </p>
         {data.isCurrent && (
-          <p className="text-xs text-green-600 mt-1">Current cycle</p>
+          <p className="text-xs text-green-400 mt-1">Current cycle</p>
         )}
       </div>
     );
@@ -122,16 +122,16 @@ export default function BillingCycleHistory() {
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-2xl font-bold flex items-center gap-2">
+            <CardTitle className="text-2xl font-bold flex items-center gap-2 text-white">
               <TrendingUp className="h-6 w-6" />
               Billing Cycle History
             </CardTitle>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-sm text-gray-300 mt-1">
               Word usage across your last 6 monthly cycles
             </p>
           </div>
           <div className="text-right">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2 text-sm text-gray-300">
               <Target className="h-4 w-4" />
               <span>Limit: {avgLimit.toLocaleString()} words/cycle</span>
             </div>
@@ -145,18 +145,22 @@ export default function BillingCycleHistory() {
               data={billingCycleData}
               margin={{ top: 20, right: 20, left: 50, bottom: 80 }}
             >
-              <CartesianGrid strokeDasharray="3 3" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
               <XAxis
                 dataKey="month"
-                tick={{ fontSize: 10, fill: "#4B5563" }}
+                tick={{ fontSize: 12, fill: "#ffffff" }}
                 padding={{ left: 10, right: 10 }}
                 height={60}
+                axisLine={{ stroke: "#6B7280" }}
+                tickLine={{ stroke: "#6B7280" }}
               />
               <YAxis
                 tickFormatter={(value) => value.toLocaleString()}
                 domain={[0, Math.max(maxUsage * 1.2, avgLimit * 1.1)]}
-                tick={{ fontSize: 10, fill: "#4B5563" }}
+                tick={{ fontSize: 12, fill: "#ffffff" }}
                 width={40}
+                axisLine={{ stroke: "#6B7280" }}
+                tickLine={{ stroke: "#6B7280" }}
               />
               <Tooltip content={<CustomTooltip />} />
 
@@ -172,12 +176,12 @@ export default function BillingCycleHistory() {
                 {billingCycleData.map((entry, index) => (
                   <Cell
                     key={`cell-${index}`}
-                    fill={entry.wordsUsed === 0 ? "hsl(var(--muted))" : "hsl(var(--primary))"}
+                    fill={entry.wordsUsed === 0 ? "#374151" : "#3B82F6"}
                     fillOpacity={entry.wordsUsed === 0 ? 0.6 : 1}
                     stroke={
-                      entry.isCurrent ? "hsl(var(--primary))" : "transparent"
+                      entry.isCurrent ? "#60A5FA" : "transparent"
                     }
-                    strokeWidth={entry.isCurrent ? 2 : 0}
+                    strokeWidth={entry.isCurrent ? 3 : 0}
                   />
                 ))}
               </Bar>

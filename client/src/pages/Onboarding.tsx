@@ -157,7 +157,7 @@ export default function Onboarding() {
 
   if (isRedirecting) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-gray-900">
         <div className="animate-spin h-8 w-8 text-primary">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 12a9 9 0 1 1-6.219-8.56" />
@@ -174,7 +174,7 @@ export default function Onboarding() {
     
     return (
       <div className="max-w-md mx-auto pt-6 px-4">
-        <div className="flex justify-between text-xs text-gray-500 mb-2">
+        <div className="flex justify-between text-xs text-gray-300 mb-2">
           <span>Step {step} of {totalSteps}</span>
           <span>{Math.round(progress)}% Complete</span>
         </div>
@@ -184,7 +184,7 @@ export default function Onboarding() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-900">
       {renderProgressIndicator()}
       
       {/* Step 1: Welcome Screen */}
@@ -206,26 +206,26 @@ export default function Onboarding() {
       {/* Step 3: Leader Selection */}
       {step === 3 && (
         isLoadingLeaders ? (
-          <div className="max-w-4xl mx-auto my-10 bg-white p-8 rounded-lg shadow-md">
+          <div className="max-w-4xl mx-auto my-10 bg-gray-800 p-8 rounded-lg shadow-md border border-gray-700">
             <div className="text-center mb-6">
-              <Skeleton className="h-8 w-3/4 mx-auto mb-4" />
-              <Skeleton className="h-4 w-2/3 mx-auto mb-2" />
-              <Skeleton className="h-4 w-1/2 mx-auto" />
+              <Skeleton className="h-8 w-3/4 mx-auto mb-4 bg-gray-700" />
+              <Skeleton className="h-4 w-2/3 mx-auto mb-2 bg-gray-700" />
+              <Skeleton className="h-4 w-1/2 mx-auto bg-gray-700" />
             </div>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 mt-8">
               {Array(6).fill(0).map((_, i) => (
-                <div key={i} className="bg-white border border-gray-200 rounded-lg">
-                  <Skeleton className="h-36 w-full rounded-t-md" />
+                <div key={i} className="bg-gray-800 border border-gray-700 rounded-lg">
+                  <Skeleton className="h-36 w-full rounded-t-md bg-gray-700" />
                   <div className="p-4">
-                    <Skeleton className="h-6 w-3/4 mb-2" />
-                    <Skeleton className="h-4 w-1/2 mb-4" />
+                    <Skeleton className="h-6 w-3/4 mb-2 bg-gray-700" />
+                    <Skeleton className="h-4 w-1/2 mb-4 bg-gray-700" />
                     <div className="flex gap-2 mb-4">
-                      <Skeleton className="h-6 w-16 rounded-full" />
-                      <Skeleton className="h-6 w-16 rounded-full" />
+                      <Skeleton className="h-6 w-16 rounded-full bg-gray-700" />
+                      <Skeleton className="h-6 w-16 rounded-full bg-gray-700" />
                     </div>
-                    <Skeleton className="h-4 w-full mb-1" />
-                    <Skeleton className="h-4 w-full mb-1" />
-                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-4 w-full mb-1 bg-gray-700" />
+                    <Skeleton className="h-4 w-full mb-1 bg-gray-700" />
+                    <Skeleton className="h-4 w-3/4 bg-gray-700" />
                   </div>
                 </div>
               ))}
