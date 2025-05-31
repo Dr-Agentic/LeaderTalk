@@ -199,8 +199,8 @@ function SidebarFooter({ user }) {
           <AvatarFallback>{user?.username?.charAt(0).toUpperCase()}</AvatarFallback>
         </Avatar>
         <div className="ml-3 flex-1">
-          <p className="text-sm font-medium text-gray-700">{user?.username}</p>
-          <p className="text-xs font-medium text-gray-500">{user?.email}</p>
+          <p className="text-sm font-medium text-white">{user?.username}</p>
+          <p className="text-xs font-medium text-white/70">{user?.email}</p>
         </div>
       </div>
 
