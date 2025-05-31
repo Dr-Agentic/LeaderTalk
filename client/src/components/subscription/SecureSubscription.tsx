@@ -110,13 +110,13 @@ function PaymentSetupForm({
   };
 
   return (
-    <Card className="border-blue-200 bg-blue-50">
+    <Card className="border-gray-600 bg-gray-800/30">
       <CardHeader>
-        <CardTitle className="flex items-center space-x-2 text-blue-800">
+        <CardTitle className="flex items-center space-x-2 text-white">
           <CreditCard className="h-5 w-5" />
           <span>Add Payment Method</span>
         </CardTitle>
-        <CardDescription className="text-blue-600">
+        <CardDescription className="text-gray-300">
           Please add a payment method to update your subscription
         </CardDescription>
       </CardHeader>
@@ -377,8 +377,8 @@ export default function SecureSubscription() {
   if (subscriptionLoading || plansLoading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <Loader2 className="h-8 w-8 animate-spin" />
-        <span className="ml-2">Loading subscription details...</span>
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2 text-white">Loading subscription details...</span>
       </div>
     );
   }
@@ -386,8 +386,8 @@ export default function SecureSubscription() {
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-8">
       <div className="text-center space-y-4">
-        <h1 className="text-3xl font-bold">Choose Your Plan</h1>
-        <p className="text-lg text-muted-foreground">
+        <h1 className="text-3xl font-bold text-white">Choose Your Plan</h1>
+        <p className="text-lg text-gray-300">
           Upgrade your leadership training with premium features and increased
           word limits
         </p>
@@ -396,49 +396,49 @@ export default function SecureSubscription() {
       {/* Current Subscription Status */}
       {currentSubscription?.hasSubscription &&
         currentSubscription.subscription && (
-          <Card className="border-blue-200 bg-white">
+          <Card className="border-gray-600 bg-gray-800/30">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-gray-900">
+                  <CardTitle className="text-white">
                     Current Subscription
                   </CardTitle>
-                  <CardDescription className="text-gray-600">
+                  <CardDescription className="text-gray-300">
                     You're subscribed to {currentSubscription.subscription.plan}
                   </CardDescription>
                 </div>
                 <Badge
                   variant="secondary"
-                  className="bg-blue-100 text-blue-800"
+                  className="bg-primary/20 text-primary border-primary/30"
                 >
                   {currentSubscription.subscription.formattedStatus}
                 </Badge>
               </div>
             </CardHeader>
-            <CardContent className="text-gray-700">
+            <CardContent className="text-gray-300">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
-                  <p className="font-medium">Word Usage</p>
-                  <p className="text-2xl font-bold">
+                  <p className="font-medium text-gray-300">Word Usage</p>
+                  <p className="text-2xl font-bold text-white">
                     {currentSubscription.subscription.formattedUsage}
                   </p>
                 </div>
                 <div>
-                  <p className="font-medium">Amount</p>
-                  <p className="text-2xl font-bold">
+                  <p className="font-medium text-gray-300">Amount</p>
+                  <p className="text-2xl font-bold text-white">
                     {currentSubscription.subscription.formattedAmount}
                     {currentSubscription.subscription.formattedInterval}
                   </p>
                 </div>
                 <div>
-                  <p className="font-medium">Next Billing</p>
-                  <p className="text-sm">
+                  <p className="font-medium text-gray-300">Next Billing</p>
+                  <p className="text-sm text-gray-300">
                     {currentSubscription.subscription.formattedNextRenewal}
                   </p>
                 </div>
                 <div>
-                  <p className="font-medium">Subscription Created</p>
-                  <p className="text-sm">
+                  <p className="font-medium text-gray-300">Subscription Created</p>
+                  <p className="text-sm text-gray-300">
                     You first subscribed on{" "}
                     {currentSubscription.subscription.formattedStartDate}
                   </p>
@@ -453,7 +453,7 @@ export default function SecureSubscription() {
         {plans?.map((plan) => (
           <Card
             key={plan.id}
-            className={`relative flex flex-col h-full transition-all duration-200 hover:shadow-lg ${
+            className={`relative flex flex-col h-full transition-all duration-200 hover:shadow-lg border-gray-600 bg-gray-800/30 ${
               selectedPlan?.id === plan.id ? "ring-2 ring-primary" : ""
             }`}
           >
@@ -467,34 +467,34 @@ export default function SecureSubscription() {
                       className="w-8 h-8 rounded-md object-cover"
                     />
                   )}
-                  <CardTitle className="text-xl">{plan.name}</CardTitle>
+                  <CardTitle className="text-xl text-white">{plan.name}</CardTitle>
                 </div>
                 {plan.isPopular && <Badge variant="default">Popular</Badge>}
               </div>
-              <CardDescription>{plan.description}</CardDescription>
+              <CardDescription className="text-gray-300">{plan.description}</CardDescription>
             </CardHeader>
 
             <CardContent className="flex-1 flex flex-col justify-between space-y-4">
               <div className="space-y-4">
                 {/* Pricing */}
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-gray-900">
+                  <div className="text-3xl font-bold text-white">
                     {plan.pricing.formattedPrice}
                   </div>
                   {plan.pricing.formattedSavings && (
-                    <div className="text-sm text-green-600 font-medium mt-1">
+                    <div className="text-sm text-green-400 font-medium mt-1">
                       {plan.pricing.formattedSavings}
                     </div>
                   )}
                 </div>
 
-                <Separator />
+                <Separator className="bg-gray-600" />
 
                 {/* Features */}
                 <div className="space-y-2">
                   <div className="flex items-center text-sm">
-                    <Check className="h-4 w-4 text-green-500 mr-2" />
-                    <span>
+                    <Check className="h-4 w-4 text-green-400 mr-2" />
+                    <span className="text-gray-300">
                       {plan.features.wordLimit.toLocaleString()} words/month
                     </span>
                   </div>
