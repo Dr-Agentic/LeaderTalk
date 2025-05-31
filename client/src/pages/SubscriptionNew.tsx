@@ -440,7 +440,7 @@ export default function SubscriptionNew() {
                 </AlertDescription>
               </Alert>
               
-              <div className="grid gap-6 md:grid-cols-3">
+              <div className="grid gap-8 md:grid-cols-3">
                 {[
                   {
                     id: "starter",
@@ -467,39 +467,39 @@ export default function SubscriptionNew() {
                     features: ["50,000 words per month", "Premium analytics", "Unlimited leader models", "24/7 priority support"]
                   }
                 ].map(plan => (
-                  <Card key={plan.id} className="overflow-hidden border-2 border-border relative">
+                  <Card key={plan.id} className="overflow-hidden border-2 border-gray-600 hover:border-primary transition-colors relative bg-gray-800/30">
                     {plan.name === "Pro" && (
                       <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-3 py-1 text-xs font-medium rounded-bl-md">
                         Popular
                       </div>
                     )}
-                    <CardHeader className="bg-muted/50 pb-4">
-                      <CardTitle className="text-lg">{plan.name}</CardTitle>
-                      <div className="mt-1">
-                        <span className="text-2xl font-bold">${plan.price}</span>
-                        <span className="text-muted-foreground">/{plan.interval}</span>
+                    <CardHeader className="bg-gray-700/30 pb-6">
+                      <CardTitle className="text-xl text-white">{plan.name}</CardTitle>
+                      <div className="mt-3">
+                        <span className="text-3xl font-bold text-white">${plan.price}</span>
+                        <span className="text-gray-300 text-lg">/{plan.interval}</span>
                         {plan.name !== "Starter" && (
-                          <div className="text-xs mt-1">
+                          <div className="text-sm mt-2">
                             <div className="flex items-center gap-2">
-                              <span className="text-muted-foreground">Monthly</span>
-                              <div className="h-4 w-8 rounded-full bg-muted-foreground/20 flex items-center px-0.5">
+                              <span className="text-gray-300">Monthly</span>
+                              <div className="h-4 w-8 rounded-full bg-gray-600 flex items-center px-0.5">
                                 <div className="h-3 w-3 rounded-full bg-primary"></div>
                               </div>
-                              <span className="text-muted-foreground">Annual (save 16%)</span>
+                              <span className="text-gray-300">Annual (save 16%)</span>
                             </div>
                           </div>
                         )}
                       </div>
                     </CardHeader>
-                    <CardContent className="pt-4">
-                      <p className="text-sm mb-4">{plan.description}</p>
-                      <ul className="text-sm space-y-2 mb-6">
+                    <CardContent className="pt-6">
+                      <p className="text-base mb-6 text-gray-300">{plan.description}</p>
+                      <ul className="text-sm space-y-3 mb-8">
                         {plan.features.map((feature, i) => (
                           <li key={i} className="flex items-center">
-                            <svg className="w-4 h-4 mr-2 text-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <svg className="w-5 h-5 mr-3 text-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                             </svg>
-                            <span>{feature}</span>
+                            <span className="text-gray-300">{feature}</span>
                           </li>
                         ))}
                       </ul>
