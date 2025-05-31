@@ -121,8 +121,8 @@ export async function handleAuthCallback(): Promise<AuthUser | null> {
       search: window.location.search
     })
 
-    // Get session from URL hash or search params
-    const { data, error } = await supabase.auth.getSession()
+    // Exchange the auth code from URL for a session
+    const { data, error } = await supabase.auth.exchangeCodeForSession(window.location.search)
     
     if (error) {
       console.error("Auth callback error", error)
