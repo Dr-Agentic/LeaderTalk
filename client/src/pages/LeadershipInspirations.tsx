@@ -148,8 +148,8 @@ export default function LeadershipInspirations() {
         <>
           {/* Current Selections Display */}
           <Card className="p-6 mb-8">
-            <H2 className="text-xl mb-4">Your Current Inspirations</H2>
-            <p className="text-gray-600 mb-6">
+            <H2 className="text-xl mb-4 text-white">Your Current Inspirations</H2>
+            <p className="text-gray-300 mb-6">
               These are the leaders who currently inspire your communication style. You can select up to 3 leaders.
             </p>
             
@@ -168,19 +168,19 @@ export default function LeadershipInspirations() {
                 return (
                   <div 
                     key={index} 
-                    className={`rounded-lg border ${hasLeader ? 'border-primary' : 'border-gray-200 bg-gray-50'} 
+                    className={`rounded-lg border ${hasLeader ? 'border-primary' : 'border-gray-600 bg-gray-800/50'} 
                     p-4 flex flex-col items-center h-36 transition-all duration-200`}
                   >
                     {hasLeader ? (
                       <>
                         {/* Leader photo */}
                         <div className="relative">
-                          <div className="w-14 h-14 rounded-full bg-gray-100 overflow-hidden mb-3">
+                          <div className="w-14 h-14 rounded-full bg-gray-700 overflow-hidden mb-3">
                             {selectedLeader.photoUrl ? (
                               <img 
                                 src={selectedLeader.photoUrl} 
                                 alt={selectedLeader.name} 
-                                className="w-full h-full object-cover"
+                                className="w-full h-full object-contain bg-white"
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary">
@@ -202,18 +202,18 @@ export default function LeadershipInspirations() {
                         </div>
                         
                         {/* Leader name */}
-                        <h3 className="font-medium text-center text-sm mt-1">{selectedLeader.name}</h3>
+                        <h3 className="font-medium text-center text-sm mt-1 text-white">{selectedLeader.name}</h3>
                       </>
                     ) : (
                       <>
                         {/* Empty slot with grayed-out appearance */}
-                        <div className="w-14 h-14 rounded-full bg-gray-200 flex items-center justify-center mb-3">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                        <div className="w-14 h-14 rounded-full bg-gray-700 flex items-center justify-center mb-3">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500">
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                             <circle cx="12" cy="7" r="4"></circle>
                           </svg>
                         </div>
-                        <h3 className="font-medium text-gray-400 text-sm">Empty Slot</h3>
+                        <h3 className="font-medium text-gray-500 text-sm">Empty Slot</h3>
                       </>
                     )}
                   </div>
@@ -225,16 +225,16 @@ export default function LeadershipInspirations() {
           {/* Leader Selection Grid */}
           <Card className="p-6">
             <div className="flex justify-between items-center mb-4">
-              <H2 className="text-xl">Available Leaders</H2>
-              <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-md">
+              <H2 className="text-xl text-white">Available Leaders</H2>
+              <div className="flex items-center gap-2 bg-gray-700 p-1 rounded-md">
                 <button 
-                  className={`text-xs px-3 py-1.5 rounded ${viewMode === 'detailed' ? 'bg-white shadow-sm' : 'text-gray-600'}`}
+                  className={`text-xs px-3 py-1.5 rounded ${viewMode === 'detailed' ? 'bg-gray-600 shadow-sm text-white' : 'text-gray-300'}`}
                   onClick={() => setViewMode('detailed')}
                 >
                   Detailed
                 </button>
                 <button 
-                  className={`text-xs px-3 py-1.5 rounded ${viewMode === 'compact' ? 'bg-white shadow-sm' : 'text-gray-600'}`}
+                  className={`text-xs px-3 py-1.5 rounded ${viewMode === 'compact' ? 'bg-gray-600 shadow-sm text-white' : 'text-gray-300'}`}
                   onClick={() => setViewMode('compact')}
                 >
                   Compact
@@ -242,7 +242,7 @@ export default function LeadershipInspirations() {
               </div>
             </div>
             
-            <p className="text-gray-600 mb-6">
+            <p className="text-gray-300 mb-6">
               Select from our curated list of leaders to inspire your communication style.
             </p>
             
@@ -258,8 +258,8 @@ export default function LeadershipInspirations() {
                     return (
                       <div 
                         key={leader.id}
-                        className={`relative bg-white overflow-hidden rounded-lg border ${
-                          isSelected ? "border-primary border-2" : "border-gray-200"
+                        className={`relative bg-gray-800/50 overflow-hidden rounded-lg border ${
+                          isSelected ? "border-primary border-2" : "border-gray-600"
                         } hover:shadow-md transition-shadow cursor-pointer`}
                         onClick={() => toggleLeader(leader.id)}
                       >
@@ -277,19 +277,19 @@ export default function LeadershipInspirations() {
                           <img 
                             src={leader.photoUrl} 
                             alt={leader.name} 
-                            className="w-full h-52 object-cover"
+                            className="w-full h-52 object-contain bg-white"
                           />
                         ) : (
-                          <div className="w-full h-52 bg-gray-200 flex items-center justify-center">
+                          <div className="w-full h-52 bg-gray-700 flex items-center justify-center">
                             <span className="text-gray-400">No image</span>
                           </div>
                         )}
                         
                         <div className="p-4">
-                          <h3 className="font-bold text-gray-900 text-lg">{leader.name}</h3>
-                          <p className="text-gray-500 text-sm">{leader.title}</p>
+                          <h3 className="font-bold text-white text-lg">{leader.name}</h3>
+                          <p className="text-gray-300 text-sm">{leader.title}</p>
                           
-                          <p className="mt-3 text-gray-700 text-sm line-clamp-3">
+                          <p className="mt-3 text-gray-300 text-sm line-clamp-3">
                             {leader.description}
                           </p>
                           
@@ -299,7 +299,7 @@ export default function LeadershipInspirations() {
                               {leader.leadershipStyles.map((style: string, index: number) => (
                                 <div 
                                   key={index} 
-                                  className="text-xs bg-gray-50 border border-gray-200 px-2 py-1 rounded-full"
+                                  className="text-xs bg-gray-700 border border-gray-600 px-2 py-1 rounded-full text-gray-300"
                                 >
                                   {style}
                                 </div>
@@ -324,7 +324,7 @@ export default function LeadershipInspirations() {
                       <div 
                         key={leader.id}
                         className={`flex items-start p-3 rounded-lg border ${
-                          isSelected ? "border-primary bg-primary/5" : "border-gray-200 hover:bg-gray-50"
+                          isSelected ? "border-primary bg-primary/5" : "border-gray-600 hover:bg-gray-800/50"
                         } cursor-pointer transition-colors`}
                         onClick={() => toggleLeader(leader.id)}
                       >
