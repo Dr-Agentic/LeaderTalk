@@ -13,7 +13,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import { PackageOpen, TrendingUp } from "lucide-react";
-import { useState } from "react";
+import React, { useState } from "react";
 
 export default function WordUsageStats() {
   const [timeView, setTimeView] = useState<"week" | "month" | "cycle">("cycle");
@@ -23,20 +23,35 @@ export default function WordUsageStats() {
     queryKey: ["/api/usage/billing-cycle"],
   });
 
-  // Get recordings based on selected time view
-  const { data: recordingsData, isLoading: isRecordingsLoading } = useQuery({
-    queryKey: ["/api/recordings", timeView],
-    queryFn: () => {
-      const endpoint = timeView === "cycle" 
-        ? "/api/recordings/current-cycle"
-        : `/api/recordings?period=${timeView}`;
-      return fetch(endpoint).then(res => res.json());
-    },
-    staleTime: 30000,
-  });
+  // Get current billing cycle recordings for the chart
+  const { data: currentCycleRecordings, isLoading: isRecordingsLoading } =
+    useQuery({
+      queryKey: ["/api/recordings/current-cycle"],
+      staleTime: 30000, // Cache for 30 seconds to avoid excessive requests
+    });
 
-  // Extract recordings from the API response based on time view
-  const recordingsArray = recordingsData?.recordings || [];
+  // Extract and filter recordings based on time view
+  const allRecordings = currentCycleRecordings?.recordings || [];
+  
+  const recordingsArray = React.useMemo(() => {
+    if (timeView === "cycle") {
+      return allRecordings;
+    }
+    
+    const now = new Date();
+    const cutoffDate = new Date();
+    
+    if (timeView === "week") {
+      cutoffDate.setDate(now.getDate() - 7);
+    } else if (timeView === "month") {
+      cutoffDate.setDate(now.getDate() - 30);
+    }
+    
+    return allRecordings.filter((recording: any) => {
+      const recordingDate = new Date(recording.recordedAt);
+      return recordingDate >= cutoffDate;
+    });
+  }, [allRecordings, timeView]);
   console.log(
     "📊 Current cycle recordings:",
     recordingsArray.length,
