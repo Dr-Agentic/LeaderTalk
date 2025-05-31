@@ -607,7 +607,7 @@ export default function Progress() {
                       bottom: 50,
                     }}
                   >
-                    <CartesianGrid strokeDasharray="3 3" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.1)" />
                     <XAxis
                       dataKey="period"
                       label={{
@@ -617,12 +617,12 @@ export default function Progress() {
                         style: {
                           textAnchor: "middle",
                           fontSize: 12,
-                          fill: "#4B5563",
+                          fill: "#ffffff",
                           fontWeight: 500,
                           dy: 10,
                         },
                       }}
-                      tick={{ fontSize: 10, fill: "#4B5563" }}
+                      tick={{ fontSize: 10, fill: "#ffffff" }}
                       angle={-45}
                       textAnchor="end"
                       height={60}
@@ -636,14 +636,23 @@ export default function Progress() {
                         style: {
                           textAnchor: "middle",
                           fontSize: 12,
-                          fill: "#4B5563",
+                          fill: "#ffffff",
                           fontWeight: 500,
                           dx: -10,
                         },
                       }}
+                      tick={{ fontSize: 10, fill: "#ffffff" }}
                       ticks={[0, 20, 40, 60, 80, 100]}
                     />
                     <Tooltip
+                      contentStyle={{
+                        backgroundColor: "rgba(255, 255, 255, 0.95)",
+                        border: "1px solid rgba(255, 255, 255, 0.2)",
+                        borderRadius: "8px",
+                        color: "#000000",
+                        fontSize: "12px",
+                        fontWeight: "500"
+                      }}
                       formatter={(value: number, name: string) => {
                         if (name === "score") return [`Score: ${value.toFixed(1)}`, "Score"];
                         return [value, name];
@@ -713,7 +722,7 @@ export default function Progress() {
                       bottom: 50,
                     }}
                   >
-                    <CartesianGrid strokeDasharray="3 3" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.1)" />
                     <XAxis
                       dataKey="index"
                       label={{
@@ -723,12 +732,12 @@ export default function Progress() {
                         style: {
                           textAnchor: "middle",
                           fontSize: 12,
-                          fill: "#4B5563",
+                          fill: "#ffffff",
                           fontWeight: 500,
                           dy: 10,
                         },
                       }}
-                      tick={{ fontSize: 10, fill: "#4B5563" }}
+                      tick={{ fontSize: 10, fill: "#ffffff" }}
                       padding={{ left: 10, right: 10 }}
                     />
                     <YAxis
@@ -740,14 +749,23 @@ export default function Progress() {
                         style: {
                           textAnchor: "middle",
                           fontSize: 12,
-                          fill: "#4B5563",
+                          fill: "#ffffff",
                           fontWeight: 500,
                           dx: -10,
                         },
                       }}
+                      tick={{ fontSize: 10, fill: "#ffffff" }}
                       ticks={[0, 20, 40, 60, 80, 100]}
                     />
                     <Tooltip
+                      contentStyle={{
+                        backgroundColor: "rgba(255, 255, 255, 0.95)",
+                        border: "1px solid rgba(255, 255, 255, 0.2)",
+                        borderRadius: "8px",
+                        color: "#000000",
+                        fontSize: "12px",
+                        fontWeight: "500"
+                      }}
                       formatter={(value: number, name: string) => {
                         if (name === "score") return [`Score: ${value.toFixed(1)}`, "Score"];
                         return [value, name];
