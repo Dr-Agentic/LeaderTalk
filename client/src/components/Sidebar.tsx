@@ -205,7 +205,6 @@ function SidebarFooter({ user }) {
       </div>
 
       <Button 
-        variant="outline" 
         size="sm" 
         onClick={handleSignOut}
         className="w-full cta-button flex items-center justify-center"
