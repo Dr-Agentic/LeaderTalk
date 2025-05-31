@@ -136,13 +136,13 @@ export default function BillingCycleHistory() {
           </div>
           <div className="flex items-center gap-4">
             <Select value={cycleView} onValueChange={(value) => setCycleView(value as "3" | "6" | "12")}>
-              <SelectTrigger className="w-32">
+              <SelectTrigger className="w-32 bg-gray-800 border-gray-600 text-white">
                 <SelectValue placeholder="Cycles" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="3">Last 3 Cycles</SelectItem>
-                <SelectItem value="6">Last 6 Cycles</SelectItem>
-                <SelectItem value="12">Last 12 Cycles</SelectItem>
+              <SelectContent className="bg-gray-800 border-gray-600">
+                <SelectItem value="3" className="text-white hover:bg-gray-700">Last 3 Cycles</SelectItem>
+                <SelectItem value="6" className="text-white hover:bg-gray-700">Last 6 Cycles</SelectItem>
+                <SelectItem value="12" className="text-white hover:bg-gray-700">Last 12 Cycles</SelectItem>
               </SelectContent>
             </Select>
             <div className="flex items-center gap-2 text-sm text-gray-300">

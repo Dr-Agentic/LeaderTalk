@@ -83,13 +83,13 @@ export default function WordUsageStats() {
         <div className="flex items-center justify-between">
           <CardTitle className="text-white">Word Usage</CardTitle>
           <Select value={timeView} onValueChange={(value) => setTimeView(value as "week" | "month" | "cycle")}>
-            <SelectTrigger className="w-48">
+            <SelectTrigger className="w-48 bg-gray-800 border-gray-600 text-white">
               <SelectValue placeholder="Select time period" />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="week">Last 7 Days</SelectItem>
-              <SelectItem value="month">Last 30 Days</SelectItem>
-              <SelectItem value="cycle">Current Cycle</SelectItem>
+            <SelectContent className="bg-gray-800 border-gray-600">
+              <SelectItem value="week" className="text-white hover:bg-gray-700">Last 7 Days</SelectItem>
+              <SelectItem value="month" className="text-white hover:bg-gray-700">Last 30 Days</SelectItem>
+              <SelectItem value="cycle" className="text-white hover:bg-gray-700">Current Cycle</SelectItem>
             </SelectContent>
           </Select>
         </div>
