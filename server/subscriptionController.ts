@@ -400,11 +400,11 @@ export async function getBillingProducts(req: Request, res: Response) {
     // Sort by word limit ascending
     billingProducts.sort((a, b) => a.features.wordLimit - b.features.wordLimit);
     
-    console.log(`✅ Returning ${billingProducts.length} valid products from Stripe`);
+    console.log(`✅ Returning ${billingProducts.length} valid products from our payment provider`);
     res.json(billingProducts);
     
   } catch (error) {
-    console.error('❌ Failed to get products from Stripe:', error);
+    console.error('❌ Failed to get products from our payment provider:', error);
     res.status(500).json({ 
       error: 'Failed to load subscription plans from payment service',
       message: error instanceof Error ? error.message : 'Unknown error'

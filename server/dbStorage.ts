@@ -485,11 +485,11 @@ export class DatabaseStorage implements IStorage {
 
   async getDefaultSubscriptionPlan(): Promise<SubscriptionPlan> {
     console.error(
-      "⛔️ DEPRECATED: getDefaultSubscriptionPlan() called - use Stripe API instead",
+      "⛔️ DEPRECATED: getDefaultSubscriptionPlan() called - use payment provider API instead",
     );
     console.trace("Stack trace for deprecated method call");
 
-    // Return the Starter plan with 500 words to match Stripe
+    // Return the Starter plan with 500 words to match payment provider
     return {
       id: 1,
       planCode: "starter",
@@ -511,13 +511,13 @@ export class DatabaseStorage implements IStorage {
   // Initialize default subscription plans - DEPRECATED
   async initializeSubscriptionPlans(): Promise<void> {
     console.error(
-      "⛔️ DEPRECATED: initializeSubscriptionPlans() called - use Stripe API instead",
+      "⛔️ DEPRECATED: initializeSubscriptionPlans() called - use payment provider API instead",
     );
     console.trace("Stack trace for deprecated method call");
 
     // No-op - we're not initializing plans from the database anymore
     console.log(
-      "Subscription plans should be managed in Stripe, not the database",
+      "Subscription plans should be managed in our payment provider, not the database",
     );
   }
 

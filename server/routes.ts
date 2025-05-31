@@ -5,6 +5,7 @@ import MemoryStore from "memorystore";
 import cors from "cors";
 import { fileURLToPath } from "url";
 import path from "path";
+import { config } from "./config/environment";
 
 // Import the modular route registrations
 import { registerAllRoutes } from "./routes/index";
@@ -52,21 +53,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }));
 
   // Configure session middleware
-  const sessionSecret = process.env.SESSION_SECRET || 'your-secret-key-here';
-  const isProduction = process.env.NODE_ENV === 'production';
+  const isProduction = config.nodeEnv === 'production';
   
   app.use(session({
     store: new MemoryStoreFactory({
       checkPeriod: 86400000 // prune expired entries every 24h
     }),
-    secret: sessionSecret,
+    secret: config.session.secret,
     resave: false,
     saveUninitialized: false,
     cookie: {
       secure: isProduction,
       httpOnly: true,
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      sameSite: isProduction ? 'none' : 'lax'
+      sameSite: isProduction ? 'none' : 'lax',
+      domain: config.session.cookieDomain
     },
     name: 'leadertalk.sid'
   }));
