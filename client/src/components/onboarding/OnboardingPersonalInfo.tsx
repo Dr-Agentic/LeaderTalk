@@ -105,10 +105,10 @@ export default function OnboardingPersonalInfo({ onComplete, googleProfile }: On
   
   return (
     <div className="max-w-3xl mx-auto my-8 px-4">
-      <Card className="bg-white p-8 rounded-lg shadow-md">
+      <Card className="bg-gray-800 p-8 rounded-lg shadow-md border border-gray-700">
         <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">Tell us about yourself</h2>
-          <p className="text-gray-600 mt-2">We'll use this information to personalize your experience</p>
+          <h2 className="text-2xl font-bold text-white">Tell us about yourself</h2>
+          <p className="text-gray-300 mt-2">We'll use this information to personalize your experience</p>
         </div>
         
         <Form {...form}>
@@ -268,7 +268,7 @@ export default function OnboardingPersonalInfo({ onComplete, googleProfile }: On
             
             <Button 
               type="submit" 
-              className="w-full mt-8 py-6 text-lg" 
+              className="cta-button w-full mt-8 py-6 text-lg" 
               disabled={isSubmitting}
             >
               {isSubmitting ? "Saving..." : "Continue"}
