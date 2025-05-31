@@ -88,17 +88,17 @@ export default function SimpleLeaderSelection({ leaders, onComplete }: SimpleLea
   return (
     <div className="max-w-6xl mx-auto py-10 px-4 sm:px-6">
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">
+        <h1 className="text-3xl font-bold text-white mb-4">
           Choose Your Leadership Inspirations
         </h1>
-        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+        <p className="text-lg text-gray-300 max-w-2xl mx-auto">
           Select up to {MAX_SELECTIONS} leaders whose communication style inspires you. 
           We'll help you learn from their approach to leadership.
         </p>
       </div>
 
-      <div className="flex items-center justify-center gap-2 mb-6 bg-gray-50 p-3 rounded-md max-w-md mx-auto">
-        <span className="font-medium text-gray-700">Selected:</span>
+      <div className="flex items-center justify-center gap-2 mb-6 bg-gray-700/50 p-3 rounded-md max-w-md mx-auto border border-gray-600">
+        <span className="font-medium text-gray-300">Selected:</span>
         <span className="text-primary font-bold">
           {selectedLeaders.length} of {MAX_SELECTIONS}
         </span>
@@ -112,12 +112,12 @@ export default function SimpleLeaderSelection({ leaders, onComplete }: SimpleLea
           return (
             <div 
               key={leader.id}
-              className={`relative bg-white overflow-hidden rounded-lg border transition-all cursor-pointer ${
+              className={`relative bg-gray-800 overflow-hidden rounded-lg border transition-all cursor-pointer ${
                 isSelected
                   ? "border-primary border-2 shadow-md"
                   : canSelect
-                  ? "border-gray-200 hover:shadow-md hover:border-gray-300"
-                  : "border-gray-200 opacity-50 cursor-not-allowed"
+                  ? "border-gray-700 hover:shadow-md hover:border-gray-600"
+                  : "border-gray-700 opacity-50 cursor-not-allowed"
               }`}
               onClick={() => canSelect && toggleLeaderSelection(leader.id)}
             >
@@ -137,28 +137,28 @@ export default function SimpleLeaderSelection({ leaders, onComplete }: SimpleLea
                   className="w-full h-48 object-cover"
                 />
               ) : (
-                <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
+                <div className="w-full h-48 bg-gray-700 flex items-center justify-center">
                   <span className="text-gray-400">No image available</span>
                 </div>
               )}
               
               <div className="p-4">
-                <h3 className="font-bold text-gray-900 text-lg">{leader.name}</h3>
-                <p className="text-gray-500 text-sm mb-3">{leader.title}</p>
+                <h3 className="font-bold text-white text-lg">{leader.name}</h3>
+                <p className="text-gray-400 text-sm mb-3">{leader.title}</p>
                 
-                <p className="text-gray-700 text-sm line-clamp-3 mb-4">
+                <p className="text-gray-300 text-sm line-clamp-3 mb-4">
                   {leader.description}
                 </p>
                 
                 {leader.leadershipStyles && leader.leadershipStyles.length > 0 && (
                   <div className="flex flex-wrap gap-1">
                     {leader.leadershipStyles.slice(0, 2).map((style, index) => (
-                      <Badge key={index} variant="outline" className="text-xs bg-gray-50">
+                      <Badge key={index} variant="outline" className="text-xs bg-gray-700 text-gray-300 border-gray-600">
                         {style}
                       </Badge>
                     ))}
                     {leader.leadershipStyles.length > 2 && (
-                      <Badge variant="outline" className="text-xs bg-gray-50">
+                      <Badge variant="outline" className="text-xs bg-gray-700 text-gray-300 border-gray-600">
                         +{leader.leadershipStyles.length - 2} more
                       </Badge>
                     )}
@@ -175,7 +175,7 @@ export default function SimpleLeaderSelection({ leaders, onComplete }: SimpleLea
           onClick={handleSubmit}
           disabled={isSubmitting || selectedLeaders.length === 0}
           size="lg"
-          className="px-8"
+          className="cta-button px-8"
         >
           {isSubmitting ? 'Saving...' : 'Continue'}
         </Button>
