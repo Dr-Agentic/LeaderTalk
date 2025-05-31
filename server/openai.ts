@@ -2,9 +2,10 @@ import OpenAI from "openai";
 import fs from "fs";
 import { Leader, Recording, AnalysisResult } from "@shared/schema";
 import { storage } from "./storage";
+import { config } from "./config/environment";
 
 // The newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const openai = new OpenAI({ apiKey: config.openai.apiKey });
 
 export async function transcribeAndAnalyzeAudio(
   recording: Recording,
@@ -17,7 +18,7 @@ export async function transcribeAndAnalyzeAudio(
     });
     
     // Check if OpenAI API key is available
-    if (!process.env.OPENAI_API_KEY) {
+    if (!config.openai.apiKey) {
       console.error("Missing OPENAI_API_KEY environment variable");
       // Return a simplified analysis result when API key is missing
       return {
