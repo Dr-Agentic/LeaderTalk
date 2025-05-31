@@ -334,18 +334,18 @@ export default function LeadershipInspirations() {
                             <img 
                               src={leader.photoUrl} 
                               alt={leader.name} 
-                              className="w-full h-full object-cover"
+                              className="w-full h-full object-contain bg-white"
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary text-xs">
-                              {leader.name.split(' ').map(n => n[0]).join('')}
+                              {leader.name.split(' ').map((n: string) => n[0]).join('')}
                             </div>
                           )}
                         </div>
                         
                         <div className="flex-grow min-w-0">
                           <div className="flex justify-between">
-                            <h3 className="font-medium text-gray-900">{leader.name}</h3>
+                            <h3 className="font-medium text-white">{leader.name}</h3>
                             
                             {/* Selected indicator */}
                             {isSelected && (
@@ -353,7 +353,7 @@ export default function LeadershipInspirations() {
                             )}
                           </div>
                           
-                          <p className="text-gray-500 text-sm">{leader.title}</p>
+                          <p className="text-gray-300 text-sm">{leader.title}</p>
                           
                           {/* Leadership styles in a single line */}
                           {leader.leadershipStyles && leader.leadershipStyles.length > 0 && (
@@ -361,7 +361,7 @@ export default function LeadershipInspirations() {
                               {leader.leadershipStyles.map((style: string, index: number) => (
                                 <span 
                                   key={index} 
-                                  className="text-xs text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded"
+                                  className="text-xs text-gray-300 bg-gray-700 px-1.5 py-0.5 rounded"
                                 >
                                   {style}
                                 </span>
