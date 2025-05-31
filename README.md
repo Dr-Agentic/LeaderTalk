@@ -51,7 +51,7 @@ LeaderTalk is a comprehensive communication coaching platform that leverages adv
 ### AI & Integration
 - OpenAI GPT-4o for analysis and training feedback
 - OpenAI Whisper for speech transcription
-- Firebase Authentication for Google sign-in
+- Supabase Authentication for Google sign-in
 - Leader-specific alternative generation using LLM
 
 ## Getting Started
@@ -60,7 +60,7 @@ LeaderTalk is a comprehensive communication coaching platform that leverages adv
 - Node.js (v18+)
 - NPM or Yarn
 - PostgreSQL database
-- Firebase account
+- Supabase account
 - OpenAI API key
 
 ### Environment Variables
@@ -77,10 +77,9 @@ PGDATABASE=leadertalk
 # OpenAI
 OPENAI_API_KEY=your_openai_api_key
 
-# Firebase
-VITE_FIREBASE_API_KEY=your_firebase_api_key
-VITE_FIREBASE_APP_ID=your_firebase_app_id
-VITE_FIREBASE_PROJECT_ID=your_firebase_project_id
+# Supabase
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
 ### Installation
@@ -106,12 +105,12 @@ npm run db:push
 npm run dev
 ```
 
-### Firebase Setup
+### Supabase Setup
 
-1. Create a Firebase project at https://console.firebase.google.com/
-2. Enable Google Authentication
-3. Add your app's domain to the Authorized Domains list in Firebase Authentication settings
-4. Configure your Firebase app credentials in the environment variables
+1. Create a Supabase project at https://supabase.com/dashboard
+2. Enable Google Authentication in Authentication → Providers
+3. Add your app's domain to the Site URL and Redirect URLs in Authentication → URL Configuration
+4. Configure your Supabase credentials in the environment variables
 
 ## Core Components
 

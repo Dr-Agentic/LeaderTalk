@@ -50,12 +50,7 @@ export const config = {
     cookieDomain: getConfigValue('COOKIE_DOMAIN'),
   },
   
-  // Firebase configuration (client-side, but useful for validation)
-  firebase: {
-    apiKey: getConfigValue('VITE_FIREBASE_API_KEY'),
-    appId: getConfigValue('VITE_FIREBASE_APP_ID'),
-    projectId: getConfigValue('VITE_FIREBASE_PROJECT_ID'),
-  },
+
   
   // Supabase configuration
   supabase: {
@@ -79,5 +74,5 @@ console.log(`   Database: ${config.database.url ? '✅ Connected' : '❌ Missing
 console.log(`   Stripe: ${config.stripe.secretKey ? '✅ Configured' : '❌ Missing'}`);
 console.log(`   OpenAI: ${config.openai.apiKey ? '✅ Configured' : '❌ Missing'}`);
 console.log(`   Session: ${config.session.secret ? '✅ Configured' : '❌ Missing'}`);
-console.log(`   Firebase: ${config.firebase.apiKey ? '✅ Configured' : '❌ Missing'}`);
+console.log(`   Supabase: ${config.supabase.url ? '✅ Configured' : '❌ Missing'}`);
 console.log(`   Cookie Domain: ${config.session.cookieDomain || 'Not set'}`);
