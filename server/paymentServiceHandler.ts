@@ -1,9 +1,10 @@
 import Stripe from "stripe";
 import { storage } from "./storage";
 import { User } from "../shared/schema";
+import { config } from "./config/environment";
 
 // Initialize Stripe client
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+const stripe = new Stripe(config.stripe.secretKey, {
   apiVersion: "2023-10-16",
 });
 

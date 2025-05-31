@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { storage } from "./storage";
+import { config } from "./config/environment";
 import {
   getUserSubscription,
   getBillingCycleFromSubscription,
@@ -167,7 +168,7 @@ async function handleNoValidSubscription(userId: number): Promise<any> {
 
     // Get all subscriptions for this customer from Stripe
     const stripe = (await import("stripe")).default;
-    const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY!, {
+    const stripeInstance = new stripe(config.stripe.secretKey, {
       apiVersion: "2023-10-16",
     });
 
@@ -281,7 +282,7 @@ async function handleNoValidSubscription(userId: number): Promise<any> {
 export async function getBillingProducts(req: Request, res: Response) {
   try {
     const stripe = (await import("stripe")).default;
-    const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY!, {
+    const stripeInstance = new stripe(config.stripe.secretKey, {
       apiVersion: "2024-04-10",
     });
     
