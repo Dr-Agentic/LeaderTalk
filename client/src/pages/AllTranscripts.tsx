@@ -287,7 +287,7 @@ function TranscriptCard({ recording }: { recording: Recording }) {
         <Link href={`/transcript/${recording.id}`}>
           <Button 
             variant="link"
-            className="text-sm font-medium text-primary hover:text-primary/80 flex items-center p-0"
+            className="text-sm font-medium text-white hover:text-purple-300 flex items-center p-0"
           >
             View transcript
             <ChevronRight className="h-4 w-4 ml-1" />
