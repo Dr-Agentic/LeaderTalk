@@ -208,7 +208,7 @@ function SidebarFooter({ user }) {
         variant="outline" 
         size="sm" 
         onClick={handleSignOut}
-        className="w-full text-gray-700 hover:text-gray-900 flex items-center justify-center"
+        className="w-full cta-button flex items-center justify-center"
         data-action="logout"
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
