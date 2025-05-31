@@ -218,4 +218,41 @@ export function registerAuthRoutes(app: Express) {
       res.status(500).json({ error: "Internal server error" });
     }
   });
+
+  // Test session save endpoint for debugging
+  app.post("/api/auth/test-session-save", async (req, res) => {
+    try {
+      console.log("Testing session save in production");
+      console.log("Session before test:", { sessionId: req.sessionID, userId: req.session.userId });
+      
+      // Set a test user ID
+      req.session.userId = 2; // Your existing user ID
+      
+      console.log("Set userId to 2, attempting save");
+      
+      req.session.save((err) => {
+        if (err) {
+          console.error("Test session save error:", err);
+          return res.status(500).json({ 
+            error: "Failed to save test session", 
+            details: err.message,
+            sessionId: req.sessionID
+          });
+        }
+        
+        console.log("Test session save successful");
+        console.log("Session after save:", { sessionId: req.sessionID, userId: req.session.userId });
+        
+        res.json({ 
+          success: true, 
+          message: "Test session save successful",
+          sessionId: req.sessionID,
+          userId: req.session.userId
+        });
+      });
+    } catch (error) {
+      console.error("Test session error:", error);
+      res.status(500).json({ error: "Test session error", details: error.message });
+    }
+  });
 }
