@@ -301,24 +301,24 @@ export default function SubscriptionNew() {
       backLabel="Back to Settings"
       pageTitle="Subscription Management"
     >
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight mb-2">Subscription Management</h1>
-        <p className="text-muted-foreground">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold tracking-tight mb-3 text-white">Subscription Management</h1>
+        <p className="text-lg text-gray-300">
           Manage your subscription plan and billing details
         </p>
       </div>
 
       {/* Current Subscription Summary */}
       {userData && (
-        <Card className="mb-6 overflow-hidden">
-          <CardHeader className="pb-3 bg-muted/30">
+        <Card className="mb-8 overflow-hidden">
+          <CardHeader className="pb-4 bg-gray-800/30">
             <div className="flex justify-between items-center">
-              <CardTitle className="text-lg">Your Current Plan</CardTitle>
+              <CardTitle className="text-xl text-white">Your Current Plan</CardTitle>
               {subscriptionData?.success && (
-                <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                <span className={`px-3 py-1.5 text-sm font-medium rounded-full ${
                   subscriptionData.subscription.status === 'active' 
-                    ? 'bg-green-100 text-green-800' 
-                    : 'bg-amber-100 text-amber-800'
+                    ? 'bg-green-900/50 text-green-300 border border-green-600' 
+                    : 'bg-amber-900/50 text-amber-300 border border-amber-600'
                 }`}>
                   {subscriptionData.subscription.status.charAt(0).toUpperCase() + 
                   subscriptionData.subscription.status.slice(1)}
@@ -326,10 +326,10 @@ export default function SubscriptionNew() {
               )}
             </div>
           </CardHeader>
-          <CardContent className="pt-4">
-            <div className="flex gap-4 items-center mb-4">
+          <CardContent className="pt-6">
+            <div className="flex gap-6 items-center mb-6">
               {subscriptionData?.success && subscriptionData.subscription.productImage && (
-                <div className="w-12 h-12 flex-shrink-0">
+                <div className="w-16 h-16 flex-shrink-0 bg-gray-700 rounded-lg p-2">
                   <img 
                     src={subscriptionData.subscription.productImage} 
                     alt={`${subscriptionData.subscription.plan} plan`}
@@ -338,13 +338,13 @@ export default function SubscriptionNew() {
                 </div>
               )}
               <div>
-                <h3 className="text-xl font-semibold capitalize">
+                <h3 className="text-2xl font-semibold capitalize text-white">
                   {(subscriptionData?.success && subscriptionData.subscription.plan) || 
                    userData.subscriptionPlan || "Starter"} Plan
                 </h3>
                 {!subscriptionData?.success?.subscription?.isFree && 
                  subscriptionData?.success?.subscription?.amount && (
-                  <p className="text-muted-foreground">
+                  <p className="text-gray-300 text-lg mt-1">
                     ${subscriptionData.subscription.amount.toFixed(2)}/
                     {subscriptionData.subscription.interval || 'month'}
                   </p>
@@ -353,13 +353,13 @@ export default function SubscriptionNew() {
             </div>
             
             {/* Subscription Details Section */}
-            <div className="p-3 mt-2 rounded-md bg-muted/30">
-              <p className="text-sm font-medium mb-2">Subscription Details</p>
-              <div className="space-y-2 text-sm">
+            <div className="p-4 mt-4 rounded-lg bg-gray-800/40 border border-gray-700">
+              <p className="text-base font-semibold mb-4 text-white">Subscription Details</p>
+              <div className="space-y-3 text-sm">
                 {/* Word Limit */}
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Word Limit:</span>
-                  <span className="font-medium">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-300">Word Limit:</span>
+                  <span className="font-medium text-white">
                     {userData.subscriptionPlan === 'starter' ? '5,000' : 
                      userData.subscriptionPlan === 'pro' ? '15,000' : 
                      userData.subscriptionPlan === 'executive' ? '50,000' : '5,000'} words/month
@@ -368,18 +368,18 @@ export default function SubscriptionNew() {
                 
                 {/* Subscription Start Date */}
                 {subscriptionData?.success && subscriptionData.subscription.startDate && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Subscription Started:</span>
-                    <span className="font-medium">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-300">Subscription Started:</span>
+                    <span className="font-medium text-white">
                       {new Date(subscriptionData.subscription.startDate).toLocaleDateString()}
                     </span>
                   </div>
                 )}
                 
                 {/* Billing Cycle */}
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Billing Cycle:</span>
-                  <span className="font-medium">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-300">Billing Cycle:</span>
+                  <span className="font-medium text-white">
                     {subscriptionData?.success && subscriptionData.subscription.currentPeriodEnd ? (
                       <span>
                         {subscriptionData.subscription.currentPeriodStart ? 
@@ -395,9 +395,9 @@ export default function SubscriptionNew() {
                 </div>
                 
                 {/* Next Renewal */}
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Next Renewal:</span>
-                  <span className="font-medium">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-300">Next Renewal:</span>
+                  <span className="font-medium text-white">
                     {subscriptionData?.success && subscriptionData.subscription.nextRenewalDate ? 
                       new Date(subscriptionData.subscription.nextRenewalDate).toLocaleDateString() :
                       subscriptionData?.success && subscriptionData.subscription.currentPeriodEnd ? 
@@ -409,9 +409,9 @@ export default function SubscriptionNew() {
                 
                 {/* Subscription ID */}
                 {subscriptionData?.success && subscriptionData.subscription.id && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Subscription ID:</span>
-                    <span className="font-medium text-xs opacity-70">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-300">Subscription ID:</span>
+                    <span className="font-medium text-xs text-gray-400">
                       {subscriptionData.subscription.id.substring(0, 8)}...
                     </span>
                   </div>
@@ -422,9 +422,9 @@ export default function SubscriptionNew() {
         </Card>
       )}
       
-      <Card className="mb-6">
-        <CardHeader className="pb-3">
-          <CardTitle>Choose Your Plan</CardTitle>
+      <Card className="mb-8">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-2xl text-white">Choose Your Plan</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
