@@ -121,23 +121,7 @@ export async function handleAuthCallback(): Promise<AuthUser | null> {
       search: window.location.search
     })
 
-    // Use the newer getSessionFromUrl method which handles all callback types
-    const { data, error } = await supabase.auth.getSessionFromUrl(window.location.href)
-    
-    if (error) {
-      console.error("Auth callback error", error)
-      throw error
-    }
-
-    if (data.session) {
-      console.log("Auth callback successful", {
-        userId: data.session.user.id,
-        email: data.session.user.email
-      })
-      return convertSupabaseUser(data.session.user)
-    }
-
-    // Fallback: try to get existing session
+    // First check if there's already a session (most reliable approach)
     const { data: sessionData } = await supabase.auth.getSession()
     if (sessionData.session) {
       console.log("Auth callback successful via existing session", {
@@ -145,6 +129,15 @@ export async function handleAuthCallback(): Promise<AuthUser | null> {
         email: sessionData.session.user.email
       })
       return convertSupabaseUser(sessionData.session.user)
+    }
+
+    // If no session and we have URL parameters, try manual parsing
+    if (window.location.search || window.location.hash) {
+      console.log("No existing session, triggering auth state change detection")
+      
+      // Return null and let the auth state listener handle it
+      // This approach is more reliable than manual URL parsing
+      return null
     }
 
     console.log("No session found in auth callback")
