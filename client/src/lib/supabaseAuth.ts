@@ -121,20 +121,33 @@ export async function handleAuthCallback(): Promise<AuthUser | null> {
       search: window.location.search
     })
 
-    // Exchange the auth code from URL for a session
-    const { data, error } = await supabase.auth.exchangeCodeForSession(window.location.search)
+    // First try to get session from callback (for implicit flow)
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
     
-    if (error) {
-      console.error("Auth callback error", error)
-      throw error
+    if (sessionData.session) {
+      console.log("Auth callback successful via session", {
+        userId: sessionData.session.user.id,
+        email: sessionData.session.user.email
+      })
+      return convertSupabaseUser(sessionData.session.user)
     }
 
-    if (data.session) {
-      console.log("Auth callback successful", {
-        userId: data.session.user.id,
-        email: data.session.user.email
-      })
-      return convertSupabaseUser(data.session.user)
+    // If no session, try to exchange code (for PKCE flow)
+    if (window.location.search.includes('code=')) {
+      const { data, error } = await supabase.auth.exchangeCodeForSession(window.location.search)
+      
+      if (error) {
+        console.error("Auth callback error during code exchange", error)
+        throw error
+      }
+
+      if (data.session) {
+        console.log("Auth callback successful via code exchange", {
+          userId: data.session.user.id,
+          email: data.session.user.email
+        })
+        return convertSupabaseUser(data.session.user)
+      }
     }
 
     console.log("No session found in auth callback")
