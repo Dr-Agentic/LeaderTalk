@@ -26,11 +26,24 @@ export function registerDebugRoutes(app: Express) {
       cookiePresent,
       sessionAge,
       cookieExists,
-      cookieHeader
+      cookieHeader,
+      nodeEnv: process.env.NODE_ENV,
+      cookieDomain: process.env.PROD_COOKIE_DOMAIN || process.env.COOKIE_DOMAIN,
+      host: req.headers.host,
+      userAgent: req.headers['user-agent']?.substring(0, 50) + '...'
     };
 
-    // Minimal logging for debugging
-    // console.log("Session check:", { sessionExists, userId, isLoggedIn });
+    // Enhanced logging for production debugging
+    if (process.env.NODE_ENV === 'production') {
+      console.log("Production session debug:", { 
+        sessionExists, 
+        userId, 
+        isLoggedIn, 
+        cookiePresent,
+        host: req.headers.host,
+        cookieDomain: process.env.PROD_COOKIE_DOMAIN || process.env.COOKIE_DOMAIN
+      });
+    }
 
     res.json(debugInfo);
   });
