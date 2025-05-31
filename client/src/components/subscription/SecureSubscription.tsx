@@ -584,53 +584,17 @@ export default function SecureSubscription() {
         </Elements>
       )}
 
-      {/* Downgrade Section - Only for paid plans */}
-      {currentSubscription?.subscription &&
-        !currentSubscription.subscription.isFree && (
-          <Card className="border-blue-200 bg-blue-50">
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-2 text-blue-800 mb-3">
-                <Info className="h-5 w-5" />
-                <h3 className="text-lg font-semibold">
-                  Switch to Starter Plan
-                </h3>
-              </div>
-              <p className="text-sm text-blue-700 mb-4">
-                Switch back to the free Starter plan (500 words/month). You can
-                upgrade again anytime.
-              </p>
-              <Button
-                onClick={() => {
-                  const starterProduct = plans?.find((p) =>
-                    p.code.toLowerCase().includes("starter"),
-                  );
-                  if (starterProduct) {
-                    updateSubscription.mutate({
-                      stripePriceId: starterProduct.pricing.stripePriceId,
-                    });
-                  }
-                }}
-                disabled={updateSubscription.isPending}
-                variant="outline"
-                className="border-blue-300 text-blue-700 hover:bg-blue-100"
-              >
-                {updateSubscription.isPending
-                  ? "Switching..."
-                  : "Switch to Starter"}
-              </Button>
-            </CardContent>
-          </Card>
-        )}
+
 
       {/* Security Notice */}
-      <Card className="border-blue-200 bg-blue-50">
+      <Card className="border-gray-600 bg-gray-800/30">
         <CardContent className="p-4">
-          <div className="flex items-center space-x-2 text-blue-800">
+          <div className="flex items-center space-x-2 text-primary">
             <CheckCircle className="h-5 w-5" />
-            <p className="font-medium">Secure Payment Processing</p>
+            <p className="font-medium text-white">Secure Payment Processing</p>
           </div>
-          <p className="text-blue-600 text-sm mt-1">
-            All payments are processed securely through Stripe. Your payment
+          <p className="text-gray-300 text-sm mt-1">
+            All payments are processed securely through our payment provider. Your payment
             information is never stored on our servers.
           </p>
         </CardContent>
