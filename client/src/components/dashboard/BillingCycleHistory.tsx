@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   BarChart,
   Bar,
@@ -14,6 +15,7 @@ import {
 } from "recharts";
 import { TrendingUp, CalendarDays, Target } from "lucide-react";
 import { format, subMonths } from "date-fns";
+import { useState } from "react";
 
 interface BillingCycleData {
   cycleLabel: string;
@@ -57,15 +59,17 @@ function CustomTooltip({ active, payload, label }: any) {
 }
 
 export default function BillingCycleHistory() {
+  const [cycleView, setCycleView] = useState<"3" | "6" | "12">("6");
+
   // Get current subscription to determine billing cycle dates
   const { data: subscriptionData } = useQuery({
     queryKey: ["/api/current-subscription"],
   });
 
-  // Get historical billing cycle data (6 monthly cycles)
+  // Get historical billing cycle data with dynamic cycle count
   const { data: historicalData } = useQuery({
-    queryKey: ["/api/usage/billing-cycle", { monthlyCycles: 6 }],
-    queryFn: () => fetch('/api/usage/billing-cycle?monthlyCycles=6').then(res => res.json()),
+    queryKey: ["/api/usage/billing-cycle", { monthlyCycles: parseInt(cycleView) }],
+    queryFn: () => fetch(`/api/usage/billing-cycle?monthlyCycles=${cycleView}`).then(res => res.json()),
   });
 
   // Check if we have valid subscription data
@@ -127,10 +131,20 @@ export default function BillingCycleHistory() {
               Billing Cycle History
             </CardTitle>
             <p className="text-sm text-gray-300 mt-1">
-              Word usage across your last 6 monthly cycles
+              Word usage across your last {cycleView} monthly cycles
             </p>
           </div>
-          <div className="text-right">
+          <div className="flex items-center gap-4">
+            <Select value={cycleView} onValueChange={(value) => setCycleView(value as "3" | "6" | "12")}>
+              <SelectTrigger className="w-32">
+                <SelectValue placeholder="Cycles" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="3">Last 3 Cycles</SelectItem>
+                <SelectItem value="6">Last 6 Cycles</SelectItem>
+                <SelectItem value="12">Last 12 Cycles</SelectItem>
+              </SelectContent>
+            </Select>
             <div className="flex items-center gap-2 text-sm text-gray-300">
               <Target className="h-4 w-4" />
               <span>Limit: {avgLimit.toLocaleString()} words/cycle</span>

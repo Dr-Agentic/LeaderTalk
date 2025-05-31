@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   BarChart,
   Bar,
@@ -12,8 +13,11 @@ import {
   CartesianGrid,
 } from "recharts";
 import { PackageOpen, TrendingUp } from "lucide-react";
+import { useState } from "react";
 
 export default function WordUsageStats() {
+  const [timeView, setTimeView] = useState<"week" | "month" | "cycle">("cycle");
+
   // Use the new billing cycle endpoint for accurate calculations
   const { data, isLoading } = useQuery({
     queryKey: ["/api/usage/billing-cycle"],
@@ -76,7 +80,19 @@ export default function WordUsageStats() {
   return (
     <Card className="mb-6">
       <CardHeader>
-        <CardTitle className="w-full text-white">Word Usage</CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-white">Word Usage</CardTitle>
+          <Select value={timeView} onValueChange={(value) => setTimeView(value as "week" | "month" | "cycle")}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Select time period" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="week">Last 7 Days</SelectItem>
+              <SelectItem value="month">Last 30 Days</SelectItem>
+              <SelectItem value="cycle">Current Cycle</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
