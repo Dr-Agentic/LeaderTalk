@@ -27,7 +27,7 @@ export function registerAuthRoutes(app: Express) {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
           sameSite: 'lax',
-          domain: process.env.NODE_ENV === 'production' ? '.replit.app' : undefined
+          domain: process.env.NODE_ENV === 'production' ? (process.env.PROD_COOKIE_DOMAIN || process.env.COOKIE_DOMAIN) : undefined
         });
         
         res.json({ success: true, message: "Logged out successfully" });
