@@ -9,6 +9,7 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
+  CartesianGrid,
 } from "recharts";
 import { PackageOpen, TrendingUp } from "lucide-react";
 
@@ -51,23 +52,44 @@ export default function WordUsageStats() {
     daysRemaining: 0,
   };
 
+  // Custom tooltip component similar to BillingCycleHistory
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+
+      return (
+        <div className="bg-gray-800 border border-gray-600 rounded-md shadow-md p-3 text-sm">
+          <p className="font-semibold text-primary">{data.fullTitle}</p>
+          <p className="text-xs text-gray-300 mb-2">
+            {data.date}
+          </p>
+          <p className="text-sm text-white">
+            Words used:{" "}
+            <span className="font-medium">{data.words.toLocaleString()}</span>
+          </p>
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
     <Card className="mb-6">
       <CardHeader>
-        <CardTitle className="w-full">Word Usage</CardTitle>
+        <CardTitle className="w-full text-white">Word Usage</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center">
               <PackageOpen className="h-4 w-4 mr-2 text-primary" />
-              <span className="font-medium">Current Plan</span>
+              <span className="font-medium text-white">Current Plan</span>
             </div>
             <div className="text-right">
-              <span className="font-medium">
+              <span className="font-medium text-white">
                 {currentBillingCycleUsage.toLocaleString()}
               </span>
-              <span className="text-muted-foreground">
+              <span className="text-gray-300">
                 {" "}
                 / {wordLimit ? wordLimit.toLocaleString() : "N/A"} words
               </span>
@@ -81,7 +103,7 @@ export default function WordUsageStats() {
               // Change color based on usage percentage
               color={usagePercentage > 90 ? "destructive" : undefined}
             />
-            <p className="mt-2 text-sm text-muted-foreground">
+            <p className="mt-2 text-sm text-gray-300">
               {usagePercentage}% of your monthly word allocation used
             </p>
           </div>
@@ -93,41 +115,37 @@ export default function WordUsageStats() {
             <div className="h-48 mt-6">
               <div className="flex items-center gap-2 mb-3">
                 <TrendingUp className="h-4 w-4 text-primary" />
-                <p className="text-sm font-medium">
+                <p className="text-sm font-medium text-white">
                   Current Billing Cycle Recordings
                 </p>
               </div>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
-                  data={recordingsArray.slice(0, 10).map((recording) => ({
+                  data={recordingsArray.slice(0, 10).map((recording: any) => ({
                     name: recording.id,
                     words: recording.wordCount || 0,
                     fullTitle: recording.title,
                     date: recording.formattedDate || "N/A",
                   }))}
+                  margin={{ top: 20, right: 20, left: 20, bottom: 20 }}
                 >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                   <XAxis
                     dataKey="name"
-                    fontSize={12}
+                    tick={{ fontSize: 12, fill: "#ffffff" }}
                     interval={0}
-                    tick={{ fontSize: 10 }}
+                    axisLine={{ stroke: "#6B7280" }}
+                    tickLine={{ stroke: "#6B7280" }}
                   />
-                  <YAxis fontSize={12} />
-                  <Tooltip
-                    formatter={(value) => [
-                      `${value.toLocaleString()} words`,
-                      "Words Used",
-                    ]}
-                    labelFormatter={(label, payload) => {
-                      if (payload && payload[0] && payload[0].payload) {
-                        return `${payload[0].payload.fullTitle} (${payload[0].payload.date})`;
-                      }
-                      return label;
-                    }}
+                  <YAxis 
+                    tick={{ fontSize: 12, fill: "#ffffff" }}
+                    axisLine={{ stroke: "#6B7280" }}
+                    tickLine={{ stroke: "#6B7280" }}
                   />
+                  <Tooltip content={<CustomTooltip />} />
                   <Bar
                     dataKey="words"
-                    fill="var(--primary)"
+                    fill="#3B82F6"
                     radius={[4, 4, 0, 0]}
                     maxBarSize={40}
                   />
@@ -136,7 +154,7 @@ export default function WordUsageStats() {
             </div>
           ) : (
             !isRecordingsLoading && (
-              <div className="h-24 mt-6 flex items-center justify-center text-muted-foreground">
+              <div className="h-24 mt-6 flex items-center justify-center text-gray-400">
                 <p className="text-sm">
                   No recordings in current billing cycle
                 </p>
