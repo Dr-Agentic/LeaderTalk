@@ -23,15 +23,20 @@ export default function WordUsageStats() {
     queryKey: ["/api/usage/billing-cycle"],
   });
 
-  // Get current billing cycle recordings for the chart
-  const { data: currentCycleRecordings, isLoading: isRecordingsLoading } =
-    useQuery({
-      queryKey: ["/api/recordings/current-cycle"],
-      staleTime: 30000, // Cache for 30 seconds to avoid excessive requests
-    });
+  // Get recordings based on selected time view
+  const { data: recordingsData, isLoading: isRecordingsLoading } = useQuery({
+    queryKey: ["/api/recordings", timeView],
+    queryFn: () => {
+      const endpoint = timeView === "cycle" 
+        ? "/api/recordings/current-cycle"
+        : `/api/recordings?period=${timeView}`;
+      return fetch(endpoint).then(res => res.json());
+    },
+    staleTime: 30000,
+  });
 
-  // Extract recordings from the enhanced current-cycle API response
-  const recordingsArray = currentCycleRecordings?.recordings || [];
+  // Extract recordings from the API response based on time view
+  const recordingsArray = recordingsData?.recordings || [];
   console.log(
     "📊 Current cycle recordings:",
     recordingsArray.length,
@@ -132,7 +137,9 @@ export default function WordUsageStats() {
               <div className="flex items-center gap-2 mb-3">
                 <TrendingUp className="h-4 w-4 text-primary" />
                 <p className="text-sm font-medium text-white">
-                  Current Billing Cycle Recordings
+                  {timeView === "cycle" ? "Current Billing Cycle Recordings" : 
+                   timeView === "week" ? "Last 7 Days Recordings" : 
+                   "Last 30 Days Recordings"}
                 </p>
               </div>
               <ResponsiveContainer width="100%" height="100%">
@@ -172,7 +179,9 @@ export default function WordUsageStats() {
             !isRecordingsLoading && (
               <div className="h-24 mt-6 flex items-center justify-center text-gray-400">
                 <p className="text-sm">
-                  No recordings in current billing cycle
+                  {timeView === "cycle" ? "No recordings in current billing cycle" : 
+                   timeView === "week" ? "No recordings in the last 7 days" : 
+                   "No recordings in the last 30 days"}
                 </p>
               </div>
             )

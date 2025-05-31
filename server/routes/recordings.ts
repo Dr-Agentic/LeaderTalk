@@ -84,7 +84,7 @@ const upload = multer({
 });
 
 export function registerRecordingRoutes(app: Express) {
-  // Get all recordings for user
+  // Get all recordings for user with optional period filter
   app.get("/api/recordings", requireAuth, async (req, res) => {
     try {
       const userId = req.session?.userId;
@@ -92,8 +92,42 @@ export function registerRecordingRoutes(app: Express) {
         return res.status(401).json({ error: "Authentication required" });
       }
 
-      const recordings = await storage.getRecordings(userId);
-      res.json(recordings);
+      const { period } = req.query;
+      const allRecordings = await storage.getRecordings(userId);
+      
+      let filteredRecordings = allRecordings;
+      
+      if (period === "week") {
+        const weekAgo = new Date();
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        filteredRecordings = allRecordings.filter(recording => {
+          const recordingDate = new Date(recording.recordedAt);
+          return recordingDate >= weekAgo;
+        });
+      } else if (period === "month") {
+        const monthAgo = new Date();
+        monthAgo.setDate(monthAgo.getDate() - 30);
+        filteredRecordings = allRecordings.filter(recording => {
+          const recordingDate = new Date(recording.recordedAt);
+          return recordingDate >= monthAgo;
+        });
+      }
+
+      // Format records with chart-ready data
+      const chartReadyRecordings = filteredRecordings.map(recording => ({
+        id: recording.id,
+        title: recording.title,
+        wordCount: recording.wordCount || 0,
+        recordedAt: recording.recordedAt,
+        date: recording.recordedAt ? new Date(recording.recordedAt).toISOString().split('T')[0] : null,
+        formattedDate: recording.recordedAt ? new Date(recording.recordedAt).toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric'
+        }) : 'N/A'
+      }));
+
+      res.json({ recordings: chartReadyRecordings });
     } catch (error) {
       console.error("Error fetching recordings:", error);
       res.status(500).json({ error: "Failed to fetch recordings" });
@@ -127,7 +161,7 @@ export function registerRecordingRoutes(app: Express) {
       const billingCycleEnd = new Date(billingCycle.end);
       
       const currentCycleRecordings = allRecordings.filter(recording => {
-        const recordingDate = new Date(recording.recordedAt || recording.createdAt);
+        const recordingDate = new Date(recording.recordedAt);
         return recordingDate >= billingCycleStart && recordingDate <= billingCycleEnd;
       });
 
