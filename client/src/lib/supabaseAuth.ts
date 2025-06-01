@@ -108,7 +108,7 @@ export function onAuthStateChanged(
 ): () => void {
   const {
     data: { subscription },
-  } = supabase.auth.onAuthStateChange((event, session) => {
+  } = getSupabase().auth.onAuthStateChange((event: any, session: any) => {
     console.log("Auth state changed", { event, hasSession: !!session });
     const user = session?.user ? convertSupabaseUser(session.user) : null;
     callback(user);

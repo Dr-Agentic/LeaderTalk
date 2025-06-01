@@ -2,6 +2,7 @@ import { Express, Request, Response, NextFunction } from "express";
 import { storage } from "../storage";
 import { insertUserSchema } from "@shared/schema";
 import { z } from "zod";
+import { config } from "../config/environment";
 
 // Extend session type to include userId
 declare module 'express-session' {
@@ -14,27 +15,20 @@ export function registerAuthRoutes(app: Express) {
   // Auth parameters endpoint - returns environment-specific Supabase config
   app.get("/api/auth/auth-parameters", (req, res) => {
     try {
-      const isProduction = process.env.NODE_ENV === 'production';
-      
-      const supabaseUrl = isProduction 
-        ? (process.env.VITE_PROD_SUPABASE_URL || process.env.VITE_SUPABASE_URL)
-        : process.env.VITE_SUPABASE_URL;
-        
-      const supabaseAnonKey = isProduction
-        ? (process.env.VITE_PROD_SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY)
-        : process.env.VITE_SUPABASE_ANON_KEY;
+      const supabaseUrl = config.supabase.url;
+      const supabaseAnonKey = config.supabase.anonKey;
       
       if (!supabaseUrl || !supabaseAnonKey) {
         return res.status(500).json({ 
           error: 'Supabase configuration missing',
-          environment: isProduction ? 'production' : 'development'
+          environment: config.isProduction ? 'production' : 'development'
         });
       }
       
       res.json({
         supabaseUrl,
         supabaseAnonKey,
-        environment: isProduction ? 'production' : 'development'
+        environment: config.isProduction ? 'production' : 'development'
       });
     } catch (error) {
       console.error("Auth parameters error:", error);
