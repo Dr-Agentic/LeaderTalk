@@ -11,6 +11,37 @@ declare module 'express-session' {
 }
 
 export function registerAuthRoutes(app: Express) {
+  // Auth parameters endpoint - returns environment-specific Supabase config
+  app.get("/api/auth/auth-parameters", (req, res) => {
+    try {
+      const isProduction = process.env.NODE_ENV === 'production';
+      
+      const supabaseUrl = isProduction 
+        ? (process.env.VITE_PROD_SUPABASE_URL || process.env.VITE_SUPABASE_URL)
+        : process.env.VITE_SUPABASE_URL;
+        
+      const supabaseAnonKey = isProduction
+        ? (process.env.VITE_PROD_SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY)
+        : process.env.VITE_SUPABASE_ANON_KEY;
+      
+      if (!supabaseUrl || !supabaseAnonKey) {
+        return res.status(500).json({ 
+          error: 'Supabase configuration missing',
+          environment: isProduction ? 'production' : 'development'
+        });
+      }
+      
+      res.json({
+        supabaseUrl,
+        supabaseAnonKey,
+        environment: isProduction ? 'production' : 'development'
+      });
+    } catch (error) {
+      console.error("Auth parameters error:", error);
+      res.status(500).json({ error: "Failed to get auth parameters" });
+    }
+  });
+
   // Logout endpoint
   app.get("/api/auth/logout", (req, res, next) => {
     try {

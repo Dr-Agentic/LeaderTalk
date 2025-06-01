@@ -1,4 +1,4 @@
-import { supabase } from "../supabase";
+import { getSupabase } from "../supabase";
 import { User } from "@supabase/supabase-js";
 // Debug logging replaced with console methods
 
@@ -28,7 +28,7 @@ export async function signInWithGoogle(): Promise<AuthUser | null> {
   try {
     console.log("Starting Supabase Google authentication");
 
-    const { data, error } = await supabase.auth.signInWithOAuth({
+    const { data, error } = await getSupabase().auth.signInWithOAuth({
       provider: "google",
       options: {
         redirectTo: window.location.origin + "/auth/callback",

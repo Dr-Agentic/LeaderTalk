@@ -1,23 +1,38 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
-// Use centralized environment configuration with PROD_ prefix support
-function getClientConfigValue(key: string): string | undefined {
-  const isProduction = import.meta.env.PROD;
-  
-  if (isProduction) {
-    // Try PROD_ prefixed version first, fallback to regular version
-    return import.meta.env[`VITE_PROD_${key}`] || import.meta.env[`VITE_${key}`];
+// Global Supabase client instance
+let supabaseClient: SupabaseClient | null = null
+
+// Initialize Supabase client with server-provided configuration
+export async function initializeSupabase(): Promise<SupabaseClient> {
+  if (supabaseClient) {
+    return supabaseClient
   }
-  
-  // Development: use regular version
-  return import.meta.env[`VITE_${key}`];
+
+  try {
+    const response = await fetch('/api/auth/auth-parameters')
+    if (!response.ok) {
+      throw new Error(`Failed to fetch auth parameters: ${response.status}`)
+    }
+
+    const { supabaseUrl, supabaseAnonKey, environment } = await response.json()
+    console.log(`Initializing Supabase for ${environment} environment`)
+
+    supabaseClient = createClient(supabaseUrl, supabaseAnonKey)
+    return supabaseClient
+  } catch (error) {
+    console.error('Failed to initialize Supabase:', error)
+    throw error
+  }
 }
 
-const supabaseUrl = getClientConfigValue('SUPABASE_URL')
-const supabaseAnonKey = getClientConfigValue('SUPABASE_ANON_KEY')
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('Supabase configuration missing. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables.')
+// Export getter function that ensures initialization
+export function getSupabase(): SupabaseClient {
+  if (!supabaseClient) {
+    throw new Error('Supabase not initialized. Call initializeSupabase() first.')
+  }
+  return supabaseClient
 }
 
-export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '')
+// For backward compatibility, export as supabase (will be initialized by App component)
+export let supabase: SupabaseClient
