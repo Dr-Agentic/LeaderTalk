@@ -170,8 +170,16 @@ export function registerAuthRoutes(app: Express) {
         // Update existing user with Supabase ID if not set
         if (!user.googleId) {
           console.log("Updating existing user with Supabase ID");
-          user = await storage.updateUser(user.id, { photoUrl: photoURL || user.photoUrl });
+          const updatedUser = await storage.updateUser(user.id, { photoUrl: photoURL || user.photoUrl });
+          if (updatedUser) {
+            user = updatedUser;
+          }
         }
+      }
+      
+      if (!user) {
+        console.error("User creation/update failed");
+        return res.status(500).json({ error: "Failed to create or update user" });
       }
       
       // Set user ID in session directly (no regeneration to avoid production issues)
@@ -180,6 +188,10 @@ export function registerAuthRoutes(app: Express) {
       console.log("Setting userId in session:", user.id);
       console.log("Session ID before save:", req.sessionID);
       console.log("Session object before save:", { userId: req.session.userId });
+      
+      // Store user data for callback scope to avoid TypeScript undefined errors
+      const forceOnboarding = !user.selectedLeaders?.length;
+      const selectedLeaders = user.selectedLeaders;
       
       // Save session and respond
       req.session.save((saveErr) => {
@@ -191,8 +203,8 @@ export function registerAuthRoutes(app: Express) {
         console.log("Supabase authentication successful for user:", user.id);
         console.log("Session ID after save:", req.sessionID);
         console.log("Session userId after save:", req.session.userId);
-        console.log("Production mode:", process.env.NODE_ENV === 'production');
-        console.log("Cookie domain:", process.env.PROD_COOKIE_DOMAIN || process.env.COOKIE_DOMAIN);
+        console.log("Production mode:", config.isProduction);
+        console.log("Cookie domain:", config.session.cookieDomain);
         
         res.json({ 
           success: true, 
@@ -201,8 +213,8 @@ export function registerAuthRoutes(app: Express) {
             username: user.username,
             email: user.email,
             photoUrl: user.photoUrl,
-            forceOnboarding: !user.selectedLeaders?.length,
-            selectedLeaders: user.selectedLeaders
+            forceOnboarding,
+            selectedLeaders
           }
         });
       });
@@ -277,7 +289,7 @@ export function registerAuthRoutes(app: Express) {
       });
     } catch (error) {
       console.error("Test session error:", error);
-      res.status(500).json({ error: "Test session error", details: error.message });
+      res.status(500).json({ error: "Test session error", details: (error as Error).message });
     }
   });
 }
