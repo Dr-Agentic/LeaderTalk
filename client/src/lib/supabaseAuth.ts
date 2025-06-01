@@ -129,7 +129,7 @@ export async function handleAuthCallback(): Promise<AuthUser | null> {
     });
 
     // First check if there's already a session (most reliable approach)
-    const { data: sessionData } = await supabase.auth.getSession();
+    const { data: sessionData } = await getSupabase().auth.getSession();
     if (sessionData.session) {
       console.log("Auth callback successful via existing session", {
         userId: sessionData.session.user.id,
@@ -162,7 +162,7 @@ export async function getSessionToken(): Promise<string | null> {
   const {
     data: { session },
     error,
-  } = await supabase.auth.getSession();
+  } = await getSupabase().auth.getSession();
 
   if (error) {
     console.error("Failed to get session token", error);
