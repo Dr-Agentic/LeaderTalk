@@ -86,10 +86,10 @@ export default function NotFound() {
                   <AlertCircle className="h-8 w-8 text-red-400" />
                 </div>
               </div>
-              <h1 className="text-3xl font-bold text-white mb-2">404</h1>
+              <h1 className="text-3xl font-bold text-white mb-2">Even Leaders make mistakes...</h1>
               <h2 className="text-xl font-semibold text-gray-300 mb-2">Page Not Found</h2>
               <p className="text-gray-400 max-w-sm mx-auto">
-                The page you're looking for doesn't exist or has been moved.
+                It's how they learn, grow, and become even stronger.
               </p>
             </motion.div>
 
