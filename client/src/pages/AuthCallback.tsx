@@ -52,7 +52,8 @@ export default function AuthCallback() {
           })
 
           if (response.ok) {
-            const userData = await response.json()
+            const responseData = await response.json()
+            const userData = responseData.user
             console.log("Server authentication successful", { userId: userData.id })
             
             setStatus('success')
