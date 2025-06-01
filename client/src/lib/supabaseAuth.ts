@@ -75,7 +75,7 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
     const {
       data: { user },
       error,
-    } = await supabase.auth.getUser();
+    } = await getSupabase().auth.getUser();
     if (error) {
       console.error("Failed to get current user", error);
       return null;
@@ -90,7 +90,7 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
 // Sign out
 export async function signOut(): Promise<void> {
   try {
-    const { error } = await supabase.auth.signOut();
+    const { error } = await getSupabase().auth.signOut();
     if (error) {
       console.error("Sign out error", error);
       throw error;

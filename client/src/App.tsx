@@ -25,9 +25,8 @@ import AuthCallback from "@/pages/AuthCallback";
 import Login from "@/pages/Login";
 import { useEffect, useState } from "react";
 import { apiRequest } from "./lib/queryClient";
-// Debug logging removed - using console.log for basic logging
+import { initializeSupabase } from "./supabase";
 import SplashScreen from "@/components/SplashScreen";
-// Supabase import removed - now using Supabase authentication
 
 function Router() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -38,7 +37,8 @@ function Router() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // Note: Supabase redirect handling removed - now using Supabase authentication
+        // Initialize Supabase with server-provided configuration
+        await initializeSupabase();
 
         // Then check session status through our debug endpoint
         const isLoggedIn = await checkSession();
