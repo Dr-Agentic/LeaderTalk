@@ -186,7 +186,7 @@ export function registerAuthRoutes(app: Express) {
         );
         const updatedUser = await storage.updateUser(user.id, {
           photoUrl: photoURL || user.photoUrl,
-          googleId: user.googleId || "auth->supabase-callback-error-2025-06-01",
+          googleId: uid || "auth->supabase-callback-error-2025-06-01",
         });
         if (updatedUser) {
           user = updatedUser;
