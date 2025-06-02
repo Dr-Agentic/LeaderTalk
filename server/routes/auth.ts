@@ -202,7 +202,7 @@ export function registerAuthRoutes(app: Express) {
       }
 
       // Set user ID in session directly (no regeneration to avoid production issues)
-      req.session.userId = user.id;
+      req.session.userId = user.googleId;
 
       console.log("Setting userId in session:", user.googleId);
       console.log("Session ID before save:", req.sessionID);
@@ -222,7 +222,10 @@ export function registerAuthRoutes(app: Express) {
           return res.status(500).json({ error: "Failed to save session" });
         }
 
-        console.log("Supabase authentication successful for user:", user.id);
+        console.log(
+          "Supabase authentication successful for database user ID:",
+          user.id,
+        );
         console.log("Session ID after save:", req.sessionID);
         console.log("Session userId after save:", req.session.userId);
         console.log("Production mode:", config.isProduction);
