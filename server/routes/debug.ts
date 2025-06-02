@@ -10,6 +10,24 @@ export function registerDebugRoutes(app: Express) {
     const cookiePresent = !!req.headers.cookie;
     const sessionAge = req.session?.cookie?.maxAge || 0;
     
+    // Parse cookies to see what's actually being sent
+    const cookies = req.headers.cookie ? req.headers.cookie.split(';').reduce((acc: any, cookie) => {
+      const [name, value] = cookie.trim().split('=');
+      acc[name] = value;
+      return acc;
+    }, {}) : {};
+    
+    // Log cookie mismatch issue
+    console.log("🍪 COOKIE DEBUG:", {
+      expectedCookieName: 'leadertalk.sid',
+      hasLeadertalkSid: !!cookies['leadertalk.sid'],
+      hasConnectSid: !!cookies['connect.sid'],
+      allCookieNames: Object.keys(cookies),
+      sessionExists,
+      userId,
+      sessionId
+    });
+    
     // Get cookie headers for debugging
     const cookieExists = !!req.headers.cookie;
     const cookieHeader = req.headers.cookie ? 

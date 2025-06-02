@@ -158,6 +158,22 @@ export function registerAuthRoutes(app: Express) {
           .json({ error: "Invalid user data from Supabase" });
       }
 
+      // Parse cookies to debug the mismatch issue
+      const cookies = req.headers.cookie ? req.headers.cookie.split(';').reduce((acc: any, cookie) => {
+        const [name, value] = cookie.trim().split('=');
+        acc[name] = value;
+        return acc;
+      }, {}) : {};
+      
+      console.log("🔐 AUTH CALLBACK COOKIE DEBUG:", {
+        expectedCookieName: 'leadertalk.sid',
+        hasLeadertalkSid: !!cookies['leadertalk.sid'],
+        hasConnectSid: !!cookies['connect.sid'],
+        allCookieNames: Object.keys(cookies),
+        sessionIdBefore: req.sessionID?.substring(0, 8) + '...',
+        userIdBefore: req.session?.userId
+      });
+
       console.log("Processing Supabase authentication for:", {
         uid,
         email,
