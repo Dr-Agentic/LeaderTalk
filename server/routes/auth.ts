@@ -204,7 +204,7 @@ export function registerAuthRoutes(app: Express) {
       // Set user ID in session directly (no regeneration to avoid production issues)
       req.session.userId = user.id;
 
-      console.log("Setting userId in session:", user.id);
+      console.log("Setting userId in session:", user.googleId);
       console.log("Session ID before save:", req.sessionID);
       console.log(
         "Session object before save:",
