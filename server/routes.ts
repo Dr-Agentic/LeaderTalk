@@ -63,10 +63,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: isProduction,
+      secure: false, // Temporarily disabled to test cookie setting
       httpOnly: true,
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      sameSite: isProduction ? 'none' : 'lax',
+      sameSite: 'lax',
       domain: config.session.cookieDomain
     },
     name: 'leadertalk.sid'
