@@ -179,19 +179,16 @@ export function registerAuthRoutes(app: Express) {
         console.log("New user created:", user.id);
       } else {
         // Update existing user with Supabase ID if not set
-        // if (!user.googleId) {
-        console.log(
-          "Updating existing user with Supabase ID, existing googleId:",
-          user.googleId,
-        );
-        const updatedUser = await storage.updateUser(user.id, {
-          photoUrl: photoURL || user.photoUrl,
-          googleId: uid || "auth->supabase-callback-error-2025-06-01",
-        });
-        if (updatedUser) {
-          user = updatedUser;
+        if (!user.googleId) {
+          console.log("Updating existing user with Supabase ID");
+          const updatedUser = await storage.updateUser(user.id, {
+            photoUrl: photoURL || user.photoUrl,
+            googleId: uid
+          });
+          if (updatedUser) {
+            user = updatedUser;
+          }
         }
-        //}
       }
 
       if (!user) {
@@ -202,7 +199,7 @@ export function registerAuthRoutes(app: Express) {
       }
 
       // Set user ID in session directly (no regeneration to avoid production issues)
-      req.session.userId = user.googleId;
+      req.session.userId = user.id;
 
       console.log("Setting userId in session:", user.googleId);
       console.log("Session ID before save:", req.sessionID);

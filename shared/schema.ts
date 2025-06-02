@@ -209,7 +209,6 @@ export const insertUserSchema = createInsertSchema(users).omit({
 
 export const updateUserSchema = createInsertSchema(users).omit({
   id: true,
-  googleId: true,
   email: true,
   username: true,
   createdAt: true,
