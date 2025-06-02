@@ -35,6 +35,17 @@ export default function AuthCallback() {
             email: user.email
           })
 
+          // Store cookies before server call for comparison
+          ;(window as any).__cookiesBeforeAuth = document.cookie
+          
+          // Log cookies before server call
+          console.log("🍪 CLIENT: Cookies before server authentication:", {
+            allCookies: document.cookie,
+            hasLeadertalkSid: document.cookie.includes('leadertalk.sid'),
+            hasConnectSid: document.cookie.includes('connect.sid'),
+            cookieCount: document.cookie.split(';').length
+          })
+
           // Send user data to our Express server for session creation
           const response = await fetch('/api/auth/supabase-callback', {
             method: 'POST',
@@ -55,6 +66,15 @@ export default function AuthCallback() {
             const responseData = await response.json()
             const userData = responseData.user
             console.log("Server authentication successful", { userId: userData.id })
+            
+            // Log cookies after server call
+            console.log("🍪 CLIENT: Cookies after server authentication:", {
+              allCookies: document.cookie,
+              hasLeadertalkSid: document.cookie.includes('leadertalk.sid'),
+              hasConnectSid: document.cookie.includes('connect.sid'),
+              cookieCount: document.cookie.split(';').length,
+              cookieChanged: document.cookie !== (window as any).__cookiesBeforeAuth
+            })
             
             setStatus('success')
             
