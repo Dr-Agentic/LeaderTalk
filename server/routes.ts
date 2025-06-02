@@ -55,11 +55,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Configure session middleware
   const isProduction = config.nodeEnv === 'production';
   
-  console.log("🍪 Session Configuration:", {
-    cookieDomain: config.session.cookieDomain,
-    isProduction,
-    nodeEnv: config.nodeEnv
-  });
+
   
   app.use(session({
     store: new MemoryStoreFactory({
@@ -69,11 +65,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: false, // Temporarily disabled to test cookie setting
+      secure: isProduction,
       httpOnly: true,
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      sameSite: 'lax',
-      domain: undefined // Let cookie default to current domain
+      sameSite: isProduction ? 'none' : 'lax',
+      domain: config.session.cookieDomain || undefined // Use configured domain or default to current domain
     },
     name: 'leadertalk.sid'
   }));
