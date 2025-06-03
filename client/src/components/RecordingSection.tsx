@@ -548,7 +548,7 @@ export default function RecordingSection({
                     : "bg-red-600 text-white"
                   : hasExceededWordLimit
                     ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                    : "bg-red-100 text-red-600 hover:bg-red-200"
+                    : "bg-red-600/20 text-red-400 hover:bg-red-600/30 border-red-500/30"
               } mb-4 border-2 ${
                 isRecording
                   ? isPaused
@@ -556,7 +556,7 @@ export default function RecordingSection({
                     : "border-red-700"
                   : hasExceededWordLimit
                     ? "border-gray-300"
-                    : "border-red-200"
+                    : "border-red-500/30"
               } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500`}
               onClick={
                 !isRecording && !hasExceededWordLimit
