@@ -81,16 +81,14 @@ export default function AuthCallback() {
             // Clear the processing flag
             ;(window as any).__authCallbackProcessing = false
             
-            // Add a small delay to ensure the App component has time to update its state
-            setTimeout(() => {
-              if (userData.forceOnboarding || !userData.selectedLeaders?.length) {
-                console.log("Redirecting to onboarding for user setup")
-                window.location.replace('/onboarding')
-              } else {
-                console.log("User onboarding complete, redirecting to dashboard")
-                window.location.replace('/dashboard')
-              }
-            }, 200)
+            // Redirect immediately after successful authentication
+            if (userData.forceOnboarding || !userData.selectedLeaders?.length) {
+              console.log("Redirecting to onboarding for user setup")
+              window.location.replace('/onboarding')
+            } else {
+              console.log("User onboarding complete, redirecting to dashboard")
+              window.location.replace('/dashboard')
+            }
           } else {
             const errorText = await response.text()
             console.error('Server authentication failed:', errorText)
