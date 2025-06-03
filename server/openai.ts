@@ -264,7 +264,7 @@ async function transcribeAudio(audioPath: string): Promise<string> {
       console.log(`File header bytes: ${buffer.toString('hex')}`);
       
       // Check for common audio file signatures
-      const isWebm = buffer.toString('ascii', 0, 4) === '%\x9F\x80\x8A'; // WebM
+      const isWebm = buffer[0] === 0x1A && buffer[1] === 0x45 && buffer[2] === 0xDF && buffer[3] === 0xA3; // WebM/Matroska
       const isWav = buffer.toString('ascii', 0, 4) === 'RIFF'; // WAV
       const isMp3 = buffer[0] === 0x49 && buffer[1] === 0x44 && buffer[2] === 0x33; // MP3 with ID3
       
@@ -278,8 +278,13 @@ async function transcribeAudio(audioPath: string): Promise<string> {
     // Send audio directly to OpenAI
     console.log(`Sending audio file ${audioPath} to OpenAI for transcription`);
     
+    // Create a read stream with proper filename for OpenAI
+    const fileStream = fs.createReadStream(audioPath);
+    // Ensure the filename has the correct extension for OpenAI
+    (fileStream as any).path = audioPath.endsWith('.webm') ? audioPath : audioPath + '.webm';
+    
     const transcription = await openai.audio.transcriptions.create({
-      file: fs.createReadStream(audioPath),
+      file: fileStream,
       model: "whisper-1",
       response_format: "text",
     });
