@@ -505,7 +505,7 @@ export default function RecordingSection({
     <div id="record-section" className="mt-10">
       <H2>Record a Conversation</H2>
 
-      <div className="mt-4 bg-white shadow sm:rounded-lg">
+      <div className="mt-4 bg-gradient-to-br from-purple-600/20 to-pink-500/20 backdrop-blur-lg border border-purple-600/30 shadow sm:rounded-lg">
         <div className="px-4 py-5 sm:p-6">
           {/* Show loading state while checking word limit */}
           {isCheckingWordLimit && (
@@ -573,7 +573,7 @@ export default function RecordingSection({
               <Mic className="h-12 w-12" />
             </button>
 
-            <h3 className="text-lg font-medium text-gray-900 mt-4">
+            <h3 className="text-lg font-medium text-white mt-4">
               {isRecording
                 ? isPaused
                   ? "Recording Paused"
@@ -581,7 +581,7 @@ export default function RecordingSection({
                 : "Start Recording"}
             </h3>
 
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-white/70">
               {isRecording
                 ? `${formatTime(recordingTime)} / 50:00`
                 : "Click to start recording your conversation.\nLeaderTalk will analyze your communication patterns."}
@@ -589,7 +589,7 @@ export default function RecordingSection({
 
             {/* Microphone permission warning */}
             {isDenied && !isRecording && (
-              <div className="mt-3 p-2 bg-red-50 text-red-600 rounded-md flex items-center text-sm">
+              <div className="mt-3 p-2 bg-red-500/20 text-red-400 rounded-md flex items-center text-sm border border-red-500/30">
                 <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0" />
                 <span>
                   Microphone access denied. Please enable it in your browser
