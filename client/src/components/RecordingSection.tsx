@@ -136,12 +136,21 @@ export default function RecordingSection({
 
   // Handle start recording
   const handleStartRecording = async () => {
+    console.log("🎤 Recording start requested", {
+      isRecording,
+      hasExceededWordLimit,
+      isDenied,
+      permissionStatus
+    });
+
     if (isRecording) {
+      console.log("🎤 Already recording, ignoring request");
       return; // Already recording, do nothing
     }
 
     // Check if the user has exceeded their word limit
     if (hasExceededWordLimit) {
+      console.log("🎤 Recording blocked: word limit exceeded");
       toast({
         title: "Word limit exceeded",
         description:
@@ -154,6 +163,7 @@ export default function RecordingSection({
     try {
       // Check if permission is denied
       if (isDenied) {
+        console.log("🎤 Recording blocked: microphone permission denied");
         toast({
           title: "Microphone access denied",
           description:
@@ -163,17 +173,19 @@ export default function RecordingSection({
         return;
       }
 
+      console.log("🎤 Starting recording...");
       await startRecording();
       setIsRecording(true);
       setIsPaused(false);
       setRecordingTime(0);
       setRecordingProgress(0);
+      console.log("🎤 Recording started successfully");
       toast({
         title: "Recording started",
         description: "Your conversation is now being recorded.",
       });
     } catch (error) {
-      console.error("Error starting recording:", error);
+      console.error("🎤 Error starting recording:", error);
       toast({
         title: "Error starting recording",
         description:
@@ -208,6 +220,7 @@ export default function RecordingSection({
   };
 
   const handleStopRecording = async () => {
+    console.log("🎤 Stop recording requested");
     try {
       await stopRecording();
       setIsRecording(false);
@@ -216,8 +229,10 @@ export default function RecordingSection({
       // Set a default title with date and time format
       setRecordingTitle(generateDefaultTitle());
 
+      console.log("🎤 Recording stopped, showing title dialog");
       setShowTitleDialog(true);
     } catch (error) {
+      console.error("🎤 Error stopping recording:", error);
       toast({
         title: "Error stopping recording",
         description: "There was an issue stopping the recording.",
