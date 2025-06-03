@@ -21,7 +21,7 @@ async function processAudioInBackground(recordingId: number, audioBuffer: Buffer
     
     // Write buffer to temporary file without corruption
     const timestamp = Date.now();
-    const tempFilePath = path.join(os.tmpdir(), `recording_${timestamp}.webm`);
+    const tempFilePath = path.join(os.tmpdir(), `recording_${timestamp}.mp3`);
     fs.writeFileSync(tempFilePath, audioBuffer);
     
     console.log(`[RECORDING ${recordingId}] Starting transcription and analysis...`);
