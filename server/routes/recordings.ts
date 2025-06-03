@@ -19,10 +19,10 @@ async function processAudioInBackground(recordingId: number, audioBuffer: Buffer
       throw new Error(`Recording ${recordingId} not found`);
     }
     
-    // Write buffer to temporary file without corruption
+    // Write buffer to temporary file without corruption - preserve original extension
     const timestamp = Date.now();
-    const tempFilePath = path.join(os.tmpdir(), `recording_${timestamp}.mp3`);
-    fs.writeFileSync(tempFilePath, audioBuffer);
+    const tempFilePath = path.join(os.tmpdir(), `recording_${timestamp}.webm`);
+    fs.writeFileSync(tempFilePath, audioBuffer, { encoding: null });
     
     console.log(`[RECORDING ${recordingId}] Starting transcription and analysis...`);
     const { transcription, analysis } = await transcribeAndAnalyzeAudio(recording, tempFilePath);
@@ -127,7 +127,7 @@ export function registerRecordingRoutes(app: Express) {
       const billingCycleEnd = new Date(billingCycle.end);
       
       const currentCycleRecordings = allRecordings.filter(recording => {
-        const recordingDate = new Date(recording.recordedAt || recording.createdAt);
+        const recordingDate = new Date(recording.recordedAt);
         return recordingDate >= billingCycleStart && recordingDate <= billingCycleEnd;
       });
 
@@ -343,6 +343,8 @@ export function registerRecordingRoutes(app: Express) {
 
       // Mark as deleted rather than actual deletion
       const deletedRecording = await storage.updateRecording(recordingId, { 
+        title: existingRecording.title,
+        duration: existingRecording.duration,
         status: 'deleted' 
       });
 
