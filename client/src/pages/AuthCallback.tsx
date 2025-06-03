@@ -116,10 +116,16 @@ export default function AuthCallback() {
   }, []) // Empty dependency array to run only once
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900 relative overflow-hidden p-4">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}} />
+      </div>
+      
+      <Card className="w-full max-w-md bg-gradient-to-br from-purple-600/20 to-pink-500/20 backdrop-blur-lg border border-purple-600/30 relative z-10">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">
+          <CardTitle className="text-2xl font-bold text-white">
             {status === 'loading' && 'Completing Sign In...'}
             {status === 'success' && 'Sign In Successful!'}
             {status === 'error' && 'Sign In Failed'}
@@ -128,8 +134,8 @@ export default function AuthCallback() {
         <CardContent className="text-center space-y-4">
           {status === 'loading' && (
             <>
-              <Loader2 className="h-8 w-8 animate-spin mx-auto" />
-              <p className="text-muted-foreground">
+              <Loader2 className="h-8 w-8 animate-spin mx-auto text-white" />
+              <p className="text-white/70">
                 Please wait while we complete your authentication...
               </p>
             </>
@@ -137,10 +143,10 @@ export default function AuthCallback() {
           
           {status === 'success' && (
             <>
-              <div className="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-                <div className="h-4 w-4 bg-green-500 rounded-full"></div>
+              <div className="h-8 w-8 bg-green-500/20 rounded-full flex items-center justify-center mx-auto border border-green-500/30">
+                <div className="h-4 w-4 bg-green-400 rounded-full"></div>
               </div>
-              <p className="text-muted-foreground">
+              <p className="text-white/70">
                 Redirecting you to the app...
               </p>
             </>
@@ -148,13 +154,13 @@ export default function AuthCallback() {
           
           {status === 'error' && (
             <>
-              <div className="h-8 w-8 bg-red-100 rounded-full flex items-center justify-center mx-auto">
-                <div className="h-4 w-4 bg-red-500 rounded-full"></div>
+              <div className="h-8 w-8 bg-red-500/20 rounded-full flex items-center justify-center mx-auto border border-red-500/30">
+                <div className="h-4 w-4 bg-red-400 rounded-full"></div>
               </div>
-              <p className="text-red-600 text-sm">
+              <p className="text-red-400 text-sm">
                 {error}
               </p>
-              <p className="text-muted-foreground text-sm">
+              <p className="text-white/70 text-sm">
                 Redirecting you back to login...
               </p>
             </>
