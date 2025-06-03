@@ -214,6 +214,14 @@ export function registerRecordingRoutes(app: Express) {
   // Upload and process audio file
   app.post("/api/recordings/upload", requireAuth, upload.single('audio'), async (req, res) => {
     console.log(`[UPLOAD ROUTE] POST request received from user ${req.session?.userId}`);
+    console.log(`[UPLOAD ROUTE] Request body:`, req.body);
+    console.log(`[UPLOAD ROUTE] File received:`, req.file ? {
+      originalname: req.file.originalname,
+      mimetype: req.file.mimetype,
+      size: req.file.size,
+      fieldname: req.file.fieldname
+    } : 'NO FILE');
+    
     try {
       const userId = req.session?.userId;
       if (!userId) {
@@ -222,6 +230,7 @@ export function registerRecordingRoutes(app: Express) {
       }
 
       if (!req.file) {
+        console.log(`[UPLOAD ROUTE] No file in request`);
         return res.status(400).json({ error: "No audio file provided" });
       }
 

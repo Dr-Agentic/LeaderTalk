@@ -243,7 +243,15 @@ export default function RecordingSection({
 
   // Handle save recording
   const handleSaveRecording = async () => {
+    console.log("🎤 Save recording requested", {
+      title: recordingTitle.trim(),
+      hasRecordingBlob: !!recordingBlob,
+      recordingBlobSize: recordingBlob?.size,
+      recordingTime
+    });
+
     if (!recordingTitle.trim()) {
+      console.log("🎤 Save blocked: no title provided");
       toast({
         title: "Title required",
         description: "Please provide a title for your recording.",
@@ -264,8 +272,14 @@ export default function RecordingSection({
       const recording = await createRes.json();
 
       if (!recordingBlob) {
+        console.error("🎤 No recording blob available");
         throw new Error("No recording data available");
       }
+
+      console.log("🎤 Recording blob validated:", {
+        size: recordingBlob.size,
+        type: recordingBlob.type
+      });
 
       // Upload the audio file for analysis
       const formData = new FormData();
@@ -336,9 +350,11 @@ export default function RecordingSection({
 
       // Capture upload start time for timing
       const uploadStartTime = Date.now();
-      console.log("Starting audio upload", {
+      console.log("🎤 Starting audio upload", {
         recordingId: recording.id,
         size: recordingBlob.size,
+        filename: `recording_${Date.now()}.${fileExtension}`,
+        mimeType: mimeType
       });
 
       // Upload audio file with timeout
