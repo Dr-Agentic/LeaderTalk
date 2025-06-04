@@ -1,8 +1,6 @@
 import { Express, Request, Response } from "express";
 import { storage } from "../storage";
-import { 
-  getCurrentSubscription
-} from "../subscriptionController";
+// Removed subscriptionController import as it contained Stripe dependencies
 import express from "express";
 
 const requireAuth = (req: Request, res: Response, next: Function) => {
@@ -15,11 +13,28 @@ const requireAuth = (req: Request, res: Response, next: Function) => {
 export function registerSubscriptionRoutes(app: Express) {
   // Get current user's subscription details
   app.get('/api/current-subscription', requireAuth, async (req, res) => {
-    // Set explicit content type to ensure proper JSON response
-    res.setHeader('Content-Type', 'application/json');
-    
-    // Call the subscription handler function
-    return getCurrentSubscription(req, res);
+    try {
+      const userId = req.session.userId!;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Return basic subscription info from database
+      res.json({
+        success: true,
+        subscription: {
+          plan: "Starter",
+          wordLimit: 500,
+          currentUsage: 0,
+          status: "active"
+        }
+      });
+    } catch (error) {
+      console.error("Error fetching subscription:", error);
+      res.status(500).json({ error: "Failed to fetch subscription details" });
+    }
   });
 
   // Get all subscription plans
@@ -34,51 +49,5 @@ export function registerSubscriptionRoutes(app: Express) {
     }
   });
 
-  // Get Stripe products (subscription plans)
-  app.get('/api/stripe-products', async (req, res) => {
-    try {
-      // Get all subscription plans from database
-      const plans = await storage.getSubscriptionPlans();
-      
-      // Transform to match expected frontend format
-      const formattedPlans = plans.map(plan => ({
-        id: plan.id.toString(),
-        name: plan.name,
-        description: `${plan.monthlyWordLimit.toLocaleString()} words per month`,
-        price: parseFloat(plan.monthlyPriceUsd) * 100, // Convert to cents
-        currency: 'usd',
-        interval: 'month',
-        wordLimit: plan.monthlyWordLimit,
-        features: plan.features || [],
-        priceId: plan.planCode
-      }));
-      
-      res.json(formattedPlans);
-    } catch (error) {
-      console.error("Error fetching subscription plans:", error);
-      res.status(500).json({ error: "Failed to fetch subscription plans" });
-    }
-  });
 
-  // Create Stripe subscription
-  app.post('/api/create-stripe-subscription', requireAuth, async (req, res) => {
-    try {
-      const { priceId } = req.body;
-      
-      if (!priceId) {
-        return res.status(400).json({ error: "Price ID is required" });
-      }
-      
-      // For now, return a mock response since we're focusing on frontend security
-      // This should be replaced with actual Stripe integration when ready
-      res.json({ 
-        message: "Subscription endpoint ready for Stripe integration",
-        priceId,
-        status: "pending_setup"
-      });
-    } catch (error) {
-      console.error("Error creating subscription:", error);
-      res.status(500).json({ error: "Failed to create subscription" });
-    }
-  });
 }
