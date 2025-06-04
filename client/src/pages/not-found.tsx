@@ -14,12 +14,12 @@ export default function NotFound() {
     const currentPath = window.location.pathname;
     const referrer = document.referrer;
     const timestamp = new Date().toISOString();
-    
+
     console.error(`
 🚨 404 ERROR - PAGE NOT FOUND 🚨
 ═══════════════════════════════════
 📍 Path: ${currentPath}
-🔗 Referrer: ${referrer || 'Direct access'}
+🔗 Referrer: ${referrer || "Direct access"}
 ⏰ Timestamp: ${timestamp}
 🌐 Full URL: ${window.location.href}
 ═══════════════════════════════════
@@ -29,8 +29,8 @@ export default function NotFound() {
     const countdownTimer = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
-          console.log('🏠 Auto-redirecting to home page...');
-          setLocation('/');
+          console.log("🏠 Auto-redirecting to home page...");
+          setLocation("/");
           return 0;
         }
         return prev - 1;
@@ -41,7 +41,7 @@ export default function NotFound() {
   }, [setLocation]);
 
   const handleGoHome = () => {
-    setLocation('/');
+    setLocation("/");
   };
 
   const handleGoBack = () => {
@@ -51,7 +51,7 @@ export default function NotFound() {
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-900/20 via-gray-900 to-gray-900"></div>
-      
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -67,9 +67,9 @@ export default function NotFound() {
               transition={{ delay: 0.2, duration: 0.5 }}
               className="mb-6 flex justify-center"
             >
-              <img 
-                src="/assets/images/LeaderTalk-2025-05-30.png" 
-                alt="LeaderTalk Logo" 
+              <img
+                src="/assets/images/LeaderTalk-2025-05-30.png"
+                alt="LeaderTalk Logo"
                 className="h-16 w-auto"
               />
             </motion.div>
@@ -86,10 +86,14 @@ export default function NotFound() {
                   <AlertCircle className="h-8 w-8 text-red-400" />
                 </div>
               </div>
-              <h1 className="text-3xl font-bold text-white mb-2">Even Leaders make mistakes...</h1>
-              <h2 className="text-xl font-semibold text-gray-300 mb-2">Page Not Found</h2>
-              <p className="text-gray-400 max-w-sm mx-auto">
+              <h1 className="text-3xl font-bold text-white mb-2">
+                Even Leaders make mistakes...
+              </h1>
+              <h2 className="text-xl font-semibold text-gray-300 mb-2">
                 It's how they learn, grow, and become even stronger.
+              </h2>
+              <p className="text-gray-400 max-w-sm mx-auto">
+                Be The Leader That you Inspire To Be.
               </p>
             </motion.div>
 
@@ -103,9 +107,9 @@ export default function NotFound() {
               <p className="text-sm text-gray-400 mb-3">
                 Redirecting to home in {countdown} seconds...
               </p>
-              
+
               <div className="w-full bg-gray-700 rounded-full h-2 mb-4">
-                <div 
+                <div
                   className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-1000 ease-out"
                   style={{ width: `${((5 - countdown) / 5) * 100}%` }}
                 ></div>
@@ -127,7 +131,7 @@ export default function NotFound() {
                 <Home className="h-4 w-4 mr-2" />
                 Go Home
               </Button>
-              
+
               <Button
                 onClick={handleGoBack}
                 variant="outline"
