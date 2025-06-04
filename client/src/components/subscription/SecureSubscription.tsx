@@ -9,7 +9,6 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 
-// Load Stripe
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || '');
 
 interface BillingProduct {
@@ -33,6 +32,7 @@ interface CurrentSubscription {
     status: string;
     plan: string;
     planId: string;
+    priceId: string;
     isFree: boolean;
     formattedAmount: string;
     formattedInterval: string;
@@ -250,21 +250,27 @@ export default function SecureSubscription() {
                   ))}
                 </ul>
 
-                <Button
-                  className="w-full"
-                  onClick={() => handleSubscribe(plan)}
-                  disabled={isCurrentPlan || updateSubscription.isPending}
-                  variant={isCurrentPlan ? "secondary" : "default"}
-                >
-                  {updateSubscription.isPending ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      Processing...
-                    </>
-                  ) : (
-                    isCurrentPlan ? "Current Plan" : `Choose ${plan.name.replace('LeaderTalk_', '')}`
-                  )}
-                </Button>
+                <div className="space-y-2">
+                  <Button
+                    className="w-full"
+                    onClick={() => handleSubscribe(plan)}
+                    disabled={isCurrentPlan || updateSubscription.isPending}
+                    variant={isCurrentPlan ? "secondary" : "default"}
+                  >
+                    {updateSubscription.isPending ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        Processing...
+                      </>
+                    ) : (
+                      (() => {
+                        return isCurrentPlan
+                          ? "Current Plan"
+                          : `Opt for ${plan.name}`;
+                      })()
+                    )}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           );
@@ -286,7 +292,8 @@ export default function SecureSubscription() {
               });
               toast({
                 title: "Payment Method Added",
-                description: "Your payment method has been added successfully!",
+                description:
+                  "Your payment method has been added successfully! Please try updating your subscription again.",
               });
             }}
           />
