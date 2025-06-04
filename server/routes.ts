@@ -81,6 +81,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register all modular routes FIRST
   registerAllRoutes(app);
 
+  // Add a catch-all for unmatched API routes to prevent Vite from handling them
+  app.use('/api/*', (req, res) => {
+    res.status(404).json({ error: `API endpoint not found: ${req.originalUrl}` });
+  });
+
   // Serve static files AFTER API routes
   servePublicFiles(app);
 
