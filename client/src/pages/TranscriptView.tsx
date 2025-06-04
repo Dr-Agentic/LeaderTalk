@@ -319,19 +319,19 @@ export default function TranscriptView() {
           <div className="flex flex-wrap gap-2 mt-2">
             <Badge
               variant="outline"
-              className="bg-green-50 text-green-700 border-green-200"
+              className="bg-green-500/20 text-green-300 border-green-500/30"
             >
               Positive Communication
             </Badge>
             <Badge
               variant="outline"
-              className="bg-red-50 text-red-700 border-red-200"
+              className="bg-red-500/20 text-red-300 border-red-500/30"
             >
               Negative Communication
             </Badge>
             <Badge
               variant="outline"
-              className="bg-gray-50 text-gray-700 border-gray-200"
+              className="bg-yellow-500/20 text-yellow-300 border-yellow-500/30"
             >
               Needs Improvement
             </Badge>
@@ -344,7 +344,7 @@ export default function TranscriptView() {
               analysis={recording.analysis}
             />
           ) : (
-            <p className="text-gray-500 italic">
+            <p className="text-white/50 italic">
               No transcript available for this recording.
             </p>
           )}
@@ -354,7 +354,7 @@ export default function TranscriptView() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-green-600">Positive Moments</CardTitle>
+            <CardTitle className="text-green-400">Positive Moments</CardTitle>
           </CardHeader>
           <CardContent>
             <AnalysisInstancesList
@@ -367,7 +367,7 @@ export default function TranscriptView() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-red-600">Negative Moments</CardTitle>
+            <CardTitle className="text-red-400">Negative Moments</CardTitle>
           </CardHeader>
           <CardContent>
             <AnalysisInstancesList
@@ -382,7 +382,7 @@ export default function TranscriptView() {
 
       <Card className="mt-6">
         <CardHeader>
-          <CardTitle className="text-gray-600">Areas for Improvement</CardTitle>
+          <CardTitle className="text-yellow-400">Areas for Improvement</CardTitle>
         </CardHeader>
         <CardContent>
           <AnalysisInstancesList
@@ -431,7 +431,7 @@ function TranscriptWithHighlighting({
       !negativeInstances.length &&
       !passiveInstances.length)
   ) {
-    return <p className="whitespace-pre-line">{transcription}</p>;
+    return <p className="whitespace-pre-line text-white/90">{transcription}</p>;
   }
   
   // Function to highlight text using case-insensitive search with lowercase comparison
@@ -582,11 +582,11 @@ function TranscriptWithHighlighting({
       // Create the highlighted span based on type
       let cssClass = "";
       if (segment.type === "positive") {
-        cssClass = "bg-green-100 text-green-800 px-1 rounded";
+        cssClass = "bg-green-500/20 text-green-300 px-1 rounded border border-green-500/30";
       } else if (segment.type === "negative") {
-        cssClass = "bg-red-100 text-red-800 px-1 rounded";
+        cssClass = "bg-red-500/20 text-red-300 px-1 rounded border border-red-500/30";
       } else if (segment.type === "passive") {
-        cssClass = "bg-gray-100 text-gray-800 px-1 rounded";
+        cssClass = "bg-yellow-500/20 text-yellow-300 px-1 rounded border border-yellow-500/30";
       }
       
       // Replace the text with the highlighted version
@@ -606,7 +606,7 @@ function TranscriptWithHighlighting({
   const highlightedTranscript = getColoredTranscript();
 
   return (
-    <div className="prose prose-sm max-w-none whitespace-pre-line">
+    <div className="prose prose-sm max-w-none whitespace-pre-line text-white/90">
       <div dangerouslySetInnerHTML={{ __html: highlightedTranscript }} />
     </div>
   );
