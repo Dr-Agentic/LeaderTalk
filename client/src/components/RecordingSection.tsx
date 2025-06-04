@@ -578,7 +578,7 @@ export default function RecordingSection({
                     ? "bg-yellow-500 text-white"
                     : "bg-red-600 text-white"
                   : hasExceededWordLimit
-                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                    ? "bg-slate-700/50 text-slate-400 cursor-not-allowed"
                     : "bg-red-600/20 text-red-400 hover:bg-red-600/30 border-red-500/30"
               } mb-4 border-2 ${
                 isRecording
@@ -586,7 +586,7 @@ export default function RecordingSection({
                     ? "border-yellow-600"
                     : "border-red-700"
                   : hasExceededWordLimit
-                    ? "border-gray-300"
+                    ? "border-slate-600/50"
                     : "border-red-500/30"
               } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500`}
               onClick={
@@ -665,7 +665,7 @@ export default function RecordingSection({
 
                 <div className="mt-6 max-w-xl mx-auto">
                   <Progress value={recordingProgress} className="h-2" />
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <div className="flex justify-between text-xs text-white/50 mt-1">
                     <span>0:00</span>
                     <span>50:00</span>
                   </div>
@@ -674,7 +674,7 @@ export default function RecordingSection({
             )}
 
             {/* Settings */}
-            <div className="mt-6 border-t border-gray-200 pt-4">
+            <div className="mt-6 border-t border-white/10 pt-4">
               <div className="flex items-center justify-center space-x-8">
                 <div className="flex items-center space-x-2">
                   <Checkbox
@@ -687,7 +687,7 @@ export default function RecordingSection({
                   />
                   <Label
                     htmlFor="detect-speakers"
-                    className="text-sm text-gray-600"
+                    className="text-sm text-white/70"
                   >
                     Auto-detect speakers
                   </Label>
@@ -702,7 +702,7 @@ export default function RecordingSection({
                     }
                     disabled={isRecording}
                   />
-                  <Label htmlFor="transcribe" className="text-sm text-gray-600">
+                  <Label htmlFor="transcribe" className="text-sm text-white/70">
                     Create transcript
                   </Label>
                 </div>
@@ -714,10 +714,10 @@ export default function RecordingSection({
 
       {/* Title Dialog */}
       <Dialog open={showTitleDialog} onOpenChange={setShowTitleDialog}>
-        <DialogContent>
+        <DialogContent className="bg-slate-900/95 backdrop-blur-lg border border-purple-600/30">
           <DialogHeader>
-            <DialogTitle>Name Your Recording</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-white">Name Your Recording</DialogTitle>
+            <DialogDescription className="text-white/70">
               Give your recording a descriptive title to help you identify it
               later.
             </DialogDescription>
@@ -725,13 +725,13 @@ export default function RecordingSection({
 
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="title" className="text-right">
+              <Label htmlFor="title" className="text-right text-white/80">
                 Title
               </Label>
               <Input
                 id="title"
                 placeholder="e.g., Team Meeting Discussion"
-                className="col-span-3"
+                className="col-span-3 bg-slate-800/50 border-purple-600/30 text-white placeholder:text-white/50"
                 value={recordingTitle}
                 onChange={(e) => setRecordingTitle(e.target.value)}
               />
@@ -743,6 +743,7 @@ export default function RecordingSection({
               type="submit"
               onClick={handleSaveRecording}
               disabled={isProcessing}
+              className="bg-purple-600 hover:bg-purple-700 text-white"
             >
               {isProcessing ? "Processing..." : "Save Recording"}
             </Button>
