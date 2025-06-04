@@ -708,7 +708,7 @@ function AnalysisInstancesList({
   };
 
   if (!instances.length) {
-    return <p className="text-gray-500 italic">{emptyMessage}</p>;
+    return <p className="text-white/50 italic">{emptyMessage}</p>;
   }
 
   return (
@@ -719,21 +719,21 @@ function AnalysisInstancesList({
             <span
               className={`${
                 type === "positive"
-                  ? "bg-green-100 text-green-800"
+                  ? "bg-green-500/20 text-green-300 border border-green-500/30"
                   : type === "negative"
-                    ? "bg-red-100 text-red-800"
-                    : "bg-gray-100 text-gray-800"
+                    ? "bg-red-500/20 text-red-300 border border-red-500/30"
+                    : "bg-yellow-500/20 text-yellow-300 border border-yellow-500/30"
               } px-1 py-0.5 rounded`}
             >
               "{instance.text}"
             </span>
-            <span className="text-xs text-gray-500 ml-2">
+            <span className="text-xs text-white/50 ml-2">
               {formatTimestamp(instance.timestamp)}
             </span>
           </p>
-          <p className="text-sm text-gray-700 ml-2">{instance.analysis}</p>
+          <p className="text-sm text-white/80 ml-2">{instance.analysis}</p>
           {instance.improvement && (
-            <p className="text-sm text-blue-600 ml-2 mt-1">
+            <p className="text-sm text-blue-400 ml-2 mt-1">
               <strong>Suggestion:</strong> {instance.improvement}
             </p>
           )}
@@ -743,7 +743,7 @@ function AnalysisInstancesList({
             selectedLeaders &&
             selectedLeaders.length > 0 && (
               <div className="mt-3 ml-2">
-                <p className="text-xs text-gray-500 mb-2">
+                <p className="text-xs text-white/50 mb-2">
                   How would your selected leaders express this?
                 </p>
                 <div className="flex flex-wrap gap-2">
@@ -778,12 +778,12 @@ function AnalysisInstancesList({
 
                 {/* Display the selected leader's suggestion */}
                 {activeLeader && activeInstance === index && (
-                  <div className="mt-3 bg-blue-50 border border-blue-100 p-3 rounded-md">
-                    <p className="text-xs text-blue-700 mb-2">
+                  <div className="mt-3 bg-blue-500/20 border border-blue-500/30 p-3 rounded-md backdrop-blur-sm">
+                    <p className="text-xs text-blue-300 mb-2">
                       {selectedLeaders.find((l) => l.id === activeLeader)?.name}
                       's Approach:
                     </p>
-                    <p className="text-sm whitespace-pre-line text-blue-900">
+                    <p className="text-sm whitespace-pre-line text-blue-200">
                       {getLeaderAlternative(instance, activeLeader)}
                     </p>
                   </div>
