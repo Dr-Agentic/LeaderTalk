@@ -1,5 +1,5 @@
 import AppLayout from "@/components/AppLayout";
-import SecureSubscription from "@/components/subscription/SecureSubscription";
+import PlanManager from "@/components/subscription/PlanManager";
 
 export default function SubscriptionSecure() {
   return (
@@ -9,7 +9,7 @@ export default function SubscriptionSecure() {
       backLabel="Back to Settings"
       pageTitle="Subscription Management"
     >
-      <SecureSubscription />
+      <PlanManager />
     </AppLayout>
   );
 }
