@@ -1,25 +1,173 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, CheckCircle2, AlertCircle, CreditCard } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import {
+  CheckCircle,
+  Loader2,
+  ExternalLink,
+  Check,
+  CreditCard,
+  AlertTriangle,
+  Info,
+} from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Elements } from "@stripe/react-stripe-js";
+import { queryClient } from "@/lib/queryClient";
 import { loadStripe } from "@stripe/stripe-js";
+import {
+  Elements,
+  PaymentElement,
+  useStripe,
+  useElements,
+} from "@stripe/react-stripe-js";
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || '');
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY!);
+
+// Payment Setup Form Component
+function PaymentSetupForm({
+  clientSecret,
+  onSuccess,
+}: {
+  clientSecret: string;
+  onSuccess: () => void;
+}) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const { toast } = useToast();
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!stripe || !elements) {
+      return;
+    }
+
+    setIsProcessing(true);
+
+    try {
+      console.log("🔄 Starting payment method setup...");
+
+      const { error, setupIntent } = await stripe.confirmSetup({
+        elements,
+        confirmParams: {
+          return_url: window.location.origin + "/subscription",
+        },
+        redirect: "if_required",
+      });
+
+      console.log("💳 Setup result:", { error, setupIntent });
+
+      if (error) {
+        console.error("❌ Payment setup failed:", error);
+        toast({
+          title: "Payment Method Setup Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else if (setupIntent && setupIntent.status === "succeeded") {
+        console.log("✅ Payment method successfully added to Stripe!");
+        toast({
+          title: "Payment Method Added",
+          description: "Your payment method has been successfully added!",
+        });
+        onSuccess();
+      } else {
+        console.log("⚠️ Setup intent status:", setupIntent?.status);
+        toast({
+          title: "Payment Setup Incomplete",
+          description: "Please try again or contact support.",
+          variant: "destructive",
+        });
+      }
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  return (
+    <Card className="border-gray-600 bg-gray-800/30">
+      <CardHeader>
+        <CardTitle className="flex items-center space-x-2 text-white">
+          <CreditCard className="h-5 w-5" />
+          <span>Add Payment Method</span>
+        </CardTitle>
+        <CardDescription className="text-gray-300">
+          Please add a payment method to update your subscription
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <PaymentElement />
+          <Button
+            type="submit"
+            disabled={!stripe || isProcessing}
+            className="w-full"
+          >
+            {isProcessing ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Setting up payment method...
+              </>
+            ) : (
+              "Add Payment Method"
+            )}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+  );
+}
 
 interface BillingProduct {
   id: string;
+  code: string;
   name: string;
+  description: string;
+  productIcon: string | null;
   pricing: {
-    monthly?: { stripePriceId: string; amount: number; formattedAmount: string };
-    yearly?: { stripePriceId: string; amount: number; formattedAmount: string };
+    monthly: {
+      amount: number;
+      formattedPrice: string;
+      interval: string;
+    };
+    yearly: {
+      amount: number;
+      formattedPrice: string;
+      formattedSavings?: string;
+      interval: string;
+    };
   };
-  wordLimit: number;
-  features: string[];
+  features: {
+    wordLimit: number;
+    formattedWordLimit: string;
+    benefits: string[];
+  };
+  isDefault: boolean;
   isPopular: boolean;
 }
 
@@ -32,10 +180,13 @@ interface CurrentSubscription {
     status: string;
     plan: string;
     planId: string;
-    priceId: string;
     isFree: boolean;
+
+    // Formatted amounts
     formattedAmount: string;
     formattedInterval: string;
+
+    // Formatted dates
     startDate: Date;
     formattedStartDate: string;
     currentPeriodStart: Date;
@@ -43,37 +194,35 @@ interface CurrentSubscription {
     formattedCurrentPeriod: string;
     nextRenewalDate: Date;
     formattedNextRenewal: string;
+
+    // Word usage with formatting
     wordLimit: number;
     currentUsage: number;
     formattedUsage: string;
     usagePercentage: number;
+
+    // Status formatting
     cancelAtPeriodEnd: boolean;
     formattedStatus: string;
     statusColor: string;
+
+    // Billing cycle info
     daysRemaining: number;
     formattedDaysRemaining: string;
   };
 }
 
-function PaymentSetupForm({ clientSecret, onSuccess }: { clientSecret: string; onSuccess: () => void }) {
-  return (
-    <div className="p-4 border rounded bg-gray-800/50">
-      <p className="text-white">Payment setup form</p>
-      <Button onClick={onSuccess} className="mt-4">Complete Setup</Button>
-    </div>
-  );
-}
-
 export default function SecureSubscription() {
   const [selectedPlan, setSelectedPlan] = useState<BillingProduct | null>(null);
-  const [billingInterval, setBillingInterval] = useState<"monthly" | "yearly">("monthly");
+  const [billingInterval, setBillingInterval] = useState<"monthly" | "yearly">(
+    "monthly",
+  );
   const [paymentSetup, setPaymentSetup] = useState<{
     clientSecret: string;
     planId: string;
   } | null>(null);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const { toast } = useToast();
-  const queryClient = useQueryClient();
 
   // Fetch current subscription
   const { data: currentSubscription, isLoading: subscriptionLoading } =
@@ -83,10 +232,12 @@ export default function SecureSubscription() {
     });
 
   // Fetch available plans
-  const { data: plans, isLoading: plansLoading } = useQuery<BillingProduct[]>({
-    queryKey: ["/api/billing/products"],
-    enabled: true,
-  });
+  const { data: plans, isLoading: plansLoading } = useQuery<SubscriptionPlan[]>(
+    {
+      queryKey: ["/api/billing/products"],
+      enabled: true,
+    },
+  );
 
   // Update subscription mutation
   const updateSubscription = useMutation({
@@ -105,31 +256,116 @@ export default function SecureSubscription() {
 
       return response.json();
     },
+    onSuccess: (data, variables) => {
+      if (data.requiresPayment && data.clientSecret) {
+        // Show payment setup form
+        setPaymentSetup({
+          clientSecret: data.clientSecret,
+          planId: data.planId || "unknown",
+        });
+        toast({
+          title: "Payment Method Required",
+          description:
+            "Please add a payment method to complete the subscription change.",
+        });
+      } else {
+        // Enhanced success messaging based on subscription change type
+        showSubscriptionSuccessMessage(data, variables);
+        // Force immediate refresh of subscription data
+        queryClient.invalidateQueries({
+          queryKey: ["/api/billing/subscriptions/current"],
+        });
+        queryClient.refetchQueries({
+          queryKey: ["/api/billing/subscriptions/current"],
+        });
+      }
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to create subscription. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Cancellation mutation for paid subscriptions
+  const cancelSubscription = useMutation({
+    mutationFn: async () => {
+      const response = await fetch("/api/billing/subscriptions/cancel", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to cancel subscription");
+      }
+
+      return response.json();
+    },
     onSuccess: () => {
       toast({
-        title: "Subscription Updated",
-        description: "Your subscription has been updated successfully!",
+        title: "Subscription Cancelled",
+        description: `Your subscription has been cancelled. You'll continue to enjoy Executive features until ${currentSubscription?.subscription?.formattedNextRenewal}, then switch to the free Starter plan.`,
+        duration: 8000,
       });
       queryClient.invalidateQueries({
         queryKey: ["/api/billing/subscriptions/current"],
       });
-      setSelectedPlan(null);
     },
-    onError: (error: any) => {
-      if (error.message?.includes("payment method")) {
-        setPaymentSetup({
-          clientSecret: error.clientSecret || "",
-          planId: selectedPlan?.id || "",
-        });
-      } else {
-        toast({
-          title: "Update Failed",
-          description: error.message || "Failed to update subscription",
-          variant: "destructive",
-        });
-      }
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to cancel subscription. Please try again.",
+        variant: "destructive",
+      });
     },
   });
+
+  // Enhanced success messaging based on subscription change type
+  const showSubscriptionSuccessMessage = (data: any, variables: any) => {
+    const currentPlan = currentSubscription?.subscription?.plan || "";
+    const newPlan = data.newPlan || "";
+    const amount = data.amount || 0;
+    const interval = data.interval || "";
+    const nextRenewal = data.nextRenewal || "";
+
+    // Determine subscription change type and show appropriate message
+    if (currentPlan === "leadertalk_starter" && newPlan.includes("exec")) {
+      // Free to Paid Upgrade
+      toast({
+        title: "🎉 Congratulations! Welcome to Executive!",
+        description: `You've successfully upgraded to our premium plan! You'll be billed ${amount} ${interval}ly starting ${nextRenewal}. Your subscription will renew automatically until cancelled.`,
+        duration: 8000,
+      });
+    } else if (interval === "year" && currentPlan.includes("monthly")) {
+      // Monthly to Yearly
+      toast({
+        title: "🎉 Congratulations! Annual Savings Activated!",
+        description: `You've switched to our annual plan! You'll continue with your monthly plan until the cycle ends, then your annual subscription (${amount}/year) begins and renews automatically until cancelled.`,
+        duration: 8000,
+      });
+    } else if (
+      newPlan === "leadertalk_starter" &&
+      currentPlan.includes("exec")
+    ) {
+      // Paid to Free Downgrade
+      toast({
+        title: "Subscription Updated",
+        description: `You've switched to our free starter plan. No refunds will be provided - you'll continue enjoying your Executive benefits until ${nextRenewal}, then switch to the Starter plan.`,
+        duration: 8000,
+      });
+    } else {
+      // General success message
+      toast({
+        title: "Success!",
+        description: "Your subscription has been updated successfully",
+        duration: 5000,
+      });
+    }
+  };
 
   const handleSubscribe = (plan: BillingProduct) => {
     const priceId = plan.pricing[billingInterval]?.stripePriceId;
@@ -152,129 +388,177 @@ export default function SecureSubscription() {
       <div className="text-center space-y-4">
         <h1 className="text-3xl font-bold text-white">Choose Your Plan</h1>
         <p className="text-lg text-gray-300">
-          Upgrade your leadership training with premium features and increased word limits
+          Upgrade your leadership training with premium features and increased
+          word limits
         </p>
       </div>
 
       {/* Current Subscription Status */}
-      {currentSubscription?.hasSubscription && (
-        <Card className="bg-gray-800/50 border-gray-700">
-          <CardHeader>
-            <CardTitle className="text-white">Current Subscription</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-gray-400">Plan</p>
-                <p className="text-white font-medium">
-                  {currentSubscription.subscription?.plan}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-400">Status</p>
-                <Badge className={currentSubscription.subscription?.statusColor}>
-                  {currentSubscription.subscription?.formattedStatus}
+      {currentSubscription?.hasSubscription &&
+        currentSubscription.subscription && (
+          <Card className="border-gray-600 bg-gray-800/30">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-white">
+                    Current Subscription
+                  </CardTitle>
+                  <CardDescription className="text-gray-300">
+                    You're subscribed to {currentSubscription.subscription.plan}
+                  </CardDescription>
+                </div>
+                <Badge
+                  variant="secondary"
+                  className="bg-primary/20 text-primary border-primary/30"
+                >
+                  {currentSubscription.subscription.formattedStatus}
                 </Badge>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+            </CardHeader>
+            <CardContent className="text-gray-300">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                  <p className="font-medium text-gray-300">Word Usage</p>
+                  <p className="text-2xl font-bold text-white">
+                    {currentSubscription.subscription.formattedUsage}
+                  </p>
+                </div>
+                <div>
+                  <p className="font-medium text-gray-300">Amount</p>
+                  <p className="text-2xl font-bold text-white">
+                    {currentSubscription.subscription.formattedAmount}
+                    {currentSubscription.subscription.formattedInterval}
+                  </p>
+                </div>
+                <div>
+                  <p className="font-medium text-gray-300">Next Billing</p>
+                  <p className="text-sm text-gray-300">
+                    {currentSubscription.subscription.formattedNextRenewal}
+                  </p>
+                </div>
+                <div>
+                  <p className="font-medium text-gray-300">Subscription Created</p>
+                  <p className="text-sm text-gray-300">
+                    You first subscribed on{" "}
+                    {currentSubscription.subscription.formattedStartDate}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
-      {/* Billing Toggle */}
-      <div className="flex justify-center">
-        <div className="bg-gray-800 p-1 rounded-lg">
-          <Button
-            variant={billingInterval === "monthly" ? "default" : "ghost"}
-            size="sm"
-            onClick={() => setBillingInterval("monthly")}
-          >
-            Monthly
-          </Button>
-          <Button
-            variant={billingInterval === "yearly" ? "default" : "ghost"}
-            size="sm"
-            onClick={() => setBillingInterval("yearly")}
-          >
-            Yearly
-          </Button>
-        </div>
-      </div>
-
-      {/* Plans */}
+      {/* Available Plans */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {plans?.map((plan) => {
-          const currentPlan = currentSubscription?.subscription;
-          const isCurrentPlan = currentPlan?.planId === plan.id;
-          const pricing = plan.pricing[billingInterval];
+        {plans?.map((plan) => (
+          <Card
+            key={plan.id}
+            className={`relative flex flex-col h-full transition-all duration-200 hover:shadow-lg border-gray-600 bg-gray-800/30 ${
+              selectedPlan?.id === plan.id ? "ring-2 ring-primary" : ""
+            }`}
+          >
+            <CardHeader className="flex-shrink-0">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  {plan.productIcon && (
+                    <img
+                      src={plan.productIcon}
+                      alt={`${plan.name} icon`}
+                      className="w-8 h-8 rounded-md object-cover"
+                    />
+                  )}
+                  <CardTitle className="text-xl text-white">{plan.name}</CardTitle>
+                </div>
+                {plan.isPopular && <Badge variant="default">Popular</Badge>}
+              </div>
+              <CardDescription className="text-gray-300">{plan.description}</CardDescription>
+            </CardHeader>
 
-          return (
-            <Card 
-              key={plan.id} 
-              className={`relative ${
-                isCurrentPlan 
-                  ? "ring-2 ring-primary bg-primary/5" 
-                  : "bg-gray-800/50 border-gray-700"
-              }`}
-            >
-              {plan.isPopular && (
-                <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2">
-                  Popular
-                </Badge>
-              )}
-              
-              <CardHeader className="text-center">
-                <CardTitle className="text-white">
-                  {plan.name.replace('LeaderTalk_', '')}
-                </CardTitle>
-                {pricing && (
-                  <div className="text-3xl font-bold text-primary">
-                    {pricing.formattedAmount}
-                    <span className="text-sm text-gray-400">
-                      /{billingInterval === "monthly" ? "month" : "year"}
+            <CardContent className="flex-1 flex flex-col justify-between space-y-4">
+              <div className="space-y-4">
+                {/* Pricing */}
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-white">
+                    {plan.pricing.formattedPrice}
+                  </div>
+                  {plan.pricing.formattedSavings && (
+                    <div className="text-sm text-green-400 font-medium mt-1">
+                      {plan.pricing.formattedSavings}
+                    </div>
+                  )}
+                </div>
+
+                <Separator className="bg-gray-600" />
+
+                {/* Features */}
+                <div className="space-y-2">
+                  <div className="flex items-center text-sm">
+                    <Check className="h-4 w-4 text-green-400 mr-2" />
+                    <span className="text-gray-300">
+                      {plan.features.wordLimit.toLocaleString()} words/month
                     </span>
                   </div>
-                )}
-                <CardDescription>
-                  {plan.wordLimit.toLocaleString()} words per month
-                </CardDescription>
-              </CardHeader>
-
-              <CardContent className="space-y-4">
-                <ul className="space-y-2 text-sm text-gray-300">
-                  {plan.features.map((feature, index) => (
-                    <li key={index} className="flex items-center">
-                      <CheckCircle2 className="h-4 w-4 text-green-400 mr-2 flex-shrink-0" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-
-                <div className="space-y-2">
-                  <Button
-                    className="w-full"
-                    onClick={() => handleSubscribe(plan)}
-                    disabled={isCurrentPlan || updateSubscription.isPending}
-                    variant={isCurrentPlan ? "secondary" : "default"}
-                  >
-                    {updateSubscription.isPending ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                        Processing...
-                      </>
-                    ) : (
-                      (() => {
-                        return isCurrentPlan
-                          ? "Current Plan"
-                          : `Opt for ${plan.name}`;
-                      })()
-                    )}
-                  </Button>
+                  {plan.features.advancedAnalytics && (
+                    <div className="flex items-center text-sm">
+                      <Check className="h-4 w-4 text-green-500 mr-2" />
+                      <span>Advanced analytics</span>
+                    </div>
+                  )}
+                  {plan.features.prioritySupport && (
+                    <div className="flex items-center text-sm">
+                      <Check className="h-4 w-4 text-green-500 mr-2" />
+                      <span>Priority support</span>
+                    </div>
+                  )}
+                  {plan.billingType === "yearly" && (
+                    <div className="flex items-center text-sm">
+                      <Check className="h-4 w-4 text-blue-500 mr-2" />
+                      <span className="text-blue-600 font-medium">
+                        Best value option
+                      </span>
+                    </div>
+                  )}
                 </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+              </div>
+
+              {/* Button anchored to bottom */}
+              <Button
+                className="w-full mt-auto text-xs py-3 px-2 h-[60px] whitespace-normal break-words flex items-center justify-center"
+                onClick={() => handleSubscribe(plan)}
+                disabled={updateSubscription.isPending}
+                variant="default"
+              >
+                <div className="text-center leading-relaxed">
+                  {updateSubscription.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    (() => {
+                      const currentPriceId =
+                        currentSubscription?.subscription?.priceId;
+                      // Check if current plan matches this specific plan's price ID
+                      const planPriceId = plan.pricing?.stripePriceId;
+                      const isCurrentPlan = currentPriceId === planPriceId;
+
+                      console.log("🔍 Price ID comparison:", {
+                        currentPriceId,
+                        planPriceId,
+                        isCurrentPlan,
+                        planName: plan.name,
+                      });
+
+                      return isCurrentPlan
+                        ? "Current Plan"
+                        : `Opt for ${plan.name}`;
+                    })()
+                  )}
+                </div>
+              </Button>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       {/* Payment Setup Form */}
@@ -299,6 +583,74 @@ export default function SecureSubscription() {
           />
         </Elements>
       )}
+
+
+
+      {/* Security Notice */}
+      <Card className="border-gray-600 bg-gray-800/30">
+        <CardContent className="p-4">
+          <div className="flex items-center space-x-2 text-primary">
+            <CheckCircle className="h-5 w-5" />
+            <p className="font-medium text-white">Secure Payment Processing</p>
+          </div>
+          <p className="text-gray-300 text-sm mt-1">
+            All payments are processed securely through our payment provider. Your payment
+            information is never stored on our servers.
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Embedded Cancellation Confirmation Modal */}
+      <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-red-600">
+              <AlertTriangle className="h-5 w-5" />
+              Cancel Subscription?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-sm text-gray-600">
+              <div>
+                Are you sure you want to cancel your Executive subscription?
+                This action cannot be undone.
+              </div>
+              <div className="mt-4">
+                <strong>What happens next:</strong>
+                <ul className="list-disc pl-5 mt-2 space-y-1">
+                  <li>
+                    You'll continue to enjoy all Executive features until{" "}
+                    {currentSubscription?.subscription?.formattedNextRenewal}
+                  </li>
+                  <li>
+                    After that, your account will automatically switch to the
+                    free Starter plan
+                  </li>
+                  <li>
+                    No refunds will be provided for the current billing period
+                  </li>
+                  <li>
+                    You can resubscribe at any time to regain Executive access
+                  </li>
+                </ul>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep Subscription</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                cancelSubscription.mutate();
+                setShowCancelDialog(false);
+              }}
+              className="bg-red-600 hover:bg-red-700"
+              disabled={cancelSubscription.isPending}
+            >
+              {cancelSubscription.isPending
+                ? "Cancelling..."
+                : "Yes, Cancel Subscription"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
