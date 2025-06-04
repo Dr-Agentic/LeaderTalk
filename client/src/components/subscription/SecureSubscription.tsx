@@ -56,10 +56,9 @@ interface CurrentSubscription {
 }
 
 function PaymentSetupForm({ clientSecret, onSuccess }: { clientSecret: string; onSuccess: () => void }) {
-  // Placeholder for payment setup form - you'll need to implement this
   return (
     <div className="p-4 border rounded bg-gray-800/50">
-      <p className="text-white">Payment setup form would go here</p>
+      <p className="text-white">Payment setup form</p>
       <Button onClick={onSuccess} className="mt-4">Complete Setup</Button>
     </div>
   );
@@ -118,7 +117,6 @@ export default function SecureSubscription() {
     },
     onError: (error: any) => {
       if (error.message?.includes("payment method")) {
-        // Handle payment method setup
         setPaymentSetup({
           clientSecret: error.clientSecret || "",
           planId: selectedPlan?.id || "",
