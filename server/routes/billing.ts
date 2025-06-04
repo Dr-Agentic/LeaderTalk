@@ -94,21 +94,5 @@ export function registerBillingRoutes(app: Express) {
     });
   });
 
-  // GET /api/billing/subscriptions/history - Get subscription history
-  app.get('/api/billing/subscriptions/history', requireAuth, async (req, res) => {
-    try {
-      const userId = req.session!.userId!;
-      
-      // Implementation would fetch from paymentServiceHandler
-      // Return clean billing history (no payment processor details)
-      res.json({
-        subscriptions: [],
-        payments: []
-      });
-      
-    } catch (error) {
-      console.error("Error fetching subscription history:", error);
-      res.status(500).json({ error: "Failed to fetch subscription history" });
-    }
-  });
+
 }
