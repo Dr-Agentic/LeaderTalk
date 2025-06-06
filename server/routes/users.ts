@@ -35,6 +35,35 @@ export function registerUserRoutes(app: Express) {
     }
   });
 
+  // Update current user info
+  app.patch("/api/users/me", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session?.userId;
+      if (!userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      const updateData = updateUserSchema.parse(req.body);
+      
+      const updatedUser = await storage.updateUser(userId, updateData);
+      if (!updatedUser) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      res.json(updatedUser);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "Validation error", 
+          details: error.errors 
+        });
+      }
+      
+      console.error("Error updating user:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   // Get user word usage
   app.get("/api/users/word-usage", async (req, res) => {
     try {
