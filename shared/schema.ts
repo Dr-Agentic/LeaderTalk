@@ -212,7 +212,7 @@ export const updateUserSchema = createInsertSchema(users).omit({
   email: true,
   username: true,
   createdAt: true,
-});
+}).partial();
 
 export const insertLeaderSchema = createInsertSchema(leaders).omit({
   id: true,
