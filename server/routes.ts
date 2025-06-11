@@ -133,7 +133,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       secure: isProduction,
       httpOnly: true,
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      sameSite: 'lax' as const,
+      sameSite: isProduction ? 'none' as const : 'lax' as const, // Use 'none' for production cross-domain
       path: '/',
       domain: isProduction ? 'app.leadertalk.app' : undefined // Explicit domain for production
     }
@@ -185,7 +185,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return originalSetHeader.call(this, name, filteredCookies.length === 1 ? filteredCookies[0] : filteredCookies);
         } else if (blockedCount > 0) {
           console.log('🚫 BLOCKED ALL COOKIES - only connect.sid was present');
-          return; // Don't set any cookies if we only had connect.sid
+          return originalSetHeader.call(this, name, ''); // Return empty instead of undefined
         }
       }
       return originalSetHeader.call(this, name, value);
