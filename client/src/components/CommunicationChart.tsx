@@ -31,7 +31,7 @@ export default function CommunicationChart({ data, loading }: CommunicationChart
     const negY = canvas.height * 3 / 4;
     
     // Draw lines
-    ctx.strokeStyle = '#e5e7eb'; // gray-200
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)'; // white with transparency for dark theme
     ctx.lineWidth = 1;
     
     // Draw positive line
@@ -54,13 +54,13 @@ export default function CommunicationChart({ data, loading }: CommunicationChart
     
     // Add labels
     ctx.font = '10px Inter, sans-serif';
-    ctx.fillStyle = '#16a34a'; // green-600
+    ctx.fillStyle = '#22c55e'; // green-500 for better visibility on dark
     ctx.fillText('Positive', 4, posY - 8);
     
-    ctx.fillStyle = '#6b7280'; // gray-500
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'; // white with transparency
     ctx.fillText('Neutral', 4, midY - 4);
     
-    ctx.fillStyle = '#dc2626'; // red-600
+    ctx.fillStyle = '#ef4444'; // red-500 for better visibility on dark
     ctx.fillText('Negative', 4, negY - 4);
     
     // Process data for drawing
@@ -87,7 +87,7 @@ export default function CommunicationChart({ data, loading }: CommunicationChart
       }
     }
     
-    ctx.strokeStyle = '#3b82f6'; // primary blue
+    ctx.strokeStyle = '#60a5fa'; // blue-400 for better visibility on dark
     ctx.lineWidth = 2;
     ctx.stroke();
     
@@ -98,7 +98,7 @@ export default function CommunicationChart({ data, loading }: CommunicationChart
       
       switch (point.type) {
         case 'positive':
-          ctx.fillStyle = '#10b981'; // green-500
+          ctx.fillStyle = '#22c55e'; // green-500 brighter
           break;
         case 'negative':
           ctx.fillStyle = '#ef4444'; // red-500
@@ -107,7 +107,7 @@ export default function CommunicationChart({ data, loading }: CommunicationChart
           ctx.fillStyle = '#f59e0b'; // amber-500
           break;
         default:
-          ctx.fillStyle = '#6b7280'; // gray-500
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'; // white with transparency
       }
       
       ctx.fill();
@@ -115,7 +115,7 @@ export default function CommunicationChart({ data, loading }: CommunicationChart
     
     // Draw time markers at bottom
     const timeLabels = 5;
-    ctx.fillStyle = '#9ca3af'; // gray-400
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)'; // white with transparency for dark theme
     ctx.font = '10px Inter, sans-serif';
     
     for (let i = 0; i < timeLabels; i++) {
@@ -141,43 +141,37 @@ export default function CommunicationChart({ data, loading }: CommunicationChart
   
   if (loading) {
     return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="text-center text-sm text-gray-500 mb-4">Communication Analysis</div>
-          <Skeleton className="h-32 w-full" />
-          <div className="flex justify-between text-xs text-gray-400 mt-2">
-            <Skeleton className="h-4 w-8" />
-            <Skeleton className="h-4 w-8" />
-            <Skeleton className="h-4 w-8" />
-            <Skeleton className="h-4 w-8" />
-            <Skeleton className="h-4 w-8" />
-          </div>
-        </CardContent>
-      </Card>
+      <div className="p-0">
+        <div className="text-center text-sm text-white/70 mb-4">Communication Analysis</div>
+        <Skeleton className="h-32 w-full bg-white/10" />
+        <div className="flex justify-between text-xs text-white/50 mt-2">
+          <Skeleton className="h-4 w-8 bg-white/10" />
+          <Skeleton className="h-4 w-8 bg-white/10" />
+          <Skeleton className="h-4 w-8 bg-white/10" />
+          <Skeleton className="h-4 w-8 bg-white/10" />
+          <Skeleton className="h-4 w-8 bg-white/10" />
+        </div>
+      </div>
     );
   }
   
   if (!data || data.length === 0) {
     return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="text-center text-sm text-gray-500 mb-4">Communication Analysis</div>
-          <div className="h-32 flex items-center justify-center text-gray-400">
-            No analysis data available
-          </div>
-        </CardContent>
-      </Card>
+      <div className="p-0">
+        <div className="text-center text-sm text-white/70 mb-4">Communication Analysis</div>
+        <div className="h-32 flex items-center justify-center text-white/50 border border-white/10 rounded-md">
+          No analysis data available
+        </div>
+      </div>
     );
   }
   
   return (
-    <Card>
-      <CardContent className="p-6">
-        <div className="text-center text-sm text-gray-500 mb-4">Communication Analysis</div>
-        <div className="relative h-32">
-          <canvas ref={canvasRef} className="w-full h-full" />
-        </div>
-      </CardContent>
-    </Card>
+    <div className="p-0">
+      <div className="text-center text-sm text-white/70 mb-4">Communication Analysis</div>
+      <div className="relative h-32">
+        <canvas ref={canvasRef} className="w-full h-full bg-transparent" />
+      </div>
+    </div>
   );
 }
