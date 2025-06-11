@@ -8,6 +8,16 @@ let currentUserId: number | null = null;
 
 export async function checkSession(): Promise<boolean> {
   try {
+    // Log cookies before making request
+    const cookiesBeforeRequest = document.cookie;
+    console.log('🔍 CLIENT: Cookies before session check:', {
+      allCookies: cookiesBeforeRequest || 'none',
+      hasLeadertalkSid: cookiesBeforeRequest.includes('leadertalk.sid'),
+      hasConnectSid: cookiesBeforeRequest.includes('connect.sid'),
+      cookieCount: cookiesBeforeRequest ? cookiesBeforeRequest.split(';').length : 0,
+      timestamp: new Date().toISOString()
+    });
+    
     const timestamp = Date.now(); // Add timestamp to prevent caching
     const response = await fetch(`/api/debug/session?t=${timestamp}`, {
       credentials: 'include', // Ensure cookies are sent
@@ -17,6 +27,18 @@ export async function checkSession(): Promise<boolean> {
         'Pragma': 'no-cache',
         'Expires': '0'
       }
+    });
+    
+    // Log cookies after response (in case server set new ones)
+    const cookiesAfterRequest = document.cookie;
+    const cookiesChanged = cookiesBeforeRequest !== cookiesAfterRequest;
+    console.log('🔍 CLIENT: Cookies after session check:', {
+      allCookies: cookiesAfterRequest || 'none',
+      hasLeadertalkSid: cookiesAfterRequest.includes('leadertalk.sid'),
+      hasConnectSid: cookiesAfterRequest.includes('connect.sid'),
+      cookieCount: cookiesAfterRequest ? cookiesAfterRequest.split(';').length : 0,
+      cookiesChanged,
+      timestamp: new Date().toISOString()
     });
     
     if (!response.ok) {

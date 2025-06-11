@@ -4,6 +4,7 @@ import session from "express-session";
 import MemoryStore from "memorystore";
 import connectPgSimple from "connect-pg-simple";
 import cors from "cors";
+import crypto from "crypto";
 import { fileURLToPath } from "url";
 import path from "path";
 import { config } from "./config/environment";
@@ -99,7 +100,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     name: 'leadertalk.sid', // Force override of default connect.sid
     genid: () => {
       // Custom session ID generator to ensure uniqueness
-      return require('crypto').randomBytes(16).toString('hex');
+      return crypto.webcrypto.getRandomValues(new Uint8Array(16))
+        .reduce((acc, byte) => acc + byte.toString(16).padStart(2, '0'), '');
     },
     cookie: {
       secure: isProduction,
@@ -128,7 +130,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.log('🚨 PROD: Expected domain:', productionDomain);
   }
 
-  app.use(session(sessionConfig));
+  // Add session creation interceptor to prove our theory
+  const originalSession = session(sessionConfig);
+  
+  app.use((req, res, next) => {
+    const hadSessionBefore = !!req.headers.cookie && req.headers.cookie.includes('sid');
+    const cookiesBeforeSession = req.headers.cookie || 'none';
+    
+    console.log('🔍 PRE-SESSION:', {
+      hadSessionBefore,
+      cookiesReceived: cookiesBeforeSession,
+      hasLeadertalkSid: cookiesBeforeSession.includes('leadertalk.sid'),
+      hasConnectSid: cookiesBeforeSession.includes('connect.sid'),
+      timestamp: new Date().toISOString()
+    });
+    
+    // Call the actual session middleware
+    originalSession(req, res, (err) => {
+      if (err) {
+        console.error('Session middleware error:', err);
+        return next(err);
+      }
+      
+      // Check what happened after session middleware ran
+      const sessionCreated = !!req.session;
+      const sessionId = req.sessionID;
+      
+      console.log('🔍 POST-SESSION:', {
+        sessionCreated,
+        sessionId: sessionId?.substring(0, 8) + '...',
+        sessionWasNew: !hadSessionBefore && sessionCreated,
+        cookieToBeSet: sessionCreated ? 'Will be set in response' : 'None',
+        configuredName: sessionConfig.name,
+        timestamp: new Date().toISOString()
+      });
+      
+      // Intercept the response to see exactly what cookie is being set
+      const originalSetHeader = res.setHeader;
+      res.setHeader = function(name: string, value: any) {
+        if (name.toLowerCase() === 'set-cookie') {
+          console.log('🍪 ACTUAL COOKIE BEING SET:', {
+            header: name,
+            value: Array.isArray(value) ? value : [value],
+            containsLeadertalk: JSON.stringify(value).includes('leadertalk.sid'),
+            containsConnect: JSON.stringify(value).includes('connect.sid'),
+            timestamp: new Date().toISOString()
+          });
+        }
+        return originalSetHeader.call(this, name, value);
+      };
+      
+      next();
+    });
+  });
 
   // Add comprehensive session debugging middleware
   app.use((req, res, next) => {
