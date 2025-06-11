@@ -223,70 +223,52 @@ export function registerAuthRoutes(app: Express) {
       console.log("Production mode:", config.isProduction);
       console.log("Cookie domain:", config.session.cookieDomain);
 
-      // In production, regenerate session to ensure proper cookie setting
-      if (config.isProduction) {
-        req.session.regenerate((regenerateErr) => {
-          if (regenerateErr) {
-            console.error("Session regeneration error:", regenerateErr);
-            return res.status(500).json({ error: "Failed to regenerate session" });
-          }
+      // Set user ID in session for both production and development
+      req.session.userId = user.id;
+      
+      console.log("Setting userId in session:", user.id);
+      console.log("Session ID before save:", req.sessionID);
+      console.log("Environment:", config.isProduction ? 'production' : 'development');
 
-          console.log("Session regenerated in production, new ID:", req.sessionID);
-          
-          // Set user ID in new session
-          req.session.userId = user.id;
+      // Save session with comprehensive error handling
+      req.session.save((saveErr) => {
+        if (saveErr) {
+          console.error("Session save error:", saveErr);
+          console.error("Session store type:", req.sessionStore?.constructor?.name);
+          return res.status(500).json({ error: "Failed to save session" });
+        }
 
-          // Save session and respond
-          req.session.save((saveErr) => {
-            if (saveErr) {
-              console.error("Session save error after regeneration:", saveErr);
-              return res.status(500).json({ error: "Failed to save session" });
-            }
-
-            console.log("🍪 PROD: Session saved successfully");
-            console.log("🍪 PROD: Final session ID:", req.sessionID);
-            console.log("🍪 PROD: Final userId:", req.session.userId);
-
-            res.json({
-              success: true,
-              user: {
-                id: user.id,
-                username: user.username,
-                email: user.email,
-                photoUrl: user.photoUrl,
-                forceOnboarding,
-                selectedLeaders,
-              },
-            });
-          });
-        });
-      } else {
-        // Development: Set user ID directly
-        req.session.userId = user.id;
+        console.log("Session saved successfully");
+        console.log("Final session ID:", req.sessionID);
+        console.log("Final userId:", req.session.userId);
         
-        req.session.save((saveErr) => {
-          if (saveErr) {
-            console.error("Session save error:", saveErr);
-            return res.status(500).json({ error: "Failed to save session" });
-          }
-
-          console.log("Development authentication successful for user ID:", user.id);
-          console.log("Session ID after save:", req.sessionID);
-          console.log("Session userId after save:", req.session.userId);
-
-          res.json({
-            success: true,
-            user: {
-              id: user.id,
-              username: user.username,
-              email: user.email,
-              photoUrl: user.photoUrl,
-              forceOnboarding,
-              selectedLeaders,
-            },
+        // Verify session was actually saved to store in production
+        if (req.sessionStore && config.isProduction) {
+          req.sessionStore.get(req.sessionID, (getErr, sessionData) => {
+            if (getErr) {
+              console.error("Session verification failed:", getErr);
+            } else {
+              console.log("Session verification:", {
+                sessionExists: !!sessionData,
+                storedUserId: sessionData?.userId || null,
+                expectedUserId: user.id
+              });
+            }
           });
+        }
+        
+        res.json({
+          success: true,
+          user: {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            photoUrl: user.photoUrl,
+            forceOnboarding,
+            selectedLeaders,
+          },
         });
-      }
+      });
     } catch (error) {
       console.error("Supabase authentication error:", error);
       res

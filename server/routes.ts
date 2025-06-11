@@ -2,10 +2,12 @@ import express, { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import session from "express-session";
 import MemoryStore from "memorystore";
+import connectPgSimple from "connect-pg-simple";
 import cors from "cors";
 import { fileURLToPath } from "url";
 import path from "path";
 import { config } from "./config/environment";
+import { pool } from "./db";
 
 // Import the modular route registrations
 import { registerAllRoutes } from "./routes/index";
@@ -15,6 +17,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const MemoryStoreFactory = MemoryStore(session);
+const PostgresStore = connectPgSimple(session);
 
 const requireAuth = (req: Request, res: Response, next: Function) => {
   if (!req.session?.userId) {
@@ -55,12 +58,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Configure session middleware
   const isProduction = config.nodeEnv === 'production';
   
-
+  // Create session store based on environment
+  const sessionStore = isProduction 
+    ? new PostgresStore({
+        pool: pool,
+        tableName: 'session',
+        createTableIfMissing: true,
+        pruneSessionInterval: 24 * 60 * 60, // Prune expired sessions every 24 hours
+      })
+    : new MemoryStoreFactory({
+        checkPeriod: 86400000 // prune expired entries every 24h
+      });
+  
+  console.log(`📦 Session Store: ${isProduction ? 'PostgreSQL' : 'Memory'}`);
   
   app.use(session({
-    store: new MemoryStoreFactory({
-      checkPeriod: 86400000 // prune expired entries every 24h
-    }),
+    store: sessionStore,
     secret: config.session.secret,
     resave: false,
     saveUninitialized: false,
@@ -75,9 +88,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     name: 'leadertalk.sid'
   }));
 
-  // Add session debugging middleware for production
-  if (isProduction) {
-    app.use((req, res, next) => {
+  // Add comprehensive session debugging middleware
+  app.use((req, res, next) => {
+    // Log session store health
+    if (isProduction && req.sessionStore) {
+      req.sessionStore.get(req.sessionID, (err, sessionData) => {
+        if (err) {
+          console.error('🚨 PROD: Session store error:', err);
+        } else {
+          console.log('🔍 PROD: Session store lookup:', {
+            sessionId: req.sessionID?.substring(0, 8) + '...',
+            dataExists: !!sessionData,
+            userId: sessionData?.userId || null
+          });
+        }
+      });
+    }
+    
+    if (isProduction) {
       const originalSetHeader = res.setHeader.bind(res);
       res.setHeader = function(name: string, value: any) {
         if (name.toLowerCase() === 'set-cookie') {
@@ -85,9 +113,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         return originalSetHeader(name, value);
       };
-      next();
-    });
-  }
+    }
+    next();
+  });
 
   // Parse JSON bodies
   app.use(express.json({ limit: '10mb' }));
