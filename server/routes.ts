@@ -48,16 +48,23 @@ export function servePublicFiles(app: Express) {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Configure CORS
-  app.use(cors({
-    origin: true,
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
-  }));
-
   // Configure session middleware
   const isProduction = config.nodeEnv === 'production';
+  
+  // Configure CORS with explicit domain handling for production
+  const corsOrigin = isProduction 
+    ? ['https://app.leadertalk.app', 'https://leadertalk.app']
+    : true; // Allow all origins in development
+    
+  app.use(cors({
+    origin: corsOrigin,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Cookie'],
+    exposedHeaders: ['Set-Cookie'],
+    optionsSuccessStatus: 200,
+    preflightContinue: false
+  }));
   
   // Create session store based on environment
   const sessionStore = isProduction 
@@ -126,9 +133,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       secure: isProduction,
       httpOnly: true,
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      sameSite: isProduction ? 'lax' as const : 'lax' as const, // Use 'lax' for production domain compatibility
-      path: '/', // Explicitly set cookie path
-      domain: undefined // Let browser use current domain automatically
+      sameSite: 'lax' as const,
+      path: '/',
+      domain: isProduction ? 'app.leadertalk.app' : undefined // Explicit domain for production
     }
   };
 
