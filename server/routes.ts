@@ -80,179 +80,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   console.log(`📦 Session Store: ${isProduction ? 'PostgreSQL' : 'Memory'}`);
   
-  // Debug and validate cookie domain configuration
-  console.log('🔍 Session Domain Debug:', {
-    isProduction,
-    configCookieDomain: config.session.cookieDomain,
-    NODE_ENV: process.env.NODE_ENV,
-    COOKIE_DOMAIN: process.env.COOKIE_DOMAIN,
-    PROD_COOKIE_DOMAIN: process.env.PROD_COOKIE_DOMAIN
-  });
-  
   if (isProduction && !config.session.cookieDomain) {
-    throw new Error('❌ CRITICAL: COOKIE_DOMAIN or PROD_COOKIE_DOMAIN must be set in production environment');
+    throw new Error('Cookie domain must be set in production environment');
   }
   
   const productionDomain = isProduction ? config.session.cookieDomain : undefined;
-  
-  // Aggressively clear any existing session middleware
-  if (app._router && app._router.stack) {
-    console.log('🧹 Clearing ALL existing session middleware to prevent conflicts');
-    const originalStackLength = app._router.stack.length;
-    app._router.stack = app._router.stack.filter((layer: any) => {
-      const name = layer.handle?.name || 'anonymous';
-      const handleStr = layer.handle?.toString() || '';
-      const isSessionMiddleware = 
-        name === 'session' || 
-        name === 'sessionMiddleware' || 
-        name.includes('session') ||
-        handleStr.includes('connect.sid') ||
-        handleStr.includes('session') ||
-        handleStr.includes('express-session');
-      
-      if (isSessionMiddleware) {
-        console.log('🗑️ Removed session middleware:', { name, handlePreview: handleStr.substring(0, 100) });
-      }
-      return !isSessionMiddleware;
-    });
-    console.log(`🧹 Stack cleaned: ${originalStackLength} -> ${app._router.stack.length} middleware`);
-  }
   
   const sessionConfig = {
     store: sessionStore,
     secret: config.session.secret,
     resave: false,
-    saveUninitialized: true, // Allow cookies for new sessions
-    name: 'leadertalk.sid', // Force override of default connect.sid
+    saveUninitialized: true,
+    name: 'leadertalk.sid',
     genid: () => {
-      // Custom session ID generator to ensure uniqueness
       return crypto.webcrypto.getRandomValues(new Uint8Array(16))
         .reduce((acc, byte) => acc + byte.toString(16).padStart(2, '0'), '');
     },
     cookie: {
       secure: isProduction,
       httpOnly: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      sameSite: isProduction ? 'none' as const : 'lax' as const, // Use 'none' for production cross-domain
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      sameSite: isProduction ? 'none' as const : 'lax' as const,
       path: '/',
-      domain: isProduction ? 'app.leadertalk.app' : undefined // Explicit domain for production
+      domain: productionDomain
     }
   };
 
-  console.log(`🍪 Session Configuration:`, {
-    cookieName: sessionConfig.name,
-    secure: sessionConfig.cookie.secure,
-    sameSite: sessionConfig.cookie.sameSite,
-    domain: sessionConfig.cookie.domain,
-    environment: isProduction ? 'production' : 'development',
-    configuredCookieDomain: config.session.cookieDomain,
-    fallbackDomain: productionDomain,
-    httpOnly: sessionConfig.cookie.httpOnly,
-    maxAge: sessionConfig.cookie.maxAge,
-    path: sessionConfig.cookie.path
-  });
+  // Configure session middleware
+  app.use(session(sessionConfig));
 
-  // Force session configuration in production to override any Replit defaults
-  if (isProduction) {
-    console.log('🚨 PROD: Forcing session configuration to override Replit defaults');
-    console.log('🚨 PROD: Expected cookie name: leadertalk.sid (NOT connect.sid)');
-    console.log('🚨 PROD: Expected domain:', productionDomain);
-  }
 
-  // Aggressively intercept and override any connect.sid cookies from Replit
-  app.use((req, res, next) => {
-    const originalSetHeader = res.setHeader;
-    res.setHeader = function(name: string, value: any) {
-      if (name.toLowerCase() === 'set-cookie') {
-        const cookies = Array.isArray(value) ? value : [value];
-        
-        // Filter out any connect.sid cookies and log the interception
-        const filteredCookies = cookies.filter(cookie => !cookie.includes('connect.sid'));
-        const blockedCount = cookies.length - filteredCookies.length;
-        
-        console.log('🍪 COOKIE INTERCEPTION:', {
-          environment: isProduction ? 'production' : 'development',
-          originalCount: cookies.length,
-          filteredCount: filteredCookies.length,
-          blockedConnectSid: blockedCount > 0,
-          blockedCookies: blockedCount,
-          leadertalkPresent: cookies.some(c => c.includes('leadertalk.sid')),
-          timestamp: new Date().toISOString()
-        });
-        
-        // Only set cookies if we have valid ones after filtering
-        if (filteredCookies.length > 0) {
-          return originalSetHeader.call(this, name, filteredCookies.length === 1 ? filteredCookies[0] : filteredCookies);
-        } else if (blockedCount > 0) {
-          console.log('🚫 BLOCKED ALL COOKIES - only connect.sid was present');
-          return originalSetHeader.call(this, name, ''); // Return empty instead of undefined
-        }
-      }
-      return originalSetHeader.call(this, name, value);
-    };
-    next();
-  });
 
-  // Completely replace any existing session middleware with ours
-  const ourSessionMiddleware = session(sessionConfig);
-  
-  // Override Express's entire middleware stack for sessions
-  app.use('*', (req, res, next) => {
-    // Force clear any Replit session properties
-    Object.keys(req).forEach(key => {
-      if (key.includes('session') || key.includes('Session')) {
-        delete (req as any)[key];
-      }
-    });
-    
-    // Force our session middleware to run
-    ourSessionMiddleware(req, res, (err) => {
-      if (err) {
-        console.error('🚨 Session middleware error:', err);
-        return next(err);
-      }
-      
-      // Log session creation for debugging
-      if (isProduction && req.session && req.sessionID) {
-        console.log('🍪 PRODUCTION SESSION CREATED:', {
-          sessionId: req.sessionID.substring(0, 8) + '...',
-          cookieName: sessionConfig.name,
-          timestamp: new Date().toISOString()
-        });
-      }
-      
-      next();
-    });
-  });
 
-  // Add comprehensive session debugging middleware
-  app.use((req, res, next) => {
-    // Log session store health
-    if (isProduction && req.sessionStore) {
-      req.sessionStore.get(req.sessionID, (err, sessionData) => {
-        if (err) {
-          console.error('🚨 PROD: Session store error:', err);
-        } else {
-          console.log('🔍 PROD: Session store lookup:', {
-            sessionId: req.sessionID?.substring(0, 8) + '...',
-            dataExists: !!sessionData,
-            userId: sessionData?.userId || null
-          });
-        }
-      });
-    }
-    
-    if (isProduction) {
-      const originalSetHeader = res.setHeader.bind(res);
-      res.setHeader = function(name: string, value: any) {
-        if (name.toLowerCase() === 'set-cookie') {
-          console.log('🍪 PROD: Setting cookie:', value);
-        }
-        return originalSetHeader(name, value);
-      };
-    }
-    next();
-  });
 
   // Parse JSON bodies
   app.use(express.json({ limit: '10mb' }));

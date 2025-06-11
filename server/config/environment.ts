@@ -12,15 +12,7 @@ function getConfigValue(key: string): string | undefined {
     const regularValue = process.env[key];
     const result = prodValue || regularValue;
     
-    // Debug production config resolution
-    console.log(`🔍 Config Resolution for ${key}:`, {
-      isProduction,
-      prodKey: `PROD_${key}`,
-      prodValue: prodValue || 'undefined',
-      regularKey: key,
-      regularValue: regularValue || 'undefined',
-      resolved: result || 'undefined'
-    });
+
     
     return result;
   }
@@ -80,31 +72,3 @@ console.error(config.supabase);
 
 // Export individual getters for special cases
 export { getConfigValue, getRequiredConfigValue };
-
-// Log configuration status (without sensitive values)
-console.log("🔧 Environment Configuration Loaded:");
-console.log(`   Environment: ${config.nodeEnv}`);
-console.log(
-  `   Database: ${config.database.url ? "✅ Connected" : "❌ Missing"}`,
-);
-console.log(
-  `   Stripe: ${config.stripe.secretKey ? "✅ Configured" : "❌ Missing"}`,
-);
-console.log(
-  `   OpenAI: ${config.openai.apiKey ? "✅ Configured" : "❌ Missing"}`,
-);
-console.log(
-  `   Session: ${config.session.secret ? "✅ Configured" : "❌ Missing"}`,
-);
-console.log(
-  `   Supabase: ${config.supabase.url ? "✅ Configured" : "❌ Missing"}`,
-);
-console.log(`   Cookie Domain: ${config.session.cookieDomain || "Not set"}`);
-
-// Debug cookie domain configuration
-console.log("🔍 Cookie Domain Debug:", {
-  NODE_ENV: process.env.NODE_ENV,
-  COOKIE_DOMAIN: process.env.COOKIE_DOMAIN || "undefined",
-  PROD_COOKIE_DOMAIN: process.env.PROD_COOKIE_DOMAIN || "undefined",
-  resolved: config.session.cookieDomain || "undefined"
-});
