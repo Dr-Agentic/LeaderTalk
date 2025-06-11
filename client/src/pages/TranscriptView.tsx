@@ -7,10 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
+import CommunicationChart from "@/components/CommunicationChart";
 import {
   AnalysisInstance,
   Recording,
   AnalysisResult,
+  Leader,
 } from "../../../shared/schema";
 import { useAuth } from "../hooks/useAuth";
 import { useToast } from "../hooks/use-toast";
@@ -313,6 +315,34 @@ export default function TranscriptView() {
       backLabel="Back to All Transcripts"
       pageTitle={`${recording.title} - Transcript`}
     >
+      {/* Communication Analysis Chart Section */}
+      <Card className="mb-8 glass-card">
+        <CardHeader className="px-4 py-5 sm:px-6 flex flex-col sm:flex-row sm:justify-between sm:items-center">
+          <div>
+            <CardTitle className="text-lg leading-6 font-medium text-white">{recording.title}</CardTitle>
+            <p className="mt-1 max-w-2xl text-sm text-white/70">
+              Recorded {new Date(recording.recordedAt).toLocaleDateString()} 
+              {recording.analysis?.overview?.rating && ` • Overall: ${recording.analysis.overview.rating}`}
+            </p>
+          </div>
+          {recording.analysis?.overview?.rating && (
+            <Badge variant="outline" className={`
+              px-2 mt-2 sm:mt-0 inline-flex text-xs leading-5 font-semibold rounded-full border-white/20
+              ${recording.analysis.overview.rating === "Good" ? "bg-green-500/20 text-green-300" : 
+                recording.analysis.overview.rating === "Average" ? "bg-yellow-500/20 text-yellow-300" : 
+                "bg-red-500/20 text-red-300"}
+            `}>
+              {recording.analysis.overview.rating} overall
+            </Badge>
+          )}
+        </CardHeader>
+        
+        <CardContent className="px-4 py-5 sm:p-6">
+          {/* Communication Analysis Chart */}
+          <CommunicationChart data={recording.analysis?.timeline || []} loading={false} />
+        </CardContent>
+      </Card>
+
       <Card className="mb-8">
         <CardHeader>
           <CardTitle>Transcript Analysis</CardTitle>

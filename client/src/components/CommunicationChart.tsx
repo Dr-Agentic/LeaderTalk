@@ -2,8 +2,18 @@ import { useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export default function CommunicationChart({ data, loading }) {
-  const canvasRef = useRef(null);
+interface TimelinePoint {
+  timestamp: number;
+  sentiment: number;
+}
+
+interface CommunicationChartProps {
+  data: TimelinePoint[];
+  loading: boolean;
+}
+
+export default function CommunicationChart({ data, loading }: CommunicationChartProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   
   useEffect(() => {
     if (loading || !data || !data.length || !canvasRef.current) return;
