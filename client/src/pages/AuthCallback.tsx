@@ -25,26 +25,9 @@ export default function AuthCallback() {
     async function processAuthCallback() {
       setProcessed(true)
       try {
-        console.log("Processing Supabase auth callback")
-        
         const user = await handleAuthCallback()
         
         if (user) {
-          console.log("Auth callback successful, authenticating with server", {
-            userId: user.uid,
-            email: user.email
-          })
-
-          // Store cookies before server call for comparison
-          ;(window as any).__cookiesBeforeAuth = document.cookie
-          
-          // Log cookies before server call
-          console.log("🍪 CLIENT: Cookies before server authentication:", {
-            allCookies: document.cookie,
-            hasLeadertalkSid: document.cookie.includes('leadertalk.sid'),
-            hasConnectSid: document.cookie.includes('connect.sid'),
-            cookieCount: document.cookie.split(';').length
-          })
 
           // Send user data to our Express server for session creation
           const response = await fetch('/api/auth/supabase-callback', {
@@ -65,26 +48,10 @@ export default function AuthCallback() {
           if (response.ok) {
             const responseData = await response.json()
             const userData = responseData.user
-            console.log("Server authentication successful", { userId: userData.id })
-            
-            // Log cookies after server call
-            console.log("🍪 CLIENT: Cookies after server authentication:", {
-              allCookies: document.cookie,
-              hasLeadertalkSid: document.cookie.includes('leadertalk.sid'),
-              hasConnectSid: document.cookie.includes('connect.sid'),
-              cookieCount: document.cookie.split(';').length,
-              cookieChanged: document.cookie !== (window as any).__cookiesBeforeAuth
-            })
             
             setStatus('success')
-            
-            // Clear the processing flag
             ;(window as any).__authCallbackProcessing = false
             
-            // Wait for session cookie to be set before redirecting
-            console.log("Waiting for session to establish before redirect...")
-            
-            // Verify session is established before redirecting
             setTimeout(async () => {
               try {
                 const sessionCheck = await fetch('/api/debug/session', {
@@ -92,24 +59,16 @@ export default function AuthCallback() {
                 });
                 const sessionData = await sessionCheck.json();
                 
-                console.log("Session verification before redirect:", sessionData);
-                
                 if (sessionData.isLoggedIn) {
-                  console.log("Session confirmed, proceeding with redirect");
                   if (userData.forceOnboarding || !userData.selectedLeaders?.length) {
-                    console.log("Redirecting to onboarding for user setup")
                     window.location.replace('/onboarding')
                   } else {
-                    console.log("User onboarding complete, redirecting to dashboard")
                     window.location.replace('/dashboard')
                   }
                 } else {
-                  console.error("Session not established, retrying authentication");
                   throw new Error("Session not established after authentication");
                 }
               } catch (error) {
-                console.error("Session verification failed:", error);
-                // Fallback to immediate redirect
                 if (userData.forceOnboarding || !userData.selectedLeaders?.length) {
                   window.location.replace('/onboarding')
                 } else {

@@ -8,37 +8,15 @@ let currentUserId: number | null = null;
 
 export async function checkSession(): Promise<boolean> {
   try {
-    // Log cookies before making request
-    const cookiesBeforeRequest = document.cookie;
-    console.log('🔍 CLIENT: Cookies before session check:', {
-      allCookies: cookiesBeforeRequest || 'none',
-      hasLeadertalkSid: cookiesBeforeRequest.includes('leadertalk.sid'),
-      hasConnectSid: cookiesBeforeRequest.includes('connect.sid'),
-      cookieCount: cookiesBeforeRequest ? cookiesBeforeRequest.split(';').length : 0,
-      timestamp: new Date().toISOString()
-    });
-    
-    const timestamp = Date.now(); // Add timestamp to prevent caching
+    const timestamp = Date.now();
     const response = await fetch(`/api/debug/session?t=${timestamp}`, {
-      credentials: 'include', // Ensure cookies are sent
-      cache: 'no-cache',      // Prevent caching
+      credentials: 'include',
+      cache: 'no-cache',
       headers: {
         'Cache-Control': 'no-cache, no-store, must-revalidate',
         'Pragma': 'no-cache',
         'Expires': '0'
       }
-    });
-    
-    // Log cookies after response (in case server set new ones)
-    const cookiesAfterRequest = document.cookie;
-    const cookiesChanged = cookiesBeforeRequest !== cookiesAfterRequest;
-    console.log('🔍 CLIENT: Cookies after session check:', {
-      allCookies: cookiesAfterRequest || 'none',
-      hasLeadertalkSid: cookiesAfterRequest.includes('leadertalk.sid'),
-      hasConnectSid: cookiesAfterRequest.includes('connect.sid'),
-      cookieCount: cookiesAfterRequest ? cookiesAfterRequest.split(';').length : 0,
-      cookiesChanged,
-      timestamp: new Date().toISOString()
     });
     
     if (!response.ok) {
@@ -50,86 +28,18 @@ export async function checkSession(): Promise<boolean> {
     
     const data = await response.json();
     
-    // Only log if this is a significant change to reduce noise
-    if (!currentSessionId || currentSessionId !== data.sessionId) {
-      console.log("Session data:", { 
-        sessionId: data.sessionId?.substring(0, 8) + '...',
-        isLoggedIn: data.isLoggedIn,
-        userId: data.userId 
-      });
-    }
-    
-    // Update our tracking variables
     sessionChecked = true;
-    
-    // Track if session ID changes, which would indicate a new login
     const previousSessionId = currentSessionId;
     currentSessionId = data.sessionId || '';
-    
-    if (previousSessionId && currentSessionId && previousSessionId !== currentSessionId) {
-      console.log("Session ID changed - new authentication detected");
-    }
-    
     currentUserId = data.userId || null;
     
-    // Enhanced session status logging
     if (data.sessionExists && data.isLoggedIn) {
-      const msg = `Session confirmed valid, user ID: ${currentUserId || 'unknown'}`;
-      console.log(msg);
-      console.log(msg, { 
-        userId: currentUserId,
-        sessionId: data.sessionId,
-        cookiePresent: data.cookiePresent,
-        cookieExists: data.cookieExists
-      });
       return true;
-    } else if (data.sessionExists && !data.isLoggedIn) {
-      const msg = "Session exists but not logged in (likely expired)";
-      console.log(msg);
-      console.warn(msg, {
-        sessionId: data.sessionId,
-        cookiePresent: data.cookiePresent,
-        cookieExists: data.cookieExists,
-        cookieHeader: data.cookieHeader ? 'Present' : 'Missing'
-      });
-      
-      // Try a direct call to force-login in development mode
-      if (import.meta.env.DEV && window.location.hostname === 'localhost') {
-        console.log("Attempting development mode direct login");
-        try {
-          const forcedLogin = await fetch('/api/auth/force-login', {
-            credentials: 'include',
-            cache: 'no-cache'
-          });
-          
-          if (forcedLogin.ok) {
-            console.log("Development mode login successful, revalidating session");
-            // Wait a moment for the session to be properly set
-            await new Promise(resolve => setTimeout(resolve, 500));
-            return await checkSession(); // Retry the session check
-          }
-        } catch (e) {
-          console.log("Development mode login failed, continuing with normal flow");
-        }
-      }
-      
-      return false;
     } else {
-      const msg = "No valid session found";
-      console.log(msg);
-      console.warn(msg, {
-        sessionExists: data.sessionExists,
-        cookiePresent: data.cookiePresent,
-        cookieExists: data.cookieExists
-      });
       return false;
     }
   } catch (error: any) {
     console.error("Auth check error:", error);
-    console.error("Auth check error", {
-      message: error?.message || "Unknown error",
-      stack: error?.stack || "No stack trace available"
-    });
     return false;
   }
 }
