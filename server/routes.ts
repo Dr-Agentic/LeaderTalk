@@ -72,21 +72,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   console.log(`📦 Session Store: ${isProduction ? 'PostgreSQL' : 'Memory'}`);
   
-  app.use(session({
+  const sessionConfig = {
     store: sessionStore,
     secret: config.session.secret,
     resave: false,
     saveUninitialized: false,
+    name: 'leadertalk.sid', // Force override of default connect.sid
     cookie: {
       secure: isProduction,
       httpOnly: true,
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      sameSite: 'lax', // Use 'lax' for both dev and production
+      sameSite: isProduction ? 'none' as const : 'lax' as const, // 'none' for production CORS
       path: '/', // Explicitly set cookie path
-      domain: config.session.cookieDomain || undefined // Use configured domain or default to current domain
-    },
-    name: 'leadertalk.sid'
-  }));
+      domain: isProduction ? '.leadertalk.app' : undefined // Subdomain support for production
+    }
+  };
+
+  console.log(`🍪 Session Configuration:`, {
+    cookieName: sessionConfig.name,
+    secure: sessionConfig.cookie.secure,
+    sameSite: sessionConfig.cookie.sameSite,
+    domain: sessionConfig.cookie.domain,
+    environment: isProduction ? 'production' : 'development'
+  });
+
+  app.use(session(sessionConfig));
 
   // Add comprehensive session debugging middleware
   app.use((req, res, next) => {
