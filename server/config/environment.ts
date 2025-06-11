@@ -8,7 +8,21 @@ function getConfigValue(key: string): string | undefined {
 
   if (isProduction) {
     // Try PROD_ prefixed version first, fallback to regular version
-    return process.env[`PROD_${key}`] || process.env[key];
+    const prodValue = process.env[`PROD_${key}`];
+    const regularValue = process.env[key];
+    const result = prodValue || regularValue;
+    
+    // Debug production config resolution
+    console.log(`🔍 Config Resolution for ${key}:`, {
+      isProduction,
+      prodKey: `PROD_${key}`,
+      prodValue: prodValue || 'undefined',
+      regularKey: key,
+      regularValue: regularValue || 'undefined',
+      resolved: result || 'undefined'
+    });
+    
+    return result;
   }
 
   // Development: use regular version

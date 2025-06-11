@@ -73,11 +73,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   console.log(`📦 Session Store: ${isProduction ? 'PostgreSQL' : 'Memory'}`);
   
-  // Fix domain configuration for production
-  // Use exact domain instead of wildcard to match browser security requirements
-  const productionDomain = isProduction ? 
-    (config.session.cookieDomain || 'app.leadertalk.app') : 
-    undefined;
+  // Debug and validate cookie domain configuration
+  console.log('🔍 Session Domain Debug:', {
+    isProduction,
+    configCookieDomain: config.session.cookieDomain,
+    NODE_ENV: process.env.NODE_ENV,
+    COOKIE_DOMAIN: process.env.COOKIE_DOMAIN,
+    PROD_COOKIE_DOMAIN: process.env.PROD_COOKIE_DOMAIN
+  });
+  
+  if (isProduction && !config.session.cookieDomain) {
+    throw new Error('❌ CRITICAL: COOKIE_DOMAIN or PROD_COOKIE_DOMAIN must be set in production environment');
+  }
+  
+  const productionDomain = isProduction ? config.session.cookieDomain : undefined;
   
   // Clear any potential existing session middleware in production
   if (isProduction && app._router && app._router.stack) {
