@@ -32,6 +32,39 @@ async function validateUserAccess(
 }
 
 /**
+ * Ensure user has a valid subscription, create one if missing
+ * Pure business logic without HTTP request/response handling
+ */
+async function ensureUserHasValidSubscription(userId: number): Promise<any> {
+  const user = await storage.getUser(userId);
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  // Check if user already has a valid subscription
+  if (user.stripeSubscriptionId) {
+    try {
+      // Validate existing subscription
+      const subscriptionData = await getExistingSubscription(user.stripeSubscriptionId);
+      
+      // Return subscription if active
+      if (subscriptionData.status === "active") {
+        return subscriptionData;
+      }
+    } catch (error) {
+      console.log(`Invalid subscription ${user.stripeSubscriptionId}, will create new one`);
+    }
+  }
+
+  // Create new subscription if missing or invalid
+  console.log(`Creating default subscription for user ${userId}`);
+  const customerId = await ensureUserHasStripeCustomer(user);
+  const subscriptionData = await createDefaultSubscription(user, customerId);
+  
+  return subscriptionData;
+}
+
+/**
  * Get billing cycle dates for a user from their Stripe subscription
  */
 export async function getUserBillingCycle(
@@ -51,70 +84,16 @@ export async function getCurrentSubscription(req: Request, res: Response) {
   res.setHeader("Content-Type", "application/json");
 
   try {
-    // Step 1: Validate user access
-    const { userId, user } = await validateUserAccess(req);
+    // Validate user access
+    const { userId } = await validateUserAccess(req);
 
-    // Step 2: Handle missing subscription ID
-    if (!user.stripeSubscriptionId) {
-      console.log(`🔄 AUTOMATIC SUBSCRIPTION INITIALIZATION TRIGGERED`);
-      console.log(
-        `📊 User ${userId} (${user.email}) has no Stripe subscription, creating default Starter subscription`,
-      );
+    // Use shared subscription validation logic
+    const subscriptionData = await ensureUserHasValidSubscription(userId);
 
-      try {
-        const customerId = await ensureUserHasStripeCustomer(user);
-        const subscriptionData = await createDefaultSubscription(
-          user,
-          customerId,
-        );
-
-        return res.status(200).json({
-          success: true,
-          subscription: subscriptionData,
-        });
-      } catch (error) {
-        console.error("Error creating default subscription:", error);
-        // Return minimal fallback data
-        return res.status(200).json({
-          success: true,
-          subscription: {
-            plan: "starter",
-            status: "active",
-            isFree: true,
-            currentPeriodStart: null,
-            currentPeriodEnd: null,
-            cancelAtPeriodEnd: false,
-          },
-        });
-      }
-    }
-
-    // Step 3: Retrieve existing subscription
-    try {
-      let subscriptionData = await getExistingSubscription(
-        user.stripeSubscriptionId,
-      );
-
-      console.log(
-        `✅ Retrieved subscription data: ${JSON.stringify(subscriptionData, null, 2)}`,
-      );
-
-      // Check if the subscription is active
-      if (subscriptionData.status !== "active") {
-        subscriptionData = await handleNoValidSubscription(userId);
-      }
-
-      return res.status(200).json({
-        success: true,
-        subscription: subscriptionData,
-      });
-    } catch (error) {
-      console.error("Error retrieving subscription:", error);
-      return res.status(500).json({
-        success: false,
-        error: "Failed to retrieve subscription details",
-      });
-    }
+    return res.status(200).json({
+      success: true,
+      subscription: subscriptionData,
+    });
   } catch (error) {
     console.error("Error in getCurrentSubscription:", error);
     return res.status(500).json({
@@ -417,19 +396,11 @@ export async function getBillingProducts(req: Request, res: Response) {
  */
 export async function getCurrentSubscriptionFormatted(req: Request, res: Response) {
   try {
-    // Reuse existing logic from getCurrentSubscription
-    const { userId, user } = await validateUserAccess(req);
+    // Validate user access
+    const { userId } = await validateUserAccess(req);
 
-    if (!user.stripeSubscriptionId) {
-      return res.json({
-        success: true,
-        hasSubscription: false,
-        formattedMessage: "No active subscription found"
-      });
-    }
-
-    // Get subscription details using existing function
-    const subscriptionData = await getUserSubscription(user.stripeSubscriptionId);
+    // Get or create valid subscription
+    const subscriptionData = await ensureUserHasValidSubscription(userId);
     
     // Format dates helper
     const formatDate = (date: Date) => {
@@ -511,16 +482,8 @@ function getStatusColor(status: string): string {
  */
 export async function getBillingCycleWordUsageAnalytics(userId: number) {
   try {
-    // 1. Get user from database to get their subscription ID
-    const user = await storage.getUser(userId);
-    if (!user?.stripeSubscriptionId) {
-      throw new Error(`User ${userId} has no Stripe subscription ID`);
-    }
-
-    // 2. Retrieve authentic subscription details from Stripe
-    const subscriptionData = await getUserSubscription(
-      user.stripeSubscriptionId,
-    );
+    // 1. Ensure user has valid subscription (creates if missing)
+    const subscriptionData = await ensureUserHasValidSubscription(userId);
     console.log(
       `✅ Retrieved subscription data: ${subscriptionData.plan} (${subscriptionData.wordLimit} words)`,
     );
