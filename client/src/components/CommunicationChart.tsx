@@ -1,11 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-
-interface TimelinePoint {
-  timestamp: number;
-  sentiment: number;
-}
+import { TimelinePoint } from "../../../shared/schema";
 
 interface CommunicationChartProps {
   data: TimelinePoint[];
@@ -20,6 +16,7 @@ export default function CommunicationChart({ data, loading }: CommunicationChart
     
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
+    if (!ctx) return;
     
     // Set canvas dimensions
     canvas.width = canvas.offsetWidth;
@@ -130,13 +127,13 @@ export default function CommunicationChart({ data, loading }: CommunicationChart
   }, [data, loading]);
   
   // Helper function to map value (-1 to 1) to Y coordinate
-  const mapValueToY = (value, height) => {
+  const mapValueToY = (value: number, height: number): number => {
     // Map value from -1..1 to height..0 (reverse Y-axis)
     return height * (1 - (value + 1) / 2);
   };
   
   // Format time in MM:SS
-  const formatTime = (seconds) => {
+  const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;

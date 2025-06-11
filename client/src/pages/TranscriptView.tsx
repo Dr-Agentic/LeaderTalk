@@ -160,7 +160,7 @@ export default function TranscriptView() {
 
   // Filter leaders to only include those selected by the user
   const selectedLeaders =
-    leaders?.filter((leader) =>
+    leaders?.filter((leader: Leader) =>
       userData?.selectedLeaders?.includes(leader.id),
     ) || [];
 
