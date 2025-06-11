@@ -88,27 +88,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   const productionDomain = isProduction ? config.session.cookieDomain : undefined;
   
-  // Clear any potential existing session middleware in production
-  if (isProduction && app._router && app._router.stack) {
-    console.log('🧹 PROD: Clearing existing session middleware to prevent connect.sid conflicts');
+  // Aggressively clear any existing session middleware
+  if (app._router && app._router.stack) {
+    console.log('🧹 Clearing ALL existing session middleware to prevent conflicts');
     const originalStackLength = app._router.stack.length;
     app._router.stack = app._router.stack.filter((layer: any) => {
-      const name = layer.handle?.name;
-      const isSessionMiddleware = name === 'session' || name === 'sessionMiddleware' || 
-                                  (layer.handle && layer.handle.toString().includes('connect.sid'));
+      const name = layer.handle?.name || 'anonymous';
+      const handleStr = layer.handle?.toString() || '';
+      const isSessionMiddleware = 
+        name === 'session' || 
+        name === 'sessionMiddleware' || 
+        name.includes('session') ||
+        handleStr.includes('connect.sid') ||
+        handleStr.includes('session') ||
+        handleStr.includes('express-session');
+      
       if (isSessionMiddleware) {
-        console.log('🗑️ PROD: Removed existing session middleware:', name);
+        console.log('🗑️ Removed session middleware:', { name, handlePreview: handleStr.substring(0, 100) });
       }
       return !isSessionMiddleware;
     });
-    console.log(`🧹 PROD: Stack cleaned: ${originalStackLength} -> ${app._router.stack.length} middleware`);
+    console.log(`🧹 Stack cleaned: ${originalStackLength} -> ${app._router.stack.length} middleware`);
   }
   
   const sessionConfig = {
     store: sessionStore,
     secret: config.session.secret,
     resave: false,
-    saveUninitialized: false,
+    saveUninitialized: true, // Allow cookies for new sessions
     name: 'leadertalk.sid', // Force override of default connect.sid
     genid: () => {
       // Custom session ID generator to ensure uniqueness
@@ -144,6 +151,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.log('🚨 PROD: Expected cookie name: leadertalk.sid (NOT connect.sid)');
     console.log('🚨 PROD: Expected domain:', productionDomain);
   }
+
+  // Add response header interceptor to see what cookies are actually being set
+  app.use((req, res, next) => {
+    const originalSetHeader = res.setHeader;
+    res.setHeader = function(name: string, value: any) {
+      if (name.toLowerCase() === 'set-cookie') {
+        const cookies = Array.isArray(value) ? value : [value];
+        console.log('🍪 EXPRESS SETTING COOKIES:', {
+          timestamp: new Date().toISOString(),
+          cookies: cookies.map(c => ({
+            full: c,
+            isLeadertalk: c.includes('leadertalk.sid'),
+            isConnect: c.includes('connect.sid'),
+            domain: c.match(/Domain=([^;]+)/)?.[1] || 'none',
+            path: c.match(/Path=([^;]+)/)?.[1] || '/',
+            secure: c.includes('Secure'),
+            httpOnly: c.includes('HttpOnly')
+          }))
+        });
+      }
+      return originalSetHeader.call(this, name, value);
+    };
+    next();
+  });
 
   // Add session creation interceptor to prove our theory
   const originalSession = session(sessionConfig);
