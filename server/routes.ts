@@ -159,25 +159,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.log('🚨 PROD: Expected domain:', productionDomain);
   }
 
-  // Intercept and override any connect.sid cookies from Replit
+  // Aggressively intercept and override any connect.sid cookies from Replit
   app.use((req, res, next) => {
     const originalSetHeader = res.setHeader;
     res.setHeader = function(name: string, value: any) {
       if (name.toLowerCase() === 'set-cookie') {
         const cookies = Array.isArray(value) ? value : [value];
         
-        // Filter out any connect.sid cookies and replace with our leadertalk.sid
+        // Filter out any connect.sid cookies and log the interception
         const filteredCookies = cookies.filter(cookie => !cookie.includes('connect.sid'));
+        const blockedCount = cookies.length - filteredCookies.length;
         
         console.log('🍪 COOKIE INTERCEPTION:', {
-          original: cookies,
-          filtered: filteredCookies,
-          blockedConnectSid: cookies.length !== filteredCookies.length,
+          environment: isProduction ? 'production' : 'development',
+          originalCount: cookies.length,
+          filteredCount: filteredCookies.length,
+          blockedConnectSid: blockedCount > 0,
+          blockedCookies: blockedCount,
+          leadertalkPresent: cookies.some(c => c.includes('leadertalk.sid')),
           timestamp: new Date().toISOString()
         });
         
+        // Only set cookies if we have valid ones after filtering
         if (filteredCookies.length > 0) {
           return originalSetHeader.call(this, name, filteredCookies.length === 1 ? filteredCookies[0] : filteredCookies);
+        } else if (blockedCount > 0) {
+          console.log('🚫 BLOCKED ALL COOKIES - only connect.sid was present');
+          return; // Don't set any cookies if we only had connect.sid
         }
       }
       return originalSetHeader.call(this, name, value);
@@ -185,17 +193,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   });
 
-  // Force our session middleware to override any existing ones
+  // Completely replace any existing session middleware with ours
   const ourSessionMiddleware = session(sessionConfig);
   
-  app.use((req, res, next) => {
-    // Clear any existing session data from other middleware
-    (req as any).session = undefined;
-    (req as any).sessionID = undefined;
-    (req as any).sessionStore = undefined;
+  // Override Express's entire middleware stack for sessions
+  app.use('*', (req, res, next) => {
+    // Force clear any Replit session properties
+    Object.keys(req).forEach(key => {
+      if (key.includes('session') || key.includes('Session')) {
+        delete (req as any)[key];
+      }
+    });
     
-    // Apply our session middleware
-    ourSessionMiddleware(req, res, next);
+    // Force our session middleware to run
+    ourSessionMiddleware(req, res, (err) => {
+      if (err) {
+        console.error('🚨 Session middleware error:', err);
+        return next(err);
+      }
+      
+      // Log session creation for debugging
+      if (isProduction && req.session && req.sessionID) {
+        console.log('🍪 PRODUCTION SESSION CREATED:', {
+          sessionId: req.sessionID.substring(0, 8) + '...',
+          cookieName: sessionConfig.name,
+          timestamp: new Date().toISOString()
+        });
+      }
+      
+      next();
+    });
   });
 
   // Add comprehensive session debugging middleware
