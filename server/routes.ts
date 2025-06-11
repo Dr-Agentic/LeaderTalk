@@ -152,32 +152,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.log('🚨 PROD: Expected domain:', productionDomain);
   }
 
-  // Add response header interceptor to see what cookies are actually being set
+  // Intercept and override any connect.sid cookies from Replit
   app.use((req, res, next) => {
     const originalSetHeader = res.setHeader;
     res.setHeader = function(name: string, value: any) {
       if (name.toLowerCase() === 'set-cookie') {
         const cookies = Array.isArray(value) ? value : [value];
-        console.log('🍪 EXPRESS SETTING COOKIES:', {
-          timestamp: new Date().toISOString(),
-          cookies: cookies.map(c => ({
-            full: c,
-            isLeadertalk: c.includes('leadertalk.sid'),
-            isConnect: c.includes('connect.sid'),
-            domain: c.match(/Domain=([^;]+)/)?.[1] || 'none',
-            path: c.match(/Path=([^;]+)/)?.[1] || '/',
-            secure: c.includes('Secure'),
-            httpOnly: c.includes('HttpOnly')
-          }))
+        
+        // Filter out any connect.sid cookies and replace with our leadertalk.sid
+        const filteredCookies = cookies.filter(cookie => !cookie.includes('connect.sid'));
+        
+        console.log('🍪 COOKIE INTERCEPTION:', {
+          original: cookies,
+          filtered: filteredCookies,
+          blockedConnectSid: cookies.length !== filteredCookies.length,
+          timestamp: new Date().toISOString()
         });
+        
+        if (filteredCookies.length > 0) {
+          return originalSetHeader.call(this, name, filteredCookies.length === 1 ? filteredCookies[0] : filteredCookies);
+        }
       }
       return originalSetHeader.call(this, name, value);
     };
     next();
   });
 
-  // Apply session middleware directly without wrapper
-  app.use(session(sessionConfig));
+  // Force our session middleware to override any existing ones
+  const ourSessionMiddleware = session(sessionConfig);
+  
+  app.use((req, res, next) => {
+    // Clear any existing session data from other middleware
+    (req as any).session = undefined;
+    (req as any).sessionID = undefined;
+    (req as any).sessionStore = undefined;
+    
+    // Apply our session middleware
+    ourSessionMiddleware(req, res, next);
+  });
 
   // Add comprehensive session debugging middleware
   app.use((req, res, next) => {
