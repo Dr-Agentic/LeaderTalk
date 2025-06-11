@@ -5,14 +5,14 @@ export function registerCookieTestRoutes(app: Express) {
   app.get("/api/test-cookie", (req, res) => {
     const isProduction = process.env.NODE_ENV === 'production';
     
-    // Set a test cookie with production settings
+    // Set a test cookie with fixed production settings
     res.cookie('test-cookie', 'test-value', {
       secure: isProduction,
       httpOnly: true,
       maxAge: 60000, // 1 minute
-      sameSite: isProduction ? 'none' as const : 'lax' as const,
-      path: '/',
-      domain: isProduction ? process.env.PROD_COOKIE_DOMAIN : undefined
+      sameSite: 'lax' as const,
+      path: '/'
+      // No domain set - let browser handle automatically
     });
 
     res.json({

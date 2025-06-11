@@ -60,6 +60,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     preflightContinue: false
   }));
   
+  // Add cookie parser middleware
+  app.use(cookieParser());
+  
   // Configure session middleware with clean config
   const sessionConfig = createSessionConfig();
   app.use(session(sessionConfig));

@@ -26,19 +26,17 @@ export function createSessionConfig() {
         checkPeriod: 86400000
       });
 
-  // Basic session configuration
+  // Production cookie configuration
   const cookieConfig = {
     secure: isProduction,
     httpOnly: true,
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    sameSite: isProduction ? 'lax' as const : 'lax' as const, // Changed from 'none' to 'lax'
+    sameSite: 'lax' as const, // Use 'lax' for both dev and prod
     path: '/'
   } as any;
 
-  // Only set domain in production if explicitly configured
-  if (isProduction && config.session.cookieDomain) {
-    cookieConfig.domain = config.session.cookieDomain;
-  }
+  // Don't set domain in production - let browser handle it automatically
+  // This avoids cross-domain cookie issues on Replit
 
   return {
     store: sessionStore,
