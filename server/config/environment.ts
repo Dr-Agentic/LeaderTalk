@@ -86,3 +86,11 @@ console.log(
   `   Supabase: ${config.supabase.url ? "✅ Configured" : "❌ Missing"}`,
 );
 console.log(`   Cookie Domain: ${config.session.cookieDomain || "Not set"}`);
+
+// Debug cookie domain configuration
+console.log("🔍 Cookie Domain Debug:", {
+  NODE_ENV: process.env.NODE_ENV,
+  COOKIE_DOMAIN: process.env.COOKIE_DOMAIN || "undefined",
+  PROD_COOKIE_DOMAIN: process.env.PROD_COOKIE_DOMAIN || "undefined",
+  resolved: config.session.cookieDomain || "undefined"
+});
