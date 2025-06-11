@@ -2,6 +2,7 @@ import express, { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import session from "express-session";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import { fileURLToPath } from "url";
 import path from "path";
 import { config } from "./config/environment";

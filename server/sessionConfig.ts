@@ -27,19 +27,25 @@ export function createSessionConfig() {
       });
 
   // Basic session configuration
+  const cookieConfig = {
+    secure: isProduction,
+    httpOnly: true,
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    sameSite: isProduction ? 'lax' as const : 'lax' as const, // Changed from 'none' to 'lax'
+    path: '/'
+  } as any;
+
+  // Only set domain in production if explicitly configured
+  if (isProduction && config.session.cookieDomain) {
+    cookieConfig.domain = config.session.cookieDomain;
+  }
+
   return {
     store: sessionStore,
     secret: config.session.secret,
     resave: false,
     saveUninitialized: true,
     name: 'leadertalk.sid',
-    cookie: {
-      secure: isProduction,
-      httpOnly: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      sameSite: isProduction ? 'none' as const : 'lax' as const,
-      path: '/',
-      domain: isProduction ? config.session.cookieDomain : undefined
-    }
+    cookie: cookieConfig
   };
 }

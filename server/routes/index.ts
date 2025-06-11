@@ -9,6 +9,7 @@ import { registerTrainingRoutes } from "./training";
 import { registerAdminRoutes } from "./admin";
 import { registerDebugRoutes } from "./debug";
 import { registerUsageRoutes } from "./usage";
+import { registerCookieTestRoutes } from "./cookie-test";
 
 /**
  * Register all route modules with the Express app
@@ -43,6 +44,9 @@ export function registerAllRoutes(app: Express) {
   
   // Debug and health check routes
   registerDebugRoutes(app);
+  
+  // Cookie testing routes
+  registerCookieTestRoutes(app);
   
   console.log("✅ All route modules registered successfully");
 }
