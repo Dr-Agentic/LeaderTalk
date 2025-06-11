@@ -68,11 +68,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       secure: isProduction,
       httpOnly: true,
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      sameSite: isProduction ? 'none' : 'lax',
+      sameSite: 'lax', // Use 'lax' for both dev and production
+      path: '/', // Explicitly set cookie path
       domain: config.session.cookieDomain || undefined // Use configured domain or default to current domain
     },
     name: 'leadertalk.sid'
   }));
+
+  // Add session debugging middleware for production
+  if (isProduction) {
+    app.use((req, res, next) => {
+      const originalSetHeader = res.setHeader.bind(res);
+      res.setHeader = function(name: string, value: any) {
+        if (name.toLowerCase() === 'set-cookie') {
+          console.log('🍪 PROD: Setting cookie:', value);
+        }
+        return originalSetHeader(name, value);
+      };
+      next();
+    });
+  }
 
   // Parse JSON bodies
   app.use(express.json({ limit: '10mb' }));

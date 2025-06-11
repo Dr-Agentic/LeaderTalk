@@ -214,48 +214,79 @@ export function registerAuthRoutes(app: Express) {
           .json({ error: "Failed to create or update user" });
       }
 
-      // Set user ID in session directly (no regeneration to avoid production issues)
-      req.session.userId = user.id;
-
-      console.log("Setting userId in session:", user.googleId);
-      console.log("Session ID before save:", req.sessionID);
-      console.log(
-        "Session object before save:",
-        JSON.stringify(req.session, null, 2),
-      );
-
       // Store user data for callback scope to avoid TypeScript undefined errors
       const forceOnboarding = !user.selectedLeaders?.length;
       const selectedLeaders = user.selectedLeaders;
 
-      // Save session and respond
-      req.session.save((saveErr) => {
-        if (saveErr) {
-          console.error("Session save error:", saveErr);
-          return res.status(500).json({ error: "Failed to save session" });
-        }
+      console.log("Setting userId in session:", user.id);
+      console.log("Session ID before authentication:", req.sessionID);
+      console.log("Production mode:", config.isProduction);
+      console.log("Cookie domain:", config.session.cookieDomain);
 
-        console.log(
-          "Supabase authentication successful for database user ID:",
-          user.id,
-        );
-        console.log("Session ID after save:", req.sessionID);
-        console.log("Session userId after save:", req.session.userId);
-        console.log("Production mode:", config.isProduction);
-        console.log("Cookie domain:", config.session.cookieDomain);
+      // In production, regenerate session to ensure proper cookie setting
+      if (config.isProduction) {
+        req.session.regenerate((regenerateErr) => {
+          if (regenerateErr) {
+            console.error("Session regeneration error:", regenerateErr);
+            return res.status(500).json({ error: "Failed to regenerate session" });
+          }
 
-        res.json({
-          success: true,
-          user: {
-            id: user.id,
-            username: user.username,
-            email: user.email,
-            photoUrl: user.photoUrl,
-            forceOnboarding,
-            selectedLeaders,
-          },
+          console.log("Session regenerated in production, new ID:", req.sessionID);
+          
+          // Set user ID in new session
+          req.session.userId = user.id;
+
+          // Save session and respond
+          req.session.save((saveErr) => {
+            if (saveErr) {
+              console.error("Session save error after regeneration:", saveErr);
+              return res.status(500).json({ error: "Failed to save session" });
+            }
+
+            console.log("🍪 PROD: Session saved successfully");
+            console.log("🍪 PROD: Final session ID:", req.sessionID);
+            console.log("🍪 PROD: Final userId:", req.session.userId);
+
+            res.json({
+              success: true,
+              user: {
+                id: user.id,
+                username: user.username,
+                email: user.email,
+                photoUrl: user.photoUrl,
+                forceOnboarding,
+                selectedLeaders,
+              },
+            });
+          });
         });
-      });
+      } else {
+        // Development: Set user ID directly
+        req.session.userId = user.id;
+        
+        req.session.save((saveErr) => {
+          if (saveErr) {
+            console.error("Session save error:", saveErr);
+            return res.status(500).json({ error: "Failed to save session" });
+          }
+
+          console.log("Development authentication successful for user ID:", user.id);
+          console.log("Session ID after save:", req.sessionID);
+          console.log("Session userId after save:", req.session.userId);
+
+          res.json({
+            success: true,
+            user: {
+              id: user.id,
+              username: user.username,
+              email: user.email,
+              photoUrl: user.photoUrl,
+              forceOnboarding,
+              selectedLeaders,
+            },
+          });
+        });
+      }
     } catch (error) {
       console.error("Supabase authentication error:", error);
       res

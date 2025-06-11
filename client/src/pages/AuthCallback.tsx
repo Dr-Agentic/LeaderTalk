@@ -81,14 +81,42 @@ export default function AuthCallback() {
             // Clear the processing flag
             ;(window as any).__authCallbackProcessing = false
             
-            // Redirect immediately after successful authentication
-            if (userData.forceOnboarding || !userData.selectedLeaders?.length) {
-              console.log("Redirecting to onboarding for user setup")
-              window.location.replace('/onboarding')
-            } else {
-              console.log("User onboarding complete, redirecting to dashboard")
-              window.location.replace('/dashboard')
-            }
+            // Wait for session cookie to be set before redirecting
+            console.log("Waiting for session to establish before redirect...")
+            
+            // Verify session is established before redirecting
+            setTimeout(async () => {
+              try {
+                const sessionCheck = await fetch('/api/debug/session', {
+                  credentials: 'include'
+                });
+                const sessionData = await sessionCheck.json();
+                
+                console.log("Session verification before redirect:", sessionData);
+                
+                if (sessionData.isLoggedIn) {
+                  console.log("Session confirmed, proceeding with redirect");
+                  if (userData.forceOnboarding || !userData.selectedLeaders?.length) {
+                    console.log("Redirecting to onboarding for user setup")
+                    window.location.replace('/onboarding')
+                  } else {
+                    console.log("User onboarding complete, redirecting to dashboard")
+                    window.location.replace('/dashboard')
+                  }
+                } else {
+                  console.error("Session not established, retrying authentication");
+                  throw new Error("Session not established after authentication");
+                }
+              } catch (error) {
+                console.error("Session verification failed:", error);
+                // Fallback to immediate redirect
+                if (userData.forceOnboarding || !userData.selectedLeaders?.length) {
+                  window.location.replace('/onboarding')
+                } else {
+                  window.location.replace('/dashboard')
+                }
+              }
+            }, 1000); // Wait 1 second for session to be established
           } else {
             const errorText = await response.text()
             console.error('Server authentication failed:', errorText)
