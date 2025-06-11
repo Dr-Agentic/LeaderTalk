@@ -121,7 +121,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       sameSite: isProduction ? 'lax' as const : 'lax' as const, // Use 'lax' for production domain compatibility
       path: '/', // Explicitly set cookie path
-      domain: isProduction ? productionDomain : undefined // Use configured or default domain
+      domain: undefined // Let browser use current domain automatically
     }
   };
 
@@ -132,7 +132,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     domain: sessionConfig.cookie.domain,
     environment: isProduction ? 'production' : 'development',
     configuredCookieDomain: config.session.cookieDomain,
-    fallbackDomain: productionDomain
+    fallbackDomain: productionDomain,
+    httpOnly: sessionConfig.cookie.httpOnly,
+    maxAge: sessionConfig.cookie.maxAge,
+    path: sessionConfig.cookie.path
   });
 
   // Force session configuration in production to override any Replit defaults
