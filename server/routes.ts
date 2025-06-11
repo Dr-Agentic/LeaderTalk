@@ -72,19 +72,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   console.log(`📦 Session Store: ${isProduction ? 'PostgreSQL' : 'Memory'}`);
   
+  // Determine the correct domain for production
+  const productionDomain = config.session.cookieDomain || '.leadertalk.app';
+  
+  // Clear any potential existing session middleware in production
+  if (isProduction && app._router && app._router.stack) {
+    console.log('🧹 PROD: Clearing existing session middleware to prevent connect.sid conflicts');
+    const originalStackLength = app._router.stack.length;
+    app._router.stack = app._router.stack.filter((layer: any) => {
+      const name = layer.handle?.name;
+      const isSessionMiddleware = name === 'session' || name === 'sessionMiddleware' || 
+                                  (layer.handle && layer.handle.toString().includes('connect.sid'));
+      if (isSessionMiddleware) {
+        console.log('🗑️ PROD: Removed existing session middleware:', name);
+      }
+      return !isSessionMiddleware;
+    });
+    console.log(`🧹 PROD: Stack cleaned: ${originalStackLength} -> ${app._router.stack.length} middleware`);
+  }
+  
   const sessionConfig = {
     store: sessionStore,
     secret: config.session.secret,
     resave: false,
     saveUninitialized: false,
     name: 'leadertalk.sid', // Force override of default connect.sid
+    genid: () => {
+      // Custom session ID generator to ensure uniqueness
+      return require('crypto').randomBytes(16).toString('hex');
+    },
     cookie: {
       secure: isProduction,
       httpOnly: true,
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       sameSite: isProduction ? 'none' as const : 'lax' as const, // 'none' for production CORS
       path: '/', // Explicitly set cookie path
-      domain: isProduction ? '.leadertalk.app' : undefined // Subdomain support for production
+      domain: isProduction ? productionDomain : undefined // Use configured or default domain
     }
   };
 
@@ -93,8 +116,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     secure: sessionConfig.cookie.secure,
     sameSite: sessionConfig.cookie.sameSite,
     domain: sessionConfig.cookie.domain,
-    environment: isProduction ? 'production' : 'development'
+    environment: isProduction ? 'production' : 'development',
+    configuredCookieDomain: config.session.cookieDomain,
+    fallbackDomain: productionDomain
   });
+
+  // Force session configuration in production to override any Replit defaults
+  if (isProduction) {
+    console.log('🚨 PROD: Forcing session configuration to override Replit defaults');
+    console.log('🚨 PROD: Expected cookie name: leadertalk.sid (NOT connect.sid)');
+    console.log('🚨 PROD: Expected domain:', productionDomain);
+  }
 
   app.use(session(sessionConfig));
 
