@@ -336,7 +336,39 @@ export async function createDefaultSubscription(
     stripeSubscriptionId: subscription.id,
   });
 
-  return subscription;
+  // Format the subscription data to match the expected structure
+  const priceAmount = price.unit_amount ? price.unit_amount / 100 : 0;
+  const priceCurrency = price.currency || 'usd';
+  const priceInterval = price.recurring?.interval || "month";
+  
+  // Extract metadata from the product
+  const cleanMetadata = {
+    Words: starterProduct.metadata?.Words || "500"
+  };
+
+  return {
+    id: subscription.id,
+    status: subscription.status,
+    plan: starterProduct.name.toLowerCase(),
+    planId: starterProduct.id,
+    priceId: price.id,
+    isFree: priceAmount === 0,
+    startDate: subscription.start_date
+      ? new Date(subscription.start_date * 1000)
+      : new Date(),
+    currentPeriodStart: new Date(subscription.current_period_start * 1000),
+    currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+    nextRenewalDate: new Date(subscription.current_period_end * 1000),
+    nextRenewalTimestamp: subscription.current_period_end,
+    cancelAtPeriodEnd: subscription.cancel_at_period_end,
+    amount: priceAmount,
+    currency: priceCurrency,
+    interval: priceInterval,
+    productImage:
+      starterProduct.images && starterProduct.images.length > 0 ? starterProduct.images[0] : null,
+    metadata: cleanMetadata,
+    wordLimit: parseInt(cleanMetadata.Words, 10),
+  };
 }
 
 /**
