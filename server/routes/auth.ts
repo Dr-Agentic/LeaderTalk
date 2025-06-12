@@ -51,11 +51,8 @@ export function registerAuthRoutes(app: Express) {
           path: "/",
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
-          sameSite: "lax",
-          domain:
-            process.env.NODE_ENV === "production"
-              ? process.env.PROD_COOKIE_DOMAIN || process.env.COOKIE_DOMAIN
-              : undefined,
+          sameSite: "lax"
+          // No domain set - matches session config
         });
 
         res.json({ success: true, message: "Logged out successfully" });
@@ -218,6 +215,20 @@ export function registerAuthRoutes(app: Express) {
         if (saveErr) {
           console.error("Session save error:", saveErr);
           return res.status(500).json({ error: "Failed to save session" });
+        }
+
+        // Log cookie being set in production
+        if (config.isProduction) {
+          console.log("Production session saved successfully");
+          console.log("Session ID after save:", req.sessionID);
+          console.log("User ID in session:", req.session.userId);
+          
+          // Check if response headers contain Set-Cookie
+          const originalEnd = res.end;
+          res.end = function(chunk, encoding) {
+            console.log("Response headers being sent:", res.getHeaders());
+            return originalEnd.call(this, chunk, encoding);
+          };
         }
         
         res.json({
