@@ -25,65 +25,80 @@ const requireAuth = (req: Request, res: Response, next: Function) => {
 
 export function servePublicFiles(app: Express) {
   // Serve static files from the public directory
-  const publicPath = path.resolve(process.cwd(), 'public');
-  console.log('Setting up static file serving from:', publicPath);
-  
-  app.use('/assets', express.static(path.join(publicPath, 'assets'), {
-    setHeaders: (res, filePath) => {
-      if (filePath.endsWith('.json')) {
-        res.setHeader('Content-Type', 'application/json');
-      }
-      if (filePath.endsWith('.png') || filePath.endsWith('.jpg') || filePath.endsWith('.jpeg')) {
-        res.setHeader('Cache-Control', 'public, max-age=31536000');
-      }
-    }
-  }));
-  
+  const publicPath = path.resolve(process.cwd(), "public");
+  console.log("Setting up static file serving from:", publicPath);
+
+  app.use(
+    "/assets",
+    express.static(path.join(publicPath, "assets"), {
+      setHeaders: (res, filePath) => {
+        if (filePath.endsWith(".json")) {
+          res.setHeader("Content-Type", "application/json");
+        }
+        if (
+          filePath.endsWith(".png") ||
+          filePath.endsWith(".jpg") ||
+          filePath.endsWith(".jpeg")
+        ) {
+          res.setHeader("Cache-Control", "public, max-age=31536000");
+        }
+      },
+    }),
+  );
+
   // Also serve root public files
   app.use(express.static(publicPath));
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Configure CORS
-  app.use(cors({
-    origin: true,
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
-  }));
+  app.use(
+    cors({
+      origin: true,
+      credentials: true,
+      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+      allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+    }),
+  );
 
   // Configure session middleware
-  const isProduction = config.nodeEnv === 'production';
-  
+  const isProduction = config.nodeEnv === "production";
 
-  
-  app.use(session({
-    store: new MemoryStoreFactory({
-      checkPeriod: 86400000 // prune expired entries every 24h
+  // Without it, Express thinks the request is not HTTPS and
+  // refuses to set secure cookies — even if it looks fine in logs.
+  app.set("trust proxy", 1);
+
+  app.use(
+    session({
+      store: new MemoryStoreFactory({
+        checkPeriod: 86400000, // prune expired entries every 24h
+      }),
+      secret: config.session.secret,
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        secure: isProduction,
+        httpOnly: true,
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        sameSite: isProduction ? "none" : "lax",
+        domain: config.session.cookieDomain || undefined, // Use configured domain or default to current domain
+      },
+      name: "leadertalk.sid",
     }),
-    secret: config.session.secret,
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: isProduction,
-      httpOnly: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      sameSite: isProduction ? 'none' : 'lax',
-      domain: config.session.cookieDomain || undefined // Use configured domain or default to current domain
-    },
-    name: 'leadertalk.sid'
-  }));
+  );
 
   // Parse JSON bodies
-  app.use(express.json({ limit: '10mb' }));
+  app.use(express.json({ limit: "10mb" }));
   app.use(express.urlencoded({ extended: true }));
 
   // Register all modular routes FIRST
   registerAllRoutes(app);
 
   // Add a catch-all for unmatched API routes to prevent Vite from handling them
-  app.use('/api/*', (req, res) => {
-    res.status(404).json({ error: `API endpoint not found: ${req.originalUrl}` });
+  app.use("/api/*", (req, res) => {
+    res
+      .status(404)
+      .json({ error: `API endpoint not found: ${req.originalUrl}` });
   });
 
   // Serve static files AFTER API routes
