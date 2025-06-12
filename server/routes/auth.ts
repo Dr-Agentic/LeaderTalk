@@ -150,29 +150,18 @@ export function registerAuthRoutes(app: Express) {
   // Supabase authentication callback endpoint
   app.post("/api/auth/supabase-callback", async (req, res) => {
     try {
+      console.log("=== SUPABASE CALLBACK ENDPOINT REACHED ===");
+      console.log("Request body:", req.body);
+      console.log("Session ID before auth:", req.sessionID);
+      
       const { uid, email, displayName, photoURL, emailVerified } = req.body;
 
       if (!uid || !email) {
+        console.log("Missing required fields - uid or email");
         return res
           .status(400)
           .json({ error: "Invalid user data from Supabase" });
       }
-
-      // Parse cookies to debug the mismatch issue
-      const cookies = req.headers.cookie ? req.headers.cookie.split(';').reduce((acc: any, cookie) => {
-        const [name, value] = cookie.trim().split('=');
-        acc[name] = value;
-        return acc;
-      }, {}) : {};
-      
-      console.log("🔐 AUTH CALLBACK COOKIE DEBUG:", {
-        expectedCookieName: 'leadertalk.sid',
-        hasLeadertalkSid: !!cookies['leadertalk.sid'],
-        hasConnectSid: !!cookies['connect.sid'],
-        allCookieNames: Object.keys(cookies),
-        sessionIdBefore: req.sessionID?.substring(0, 8) + '...',
-        userIdBefore: req.session?.userId
-      });
 
       console.log("Processing Supabase authentication for:", {
         uid,
@@ -218,43 +207,17 @@ export function registerAuthRoutes(app: Express) {
       const forceOnboarding = !user.selectedLeaders?.length;
       const selectedLeaders = user.selectedLeaders;
 
-      console.log("Setting userId in session:", user.id);
-      console.log("Session ID before authentication:", req.sessionID);
-      console.log("Production mode:", config.isProduction);
-      console.log("Cookie domain:", config.session.cookieDomain);
-
-      // Set user ID in session for both production and development
+      // Set user ID in session - this triggers cookie creation
       req.session.userId = user.id;
       
-      console.log("Setting userId in session:", user.id);
-      console.log("Session ID before save:", req.sessionID);
-      console.log("Environment:", config.isProduction ? 'production' : 'development');
+      // Log that we reached this point
+      console.log(`Authentication callback reached for user ${user.id} in ${config.nodeEnv} environment`);
 
-      // Save session with comprehensive error handling
+      // Save session
       req.session.save((saveErr) => {
         if (saveErr) {
           console.error("Session save error:", saveErr);
-          console.error("Session store type:", req.sessionStore?.constructor?.name);
           return res.status(500).json({ error: "Failed to save session" });
-        }
-
-        console.log("Session saved successfully");
-        console.log("Final session ID:", req.sessionID);
-        console.log("Final userId:", req.session.userId);
-        
-        // Verify session was actually saved to store in production
-        if (req.sessionStore && config.isProduction) {
-          req.sessionStore.get(req.sessionID, (getErr, sessionData) => {
-            if (getErr) {
-              console.error("Session verification failed:", getErr);
-            } else {
-              console.log("Session verification:", {
-                sessionExists: !!sessionData,
-                storedUserId: sessionData?.userId || null,
-                expectedUserId: user.id
-              });
-            }
-          });
         }
         
         res.json({
