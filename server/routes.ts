@@ -5,6 +5,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import { fileURLToPath } from "url";
 import path from "path";
+import fs from "fs";
 import { config } from "./config/environment";
 import { createSessionConfig } from "./sessionConfig";
 
@@ -85,6 +86,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Serve static files AFTER API routes
   servePublicFiles(app);
+
+  // SPA fallback for production builds - only handle known page routes
+  const spaRoutes = ['/onboarding', '/dashboard', '/auth/callback', '/login', '/transcripts', '/progress', '/settings', '/subscription', '/training', '/recording'];
+  
+  if (isProduction) {
+    spaRoutes.forEach(route => {
+      app.get(route, (req, res) => {
+        const indexPath = path.join(process.cwd(), 'dist', 'index.html');
+        
+        try {
+          res.sendFile(indexPath);
+        } catch (error) {
+          res.status(404).send('Page not found');
+        }
+      });
+    });
+  }
 
   // Create HTTP server
   const server = createServer(app);
