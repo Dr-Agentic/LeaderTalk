@@ -213,47 +213,30 @@ export function registerAuthRoutes(app: Express) {
       // Log that we reached this point
       console.log(`Authentication callback reached for user ${user.id} in ${config.nodeEnv} environment`);
 
-      // Set user ID in session and regenerate to force cookie creation
-      req.session.regenerate((regenErr) => {
-        if (regenErr) {
-          console.error("Session regeneration error:", regenErr);
-          return res.status(500).json({ error: "Failed to create session" });
+      // Set user ID in existing session without regeneration to avoid timing issues
+      req.session.userId = user.id;
+      
+      // Save the session with user ID
+      req.session.save((saveErr) => {
+        if (saveErr) {
+          console.error("Session save error:", saveErr);
+          return res.status(500).json({ error: "Failed to save session" });
         }
-        
-        // Set user ID in fresh session
-        req.session.userId = user.id;
-        
-        // Save the new session
-        req.session.save((saveErr) => {
-          if (saveErr) {
-            console.error("Session save error:", saveErr);
-            return res.status(500).json({ error: "Failed to save session" });
-          }
 
-          // Log cookie being set in production
-          if (config.isProduction) {
-            console.log("Production session saved successfully");
-            console.log("Session ID after save:", req.sessionID);
-            console.log("User ID in session:", req.session.userId);
-            
-            // Manually set the session cookie since Express isn't doing it
-            const cookieValue = `leadertalk.sid=${req.sessionID}; Domain=app.leadertalk.app; Path=/; HttpOnly; Secure; SameSite=None; Max-Age=604800`;
-            res.setHeader('Set-Cookie', cookieValue);
-            console.log("Manually set cookie:", cookieValue);
-            console.log("Response headers being sent:", res.getHeaders());
-          }
-          
-          res.json({
-            success: true,
-            user: {
-              id: user.id,
-              username: user.username,
-              email: user.email,
-              photoUrl: user.photoUrl || null
-            },
-            forceOnboarding,
-            selectedLeaders
-          });
+        console.log("Session saved successfully with user ID:", user.id);
+        console.log("Session ID:", req.sessionID);
+        console.log("User ID in session:", req.session.userId);
+        
+        res.json({
+          success: true,
+          user: {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            photoUrl: user.photoUrl || null
+          },
+          forceOnboarding,
+          selectedLeaders
         });
       });
     } catch (error) {
