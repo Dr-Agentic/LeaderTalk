@@ -45,13 +45,26 @@ export function servePublicFiles(app: Express) {
 export async function registerRoutes(app: Express): Promise<Server> {
   const isProduction = config.nodeEnv === 'production';
   
-  // Handle SPA routes by serving index.html for non-API routes
+  // Handle SPA routes by serving a minimal HTML that loads the React app
   const spaRoutes = ['/auth/callback', '/onboarding', '/dashboard', '/login'];
   
   spaRoutes.forEach(route => {
     app.get(route, (req, res) => {
-      const indexPath = path.resolve(process.cwd(), 'client', 'index.html');
-      res.sendFile(indexPath);
+      // Serve a minimal HTML response that loads the React app
+      res.setHeader('Content-Type', 'text/html');
+      res.send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LeaderTalk</title>
+  <link rel="stylesheet" href="/src/index.css">
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+</html>`);
     });
   });
 
