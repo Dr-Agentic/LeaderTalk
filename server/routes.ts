@@ -49,7 +49,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   if (isProduction) {
     app.get('/auth/callback', (req, res) => {
       try {
-        const indexPath = path.resolve(process.cwd(), 'public', 'index.html');
+        const indexPath = path.resolve(process.cwd(), 'client', 'index.html');
         res.sendFile(indexPath);
       } catch (error) {
         console.error('Error serving auth callback:', error);
