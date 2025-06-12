@@ -159,19 +159,21 @@ export function registerAuthRoutes(app: Express) {
       }
 
       // Parse cookies to debug the mismatch issue
-      const cookies = req.headers.cookie ? req.headers.cookie.split(';').reduce((acc: any, cookie) => {
-        const [name, value] = cookie.trim().split('=');
-        acc[name] = value;
-        return acc;
-      }, {}) : {};
-      
+      const cookies = req.headers.cookie
+        ? req.headers.cookie.split(";").reduce((acc: any, cookie) => {
+            const [name, value] = cookie.trim().split("=");
+            acc[name] = value;
+            return acc;
+          }, {})
+        : {};
+
       console.log("🔐 AUTH CALLBACK COOKIE DEBUG:", {
-        expectedCookieName: 'leadertalk.sid',
-        hasLeadertalkSid: !!cookies['leadertalk.sid'],
-        hasConnectSid: !!cookies['connect.sid'],
+        expectedCookieName: "leadertalk.sid",
+        hasLeadertalkSid: !!cookies["leadertalk.sid"],
+        hasConnectSid: !!cookies["connect.sid"],
         allCookieNames: Object.keys(cookies),
-        sessionIdBefore: req.sessionID?.substring(0, 8) + '...',
-        userIdBefore: req.session?.userId
+        sessionIdBefore: req.sessionID?.substring(0, 8) + "...",
+        sessionReceived: req.session,
       });
 
       console.log("Processing Supabase authentication for:", {
@@ -195,11 +197,16 @@ export function registerAuthRoutes(app: Express) {
         console.log("New user created:", user.id);
       } else {
         // Update existing user with Supabase ID if not set
-        if (!user.googleId) {
-          console.log("Updating existing user with Supabase ID");
+        console.log("Existing user found:", user.id, user.googleId);
+        if (!user.googleId || user.googleId !== uid) {
+          console.log(
+            "Updating existing user with Supabase ID",
+            user.googleId,
+            uid,
+          );
           const updatedUser = await storage.updateUser(user.id, {
             photoUrl: photoURL || user.photoUrl,
-            googleId: uid
+            googleId: uid,
           });
           if (updatedUser) {
             user = updatedUser;
@@ -243,6 +250,7 @@ export function registerAuthRoutes(app: Express) {
         console.log("Session userId after save:", req.session.userId);
         console.log("Production mode:", config.isProduction);
         console.log("Cookie domain:", config.session.cookieDomain);
+        console.log("Setting cookie:", res.getHeader("Set-Cookie"));
 
         res.json({
           success: true,
