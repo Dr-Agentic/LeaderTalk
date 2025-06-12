@@ -231,6 +231,11 @@ export function registerAuthRoutes(app: Express) {
             console.log("Production session saved successfully");
             console.log("Session ID after save:", req.sessionID);
             console.log("User ID in session:", req.session.userId);
+            
+            // Manually set the session cookie since Express isn't doing it
+            const cookieValue = `leadertalk.sid=${req.sessionID}; Domain=app.leadertalk.app; Path=/; HttpOnly; Secure; SameSite=None; Max-Age=604800`;
+            res.setHeader('Set-Cookie', cookieValue);
+            console.log("Manually set cookie:", cookieValue);
             console.log("Response headers being sent:", res.getHeaders());
           }
           
