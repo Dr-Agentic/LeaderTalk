@@ -286,14 +286,18 @@
 
   /* Button variant overrides for outline buttons */
   .inline-flex.items-center.justify-center[data-variant="outline"],
-  button[data-variant="outline"] {
+  button[data-variant="outline"],
+  .inline-flex.items-center.gap-1,
+  button.inline-flex.items-center {
     background: rgba(255, 255, 255, 0.05) !important;
     color: white !important;
     border-color: rgba(255, 255, 255, 0.2) !important;
   }
 
   .inline-flex.items-center.justify-center[data-variant="outline"]:hover,
-  button[data-variant="outline"]:hover {
+  button[data-variant="outline"]:hover,
+  .inline-flex.items-center.gap-1:hover,
+  button.inline-flex.items-center:hover {
     background: rgba(255, 255, 255, 0.1) !important;
     color: white !important;
   }
@@ -341,8 +345,19 @@
 
   /* Override any white background that might be applied by Tailwind */
   .bg-background,
-  .bg-muted {
+  .bg-muted,
+  .bg-card {
     background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(20px);
+    border-color: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  /* Card component specific overrides */
+  .rounded-lg.border.bg-card,
+  .rounded-lg.border.shadow-sm {
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(20px);
+    border-color: rgba(255, 255, 255, 0.1) !important;
   }
 
   /* Ultra-specific overrides for stubborn white backgrounds */
