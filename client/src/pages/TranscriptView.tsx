@@ -316,7 +316,7 @@ export default function TranscriptView() {
       pageTitle={`${recording.title} - Transcript`}
     >
       {/* Communication Analysis Chart Section */}
-      <Card className="mb-8 glass-card !bg-white/5 !backdrop-blur-lg !border-white/10">
+      <Card className="mb-8 glass-card">
         <CardHeader className="px-4 py-5 sm:px-6 flex flex-col sm:flex-row sm:justify-between sm:items-center">
           <div>
             <CardTitle className="text-lg leading-6 font-medium text-white">{recording.title}</CardTitle>
@@ -382,7 +382,7 @@ export default function TranscriptView() {
       </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="!bg-white/5 !backdrop-blur-lg !border-white/10">
+        <Card>
           <CardHeader>
             <CardTitle className="text-green-400">Positive Moments</CardTitle>
           </CardHeader>
@@ -395,7 +395,7 @@ export default function TranscriptView() {
           </CardContent>
         </Card>
 
-        <Card className="!bg-white/5 !backdrop-blur-lg !border-white/10">
+        <Card>
           <CardHeader>
             <CardTitle className="text-red-400">Negative Moments</CardTitle>
           </CardHeader>
@@ -410,7 +410,7 @@ export default function TranscriptView() {
         </Card>
       </div>
 
-      <Card className="mt-6 !bg-white/5 !backdrop-blur-lg !border-white/10">
+      <Card className="mt-6">
         <CardHeader>
           <CardTitle className="text-yellow-400">Areas for Improvement</CardTitle>
         </CardHeader>
