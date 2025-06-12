@@ -536,7 +536,7 @@ export default function RecordingSection({
     <div id="record-section" className="mt-10">
       <H2>Record a Conversation</H2>
 
-      <div className="mt-4 bg-gradient-to-br from-purple-600/20 to-pink-500/20 backdrop-blur-lg border border-purple-600/30 shadow sm:rounded-lg">
+      <div className="mt-4 bg-gradient-to-br from-purple-600/10 to-pink-500/10 backdrop-blur-lg border border-purple-600/20 shadow sm:rounded-lg">
         <div className="px-4 py-5 sm:p-6">
           {/* Show loading state while checking word limit */}
           {isCheckingWordLimit && (

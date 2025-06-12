@@ -407,6 +407,34 @@
     color: white !important;
   }
 
+  /* Final catch-all for any white backgrounds that slip through */
+  .bg-white,
+  .bg-gray-50,
+  .bg-gray-100,
+  .bg-slate-50,
+  .bg-slate-100,
+  .bg-zinc-50,
+  .bg-zinc-100,
+  .bg-neutral-50,
+  .bg-neutral-100,
+  .bg-stone-50,
+  .bg-stone-100 {
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+  }
+
+  /* Ensure tabs specifically use dark backgrounds */
+  [data-radix-tabs-list],
+  [data-radix-tabs-trigger]:not([data-state="active"]) {
+    background: rgba(255, 255, 255, 0.03) !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+  }
+
+  [data-radix-tabs-trigger][data-state="active"] {
+    background: rgba(255, 255, 255, 0.12) !important;
+    color: white !important;
+  }
+
   /* Fix any remaining white text on white background issues */
   .text-gray-900,
   .text-gray-800,
