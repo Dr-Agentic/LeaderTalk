@@ -17,8 +17,7 @@ export function registerAuthRoutes(app: Express) {
     console.log("OAuth callback route reached:", new Date().toISOString());
     console.log("Query params:", req.query);
     
-    // For OAuth flows, we need to serve the React app to handle the callback
-    // The React app will process the auth state and make the API call
+    // Serve HTML that processes the authentication and redirects to React app
     const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -61,15 +60,13 @@ export function registerAuthRoutes(app: Express) {
     <p>Completing authentication...</p>
   </div>
   <script>
-    // Process authentication callback and redirect
+    console.log('Processing OAuth callback in production');
+    
+    // Extract authentication data from URL
     const urlParams = new URLSearchParams(window.location.search);
     const fragment = new URLSearchParams(window.location.hash.substring(1));
     
-    console.log('Processing auth callback');
-    console.log('URL params:', Object.fromEntries(urlParams));
-    console.log('Fragment params:', Object.fromEntries(fragment));
-    
-    // Check for errors
+    // Check for errors first
     const error = urlParams.get('error') || fragment.get('error');
     if (error) {
       console.error('OAuth error:', error);
@@ -77,15 +74,71 @@ export function registerAuthRoutes(app: Express) {
       return;
     }
     
-    // Get auth code or access token
-    const code = urlParams.get('code');
+    // Get authentication tokens
     const accessToken = fragment.get('access_token');
+    const refreshToken = fragment.get('refresh_token');
+    const expiresAt = fragment.get('expires_at');
+    const code = urlParams.get('code');
     
-    if (code || accessToken) {
-      // Redirect to our React app's auth callback page for processing
+    console.log('Auth data found:', { hasAccessToken: !!accessToken, hasRefreshToken: !!refreshToken, hasCode: !!code });
+    
+    if (accessToken) {
+      // We have an access token from Supabase, proceed with authentication
+      console.log('Access token found, processing authentication...');
+      
+      // Extract user data from the JWT token (basic decode)
+      try {
+        const tokenParts = accessToken.split('.');
+        const payload = JSON.parse(atob(tokenParts[1]));
+        console.log('Token payload:', payload);
+        
+        // Send authentication data to our backend
+        fetch('/api/auth/supabase-callback', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            uid: payload.sub,
+            email: payload.email,
+            displayName: payload.user_metadata?.full_name || payload.email.split('@')[0],
+            photoURL: payload.user_metadata?.avatar_url,
+            emailVerified: payload.user_metadata?.email_verified || true
+          })
+        })
+        .then(response => response.json())
+        .then(data => {
+          console.log('Server authentication response:', data);
+          
+          if (data.success) {
+            // Authentication successful, redirect based on user state
+            if (data.forceOnboarding || !data.selectedLeaders?.length) {
+              window.location.href = '/onboarding';
+            } else {
+              window.location.href = '/dashboard';
+            }
+          } else {
+            console.error('Server authentication failed:', data);
+            window.location.href = '/login?error=server_auth_failed';
+          }
+        })
+        .catch(error => {
+          console.error('Authentication request failed:', error);
+          window.location.href = '/login?error=request_failed';
+        });
+        
+      } catch (error) {
+        console.error('Token decode error:', error);
+        window.location.href = '/login?error=token_invalid';
+      }
+      
+    } else if (code) {
+      // Authorization code flow - redirect to React app for processing
+      console.log('Authorization code found, redirecting to React app...');
       window.location.href = '/auth-callback' + window.location.search + window.location.hash;
+      
     } else {
-      console.error('No auth code or token found');
+      console.error('No authentication data found');
       window.location.href = '/login?error=no_auth_data';
     }
   </script>
