@@ -49,16 +49,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   if (isProduction) {
     app.get('/auth/callback', (req, res) => {
       try {
-        const path = require('path');
-        const fs = require('fs');
         const indexPath = path.resolve(process.cwd(), 'public', 'index.html');
-        
-        if (fs.existsSync(indexPath)) {
-          res.sendFile(indexPath);
-        } else {
-          console.error('index.html not found at:', indexPath);
-          res.status(404).send('Application not found');
-        }
+        res.sendFile(indexPath);
       } catch (error) {
         console.error('Error serving auth callback:', error);
         res.status(500).send('Internal server error');
