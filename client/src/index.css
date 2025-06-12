@@ -354,7 +354,17 @@
 
   /* Card component specific overrides */
   .rounded-lg.border.bg-card,
-  .rounded-lg.border.shadow-sm {
+  .rounded-lg.border.shadow-sm,
+  [class*="rounded-lg"][class*="border"][class*="bg-"],
+  [class*="rounded"][class*="border"][class*="shadow"] {
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(20px);
+    border-color: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  /* Force all card-like components to use dark backgrounds */
+  div[class*="rounded"][class*="border"]:not(.login-page *),
+  div[class*="card"]:not(.login-page *) {
     background: rgba(255, 255, 255, 0.05) !important;
     backdrop-filter: blur(20px);
     border-color: rgba(255, 255, 255, 0.1) !important;
@@ -423,19 +433,31 @@
   }
 
   /* Final catch-all for any white backgrounds that slip through */
-  .bg-white,
-  .bg-gray-50,
-  .bg-gray-100,
-  .bg-slate-50,
-  .bg-slate-100,
-  .bg-zinc-50,
-  .bg-zinc-100,
-  .bg-neutral-50,
-  .bg-neutral-100,
-  .bg-stone-50,
-  .bg-stone-100 {
+  .bg-white:not(.login-page *),
+  .bg-gray-50:not(.login-page *),
+  .bg-gray-100:not(.login-page *),
+  .bg-slate-50:not(.login-page *),
+  .bg-slate-100:not(.login-page *),
+  .bg-zinc-50:not(.login-page *),
+  .bg-zinc-100:not(.login-page *),
+  .bg-neutral-50:not(.login-page *),
+  .bg-neutral-100:not(.login-page *),
+  .bg-stone-50:not(.login-page *),
+  .bg-stone-100:not(.login-page *) {
     background: rgba(255, 255, 255, 0.05) !important;
     color: rgba(255, 255, 255, 0.9) !important;
+  }
+
+  /* Nuclear option for any remaining white containers */
+  *:not(.login-page *)[style*="background-color: white"],
+  *:not(.login-page *)[style*="background: white"],
+  *:not(.login-page *)[style*="background-color: #ffffff"],
+  *:not(.login-page *)[style*="background-color: #fff"],
+  *:not(.login-page *)[style*="background: #ffffff"],
+  *:not(.login-page *)[style*="background: #fff"] {
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(20px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
   }
 
   /* Ensure tabs specifically use dark backgrounds */
@@ -450,11 +472,11 @@
     color: white !important;
   }
 
-  /* Fix any remaining white text on white background issues */
-  .text-gray-900,
-  .text-gray-800,
-  .text-gray-700,
-  .text-black {
+  /* Fix any remaining white text on white background issues - but preserve login page styling */
+  .text-gray-900:not(.login-page *),
+  .text-gray-800:not(.login-page *),
+  .text-gray-700:not(.login-page *),
+  .text-black:not(.login-page *) {
     color: white !important;
   }
 }
