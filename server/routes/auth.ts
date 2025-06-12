@@ -12,6 +12,89 @@ declare module "express-session" {
 }
 
 export function registerAuthRoutes(app: Express) {
+  // OAuth callback route - handles Google OAuth redirects
+  app.get("/auth/callback", (req, res) => {
+    console.log("OAuth callback route reached:", new Date().toISOString());
+    console.log("Query params:", req.query);
+    
+    // For OAuth flows, we need to serve the React app to handle the callback
+    // The React app will process the auth state and make the API call
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LeaderTalk - Authentication</title>
+  <style>
+    body { 
+      margin: 0; 
+      font-family: system-ui, -apple-system, sans-serif; 
+      background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 100%);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .loading {
+      text-align: center;
+      padding: 2rem;
+    }
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(255,255,255,0.1);
+      border-top: 3px solid #6366f1;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 1rem;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="loading">
+    <div class="spinner"></div>
+    <p>Completing authentication...</p>
+  </div>
+  <script>
+    // Process authentication callback and redirect
+    const urlParams = new URLSearchParams(window.location.search);
+    const fragment = new URLSearchParams(window.location.hash.substring(1));
+    
+    console.log('Processing auth callback');
+    console.log('URL params:', Object.fromEntries(urlParams));
+    console.log('Fragment params:', Object.fromEntries(fragment));
+    
+    // Check for errors
+    const error = urlParams.get('error') || fragment.get('error');
+    if (error) {
+      console.error('OAuth error:', error);
+      window.location.href = '/login?error=' + encodeURIComponent(error);
+      return;
+    }
+    
+    // Get auth code or access token
+    const code = urlParams.get('code');
+    const accessToken = fragment.get('access_token');
+    
+    if (code || accessToken) {
+      // Redirect to our React app's auth callback page for processing
+      window.location.href = '/auth-callback' + window.location.search + window.location.hash;
+    } else {
+      console.error('No auth code or token found');
+      window.location.href = '/login?error=no_auth_data';
+    }
+  </script>
+</body>
+</html>`;
+    
+    res.send(html);
+  });
+
   // Auth parameters endpoint - returns environment-specific Supabase config
   app.get("/api/auth/auth-parameters", (req, res) => {
     try {
