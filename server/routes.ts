@@ -45,18 +45,15 @@ export function servePublicFiles(app: Express) {
 export async function registerRoutes(app: Express): Promise<Server> {
   const isProduction = config.nodeEnv === 'production';
   
-  // Handle auth callback route specifically in production
-  if (isProduction) {
-    app.get('/auth/callback', (req, res) => {
-      try {
-        const indexPath = path.resolve(process.cwd(), 'client', 'index.html');
-        res.sendFile(indexPath);
-      } catch (error) {
-        console.error('Error serving auth callback:', error);
-        res.status(500).send('Internal server error');
-      }
+  // Handle SPA routes by serving index.html for non-API routes
+  const spaRoutes = ['/auth/callback', '/onboarding', '/dashboard', '/login'];
+  
+  spaRoutes.forEach(route => {
+    app.get(route, (req, res) => {
+      const indexPath = path.resolve(process.cwd(), 'client', 'index.html');
+      res.sendFile(indexPath);
     });
-  }
+  });
 
   // Configure CORS
   const corsOrigin = isProduction 
