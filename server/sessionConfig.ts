@@ -26,17 +26,19 @@ export function createSessionConfig() {
         checkPeriod: 86400000
       });
 
-  // Production cookie configuration
+  // Production cookie configuration  
   const cookieConfig = {
     secure: isProduction,
     httpOnly: true,
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    sameSite: 'lax' as const, // Use 'lax' for both dev and prod
+    sameSite: isProduction ? 'none' as const : 'lax' as const, // Use 'none' for OAuth redirects
     path: '/'
   } as any;
 
-  // Don't set domain in production - let browser handle it automatically
-  // This avoids cross-domain cookie issues on Replit
+  // Set domain in production since app runs on app.leadertalk.app
+  if (isProduction && config.session.cookieDomain) {
+    cookieConfig.domain = config.session.cookieDomain;
+  }
 
   return {
     store: sessionStore,

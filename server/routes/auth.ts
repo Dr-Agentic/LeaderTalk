@@ -51,8 +51,10 @@ export function registerAuthRoutes(app: Express) {
           path: "/",
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
-          sameSite: "lax"
-          // No domain set - matches session config
+          sameSite: "lax",
+          domain: process.env.NODE_ENV === "production" 
+            ? process.env.PROD_COOKIE_DOMAIN || process.env.COOKIE_DOMAIN
+            : undefined
         });
 
         res.json({ success: true, message: "Logged out successfully" });
