@@ -44,29 +44,6 @@ export function servePublicFiles(app: Express) {
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const isProduction = config.nodeEnv === 'production';
-  
-  // Handle SPA routes by serving a minimal HTML that loads the React app
-  const spaRoutes = ['/auth/callback', '/onboarding', '/dashboard', '/login'];
-  
-  spaRoutes.forEach(route => {
-    app.get(route, (req, res) => {
-      // Serve a minimal HTML response that loads the React app
-      res.setHeader('Content-Type', 'text/html');
-      res.send(`<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LeaderTalk</title>
-  <link rel="stylesheet" href="/src/index.css">
-</head>
-<body>
-  <div id="root"></div>
-  <script type="module" src="/src/main.tsx"></script>
-</body>
-</html>`);
-    });
-  });
 
   // Configure CORS
   const corsOrigin = isProduction 
@@ -108,6 +85,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Serve static files AFTER API routes
   servePublicFiles(app);
+
+  // SPA fallback - only serve React app for actual page routes
+  app.get('*', (req, res, next) => {
+    // Skip API routes, static assets, and development files
+    if (req.path.startsWith('/api/') || 
+        req.path.startsWith('/src/') ||
+        req.path.startsWith('/node_modules/') ||
+        req.path.startsWith('/@') ||
+        req.path.includes('.')) {
+      return next();
+    }
+    
+    // For page routes, serve the React app
+    res.setHeader('Content-Type', 'text/html');
+    res.send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LeaderTalk</title>
+  <link rel="stylesheet" href="/src/index.css">
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+</html>`);
+  });
 
   // Create HTTP server
   const server = createServer(app);
