@@ -288,7 +288,10 @@
   .inline-flex.items-center.justify-center[data-variant="outline"],
   button[data-variant="outline"],
   .inline-flex.items-center.gap-1,
-  button.inline-flex.items-center {
+  button.inline-flex.items-center,
+  .border.border-input.bg-background,
+  button[class*="border"][class*="bg-background"],
+  .inline-flex[class*="border"][class*="bg-background"] {
     background: rgba(255, 255, 255, 0.05) !important;
     color: white !important;
     border-color: rgba(255, 255, 255, 0.2) !important;
@@ -297,7 +300,10 @@
   .inline-flex.items-center.justify-center[data-variant="outline"]:hover,
   button[data-variant="outline"]:hover,
   .inline-flex.items-center.gap-1:hover,
-  button.inline-flex.items-center:hover {
+  button.inline-flex.items-center:hover,
+  .border.border-input.bg-background:hover,
+  button[class*="border"][class*="bg-background"]:hover,
+  .inline-flex[class*="border"][class*="bg-background"]:hover {
     background: rgba(255, 255, 255, 0.1) !important;
     color: white !important;
   }
@@ -346,10 +352,20 @@
   /* Override any white background that might be applied by Tailwind */
   .bg-background,
   .bg-muted,
-  .bg-card {
+  .bg-card,
+  .bg-secondary,
+  .bg-border {
     background: rgba(255, 255, 255, 0.05) !important;
     backdrop-filter: blur(20px);
     border-color: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  /* Progress and Separator component overrides */
+  .relative.h-4.w-full.overflow-hidden.rounded-full.bg-secondary,
+  .shrink-0.bg-border,
+  [class*="bg-secondary"]:not(.login-page *),
+  [class*="bg-border"]:not(.login-page *) {
+    background: rgba(255, 255, 255, 0.1) !important;
   }
 
   /* Card component specific overrides */
@@ -458,6 +474,25 @@
     background: rgba(255, 255, 255, 0.05) !important;
     backdrop-filter: blur(20px) !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  }
+
+  /* Final universal override for transcript view specifically */
+  [class*="transcript"] *:not(.login-page *),
+  .prose *:not(.login-page *),
+  .space-y-4 *:not(.login-page *),
+  .grid-cols-1 *:not(.login-page *),
+  .md\\:grid-cols-2 *:not(.login-page *) {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+  }
+
+  /* Override any stubborn white backgrounds with higher specificity */
+  body:not(.login-page) *[class*="bg-white"],
+  body:not(.login-page) *[class*="bg-gray-50"],
+  body:not(.login-page) *[class*="bg-slate-50"],
+  body:not(.login-page) div[class*="rounded"][class*="border"]:not([class*="bg-blue"]):not([class*="bg-green"]):not([class*="bg-red"]):not([class*="bg-yellow"]):not([class*="bg-purple"]) {
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(20px) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
   }
 
   /* Ensure tabs specifically use dark backgrounds */
