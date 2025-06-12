@@ -52,30 +52,14 @@ export default function AuthCallback() {
             setStatus('success')
             ;(window as any).__authCallbackProcessing = false
             
-            setTimeout(async () => {
-              try {
-                const sessionCheck = await fetch('/api/debug/session', {
-                  credentials: 'include'
-                });
-                const sessionData = await sessionCheck.json();
-                
-                if (sessionData.isLoggedIn) {
-                  if (userData.forceOnboarding || !userData.selectedLeaders?.length) {
-                    window.location.replace('/onboarding')
-                  } else {
-                    window.location.replace('/dashboard')
-                  }
-                } else {
-                  throw new Error("Session not established after authentication");
-                }
-              } catch (error) {
-                if (userData.forceOnboarding || !userData.selectedLeaders?.length) {
-                  window.location.replace('/onboarding')
-                } else {
-                  window.location.replace('/dashboard')
-                }
+            // Force a full page reload to ensure React router state updates
+            setTimeout(() => {
+              if (userData.forceOnboarding || !userData.selectedLeaders?.length) {
+                window.location.href = '/onboarding'
+              } else {
+                window.location.href = '/dashboard'
               }
-            }, 1000); // Wait 1 second for session to be established
+            }, 500);
           } else {
             const errorText = await response.text()
             console.error('Server authentication failed:', errorText)
