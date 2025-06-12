@@ -315,6 +315,98 @@
     color: white !important;
   }
 
+  /* More specific overrides for TabsList and TabsTrigger */
+  .inline-flex.h-10.items-center.justify-center[role="tablist"],
+  .grid.w-full.max-w-md.grid-cols-3[role="tablist"] {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  }
+
+  /* Target TabsTrigger with multiple classes */
+  .inline-flex.items-center.justify-center[role="tab"],
+  .whitespace-nowrap.rounded-sm[role="tab"],
+  button[role="tab"] {
+    background: transparent !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+    border: none !important;
+  }
+
+  .inline-flex.items-center.justify-center[role="tab"][data-state="active"],
+  .whitespace-nowrap.rounded-sm[role="tab"][data-state="active"],
+  button[role="tab"][data-state="active"] {
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: white !important;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
+  }
+
+  /* Override any white background that might be applied by Tailwind */
+  .bg-background,
+  .bg-muted {
+    background: rgba(255, 255, 255, 0.05) !important;
+  }
+
+  /* Ultra-specific overrides for stubborn white backgrounds */
+  [data-radix-tabs-list],
+  [data-radix-tabs-trigger] {
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  }
+
+  [data-radix-tabs-trigger][data-state="active"] {
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: white !important;
+  }
+
+  /* Force override any white/light backgrounds with highest specificity */
+  body .bg-white,
+  body .bg-gray-50,
+  body .bg-gray-100,
+  body .bg-muted,
+  body .bg-background,
+  body [role="tablist"],
+  body [role="tab"] {
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+  }
+
+  body [role="tab"][data-state="active"] {
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: white !important;
+  }
+
+  /* Nuclear option: override ALL possible white backgrounds */
+  * {
+    --tw-bg-opacity: 1 !important;
+  }
+
+  *[style*="background-color: white"],
+  *[style*="background-color: #fff"],
+  *[style*="background-color: #ffffff"],
+  *[style*="background: white"],
+  *[style*="background: #fff"],
+  *[style*="background: #ffffff"] {
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+  }
+
+  /* Catch any remaining stubborn elements */
+  div[class*="bg-"], 
+  button[class*="bg-"], 
+  span[class*="bg-"] {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+  }
+
+  div[class*="bg-"][class*="active"], 
+  button[class*="bg-"][class*="active"], 
+  span[class*="bg-"][class*="active"],
+  div[data-state="active"], 
+  button[data-state="active"], 
+  span[data-state="active"] {
+    background-color: rgba(255, 255, 255, 0.15) !important;
+    color: white !important;
+  }
+
   /* Fix any remaining white text on white background issues */
   .text-gray-900,
   .text-gray-800,
