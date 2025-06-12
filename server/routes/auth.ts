@@ -206,43 +206,45 @@ export function registerAuthRoutes(app: Express) {
       const forceOnboarding = !user.selectedLeaders?.length;
       const selectedLeaders = user.selectedLeaders;
 
-      // Set user ID in session - this triggers cookie creation
-      req.session.userId = user.id;
-      
       // Log that we reached this point
       console.log(`Authentication callback reached for user ${user.id} in ${config.nodeEnv} environment`);
 
-      // Save session
-      req.session.save((saveErr) => {
-        if (saveErr) {
-          console.error("Session save error:", saveErr);
-          return res.status(500).json({ error: "Failed to save session" });
-        }
-
-        // Log cookie being set in production
-        if (config.isProduction) {
-          console.log("Production session saved successfully");
-          console.log("Session ID after save:", req.sessionID);
-          console.log("User ID in session:", req.session.userId);
-          
-          // Check if response headers contain Set-Cookie
-          const originalEnd = res.end;
-          res.end = function(chunk, encoding) {
-            console.log("Response headers being sent:", res.getHeaders());
-            return originalEnd.call(this, chunk, encoding);
-          };
+      // Set user ID in session and regenerate to force cookie creation
+      req.session.regenerate((regenErr) => {
+        if (regenErr) {
+          console.error("Session regeneration error:", regenErr);
+          return res.status(500).json({ error: "Failed to create session" });
         }
         
-        res.json({
-          success: true,
-          user: {
-            id: user.id,
-            username: user.username,
-            email: user.email,
-            photoUrl: user.photoUrl,
+        // Set user ID in fresh session
+        req.session.userId = user.id;
+        
+        // Save the new session
+        req.session.save((saveErr) => {
+          if (saveErr) {
+            console.error("Session save error:", saveErr);
+            return res.status(500).json({ error: "Failed to save session" });
+          }
+
+          // Log cookie being set in production
+          if (config.isProduction) {
+            console.log("Production session saved successfully");
+            console.log("Session ID after save:", req.sessionID);
+            console.log("User ID in session:", req.session.userId);
+            console.log("Response headers being sent:", res.getHeaders());
+          }
+          
+          res.json({
+            success: true,
+            user: {
+              id: user.id,
+              username: user.username,
+              email: user.email,
+              photoUrl: user.photoUrl || null
+            },
             forceOnboarding,
-            selectedLeaders,
-          },
+            selectedLeaders
+          });
         });
       });
     } catch (error) {

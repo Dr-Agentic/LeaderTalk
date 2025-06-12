@@ -43,7 +43,7 @@ export function createSessionConfig() {
   return {
     store: sessionStore,
     secret: config.session.secret,
-    resave: false,
+    resave: true, // Force session save to trigger Set-Cookie header
     saveUninitialized: true,
     name: 'leadertalk.sid',
     cookie: cookieConfig
