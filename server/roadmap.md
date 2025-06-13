@@ -1,3 +1,6 @@
-- Fix the latest white backgrounds
-- Restore the nice button at the login screen
+- When a user logs in the first time, the recording page shows an issue with the subscription.
+- Fix when a user logs in: we need to retrieve the customer and the subscription from Stripe, and reuse it.
+  - Currently it creates a new user and a new subscription. 
+- Done: Fix the latest white backgrounds
+- Done: Restore the nice button at the login screen
 - 
