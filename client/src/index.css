@@ -47,21 +47,14 @@
   .animate-float {
     animation: float 8s ease-in-out infinite;
   }
-}
 
-@layer components {
   /* Template-authentic gradient for recording button */
   .bg-template-gradient {
-    background: linear-gradient(135deg, #8A2BE2, #FF6B6B) !important;
+    background: linear-gradient(135deg, #8A2BE2, #FF6B6B);
   }
   
   .bg-template-gradient-hover {
-    background: linear-gradient(135deg, #7B1FA2, #E53E3E) !important;
-  }
-
-  /* Hover state for template gradient */
-  .bg-template-gradient:hover {
-    background: linear-gradient(135deg, #7B1FA2, #E53E3E) !important;
+    background: linear-gradient(135deg, #7B1FA2, #E53E3E);
   }
   
   .glass-card {
@@ -182,7 +175,6 @@
       transform: none;
     }
   }
-}
 }
 
 @keyframes float {
