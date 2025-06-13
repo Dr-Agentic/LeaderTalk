@@ -572,23 +572,15 @@ export default function RecordingSection({
           <div className="text-center py-6">
             {/* Recording Button - Disabled when word limit is exceeded */}
             <button
-              className={`inline-flex items-center justify-center h-32 w-32 rounded-full ${
+              className={`cta-button h-32 w-32 rounded-full ${
                 isRecording
                   ? isPaused
-                    ? "bg-yellow-500 text-white shadow-lg shadow-yellow-500/30"
-                    : "bg-red-600 text-white shadow-lg shadow-red-500/40"
+                    ? "bg-yellow-500 text-white shadow-lg shadow-yellow-500/30 border-2 border-yellow-400"
+                    : "bg-red-600 text-white shadow-lg shadow-red-500/40 border-2 border-red-400"
                   : hasExceededWordLimit
-                    ? "bg-slate-700/50 text-slate-400 cursor-not-allowed"
-                    : "bg-template-gradient text-white hover:bg-template-gradient-hover shadow-lg shadow-[#8A2BE2]/30 border-[#FF6B6B]/40"
-              } mb-4 border-2 ${
-                isRecording
-                  ? isPaused
-                    ? "border-yellow-400"
-                    : "border-red-400"
-                  : hasExceededWordLimit
-                    ? "border-slate-600/50"
-                    : "border-[#FF6B6B]/50"
-              } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200`}
+                    ? "bg-slate-700/50 text-slate-400 cursor-not-allowed border-2 border-slate-600/50"
+                    : ""
+              } mb-4`}
               onClick={
                 !isRecording && !hasExceededWordLimit
                   ? handleStartRecording
