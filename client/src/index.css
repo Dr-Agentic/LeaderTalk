@@ -10,31 +10,32 @@
   }
   
   :root {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 271 81% 56%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 271 81% 56%;
+    /* Template-compliant colors: #0f0f23 (dark purple-blue) and rgba(255,255,255,0.05) glass */
+    --background: 248 71% 10%;  /* #0f0f23 */
+    --foreground: 0 0% 100%;     /* white text */
+    --card: 0 0% 100% / 0.05;    /* rgba(255,255,255,0.05) - glass card from template */
+    --card-foreground: 0 0% 100%;
+    --popover: 248 71% 10%;      /* #0f0f23 */
+    --popover-foreground: 0 0% 100%;
+    --primary: 271 81% 56%;      /* #8A2BE2 purple from template */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 100% / 0.08; /* slightly more opaque glass */
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 100% / 0.05;   /* same as card - glass effect */
+    --muted-foreground: 0 0% 70%; /* rgba(255,255,255,0.7) from template */
+    --accent: 0 0% 100% / 0.1;   /* more visible glass */
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 62.8% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 100% / 0.1;   /* rgba(255,255,255,0.1) from template */
+    --input: 0 0% 100% / 0.05;   /* glass input fields */
+    --ring: 271 81% 56%;         /* purple focus ring */
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
-    --radius: 1rem;
+    --radius: 1.25rem; /* 20px border-radius from template */
   }
 }
 
