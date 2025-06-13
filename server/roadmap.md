@@ -1,0 +1,2 @@
+- Fix the latest white backgrounds
+- Restore the nnice button at the login screen
