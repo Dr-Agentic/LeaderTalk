@@ -575,20 +575,20 @@ export default function RecordingSection({
               className={`inline-flex items-center justify-center h-32 w-32 rounded-full ${
                 isRecording
                   ? isPaused
-                    ? "bg-yellow-500 text-white"
-                    : "bg-red-600 text-white"
+                    ? "bg-yellow-500 text-white shadow-lg shadow-yellow-500/30"
+                    : "bg-red-600 text-white shadow-lg shadow-red-500/40"
                   : hasExceededWordLimit
                     ? "bg-slate-700/50 text-slate-400 cursor-not-allowed"
-                    : "bg-red-600/20 text-red-400 hover:bg-red-600/30 border-red-500/30"
+                    : "bg-gradient-to-br from-red-500 to-red-700 text-red-100 hover:from-red-600 hover:to-red-800 shadow-lg shadow-red-500/30 border-red-400/40"
               } mb-4 border-2 ${
                 isRecording
                   ? isPaused
-                    ? "border-yellow-600"
-                    : "border-red-700"
+                    ? "border-yellow-400"
+                    : "border-red-400"
                   : hasExceededWordLimit
                     ? "border-slate-600/50"
-                    : "border-red-500/30"
-              } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500`}
+                    : "border-red-400/50"
+              } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200`}
               onClick={
                 !isRecording && !hasExceededWordLimit
                   ? handleStartRecording
@@ -601,7 +601,7 @@ export default function RecordingSection({
                   : "Start recording"
               }
             >
-              <Mic className="h-12 w-12" />
+              <Mic className="h-12 w-12 drop-shadow-sm" />
             </button>
 
             <h3 className="text-lg font-medium text-white mt-4">
