@@ -579,7 +579,7 @@ export default function RecordingSection({
                     : "bg-red-600 text-white shadow-lg shadow-red-500/40"
                   : hasExceededWordLimit
                     ? "bg-slate-700/50 text-slate-400 cursor-not-allowed"
-                    : "bg-template-gradient text-white hover:bg-template-gradient-hover shadow-lg shadow-[#8A2BE2]/30 border-[#FF6B6B]/40"
+                    : "bg-template-gradient text-white shadow-lg shadow-[#8A2BE2]/30 border-[#FF6B6B]/40"
               } mb-4 border-2 ${
                 isRecording
                   ? isPaused
