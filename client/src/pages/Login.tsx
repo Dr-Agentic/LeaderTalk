@@ -48,12 +48,10 @@ export default function Login() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Button
+          <button
             onClick={handleGoogleSignIn}
             disabled={loading}
-            variant="ghost"
-            className="w-full cta-button"
-            size="lg"
+            className="w-full cta-button flex items-center justify-center"
           >
             {loading ? (
               <>
@@ -83,7 +81,7 @@ export default function Login() {
                 Sign in with Google
               </>
             )}
-          </Button>
+          </button>
         </CardContent>
       </Card>
     </div>
