@@ -165,12 +165,12 @@ export default function OnboardingFeatures({ onComplete }: OnboardingFeaturesPro
         </div>
 
         <div className="flex justify-center">
-          <Button 
+          <button 
             onClick={onComplete} 
             className="cta-button px-8 py-6 text-lg"
           >
             Start Your Journey
-          </Button>
+          </button>
         </div>
       </Card>
     </div>

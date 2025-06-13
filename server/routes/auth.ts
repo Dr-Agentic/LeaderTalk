@@ -3,8 +3,6 @@ import { storage } from "../storage";
 import { insertUserSchema } from "@shared/schema";
 import { z } from "zod";
 import { config } from "../config/environment";
-import path from "path";
-import fs from "fs";
 
 // Extend session type to include userId
 declare module "express-session" {
@@ -14,8 +12,6 @@ declare module "express-session" {
 }
 
 export function registerAuthRoutes(app: Express) {
-
-
   // Auth parameters endpoint - returns environment-specific Supabase config
   app.get("/api/auth/auth-parameters", (req, res) => {
     try {
@@ -56,9 +52,10 @@ export function registerAuthRoutes(app: Express) {
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
           sameSite: "lax",
-          domain: process.env.NODE_ENV === "production" 
-            ? process.env.PROD_COOKIE_DOMAIN || process.env.COOKIE_DOMAIN
-            : undefined
+          domain:
+            process.env.NODE_ENV === "production"
+              ? process.env.PROD_COOKIE_DOMAIN || process.env.COOKIE_DOMAIN
+              : undefined,
         });
 
         res.json({ success: true, message: "Logged out successfully" });
@@ -153,18 +150,31 @@ export function registerAuthRoutes(app: Express) {
   // Supabase authentication callback endpoint
   app.post("/api/auth/supabase-callback", async (req, res) => {
     try {
-      console.log("=== SUPABASE CALLBACK ENDPOINT REACHED ===");
-      console.log("Request body:", req.body);
-      console.log("Session ID before auth:", req.sessionID);
-      
       const { uid, email, displayName, photoURL, emailVerified } = req.body;
 
       if (!uid || !email) {
-        console.log("Missing required fields - uid or email");
         return res
           .status(400)
           .json({ error: "Invalid user data from Supabase" });
       }
+
+      // Parse cookies to debug the mismatch issue
+      const cookies = req.headers.cookie
+        ? req.headers.cookie.split(";").reduce((acc: any, cookie) => {
+            const [name, value] = cookie.trim().split("=");
+            acc[name] = value;
+            return acc;
+          }, {})
+        : {};
+
+      console.log("🔐 AUTH CALLBACK COOKIE DEBUG:", {
+        expectedCookieName: "leadertalk.sid",
+        hasLeadertalkSid: !!cookies["leadertalk.sid"],
+        hasConnectSid: !!cookies["connect.sid"],
+        allCookieNames: Object.keys(cookies),
+        sessionIdBefore: req.sessionID?.substring(0, 8) + "...",
+        sessionReceived: req.session,
+      });
 
       console.log("Processing Supabase authentication for:", {
         uid,
@@ -187,11 +197,16 @@ export function registerAuthRoutes(app: Express) {
         console.log("New user created:", user.id);
       } else {
         // Update existing user with Supabase ID if not set
-        if (!user.googleId) {
-          console.log("Updating existing user with Supabase ID");
+        console.log("Existing user found:", user.id, user.googleId);
+        if (!user.googleId || user.googleId !== uid) {
+          console.log(
+            "Updating existing user with Supabase ID",
+            user.googleId,
+            uid,
+          );
           const updatedUser = await storage.updateUser(user.id, {
             photoUrl: photoURL || user.photoUrl,
-            googleId: uid
+            googleId: uid,
           });
           if (updatedUser) {
             user = updatedUser;
@@ -206,37 +221,47 @@ export function registerAuthRoutes(app: Express) {
           .json({ error: "Failed to create or update user" });
       }
 
+      // Set user ID in session directly (no regeneration to avoid production issues)
+      req.session.userId = user.id;
+
+      console.log("Setting userId in session:", user.googleId);
+      console.log("Session ID before save:", req.sessionID);
+      console.log(
+        "Session object before save:",
+        JSON.stringify(req.session, null, 2),
+      );
+
       // Store user data for callback scope to avoid TypeScript undefined errors
       const forceOnboarding = !user.selectedLeaders?.length;
       const selectedLeaders = user.selectedLeaders;
 
-      // Log that we reached this point
-      console.log(`Authentication callback reached for user ${user.id} in ${config.nodeEnv} environment`);
-
-      // Set user ID in existing session without regeneration to avoid timing issues
-      req.session.userId = user.id;
-      
-      // Save the session with user ID
+      // Save session and respond
       req.session.save((saveErr) => {
         if (saveErr) {
           console.error("Session save error:", saveErr);
           return res.status(500).json({ error: "Failed to save session" });
         }
 
-        console.log("Session saved successfully with user ID:", user.id);
-        console.log("Session ID:", req.sessionID);
-        console.log("User ID in session:", req.session.userId);
-        
+        console.log(
+          "Supabase authentication successful for database user ID:",
+          user.id,
+        );
+        console.log("Session ID after save:", req.sessionID);
+        console.log("Session userId after save:", req.session.userId);
+        console.log("Production mode:", config.isProduction);
+        console.log("Cookie domain:", config.session.cookieDomain);
+        console.log("Setting cookie:", res.getHeader("Set-Cookie"));
+
         res.json({
           success: true,
           user: {
             id: user.id,
             username: user.username,
             email: user.email,
-            photoUrl: user.photoUrl || null
+            photoUrl: user.photoUrl,
+            forceOnboarding,
+            selectedLeaders,
           },
-          forceOnboarding,
-          selectedLeaders
         });
       });
     } catch (error) {

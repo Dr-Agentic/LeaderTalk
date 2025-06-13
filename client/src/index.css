@@ -8,6 +8,35 @@
   * {
     font-family: 'Inter', sans-serif;
   }
+  
+  :root {
+    /* Template-compliant colors: #0f0f23 (dark purple-blue) and rgba(255,255,255,0.05) glass */
+    --background: 248 71% 10%;  /* #0f0f23 */
+    --foreground: 0 0% 100%;     /* white text */
+    --card: 0 0% 100% / 0.05;    /* rgba(255,255,255,0.05) - glass card from template */
+    --card-foreground: 0 0% 100%;
+    --popover: 248 71% 10%;      /* #0f0f23 */
+    --popover-foreground: 0 0% 100%;
+    --primary: 271 81% 56%;      /* #8A2BE2 purple from template */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 100% / 0.08; /* slightly more opaque glass */
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 100% / 0.05;   /* same as card - glass effect */
+    --muted-foreground: 0 0% 70%; /* rgba(255,255,255,0.7) from template */
+    --accent: 0 0% 100% / 0.1;   /* more visible glass */
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 62.8% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 100% / 0.1;   /* rgba(255,255,255,0.1) from template */
+    --input: 0 0% 100% / 0.05;   /* glass input fields */
+    --ring: 271 81% 56%;         /* purple focus ring */
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+    --radius: 1.25rem; /* 20px border-radius from template */
+  }
 }
 
 @layer utilities {
@@ -17,6 +46,15 @@
   
   .animate-float {
     animation: float 8s ease-in-out infinite;
+  }
+
+  /* Template-authentic gradient for recording button */
+  .bg-template-gradient {
+    background: linear-gradient(135deg, #8A2BE2, #FF6B6B);
+  }
+  
+  .bg-template-gradient-hover {
+    background: linear-gradient(135deg, #7B1FA2, #E53E3E);
   }
   
   .glass-card {
@@ -84,17 +122,58 @@
   .cta-button {
     background: linear-gradient(135deg, #8A2BE2, #FF6B6B);
     border: none;
+    padding: 16px 32px;
     border-radius: 16px;
     color: white;
     font-weight: 600;
+    font-size: 16px;
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 8px 25px rgba(138, 43, 226, 0.3);
+    outline: none;
+    min-height: 48px; /* Accessibility: minimum touch target */
+    position: relative;
+    overflow: hidden;
   }
   
-  .cta-button:hover {
+  .cta-button:hover:not(:disabled) {
     transform: translateY(-2px);
     box-shadow: 0 12px 35px rgba(138, 43, 226, 0.4);
+  }
+  
+  .cta-button:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.8);
+    outline-offset: 2px;
+  }
+  
+  .cta-button:active:not(:disabled) {
+    transform: translateY(0px);
+    transition: all 0.1s ease;
+  }
+  
+  .cta-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: 0 4px 15px rgba(138, 43, 226, 0.2);
+  }
+  
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    .cta-button {
+      border: 2px solid white;
+    }
+  }
+  
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    .cta-button {
+      transition: none;
+    }
+    
+    .cta-button:hover:not(:disabled) {
+      transform: none;
+    }
   }
 }
 
@@ -218,10 +297,28 @@
   .bg-gray-100,
   .bg-gray-200,
   .bg-blue-50,
+  .bg-blue-100,
+  .bg-indigo-50,
   .bg-indigo-100,
+  .bg-rose-50,
+  .bg-rose-100,
+  .bg-amber-50,
+  .bg-amber-100,
+  .bg-yellow-50,
+  .bg-yellow-100,
+  .bg-green-50,
+  .bg-green-100,
+  .bg-red-50,
+  .bg-red-100,
+  .bg-purple-50,
+  .bg-purple-100,
+  .bg-pink-50,
+  .bg-pink-100,
   .bg-white,
   .hover\\:bg-gray-50:hover,
-  .hover\\:bg-gray-100:hover {
+  .hover\\:bg-gray-100:hover,
+  .hover\\:bg-blue-50:hover,
+  .hover\\:bg-rose-50:hover {
     background: rgba(255, 255, 255, 0.05) !important;
     backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -252,5 +349,248 @@
   
   [data-radix-collection-item]:hover {
     background: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  /* Tabs component overrides */
+  [data-state="active"][data-orientation="horizontal"] {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+  }
+
+  [data-state="inactive"][data-orientation="horizontal"] {
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+  }
+
+  /* Button variant overrides for outline buttons */
+  .inline-flex.items-center.justify-center[data-variant="outline"],
+  button[data-variant="outline"],
+  .inline-flex.items-center.gap-1,
+  button.inline-flex.items-center,
+  .border.border-input.bg-background,
+  button[class*="border"][class*="bg-background"],
+  .inline-flex[class*="border"][class*="bg-background"] {
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: white !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+  }
+
+  .inline-flex.items-center.justify-center[data-variant="outline"]:hover,
+  button[data-variant="outline"]:hover,
+  .inline-flex.items-center.gap-1:hover,
+  button.inline-flex.items-center:hover,
+  .border.border-input.bg-background:hover,
+  button[class*="border"][class*="bg-background"]:hover,
+  .inline-flex[class*="border"][class*="bg-background"]:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+  }
+
+  /* TabsList specific override */
+  [role="tablist"] {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  }
+
+  /* TabsTrigger specific override */
+  [role="tab"] {
+    background: transparent !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+  }
+
+  [role="tab"][data-state="active"] {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+  }
+
+  /* More specific overrides for TabsList and TabsTrigger */
+  .inline-flex.h-10.items-center.justify-center[role="tablist"],
+  .grid.w-full.max-w-md.grid-cols-3[role="tablist"] {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  }
+
+  /* Target TabsTrigger with multiple classes */
+  .inline-flex.items-center.justify-center[role="tab"],
+  .whitespace-nowrap.rounded-sm[role="tab"],
+  button[role="tab"] {
+    background: transparent !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+    border: none !important;
+  }
+
+  .inline-flex.items-center.justify-center[role="tab"][data-state="active"],
+  .whitespace-nowrap.rounded-sm[role="tab"][data-state="active"],
+  button[role="tab"][data-state="active"] {
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: white !important;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
+  }
+
+  /* Override any white background that might be applied by Tailwind */
+  .bg-background,
+  .bg-muted,
+  .bg-card,
+  .bg-secondary,
+  .bg-border {
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(20px);
+    border-color: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  /* Progress and Separator component overrides */
+  .relative.h-4.w-full.overflow-hidden.rounded-full.bg-secondary,
+  .shrink-0.bg-border,
+  [class*="bg-secondary"]:not(.login-page *),
+  [class*="bg-border"]:not(.login-page *) {
+    background: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  /* Card component specific overrides */
+  .rounded-lg.border.bg-card,
+  .rounded-lg.border.shadow-sm,
+  [class*="rounded-lg"][class*="border"][class*="bg-"],
+  [class*="rounded"][class*="border"][class*="shadow"] {
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(20px);
+    border-color: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  /* Force all card-like components to use dark backgrounds */
+  div[class*="rounded"][class*="border"]:not(.login-page *),
+  div[class*="card"]:not(.login-page *) {
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(20px);
+    border-color: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  /* Ultra-specific overrides for stubborn white backgrounds */
+  [data-radix-tabs-list],
+  [data-radix-tabs-trigger] {
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  }
+
+  [data-radix-tabs-trigger][data-state="active"] {
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: white !important;
+  }
+
+  /* Force override any white/light backgrounds with highest specificity */
+  body .bg-white,
+  body .bg-gray-50,
+  body .bg-gray-100,
+  body .bg-muted,
+  body .bg-background,
+  body [role="tablist"],
+  body [role="tab"] {
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+  }
+
+  body [role="tab"][data-state="active"] {
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: white !important;
+  }
+
+  /* Nuclear option: override ALL possible white backgrounds */
+  * {
+    --tw-bg-opacity: 1 !important;
+  }
+
+  *[style*="background-color: white"],
+  *[style*="background-color: #fff"],
+  *[style*="background-color: #ffffff"],
+  *[style*="background: white"],
+  *[style*="background: #fff"],
+  *[style*="background: #ffffff"] {
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+  }
+
+  /* Catch any remaining stubborn elements */
+  div[class*="bg-"], 
+  button[class*="bg-"], 
+  span[class*="bg-"] {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+  }
+
+  div[class*="bg-"][class*="active"], 
+  button[class*="bg-"][class*="active"], 
+  span[class*="bg-"][class*="active"],
+  div[data-state="active"], 
+  button[data-state="active"], 
+  span[data-state="active"] {
+    background-color: rgba(255, 255, 255, 0.15) !important;
+    color: white !important;
+  }
+
+  /* Final catch-all for any white backgrounds that slip through */
+  .bg-white:not(.login-page *),
+  .bg-gray-50:not(.login-page *),
+  .bg-gray-100:not(.login-page *),
+  .bg-slate-50:not(.login-page *),
+  .bg-slate-100:not(.login-page *),
+  .bg-zinc-50:not(.login-page *),
+  .bg-zinc-100:not(.login-page *),
+  .bg-neutral-50:not(.login-page *),
+  .bg-neutral-100:not(.login-page *),
+  .bg-stone-50:not(.login-page *),
+  .bg-stone-100:not(.login-page *) {
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+  }
+
+  /* Nuclear option for any remaining white containers */
+  *:not(.login-page *)[style*="background-color: white"],
+  *:not(.login-page *)[style*="background: white"],
+  *:not(.login-page *)[style*="background-color: #ffffff"],
+  *:not(.login-page *)[style*="background-color: #fff"],
+  *:not(.login-page *)[style*="background: #ffffff"],
+  *:not(.login-page *)[style*="background: #fff"] {
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(20px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  }
+
+  /* Final universal override for transcript view specifically */
+  [class*="transcript"] *:not(.login-page *),
+  .prose *:not(.login-page *),
+  .space-y-4 *:not(.login-page *),
+  .grid-cols-1 *:not(.login-page *),
+  .md\\:grid-cols-2 *:not(.login-page *) {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+  }
+
+  /* Override any stubborn white backgrounds with higher specificity */
+  body:not(.login-page) *[class*="bg-white"],
+  body:not(.login-page) *[class*="bg-gray-50"],
+  body:not(.login-page) *[class*="bg-slate-50"],
+  body:not(.login-page) div[class*="rounded"][class*="border"]:not([class*="bg-blue"]):not([class*="bg-green"]):not([class*="bg-red"]):not([class*="bg-yellow"]):not([class*="bg-purple"]) {
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(20px) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  /* Ensure tabs specifically use dark backgrounds */
+  [data-radix-tabs-list],
+  [data-radix-tabs-trigger]:not([data-state="active"]) {
+    background: rgba(255, 255, 255, 0.03) !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+  }
+
+  [data-radix-tabs-trigger][data-state="active"] {
+    background: rgba(255, 255, 255, 0.12) !important;
+    color: white !important;
+  }
+
+  /* Fix any remaining white text on white background issues - but preserve login page styling */
+  .text-gray-900:not(.login-page *),
+  .text-gray-800:not(.login-page *),
+  .text-gray-700:not(.login-page *),
+  .text-black:not(.login-page *) {
+    color: white !important;
   }
 }

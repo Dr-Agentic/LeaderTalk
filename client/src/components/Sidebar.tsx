@@ -204,8 +204,7 @@ function SidebarFooter({ user }) {
         </div>
       </div>
 
-      <Button 
-        size="sm" 
+      <button 
         onClick={handleSignOut}
         className="w-full cta-button flex items-center justify-center"
         data-action="logout"
@@ -216,7 +215,7 @@ function SidebarFooter({ user }) {
           <line x1="21" y1="12" x2="9" y2="12"></line>
         </svg>
         Sign out
-      </Button>
+      </button>
     </div>
   );
 }

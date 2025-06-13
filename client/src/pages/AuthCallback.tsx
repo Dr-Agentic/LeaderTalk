@@ -25,9 +25,26 @@ export default function AuthCallback() {
     async function processAuthCallback() {
       setProcessed(true)
       try {
+        console.log("Processing Supabase auth callback")
+        
         const user = await handleAuthCallback()
         
         if (user) {
+          console.log("Auth callback successful, authenticating with server", {
+            userId: user.uid,
+            email: user.email
+          })
+
+          // Store cookies before server call for comparison
+          ;(window as any).__cookiesBeforeAuth = document.cookie
+          
+          // Log cookies before server call
+          console.log("🍪 CLIENT: Cookies before server authentication:", {
+            allCookies: document.cookie,
+            hasLeadertalkSid: document.cookie.includes('leadertalk.sid'),
+            hasConnectSid: document.cookie.includes('connect.sid'),
+            cookieCount: document.cookie.split(';').length
+          })
 
           // Send user data to our Express server for session creation
           const response = await fetch('/api/auth/supabase-callback', {
@@ -48,18 +65,30 @@ export default function AuthCallback() {
           if (response.ok) {
             const responseData = await response.json()
             const userData = responseData.user
+            console.log("Server authentication successful", { userId: userData.id })
+            
+            // Log cookies after server call
+            console.log("🍪 CLIENT: Cookies after server authentication:", {
+              allCookies: document.cookie,
+              hasLeadertalkSid: document.cookie.includes('leadertalk.sid'),
+              hasConnectSid: document.cookie.includes('connect.sid'),
+              cookieCount: document.cookie.split(';').length,
+              cookieChanged: document.cookie !== (window as any).__cookiesBeforeAuth
+            })
             
             setStatus('success')
+            
+            // Clear the processing flag
             ;(window as any).__authCallbackProcessing = false
             
-            // Force a full page reload to ensure React router state updates
-            setTimeout(() => {
-              if (userData.forceOnboarding || !userData.selectedLeaders?.length) {
-                window.location.href = '/onboarding'
-              } else {
-                window.location.href = '/dashboard'
-              }
-            }, 500);
+            // Redirect immediately after successful authentication
+            if (userData.forceOnboarding || !userData.selectedLeaders?.length) {
+              console.log("Redirecting to onboarding for user setup")
+              window.location.replace('/onboarding')
+            } else {
+              console.log("User onboarding complete, redirecting to dashboard")
+              window.location.replace('/dashboard')
+            }
           } else {
             const errorText = await response.text()
             console.error('Server authentication failed:', errorText)

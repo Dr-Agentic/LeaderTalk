@@ -283,7 +283,7 @@ function TranscriptCard({ recording }: { recording: Recording }) {
         )}
       </CardContent>
       
-      <CardFooter className="bg-muted/50 flex justify-between">
+      <CardFooter className="bg-transparent flex justify-between">
         <Link href={`/transcript/${recording.id}`}>
           <Button 
             variant="link"

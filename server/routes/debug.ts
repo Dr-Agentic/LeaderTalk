@@ -17,7 +17,16 @@ export function registerDebugRoutes(app: Express) {
       return acc;
     }, {}) : {};
     
-
+    // Log cookie mismatch issue
+    console.log("🍪 COOKIE DEBUG:", {
+      expectedCookieName: 'leadertalk.sid',
+      hasLeadertalkSid: !!cookies['leadertalk.sid'],
+      hasConnectSid: !!cookies['connect.sid'],
+      allCookieNames: Object.keys(cookies),
+      sessionExists,
+      userId,
+      sessionId
+    });
     
     // Get cookie headers for debugging
     const cookieExists = !!req.headers.cookie;
@@ -42,7 +51,17 @@ export function registerDebugRoutes(app: Express) {
       userAgent: req.headers['user-agent']?.substring(0, 50) + '...'
     };
 
-
+    // Enhanced logging for production debugging
+    if (process.env.NODE_ENV === 'production') {
+      console.log("Production session debug:", { 
+        sessionExists, 
+        userId, 
+        isLoggedIn, 
+        cookiePresent,
+        host: req.headers.host,
+        cookieDomain: process.env.PROD_COOKIE_DOMAIN || process.env.COOKIE_DOMAIN
+      });
+    }
 
     res.json(debugInfo);
   });

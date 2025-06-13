@@ -8,13 +8,7 @@ function getConfigValue(key: string): string | undefined {
 
   if (isProduction) {
     // Try PROD_ prefixed version first, fallback to regular version
-    const prodValue = process.env[`PROD_${key}`];
-    const regularValue = process.env[key];
-    const result = prodValue || regularValue;
-    
-
-    
-    return result;
+    return process.env[`PROD_${key}`] || process.env[key];
   }
 
   // Development: use regular version
@@ -72,3 +66,23 @@ console.error(config.supabase);
 
 // Export individual getters for special cases
 export { getConfigValue, getRequiredConfigValue };
+
+// Log configuration status (without sensitive values)
+console.log("🔧 Environment Configuration Loaded:");
+console.log(`   Environment: ${config.nodeEnv}`);
+console.log(
+  `   Database: ${config.database.url ? "✅ Connected" : "❌ Missing"}`,
+);
+console.log(
+  `   Stripe: ${config.stripe.secretKey ? "✅ Configured" : "❌ Missing"}`,
+);
+console.log(
+  `   OpenAI: ${config.openai.apiKey ? "✅ Configured" : "❌ Missing"}`,
+);
+console.log(
+  `   Session: ${config.session.secret ? "✅ Configured" : "❌ Missing"}`,
+);
+console.log(
+  `   Supabase: ${config.supabase.url ? "✅ Configured" : "❌ Missing"}`,
+);
+console.log(`   Cookie Domain: ${config.session.cookieDomain || "Not set"}`);

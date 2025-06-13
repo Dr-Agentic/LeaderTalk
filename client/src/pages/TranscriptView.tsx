@@ -343,7 +343,7 @@ export default function TranscriptView() {
         </CardContent>
       </Card>
 
-      <Card className="mb-8">
+      <Card className="mb-8 glass-card">
         <CardHeader>
           <CardTitle>Transcript Analysis</CardTitle>
           <div className="flex flex-wrap gap-2 mt-2">
@@ -382,7 +382,7 @@ export default function TranscriptView() {
       </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
+        <Card className="glass-card">
           <CardHeader>
             <CardTitle className="text-green-400">Positive Moments</CardTitle>
           </CardHeader>
@@ -395,7 +395,7 @@ export default function TranscriptView() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="glass-card">
           <CardHeader>
             <CardTitle className="text-red-400">Negative Moments</CardTitle>
           </CardHeader>
@@ -410,7 +410,7 @@ export default function TranscriptView() {
         </Card>
       </div>
 
-      <Card className="mt-6">
+      <Card className="mt-6 glass-card">
         <CardHeader>
           <CardTitle className="text-yellow-400">Areas for Improvement</CardTitle>
         </CardHeader>

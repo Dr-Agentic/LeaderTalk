@@ -1,0 +1,3 @@
+- Fix the latest white backgrounds
+- Restore the nice button at the login screen
+- 

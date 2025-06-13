@@ -536,7 +536,7 @@ export default function RecordingSection({
     <div id="record-section" className="mt-10">
       <H2>Record a Conversation</H2>
 
-      <div className="mt-4 bg-gradient-to-br from-purple-600/20 to-pink-500/20 backdrop-blur-lg border border-purple-600/30 shadow sm:rounded-lg">
+      <div className="mt-4 bg-transparent border border-purple-600/20 sm:rounded-lg">
         <div className="px-4 py-5 sm:p-6">
           {/* Show loading state while checking word limit */}
           {isCheckingWordLimit && (
@@ -572,23 +572,15 @@ export default function RecordingSection({
           <div className="text-center py-6">
             {/* Recording Button - Disabled when word limit is exceeded */}
             <button
-              className={`inline-flex items-center justify-center h-32 w-32 rounded-full ${
+              className={`cta-button h-32 w-32 rounded-full flex items-center justify-center p-0 mx-auto ${
                 isRecording
                   ? isPaused
-                    ? "bg-yellow-500 text-white"
-                    : "bg-red-600 text-white"
+                    ? "bg-yellow-500 text-white shadow-lg shadow-yellow-500/30 border-2 border-yellow-400"
+                    : "bg-red-600 text-white shadow-lg shadow-red-500/40 border-2 border-red-400"
                   : hasExceededWordLimit
-                    ? "bg-slate-700/50 text-slate-400 cursor-not-allowed"
-                    : "bg-red-600/20 text-red-400 hover:bg-red-600/30 border-red-500/30"
-              } mb-4 border-2 ${
-                isRecording
-                  ? isPaused
-                    ? "border-yellow-600"
-                    : "border-red-700"
-                  : hasExceededWordLimit
-                    ? "border-slate-600/50"
-                    : "border-red-500/30"
-              } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500`}
+                    ? "bg-slate-700/50 text-slate-400 cursor-not-allowed border-2 border-slate-600/50"
+                    : ""
+              } mb-4`}
               onClick={
                 !isRecording && !hasExceededWordLimit
                   ? handleStartRecording
@@ -601,7 +593,7 @@ export default function RecordingSection({
                   : "Start recording"
               }
             >
-              <Mic className="h-12 w-12" />
+              <Mic className="h-12 w-12 drop-shadow-sm" />
             </button>
 
             <h3 className="text-lg font-medium text-white mt-4">
