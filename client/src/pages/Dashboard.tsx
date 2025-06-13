@@ -132,13 +132,13 @@ function DashboardSkeleton() {
     <div className="mt-6 space-y-8">
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {[1, 2, 3].map((i) => (
-          <Skeleton key={i} className="h-48 rounded-lg bg-white/10" />
+          <Skeleton key={i} className="h-48 rounded-lg bg-white/5" />
         ))}
       </div>
       
       <div className="space-y-6">
-        <Skeleton className="h-8 w-48 bg-white/10" />
-        <Skeleton className="h-32 rounded-lg bg-white/10" />
+        <Skeleton className="h-8 w-48 bg-white/5" />
+        <Skeleton className="h-32 rounded-lg bg-white/5" />
       </div>
     </div>
   );

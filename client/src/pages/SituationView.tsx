@@ -45,7 +45,7 @@ const getLeadershipStyleInfo = (style: string) => {
       return {
         icon: Target,
         color: 'text-gray-600',
-        bgColor: 'bg-gray-50',
+        bgColor: 'bg-white/5',
         borderColor: 'border-gray-200',
         label: 'Leadership Style'
       };

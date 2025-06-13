@@ -180,7 +180,7 @@ export default function LeadershipInspirations() {
                               <img 
                                 src={selectedLeader.photoUrl} 
                                 alt={selectedLeader.name} 
-                                className="w-full h-full object-contain bg-white"
+                                className="w-full h-full object-contain bg-white/5 backdrop-blur-sm"
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary">
@@ -277,7 +277,7 @@ export default function LeadershipInspirations() {
                           <img 
                             src={leader.photoUrl} 
                             alt={leader.name} 
-                            className="w-full h-52 object-contain bg-white"
+                            className="w-full h-52 object-contain bg-white/5 backdrop-blur-sm"
                           />
                         ) : (
                           <div className="w-full h-52 bg-gray-700 flex items-center justify-center">
@@ -334,7 +334,7 @@ export default function LeadershipInspirations() {
                             <img 
                               src={leader.photoUrl} 
                               alt={leader.name} 
-                              className="w-full h-full object-contain bg-white"
+                              className="w-full h-full object-contain bg-white/5 backdrop-blur-sm"
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary text-xs">
