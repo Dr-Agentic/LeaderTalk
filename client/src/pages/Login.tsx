@@ -64,7 +64,7 @@ export default function Login() {
                 <img 
                   src={googleLogoPath} 
                   alt="Google" 
-                  className="mr-2 h-4 w-4"
+                  className="mr-2 h-6 w-6"
                 />
                 Sign in with Google
               </>
