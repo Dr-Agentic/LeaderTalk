@@ -110,21 +110,23 @@
     background-clip: text;
   }
   
-  .cta-button {
+  button.cta-button,
+  .inline-flex.cta-button {
     background: linear-gradient(135deg, #8A2BE2, #FF6B6B) !important;
-    border: none;
-    border-radius: 16px;
+    border: none !important;
+    border-radius: 16px !important;
     color: white !important;
-    font-weight: 600;
+    font-weight: 600 !important;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 8px 25px rgba(138, 43, 226, 0.3);
+    box-shadow: 0 8px 25px rgba(138, 43, 226, 0.3) !important;
   }
   
-  .cta-button:hover {
+  button.cta-button:hover,
+  .inline-flex.cta-button:hover {
     background: linear-gradient(135deg, #8A2BE2, #FF6B6B) !important;
     transform: translateY(-2px);
-    box-shadow: 0 12px 35px rgba(138, 43, 226, 0.4);
+    box-shadow: 0 12px 35px rgba(138, 43, 226, 0.4) !important;
   }
 }
 

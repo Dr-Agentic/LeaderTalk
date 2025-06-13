@@ -51,6 +51,7 @@ export default function Login() {
           <Button
             onClick={handleGoogleSignIn}
             disabled={loading}
+            variant="ghost"
             className="w-full cta-button"
             size="lg"
           >
