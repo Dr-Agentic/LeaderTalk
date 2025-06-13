@@ -121,11 +121,50 @@
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 8px 25px rgba(138, 43, 226, 0.3);
+    outline: none;
+    min-height: 48px; /* Accessibility: minimum touch target */
+    position: relative;
+    overflow: hidden;
   }
   
-  .cta-button:hover {
+  .cta-button:hover:not(:disabled) {
     transform: translateY(-2px);
     box-shadow: 0 12px 35px rgba(138, 43, 226, 0.4);
+  }
+  
+  .cta-button:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.8);
+    outline-offset: 2px;
+  }
+  
+  .cta-button:active:not(:disabled) {
+    transform: translateY(0px);
+    transition: all 0.1s ease;
+  }
+  
+  .cta-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: 0 4px 15px rgba(138, 43, 226, 0.2);
+  }
+  
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    .cta-button {
+      border: 2px solid white;
+    }
+  }
+  
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    .cta-button {
+      transition: none;
+    }
+    
+    .cta-button:hover:not(:disabled) {
+      transform: none;
+    }
   }
 }
 
