@@ -579,7 +579,7 @@ export default function RecordingSection({
                     : "bg-red-600 text-white shadow-lg shadow-red-500/40"
                   : hasExceededWordLimit
                     ? "bg-slate-700/50 text-slate-400 cursor-not-allowed"
-                    : "bg-template-gradient text-white shadow-lg shadow-[#8A2BE2]/30 border-[#FF6B6B]/40"
+                    : "text-white shadow-lg shadow-[#8A2BE2]/30 border-[#FF6B6B]/40"
               } mb-4 border-2 ${
                 isRecording
                   ? isPaused
@@ -589,6 +589,13 @@ export default function RecordingSection({
                     ? "border-slate-600/50"
                     : "border-[#FF6B6B]/50"
               } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200`}
+              style={
+                !isRecording && !hasExceededWordLimit
+                  ? {
+                      background: 'linear-gradient(135deg, #8A2BE2, #FF6B6B)',
+                    }
+                  : undefined
+              }
               onClick={
                 !isRecording && !hasExceededWordLimit
                   ? handleStartRecording
