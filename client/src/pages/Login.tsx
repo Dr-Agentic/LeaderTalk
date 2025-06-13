@@ -51,8 +51,8 @@ export default function Login() {
           <Button
             onClick={handleGoogleSignIn}
             disabled={loading}
-            variant="ghost"
-            className="w-full bg-gradient-to-r from-purple-600 to-pink-500 text-white border-0 hover:opacity-90 hover:bg-gradient-to-r hover:from-purple-600 hover:to-pink-500"
+            variant="gradient"
+            className="w-full"
             size="lg"
           >
             {loading ? (
