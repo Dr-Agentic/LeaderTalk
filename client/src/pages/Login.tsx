@@ -40,7 +40,7 @@ export default function Login() {
           <Button
             onClick={handleGoogleSignIn}
             disabled={loading}
-            className="w-full cta-button"
+            className="w-full cta-button !bg-gradient-to-r !from-purple-600 !to-pink-500"
             size="lg"
           >
             {loading ? (
