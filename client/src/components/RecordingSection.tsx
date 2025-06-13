@@ -572,7 +572,7 @@ export default function RecordingSection({
           <div className="text-center py-6">
             {/* Recording Button - Disabled when word limit is exceeded */}
             <button
-              className={`cta-button h-32 w-32 rounded-full ${
+              className={`cta-button h-32 w-32 rounded-full flex items-center justify-center p-0 ${
                 isRecording
                   ? isPaused
                     ? "bg-yellow-500 text-white shadow-lg shadow-yellow-500/30 border-2 border-yellow-400"
