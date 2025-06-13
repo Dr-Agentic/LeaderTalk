@@ -248,94 +248,11 @@ async function lookupCustomerByEmail(email: string): Promise<any> {
 }
 
 /**
- * Ensure user has a Stripe customer ID, create if missing
+ * Create a new Stripe customer and update the user record
  */
-export async function ensureUserHasStripeCustomer(user: any): Promise<string> {
-  if (user.stripeCustomerId) {
-    console.log(
-      `🔍 Validating existing Stripe customer ID: ${user.stripeCustomerId}`,
-    );
-
-    // Check if the customer actually exists in Stripe
-    try {
-      const customer = await stripe.customers.retrieve(user.stripeCustomerId);
-
-      // Additional validation: check if customer is valid and not deleted
-      if (customer.deleted) {
-        console.log(
-          `❌ Customer ${user.stripeCustomerId} is deleted in Stripe`,
-        );
-        throw new Error("Customer is deleted");
-      }
-
-      // Verify customer email matches our user (security check)
-      if (customer.email !== user.email) {
-        console.log(
-          `⚠️  Customer email mismatch: Stripe=${customer.email}, User=${user.email}`,
-        );
-        // Continue anyway but log the discrepancy
-      }
-
-      console.log(
-        `✅ Customer exists and is valid in Stripe: ${user.stripeCustomerId}`,
-      );
-      return user.stripeCustomerId;
-    } catch (error: any) {
-      if (
-        error.code === "resource_missing" ||
-        error.message === "Customer is deleted"
-      ) {
-        console.log(
-          `❌ Customer ${user.stripeCustomerId} no longer exists or is deleted in Stripe`,
-        );
-
-        // Step 1: Try to lookup customer by email address
-        console.log(`🔍 Looking up customer by email: ${user.email}`);
-        var paymentCustomer = await lookupCustomerByEmail(user.email);
-
-        if (paymentCustomer) {
-          console.log(
-            `📋 Found existing customer by email: ${paymentCustomer.id}`,
-          );
-          // For now, just log the output as requested - do not use it yet
-          } else {
-          // Step 2: Create a new Stripe customer
-          console.log(
-            `🆕 Creating NEW Stripe customer for user ${user.id} (${user.email})`,
-          );
-
-          const newCustomer = await stripe.customers.create({
-            email: user.email,
-            name: user.username,
-            metadata: {
-              userId: user.id.toString(),
-            },
-          });
-          paymentCustomer = newCustomer;
-        }
-
-        // Import storage here to avoid circular dependencies
-        const { storage } = await import("./storage");
-        await storage.updateUser(user.id, {
-          stripeCustomerId: paymentCustomer.id,
-        });
-
-        console.log(
-          `✅ SUCCESS: Created new Stripe customer for user ${user.id}: ${newCustomer.id}`,
-        );
-        return newCustomer.id;
-      } else {
-        console.error(
-          `❌ Error validating Stripe customer ${user.stripeCustomerId}:`,
-          error,
-        );
-        throw error;
-      } // customer not found, or deleted
-    } // catch bloc, paymentId could not be found
-  }
-
+async function createStripeCustomerForUser(user: any): Promise<string> {
   console.log(
-    `🆕 No customer ID found, creating NEW Stripe customer for user ${user.id} (${user.email})`,
+    `🆕 Creating NEW Stripe customer for user ${user.id} (${user.email})`,
   );
 
   const customer = await stripe.customers.create({
@@ -356,6 +273,93 @@ export async function ensureUserHasStripeCustomer(user: any): Promise<string> {
     `✅ SUCCESS: Created new Stripe customer for user ${user.id}: ${customer.id}`,
   );
   return customer.id;
+}
+
+/**
+ * Handle the case where an existing customer ID is invalid or missing
+ */
+async function handleInvalidCustomer(user: any): Promise<string> {
+  console.log(
+    `❌ Customer ${user.stripeCustomerId || 'N/A'} no longer exists or is deleted in Stripe`,
+  );
+
+  // Step 1: Try to lookup customer by email address
+  console.log(`🔍 Looking up customer by email: ${user.email}`);
+  const existingCustomer = await lookupCustomerByEmail(user.email);
+
+  if (existingCustomer) {
+    console.log(
+      `📋 Found existing customer by email: ${existingCustomer.id}`,
+    );
+    
+    // Import storage here to avoid circular dependencies
+    const { storage } = await import("./storage");
+    await storage.updateUser(user.id, {
+      stripeCustomerId: existingCustomer.id,
+    });
+
+    console.log(
+      `✅ SUCCESS: Linked existing customer ${existingCustomer.id} to user ${user.id}`,
+    );
+    return existingCustomer.id;
+  } else {
+    // Step 2: Create a new Stripe customer
+    return await createStripeCustomerForUser(user);
+  }
+}
+
+/**
+ * Ensure user has a Stripe customer ID, create if missing
+ */
+export async function ensureUserHasStripeCustomer(user: any): Promise<string> {
+  // If user has no customer ID, create one
+  if (!user.stripeCustomerId) {
+    return await createStripeCustomerForUser(user);
+  }
+
+  // Validate existing customer ID
+  console.log(
+    `🔍 Validating existing Stripe customer ID: ${user.stripeCustomerId}`,
+  );
+
+  try {
+    const customer = await stripe.customers.retrieve(user.stripeCustomerId);
+
+    // Check if customer is deleted
+    if (customer.deleted) {
+      console.log(
+        `❌ Customer ${user.stripeCustomerId} is deleted in Stripe`,
+      );
+      return await handleInvalidCustomer(user);
+    }
+
+    // Verify customer email matches our user (security check)
+    if (customer.email !== user.email) {
+      console.log(
+        `⚠️  Customer email mismatch: Stripe=${customer.email}, User=${user.email}`,
+      );
+      // Continue anyway but log the discrepancy
+    }
+
+    console.log(
+      `✅ Customer exists and is valid in Stripe: ${user.stripeCustomerId}`,
+    );
+    return user.stripeCustomerId;
+
+  } catch (error: any) {
+    if (
+      error.code === "resource_missing" ||
+      error.message === "Customer is deleted"
+    ) {
+      return await handleInvalidCustomer(user);
+    } else {
+      console.error(
+        `❌ Error validating Stripe customer ${user.stripeCustomerId}:`,
+        error,
+      );
+      throw error;
+    }
+  }
 }
 
 /**
