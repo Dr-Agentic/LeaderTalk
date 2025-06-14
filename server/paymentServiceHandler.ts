@@ -664,7 +664,7 @@ export async function updateUserSubscriptionToPlan(
     }
 
     // Get updated subscription details for enhanced messaging
-    const updatedSubscriptionData = await retrievePaymentSubscriptionById_2(
+    const updatedSubscriptionData = await retrievePaymentSubscriptionById(
       updatedSubscription.id,
     );
 
