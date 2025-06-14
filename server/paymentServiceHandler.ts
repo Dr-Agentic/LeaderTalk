@@ -43,7 +43,7 @@ export interface PaymentCustomer {
  * Pure Stripe API function to get subscription data by subscription ID
  * This function only retrieves data from Stripe - no database operations
  */
-export async function getUserSubscription(
+export async function retrievePaymentSubscriptionById_2(
   stripeSubscriptionId: string,
 ): Promise<SubscriptionData> {
   if (!stripeSubscriptionId) {
@@ -120,7 +120,7 @@ export async function getBillingCycleFromSubscription(
   subscriptionId: string,
 ): Promise<{ start: Date; end: Date }> {
   // Use the pure Stripe API function
-  const subscription = await getUserSubscription(subscriptionId);
+  const subscription = await retrievePaymentSubscriptionById_2(subscriptionId);
   return {
     start: subscription.currentPeriodStart,
     end: subscription.currentPeriodEnd,
@@ -138,7 +138,7 @@ export async function getUserWordLimit(userId: number): Promise<number> {
   }
 
   // Use the pure Stripe API function
-  const subscription = await getUserSubscription(user.stripeSubscriptionId);
+  const subscription = await retrievePaymentSubscriptionById_2(user.stripeSubscriptionId);
   return subscription.wordLimit;
 }
 
@@ -457,7 +457,7 @@ export async function createDefaultSubscription(
 /**
  * Retrieve existing subscription details from Stripe with full product information
  */
-export async function getExistingSubscription(
+export async function retrievePaymentSubscriptionById(
   subscriptionId: string,
 ): Promise<any> {
   const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
@@ -719,7 +719,7 @@ export async function updateUserSubscriptionToPlan(
     }
 
     // Get updated subscription details for enhanced messaging
-    const updatedSubscriptionData = await getUserSubscription(
+    const updatedSubscriptionData = await retrievePaymentSubscriptionById_2(
       updatedSubscription.id,
     );
 
@@ -867,7 +867,7 @@ export async function retrievePaymentCustomerByCustomerId(
       console.log(`📋 No active subscriptions found for customer ${paymentCustomerId}`);
     } else if (activeSubscriptions.length === 1) {
       console.log(`📌 Found single active subscription: ${activeSubscriptions[0].id}`);
-      newestActiveSubscription = await getUserSubscription(activeSubscriptions[0].id);
+      newestActiveSubscription = await retrievePaymentSubscriptionById_2(activeSubscriptions[0].id);
     } else {
       // Multiple active subscriptions - log them all and select the newest
       console.log(`
@@ -898,7 +898,7 @@ ${activeSubscriptions
       );
 
       console.log(`📌 Selected newest subscription: ${newestSubscription.id} (created: ${new Date(newestSubscription.created * 1000).toISOString()})`);
-      newestActiveSubscription = await getUserSubscription(newestSubscription.id);
+      newestActiveSubscription = await retrievePaymentSubscriptionById_2(newestSubscription.id);
     }
 
     const paymentCustomer: PaymentCustomer = {

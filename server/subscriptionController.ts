@@ -8,6 +8,7 @@ import {
   ensureUserHasStripeCustomer,
   createDefaultSubscription,
   retrieveExistingSubscriptionById,
+  retrievePaymentCustomerByCustomerId,
   updateUserSubscriptionToPlan,
   cancelUserSubscription,
 } from "./paymentServiceHandler";
@@ -44,33 +45,39 @@ async function ensureUserHasValidSubscription(userId: number): Promise<any> {
   var paymentUserId = user.stripeCustomerId;
   var paymentSubscriptionId = user.stripeSubscriptionId;
 
-  var foundPaymentUserId ;
+  var foundPaymentUserId;
   var foundPaymentSubscriptionId;
 
   if (paymentSubscriptionId) {
-    const subscription = await retrieveExistingSubscriptionById_duplicate (paymentSubscriptionId);
-    if (subscription?.status === "active") { 
-      foundPaymentSubscriptionId = subscription.id ;
+    const subscription = await retrieveExistingSubscriptionById_duplicate(
+      paymentSubscriptionId,
+    );
+    if (subscription?.status === "active") {
+      foundPaymentSubscriptionId = subscription.id;
     } else {
       console.log("Found a non active subscription: ", subscription);
     }
   } else {
-      console.log(`🔍 Validating existing Stripe customer ID: ${paymentUserId}`);
-      retrieveExistingSubscriptionById
+    console.log(`🔍 Validating existing Stripe customer ID: ${paymentUserId}`);
+    retrieveExistingSubscriptionById;
   }
 
   // Check if user already has a valid subscription
   if (user.stripeSubscriptionId) {
     try {
       // Validate existing subscription
-      const subscriptionData = await retrieveExistingSubscriptionById(user.stripeSubscriptionId);
-      
+      const subscriptionData = await retrieveExistingSubscriptionById(
+        user.stripeSubscriptionId,
+      );
+
       // Return subscription if active
       if (subscriptionData.status === "active") {
         return subscriptionData;
       }
     } catch (error) {
-      console.log(`Invalid subscription ${user.stripeSubscriptionId}, will create new one`);
+      console.log(
+        `Invalid subscription ${user.stripeSubscriptionId}, will create new one`,
+      );
     }
   }
 
@@ -78,7 +85,7 @@ async function ensureUserHasValidSubscription(userId: number): Promise<any> {
   console.log(`Creating default subscription for user ${userId}`);
   const customerId = await ensureUserHasStripeCustomer(user);
   const subscriptionData = await createDefaultSubscription(user, customerId);
-  
+
   return subscriptionData;
 }
 
@@ -150,16 +157,23 @@ async function handleNoValidSubscription(userId: number): Promise<any> {
 
   // First, ensure the customer ID is valid before checking subscriptions
   console.log(`🔍 Validating customer before checking subscriptions...`);
-  
+
   try {
     const validCustomerId = await ensureUserHasStripeCustomer(user);
-    
+
     if (validCustomerId !== user.stripeCustomerId) {
-      console.log(`📝 Customer ID updated from ${user.stripeCustomerId} to ${validCustomerId}`);
+      console.log(
+        `📝 Customer ID updated from ${user.stripeCustomerId} to ${validCustomerId}`,
+      );
       // Customer was recreated, so they won't have existing subscriptions
       console.log(`📋 Customer was recreated, creating default subscription`);
-      const subscriptionData = await createDefaultSubscription(user, validCustomerId);
-      console.log(`✅ Created default subscription ${subscriptionData.id} for user ${userId}`);
+      const subscriptionData = await createDefaultSubscription(
+        user,
+        validCustomerId,
+      );
+      console.log(
+        `✅ Created default subscription ${subscriptionData.id} for user ${userId}`,
+      );
       return subscriptionData;
     }
 
@@ -206,7 +220,9 @@ async function handleNoValidSubscription(userId: number): Promise<any> {
       });
 
       // Get the subscription details using our payment service handler
-      const subscriptionData = await retrieveExistingSubscriptionById(subscription.id);
+      const subscriptionData = await retrieveExistingSubscriptionById(
+        subscription.id,
+      );
       console.log(
         `✅ Assigned subscription ${subscription.id} to user ${userId}`,
       );
@@ -238,37 +254,55 @@ async function handleNoValidSubscription(userId: number): Promise<any> {
     }
   } catch (error: any) {
     console.error(`❌ Error checking subscriptions:`, error);
-    
+
     // If the error is about the customer not existing, try to fix it
-    if (error.code === 'resource_missing' && error.param === 'customer') {
-      console.log(`❌ Customer validation failed during subscription check, recreating customer`);
-      
+    if (error.code === "resource_missing" && error.param === "customer") {
+      console.log(
+        `❌ Customer validation failed during subscription check, recreating customer`,
+      );
+
       try {
         // Clear the invalid customer ID and recreate
         await storage.updateUser(userId, { stripeCustomerId: null });
         const updatedUser = await storage.getUser(userId);
-        
+
         const newCustomerId = await ensureUserHasStripeCustomer(updatedUser);
-        const subscriptionData = await createDefaultSubscription(updatedUser, newCustomerId);
-        
-        console.log(`✅ Recovered: Created new customer and subscription ${subscriptionData.id} for user ${userId}`);
+        const subscriptionData = await createDefaultSubscription(
+          updatedUser,
+          newCustomerId,
+        );
+
+        console.log(
+          `✅ Recovered: Created new customer and subscription ${subscriptionData.id} for user ${userId}`,
+        );
         return subscriptionData;
       } catch (recoveryError) {
         console.error(`❌ Recovery failed:`, recoveryError);
-        throw new Error(`Unable to create valid subscription for user ${userId}`);
+        throw new Error(
+          `Unable to create valid subscription for user ${userId}`,
+        );
       }
     }
-    
+
     // For other errors, try fallback with current customer ID
-    console.log(`📋 Fallback: Creating default subscription for user ${userId} due to error`);
-    
+    console.log(
+      `📋 Fallback: Creating default subscription for user ${userId} due to error`,
+    );
+
     try {
-      const subscriptionData = await createDefaultSubscription(user, user.stripeCustomerId);
-      console.log(`✅ Created fallback subscription ${subscriptionData.id} for user ${userId}`);
+      const subscriptionData = await createDefaultSubscription(
+        user,
+        user.stripeCustomerId,
+      );
+      console.log(
+        `✅ Created fallback subscription ${subscriptionData.id} for user ${userId}`,
+      );
       return subscriptionData;
     } catch (fallbackError) {
       console.error(`❌ Fallback also failed:`, fallbackError);
-      throw new Error(`Unable to create subscription for user ${userId}: ${error.message}`);
+      throw new Error(
+        `Unable to create subscription for user ${userId}: ${error.message}`,
+      );
     }
   }
 }
@@ -282,58 +316,88 @@ export async function getBillingProducts(req: Request, res: Response) {
     const stripeInstance = new stripe(config.stripe.secretKey, {
       apiVersion: "2024-04-10",
     });
-    
+
     // Get all active products from Stripe
-    const products = await stripeInstance.products.list({ 
+    const products = await stripeInstance.products.list({
       limit: 100,
-      active: true
+      active: true,
     });
-    
+
     console.log(`📦 Found ${products.data.length} active products in Stripe`);
-    console.log(`📦 Products:`, products.data.map(p => ({ 
-      id: p.id,
-      name: p.name, 
-      metadata: p.metadata,
-      images: p.images?.length || 0 
-    })));
-    
+    console.log(
+      `📦 Products:`,
+      products.data.map((p) => ({
+        id: p.id,
+        name: p.name,
+        metadata: p.metadata,
+        images: p.images?.length || 0,
+      })),
+    );
+
     // Get all active prices
-    const prices = await stripeInstance.prices.list({ 
+    const prices = await stripeInstance.prices.list({
       limit: 100,
-      active: true
+      active: true,
     });
-    
+
     const billingProducts = [];
-    
+
     for (const product of products.data) {
       if (!product.active) continue;
-      
+
       // Get monthly and yearly prices for this product
-      const productPrices = prices.data.filter(price => price.product === product.id);
-      const monthlyPrice = productPrices.find(p => p.recurring?.interval === 'month');
-      const yearlyPrice = productPrices.find(p => p.recurring?.interval === 'year');
-      
+      const productPrices = prices.data.filter(
+        (price) => price.product === product.id,
+      );
+      const monthlyPrice = productPrices.find(
+        (p) => p.recurring?.interval === "month",
+      );
+      const yearlyPrice = productPrices.find(
+        (p) => p.recurring?.interval === "year",
+      );
+
       if (!monthlyPrice) {
-        console.warn(`⚠️ No monthly price found for product ${product.name}, skipping`);
+        console.warn(
+          `⚠️ No monthly price found for product ${product.name}, skipping`,
+        );
         continue;
       }
-      
-      const monthlyAmount = monthlyPrice.unit_amount ? monthlyPrice.unit_amount / 100 : 0;
-      const yearlyAmount = yearlyPrice ? (yearlyPrice.unit_amount ? yearlyPrice.unit_amount / 100 : 0) : monthlyAmount * 12;
-      const yearlySavings = yearlyPrice ? Math.round(((monthlyAmount * 12 - yearlyAmount) / (monthlyAmount * 12)) * 100) : 0;
-      
+
+      const monthlyAmount = monthlyPrice.unit_amount
+        ? monthlyPrice.unit_amount / 100
+        : 0;
+      const yearlyAmount = yearlyPrice
+        ? yearlyPrice.unit_amount
+          ? yearlyPrice.unit_amount / 100
+          : 0
+        : monthlyAmount * 12;
+      const yearlySavings = yearlyPrice
+        ? Math.round(
+            ((monthlyAmount * 12 - yearlyAmount) / (monthlyAmount * 12)) * 100,
+          )
+        : 0;
+
       // Extract word limit from metadata - REQUIRED
-      const wordLimit = product.metadata?.wordLimit ? parseInt(product.metadata.wordLimit) : 
-                       product.metadata?.Words ? parseInt(product.metadata.Words) : null;
+      const wordLimit = product.metadata?.wordLimit
+        ? parseInt(product.metadata.wordLimit)
+        : product.metadata?.Words
+          ? parseInt(product.metadata.Words)
+          : null;
       if (!wordLimit) {
-        console.warn(`⚠️ No wordLimit or Words in metadata for product ${product.name}, skipping`);
+        console.warn(
+          `⚠️ No wordLimit or Words in metadata for product ${product.name}, skipping`,
+        );
         continue;
       }
-      
+
       // Clean up product name - remove underscores and format properly
-      const cleanName = product.name.replace(/[_-]/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2');
-      const planCode = product.metadata?.planCode || product.name.toLowerCase().replace(/[^a-z0-9]/g, '');
-      
+      const cleanName = product.name
+        .replace(/[_-]/g, " ")
+        .replace(/([a-z])([A-Z])/g, "$1 $2");
+      const planCode =
+        product.metadata?.planCode ||
+        product.name.toLowerCase().replace(/[^a-z0-9]/g, "");
+
       // Create monthly product option
       billingProducts.push({
         id: `${product.id}_monthly`,
@@ -345,19 +409,22 @@ export async function getBillingProducts(req: Request, res: Response) {
         pricing: {
           amount: monthlyAmount,
           formattedPrice: `$${monthlyAmount.toFixed(2)}/month`,
-          interval: 'monthly',
-          stripePriceId: monthlyPrice.id
+          interval: "monthly",
+          stripePriceId: monthlyPrice.id,
         },
         features: {
           wordLimit,
-          maxRecordingLength: parseInt(product.metadata?.maxRecordingLength || '300'),
-          leaderLibraryAccess: product.metadata?.leaderLibraryAccess !== 'false',
-          advancedAnalytics: product.metadata?.advancedAnalytics === 'true',
-          prioritySupport: product.metadata?.prioritySupport === 'true'
+          maxRecordingLength: parseInt(
+            product.metadata?.maxRecordingLength || "300",
+          ),
+          leaderLibraryAccess:
+            product.metadata?.leaderLibraryAccess !== "false",
+          advancedAnalytics: product.metadata?.advancedAnalytics === "true",
+          prioritySupport: product.metadata?.prioritySupport === "true",
         },
-        isPopular: product.metadata?.isPopular === 'true' && !yearlyPrice, // Only if no yearly option
-        isDefault: product.metadata?.isDefault === 'true' && !yearlyPrice,
-        billingType: 'monthly'
+        isPopular: product.metadata?.isPopular === "true" && !yearlyPrice, // Only if no yearly option
+        isDefault: product.metadata?.isDefault === "true" && !yearlyPrice,
+        billingType: "monthly",
       });
 
       // Create yearly product option if yearly pricing exists
@@ -372,39 +439,49 @@ export async function getBillingProducts(req: Request, res: Response) {
           pricing: {
             amount: yearlyAmount,
             formattedPrice: `$${yearlyAmount.toFixed(2)}/year`,
-            formattedSavings: yearlySavings > 0 ? `Save ${yearlySavings}%` : null,
-            interval: 'yearly',
-            stripePriceId: yearlyPrice.id
+            formattedSavings:
+              yearlySavings > 0 ? `Save ${yearlySavings}%` : null,
+            interval: "yearly",
+            stripePriceId: yearlyPrice.id,
           },
           features: {
             wordLimit,
-            maxRecordingLength: parseInt(product.metadata?.maxRecordingLength || '300'),
-            leaderLibraryAccess: product.metadata?.leaderLibraryAccess !== 'false',
-            advancedAnalytics: product.metadata?.advancedAnalytics === 'true',
-            prioritySupport: product.metadata?.prioritySupport === 'true'
+            maxRecordingLength: parseInt(
+              product.metadata?.maxRecordingLength || "300",
+            ),
+            leaderLibraryAccess:
+              product.metadata?.leaderLibraryAccess !== "false",
+            advancedAnalytics: product.metadata?.advancedAnalytics === "true",
+            prioritySupport: product.metadata?.prioritySupport === "true",
           },
-          isPopular: product.metadata?.isPopular === 'true', // Yearly is popular if available
-          isDefault: product.metadata?.isDefault === 'true',
-          billingType: 'yearly'
+          isPopular: product.metadata?.isPopular === "true", // Yearly is popular if available
+          isDefault: product.metadata?.isDefault === "true",
+          billingType: "yearly",
         });
       }
     }
-    
+
     if (billingProducts.length === 0) {
-      throw new Error('No valid products found in Stripe. Products must have wordLimit in metadata and monthly pricing.');
+      throw new Error(
+        "No valid products found in Stripe. Products must have wordLimit in metadata and monthly pricing.",
+      );
     }
-    
+
     // Sort by word limit ascending
     billingProducts.sort((a, b) => a.features.wordLimit - b.features.wordLimit);
-    
-    console.log(`✅ Returning ${billingProducts.length} valid products from our payment provider`);
+
+    console.log(
+      `✅ Returning ${billingProducts.length} valid products from our payment provider`,
+    );
     res.json(billingProducts);
-    
   } catch (error) {
-    console.error('❌ Failed to get products from our payment provider:', error);
-    res.status(500).json({ 
-      error: 'Failed to load subscription plans from payment service',
-      message: error instanceof Error ? error.message : 'Unknown error'
+    console.error(
+      "❌ Failed to get products from our payment provider:",
+      error,
+    );
+    res.status(500).json({
+      error: "Failed to load subscription plans from payment service",
+      message: error instanceof Error ? error.message : "Unknown error",
     });
   }
 }
@@ -412,20 +489,23 @@ export async function getBillingProducts(req: Request, res: Response) {
 /**
  * Get current user subscription with enhanced server-side formatting
  */
-export async function getCurrentSubscriptionFormatted(req: Request, res: Response) {
+export async function getCurrentSubscriptionFormatted(
+  req: Request,
+  res: Response,
+) {
   try {
     // Validate user access
     const { userId } = await validateUserAccess(req);
 
     // Get or create valid subscription
     const subscriptionData = await ensureUserHasValidSubscription(userId);
-    
+
     // Format dates helper
     const formatDate = (date: Date) => {
-      return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
       });
     };
 
@@ -443,11 +523,11 @@ export async function getCurrentSubscriptionFormatted(req: Request, res: Respons
         planId: subscriptionData.planId,
         priceId: subscriptionData.priceId, // Add the Stripe price ID
         isFree: subscriptionData.isFree,
-        
+
         // Formatted amounts
         formattedAmount: `$${subscriptionData.amount.toFixed(2)}`,
         formattedInterval: `/${subscriptionData.interval}`,
-        
+
         // Formatted dates
         startDate: subscriptionData.startDate,
         formattedStartDate: formatDate(subscriptionData.startDate),
@@ -456,22 +536,24 @@ export async function getCurrentSubscriptionFormatted(req: Request, res: Respons
         formattedCurrentPeriod: `${formatDate(subscriptionData.currentPeriodStart)} - ${formatDate(subscriptionData.currentPeriodEnd)}`,
         nextRenewalDate: subscriptionData.nextRenewalDate,
         formattedNextRenewal: formatDate(subscriptionData.nextRenewalDate),
-        
+
         // Word usage with formatting
         wordLimit: subscriptionData.wordLimit,
         currentUsage,
         formattedUsage: `${currentUsage.toLocaleString()} of ${subscriptionData.wordLimit.toLocaleString()} words`,
         usagePercentage: analytics.analytics.usagePercentage,
-        
+
         // Status formatting
         cancelAtPeriodEnd: subscriptionData.cancelAtPeriodEnd,
-        formattedStatus: subscriptionData.status.charAt(0).toUpperCase() + subscriptionData.status.slice(1),
+        formattedStatus:
+          subscriptionData.status.charAt(0).toUpperCase() +
+          subscriptionData.status.slice(1),
         statusColor: getStatusColor(subscriptionData.status),
-        
+
         // Billing cycle info
         daysRemaining: analytics.analytics.billingCycleProgress.daysRemaining,
-        formattedDaysRemaining: `${analytics.analytics.billingCycleProgress.daysRemaining} days remaining`
-      }
+        formattedDaysRemaining: `${analytics.analytics.billingCycleProgress.daysRemaining} days remaining`,
+      },
     };
 
     res.json(formattedSubscription);
@@ -486,12 +568,18 @@ export async function getCurrentSubscriptionFormatted(req: Request, res: Respons
  */
 function getStatusColor(status: string): string {
   switch (status.toLowerCase()) {
-    case 'active': return 'green';
-    case 'trialing': return 'blue';
-    case 'past_due': return 'yellow';
-    case 'canceled': return 'red';
-    case 'unpaid': return 'red';
-    default: return 'gray';
+    case "active":
+      return "green";
+    case "trialing":
+      return "blue";
+    case "past_due":
+      return "yellow";
+    case "canceled":
+      return "red";
+    case "unpaid":
+      return "red";
+    default:
+      return "gray";
   }
 }
 
@@ -509,33 +597,47 @@ export async function getBillingCycleWordUsageAnalytics(userId: number) {
     // 2. Calculate word usage period - monthly cycles regardless of payment frequency
     let usagePeriodStart: Date;
     let usagePeriodEnd: Date;
-    
-    if (subscriptionData.interval === 'year') {
+
+    if (subscriptionData.interval === "year") {
       // For annual plans, calculate current monthly word usage period
       const subscriptionStart = subscriptionData.currentPeriodStart;
       const now = new Date();
       const billingDay = subscriptionStart.getDate(); // 26th in your case
-      
+
       // Find current monthly cycle based on billing day
       let currentMonthStart: Date;
       if (now.getDate() >= billingDay) {
         // We're in the current month's cycle
-        currentMonthStart = new Date(now.getFullYear(), now.getMonth(), billingDay);
+        currentMonthStart = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          billingDay,
+        );
       } else {
         // We're in the previous month's cycle
-        currentMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, billingDay);
+        currentMonthStart = new Date(
+          now.getFullYear(),
+          now.getMonth() - 1,
+          billingDay,
+        );
       }
-      
+
       // Monthly cycle ends the day before next billing day
-      const nextMonthStart = new Date(currentMonthStart.getFullYear(), currentMonthStart.getMonth() + 1, billingDay);
+      const nextMonthStart = new Date(
+        currentMonthStart.getFullYear(),
+        currentMonthStart.getMonth() + 1,
+        billingDay,
+      );
       const currentMonthEnd = new Date(nextMonthStart.getTime() - 1);
-      
+
       usagePeriodStart = currentMonthStart;
       usagePeriodEnd = currentMonthEnd;
     } else {
       // For monthly plans, use Stripe billing cycle
       usagePeriodStart = subscriptionData.currentPeriodStart;
-      usagePeriodEnd = new Date(subscriptionData.currentPeriodEnd.getTime() - 1);
+      usagePeriodEnd = new Date(
+        subscriptionData.currentPeriodEnd.getTime() - 1,
+      );
     }
 
     console.log(
@@ -601,55 +703,92 @@ export async function getBillingCycleWordUsageAnalytics(userId: number) {
 /**
  * Get historical billing cycle word usage for N monthly cycles based on subscription anniversary date
  */
-export async function getHistoricalBillingCycleUsage(userId: number, monthlyCycles: number = 6) {
+export async function getHistoricalBillingCycleUsage(
+  userId: number,
+  monthlyCycles: number = 6,
+) {
   try {
-    console.log(`📊 Generating ${monthlyCycles} historical monthly cycles for user ${userId}`);
-    
+    console.log(
+      `📊 Generating ${monthlyCycles} historical monthly cycles for user ${userId}`,
+    );
+
     const user = await storage.getUser(userId);
     if (!user?.stripeSubscriptionId) {
       throw new Error(`User ${userId} has no Stripe subscription ID`);
     }
 
-    const subscriptionData = await retrieveExistingSubscriptionById_duplicate(user.stripeSubscriptionId);
-    console.log(`✅ Retrieved subscription for history: ${subscriptionData.plan} (${subscriptionData.interval})`);
+    const subscriptionData = await retrieveExistingSubscriptionById_duplicate(
+      user.stripeSubscriptionId,
+    );
+    console.log(
+      `✅ Retrieved subscription for history: ${subscriptionData.plan} (${subscriptionData.interval})`,
+    );
 
     const historicalCycles = [];
     const subscriptionStart = subscriptionData.currentPeriodStart;
     const billingDay = subscriptionStart.getDate(); // Anniversary day (26th in your case)
-    
+
     // Generate cycles based on subscription anniversary date
     for (let i = 0; i < monthlyCycles; i++) {
       let cycleStart: Date;
       let cycleEnd: Date;
 
-      if (subscriptionData.interval === 'year') {
+      if (subscriptionData.interval === "year") {
         // For annual plans, create monthly cycles from subscription anniversary date
         const now = new Date();
-        
+
         // Calculate the current monthly cycle
         let currentMonthStart: Date;
         if (now.getDate() >= billingDay) {
-          currentMonthStart = new Date(now.getFullYear(), now.getMonth(), billingDay);
+          currentMonthStart = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            billingDay,
+          );
         } else {
-          currentMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, billingDay);
+          currentMonthStart = new Date(
+            now.getFullYear(),
+            now.getMonth() - 1,
+            billingDay,
+          );
         }
-        
+
         // Go back i months from current cycle
-        cycleStart = new Date(currentMonthStart.getFullYear(), currentMonthStart.getMonth() - i, billingDay);
-        cycleEnd = new Date(cycleStart.getFullYear(), cycleStart.getMonth() + 1, billingDay - 1, 23, 59, 59, 999);
-        
+        cycleStart = new Date(
+          currentMonthStart.getFullYear(),
+          currentMonthStart.getMonth() - i,
+          billingDay,
+        );
+        cycleEnd = new Date(
+          cycleStart.getFullYear(),
+          cycleStart.getMonth() + 1,
+          billingDay - 1,
+          23,
+          59,
+          59,
+          999,
+        );
       } else {
         // For monthly plans, use actual Stripe billing cycles
-        cycleStart = new Date(subscriptionStart.getTime() - (i * 30 * 24 * 60 * 60 * 1000));
-        cycleEnd = new Date(cycleStart.getTime() + (30 * 24 * 60 * 60 * 1000) - 1);
+        cycleStart = new Date(
+          subscriptionStart.getTime() - i * 30 * 24 * 60 * 60 * 1000,
+        );
+        cycleEnd = new Date(
+          cycleStart.getTime() + 30 * 24 * 60 * 60 * 1000 - 1,
+        );
       }
 
       // Get usage data for this cycle
-      const usageReport = await storage.wordUsageReport(cycleStart, cycleEnd, userId);
-      
+      const usageReport = await storage.wordUsageReport(
+        cycleStart,
+        cycleEnd,
+        userId,
+      );
+
       const isCurrent = i === 0; // First cycle is current
-      const cycleLabel = isCurrent ? 'Current' : 
-        `${cycleStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} -\n${cycleEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+      const cycleLabel = isCurrent
+        ? "Current"
+        : `${cycleStart.toLocaleDateString("en-US", { month: "short", day: "numeric" })} -\n${cycleEnd.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
 
       const cycleData = {
         cycleLabel,
@@ -657,14 +796,18 @@ export async function getHistoricalBillingCycleUsage(userId: number, monthlyCycl
         cycleEnd: cycleEnd.toISOString(),
         wordsUsed: usageReport.totalWordCount,
         wordLimit: subscriptionData.wordLimit,
-        usagePercentage: Math.round((usageReport.totalWordCount / subscriptionData.wordLimit) * 100),
+        usagePercentage: Math.round(
+          (usageReport.totalWordCount / subscriptionData.wordLimit) * 100,
+        ),
         isCurrent,
         recordingCount: usageReport.recordingCount,
-        recordings: usageReport.recordings
+        recordings: usageReport.recordings,
       };
 
       historicalCycles.push(cycleData);
-      console.log(`📊 Cycle ${i + 1}: ${cycleLabel} (${cycleStart.toLocaleDateString()} - ${cycleEnd.toLocaleDateString()}) - ${usageReport.totalWordCount} words`);
+      console.log(
+        `📊 Cycle ${i + 1}: ${cycleLabel} (${cycleStart.toLocaleDateString()} - ${cycleEnd.toLocaleDateString()}) - ${usageReport.totalWordCount} words`,
+      );
     }
 
     // Reverse to show oldest to newest
@@ -675,22 +818,22 @@ export async function getHistoricalBillingCycleUsage(userId: number, monthlyCycl
       subscription: subscriptionData,
       monthlyCycles,
       historicalCycles,
-      generatedAt: new Date()
+      generatedAt: new Date(),
     };
-
   } catch (error) {
     console.error("❌ ERROR in getHistoricalBillingCycleUsage:", error);
     throw error;
   }
 }
 
-
-
 /**
  * Update a user's subscription to a new plan
  * Maintains proper architecture by using paymentServiceHandler for all Stripe operations
  */
-export async function updateUserSubscription(userId: number, stripePriceId: string): Promise<{
+export async function updateUserSubscription(
+  userId: number,
+  stripePriceId: string,
+): Promise<{
   success: boolean;
   requiresPayment?: boolean;
   clientSecret?: string;
@@ -704,14 +847,16 @@ export async function updateUserSubscription(userId: number, stripePriceId: stri
     }
 
     // Use paymentServiceHandler to update subscription - it handles all Stripe logic
-    const result = await updateUserSubscriptionToPlan(user.stripeCustomerId!, stripePriceId);
+    const result = await updateUserSubscriptionToPlan(
+      user.stripeCustomerId!,
+      stripePriceId,
+    );
     return result;
-
   } catch (error: any) {
-    console.error('Subscription update error:', error);
-    return { 
+    console.error("Subscription update error:", error);
+    return {
       success: false,
-      error: error.message || "Failed to update subscription" 
+      error: error.message || "Failed to update subscription",
     };
   }
 }
@@ -723,7 +868,7 @@ export async function cancelSubscription(req: Request, res: Response) {
     if (!user.stripeSubscriptionId) {
       return res.status(400).json({
         success: false,
-        error: "No active subscription found to cancel"
+        error: "No active subscription found to cancel",
       });
     }
 
@@ -732,20 +877,19 @@ export async function cancelSubscription(req: Request, res: Response) {
     if (!result.success) {
       return res.status(400).json({
         success: false,
-        error: result.error
+        error: result.error,
       });
     }
 
     res.json({
       success: true,
-      message: result.message
+      message: result.message,
     });
-
   } catch (error) {
     console.error("Error canceling subscription:", error);
     res.status(500).json({
       success: false,
-      error: "Failed to cancel subscription"
+      error: "Failed to cancel subscription",
     });
   }
 }
