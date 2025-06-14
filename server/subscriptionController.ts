@@ -94,18 +94,22 @@ async function ensureUserHasValidSubscription(userId: number): Promise<any> {
     // if the subscription lookup is not successful,
     // then let's see if we can find it thru the customer ID.
     if (paymentCustomerId) {
-      const customer =
-        await retrievePaymentCustomerByCustomerId(paymentCustomerId);
-      if (customer) {
-        // Customer found.
-        // The field foundPaymentSubscriptionId indicates if it has a valid subscription.
-        foundCustomer = customer;
-        foundPaymentUserId = customer.id;
-        foundPaymentSubscriptionId = customer.newestActiveSubscription?.id;
-        foundSubscription = customer.newestActiveSubscription;
-      } else {
-        // Customer not found, we need to look it up by email.
-        // will do a bit further down
+      try {
+        const customer =
+          await retrievePaymentCustomerByCustomerId(paymentCustomerId);
+        if (customer) {
+          // Customer found.
+          // The field foundPaymentSubscriptionId indicates if it has a valid subscription.
+          foundCustomer = customer;
+          foundPaymentUserId = customer.id;
+          foundPaymentSubscriptionId = customer.newestActiveSubscription?.id;
+          foundSubscription = customer.newestActiveSubscription;
+        } else {
+          // Customer not found, we need to look it up by email.
+          // will do a bit further down
+        }
+      } catch (error) {
+        console.log("Error retrieving customer: ", error);
       }
     } else {
       // we don't have a customer ID, so we need to look it up by email.
