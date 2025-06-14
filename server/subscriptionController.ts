@@ -35,6 +35,7 @@ async function validateUserAccess(
 
 /**
  * Ensure user has a valid subscription, create one if missing
+ * Return a PaymentSubscription
  */
 async function ensureUserHasValidSubscription(userId: number): Promise<any> {
   var user = await storage.getUser(userId);
@@ -52,28 +53,33 @@ async function ensureUserHasValidSubscription(userId: number): Promise<any> {
 
   // if subscription not empty, exists, and valid, then return it and update the paymentUserId if needed.
   if (paymentSubscriptionId) {
-    const subscription = await retrievePaymentSubscriptionById(
-      paymentSubscriptionId,
-    );
-    if (subscription?.status === "active") {
-      foundPaymentSubscriptionId = subscription.id;
-      foundPaymentUserId = subscription.paymentCustomerId;
-      foundSubscription = subscription;
-      if (paymentCustomerId === foundPaymentUserId) return foundSubscription;
-      console.log(
-        "Found an active subscription: ",
-        foundSubscription,
-        " but payment customer ID is different: ",
-        paymentCustomerId,
-        " vs ",
-        foundPaymentUserId,
+    try {
+      const subscription = await retrievePaymentSubscriptionById(
+        paymentSubscriptionId,
       );
-      // update the user with the new payment customer ID will take place
-      // at the end of the function
-    } else {
-      console.log("Found a non active subscription: ", subscription);
-      foundPaymentSubscriptionId = undefined;
-      // we will try through the customer ID further down.
+      if (subscription?.status === "active") {
+        foundPaymentSubscriptionId = subscription.id;
+        foundPaymentUserId = subscription.paymentCustomerId;
+        foundSubscription = subscription;
+        if (paymentCustomerId === foundPaymentUserId) return foundSubscription;
+        console.log(
+          "Found an active subscription: ",
+          foundSubscription,
+          " but payment customer ID is different: ",
+          paymentCustomerId,
+          " vs ",
+          foundPaymentUserId,
+        );
+        // update the user with the new payment customer ID will take place
+        // at the end of the function
+      } else {
+        console.log("Found a non active subscription: ", subscription);
+        foundPaymentSubscriptionId = undefined;
+        // we will try through the customer ID further down.
+      }
+    } catch (error) {
+      console.log("Error retrieving subscription: ", error);
+      // consider that the subscription does not exist.
     }
   } else {
     // subscription is undefined or null, so we will try through the customer ID.
@@ -807,9 +813,7 @@ export async function getHistoricalBillingCycleUsage(
       throw new Error(`User ${userId} has no Stripe subscription ID`);
     }
 
-    const subscriptionData = await retrievePaymentSubscriptionById(
-      user.stripeSubscriptionId,
-    );
+    const subscriptionData = await ensureUserHasValidSubscription(userId);
     console.log(
       `✅ Retrieved subscription for history: ${subscriptionData.plan} (${subscriptionData.interval})`,
     );
