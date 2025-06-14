@@ -389,6 +389,27 @@ export async function ensureUserHasStripeCustomer(user: any): Promise<string> {
 }
 
 /**
+ * Initialize payment setup for a new user
+ * Creates Stripe customer and default subscription, returns PaymentCustomer object
+ */
+export async function initializePaymentForUser(user: any): Promise<PaymentCustomer> {
+  console.log(`🚀 Initializing payment setup for user ${user.id} (${user.email})`);
+  
+  // Step 1: Ensure user has a Stripe customer ID
+  const stripeCustomerId = await ensureUserHasStripeCustomer(user);
+  
+  // Step 2: Create default subscription
+  const subscriptionData = await createDefaultSubscription(user, stripeCustomerId);
+  
+  // Step 3: Retrieve full customer data with subscription
+  const paymentCustomer = await retrievePaymentCustomerByCustomerId(stripeCustomerId);
+  
+  console.log(`✅ Payment initialization complete for user ${user.id} - Customer: ${stripeCustomerId}, Subscription: ${subscriptionData.id}`);
+  
+  return paymentCustomer;
+}
+
+/**
  * Create a default starter subscription for a user
  */
 export async function createDefaultSubscription(

@@ -8,6 +8,7 @@ import {
   createDefaultSubscription,
   retrievePaymentSubscriptionById,
   retrievePaymentCustomerByCustomerId,
+  initializePaymentForUser,
   updateUserSubscriptionToPlan,
   cancelUserSubscription,
   lookupCustomerByEmail,
