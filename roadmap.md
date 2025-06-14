@@ -1,0 +1,11 @@
+- When a user logs in the first time, the recording page shows an issue with the subscription.
+  - Fix when a user logs in: we need to retrieve the customer and the subscription from Stripe, and reuse it.
+  - Currently it creates a new user and a new subscription.
+  - I need to make sure that the app continues to work if I delete the customer or the subscription in Stripe.
+  - If the app suddenly encounters an invalid paymentCustomerId or paymentSubscriptionId, it has to retrieve or create new ones.
+  - In paymentServiceHandler, I do not have a function to retrieve the subscription by paymentCustomerId
+    - ??
+  - The only way to retrieve a subscription is either by the paymentSubscriptionId, or by fetching the customer by email.
+- Done: Fix the latest white backgrounds
+- Done: Restore the nice button at the login screen
+- 

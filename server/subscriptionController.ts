@@ -2,12 +2,12 @@ import { Request, Response } from "express";
 import { storage } from "./storage";
 import { config } from "./config/environment";
 import {
-  getUserSubscription,
+  retrieveExistingSubscriptionById_duplicate,
   getBillingCycleFromSubscription,
   getUserWordLimit,
   ensureUserHasStripeCustomer,
   createDefaultSubscription,
-  getExistingSubscription,
+  retrieveExistingSubscriptionById,
   updateUserSubscriptionToPlan,
   cancelUserSubscription,
 } from "./paymentServiceHandler";
@@ -41,11 +41,29 @@ async function ensureUserHasValidSubscription(userId: number): Promise<any> {
     throw new Error("User not found");
   }
 
+  var paymentUserId = user.stripeCustomerId;
+  var paymentSubscriptionId = user.stripeSubscriptionId;
+
+  var foundPaymentUserId ;
+  var foundPaymentSubscriptionId;
+
+  if (paymentSubscriptionId) {
+    const subscription = await retrieveExistingSubscriptionById_duplicate (paymentSubscriptionId);
+    if (subscription?.status === "active") { 
+      foundPaymentSubscriptionId = subscription.id ;
+    } else {
+      console.log("Found a non active subscription: ", subscription);
+    }
+  } else {
+      console.log(`🔍 Validating existing Stripe customer ID: ${paymentUserId}`);
+      retrieveExistingSubscriptionById
+  }
+
   // Check if user already has a valid subscription
   if (user.stripeSubscriptionId) {
     try {
       // Validate existing subscription
-      const subscriptionData = await getExistingSubscription(user.stripeSubscriptionId);
+      const subscriptionData = await retrieveExistingSubscriptionById(user.stripeSubscriptionId);
       
       // Return subscription if active
       if (subscriptionData.status === "active") {
@@ -188,7 +206,7 @@ async function handleNoValidSubscription(userId: number): Promise<any> {
       });
 
       // Get the subscription details using our payment service handler
-      const subscriptionData = await getExistingSubscription(subscription.id);
+      const subscriptionData = await retrieveExistingSubscriptionById(subscription.id);
       console.log(
         `✅ Assigned subscription ${subscription.id} to user ${userId}`,
       );
@@ -210,7 +228,7 @@ async function handleNoValidSubscription(userId: number): Promise<any> {
       });
 
       // Get the subscription details using our payment service handler
-      const subscriptionData = await getExistingSubscription(
+      const subscriptionData = await retrieveExistingSubscriptionById(
         latestSubscription.id,
       );
       console.log(
@@ -592,7 +610,7 @@ export async function getHistoricalBillingCycleUsage(userId: number, monthlyCycl
       throw new Error(`User ${userId} has no Stripe subscription ID`);
     }
 
-    const subscriptionData = await getUserSubscription(user.stripeSubscriptionId);
+    const subscriptionData = await retrieveExistingSubscriptionById_duplicate(user.stripeSubscriptionId);
     console.log(`✅ Retrieved subscription for history: ${subscriptionData.plan} (${subscriptionData.interval})`);
 
     const historicalCycles = [];
