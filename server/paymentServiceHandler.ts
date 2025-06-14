@@ -29,6 +29,16 @@ export interface SubscriptionData {
   wordLimit: number;
 }
 
+export interface PaymentCustomer {
+  id: string;
+  email: string | null;
+  name: string | null;
+  created: number;
+  deleted?: boolean;
+  metadata: Record<string, string>;
+  newestActiveSubscription?: SubscriptionData;
+}
+
 /**
  * Pure Stripe API function to get subscription data by subscription ID
  * This function only retrieves data from Stripe - no database operations
@@ -815,6 +825,103 @@ export async function updateUserSubscriptionToPlan(
       success: false,
       error: error.message || "Failed to update subscription",
     };
+  }
+}
+
+/**
+ * Retrieve payment customer by customer ID with newest active subscription
+ * Returns customer data and their newest active subscription if available
+ */
+export async function retrievePaymentCustomerByCustomerId(
+  paymentCustomerId: string,
+): Promise<PaymentCustomer> {
+  if (!paymentCustomerId) {
+    throw new Error("Payment customer ID is required");
+  }
+
+  console.log(`🔍 Retrieving payment customer: ${paymentCustomerId}`);
+
+  try {
+    // Retrieve customer from payment provider
+    const customer = await stripe.customers.retrieve(paymentCustomerId);
+
+    if (typeof customer === 'string' || customer.deleted) {
+      throw new Error(`Customer ${paymentCustomerId} is deleted or not found`);
+    }
+
+    console.log(`✅ Retrieved customer: ${customer.id} (${customer.email})`);
+
+    // Get all active subscriptions for this customer
+    const subscriptions = await stripe.subscriptions.list({
+      customer: paymentCustomerId,
+      status: "active",
+      limit: 100,
+    });
+
+    const activeSubscriptions = subscriptions.data;
+    console.log(`📊 Found ${activeSubscriptions.length} active subscriptions for customer ${paymentCustomerId}`);
+
+    let newestActiveSubscription: SubscriptionData | undefined;
+
+    if (activeSubscriptions.length === 0) {
+      console.log(`📋 No active subscriptions found for customer ${paymentCustomerId}`);
+    } else if (activeSubscriptions.length === 1) {
+      console.log(`📌 Found single active subscription: ${activeSubscriptions[0].id}`);
+      newestActiveSubscription = await getUserSubscription(activeSubscriptions[0].id);
+    } else {
+      // Multiple active subscriptions - log them all and select the newest
+      console.log(`
+🚨🚨🚨 MULTIPLE ACTIVE SUBSCRIPTIONS DETECTED 🚨🚨🚨
+═══════════════════════════════════════════════════════════
+🔑 Customer ID: ${paymentCustomerId}
+📊 Total Active Subscriptions: ${activeSubscriptions.length}
+
+📝 All Active Subscriptions for this customer:
+${activeSubscriptions
+  .map(
+    (sub, index) =>
+      `   ${index + 1}. ID: ${sub.id}
+      Status: ${sub.status}
+      Plan: ${sub.items.data[0]?.price?.nickname || "Unknown"}
+      Created: ${new Date(sub.created * 1000).toISOString()}
+      Current Period: ${new Date(sub.current_period_start * 1000).toISOString()} - ${new Date(sub.current_period_end * 1000).toISOString()}`,
+  )
+  .join("\n")}
+═══════════════════════════════════════════════════════════
+      `);
+
+      // Select the newest subscription by creation date
+      const newestSubscription = activeSubscriptions.reduce(
+        (latest, current) => {
+          return current.created > latest.created ? current : latest;
+        },
+      );
+
+      console.log(`📌 Selected newest subscription: ${newestSubscription.id} (created: ${new Date(newestSubscription.created * 1000).toISOString()})`);
+      newestActiveSubscription = await getUserSubscription(newestSubscription.id);
+    }
+
+    const paymentCustomer: PaymentCustomer = {
+      id: customer.id,
+      email: customer.email,
+      name: customer.name,
+      created: customer.created,
+      deleted: customer.deleted,
+      metadata: customer.metadata,
+      newestActiveSubscription,
+    };
+
+    console.log(`✅ Successfully retrieved payment customer ${paymentCustomerId} with ${newestActiveSubscription ? 'active subscription' : 'no active subscription'}`);
+    return paymentCustomer;
+
+  } catch (error: any) {
+    console.error(`❌ Error retrieving payment customer ${paymentCustomerId}:`, error);
+    
+    if (error.code === 'resource_missing') {
+      throw new Error(`Payment customer ${paymentCustomerId} not found in payment provider`);
+    }
+    
+    throw error;
   }
 }
 
