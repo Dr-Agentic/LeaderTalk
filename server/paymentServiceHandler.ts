@@ -122,7 +122,7 @@ export async function getBillingCycleFromSubscription(
   subscriptionId: string,
 ): Promise<{ start: Date; end: Date }> {
   // Use the pure Stripe API function
-  const subscription = await retrievePaymentSubscriptionById_2(subscriptionId);
+  const subscription = await retrievePaymentSubscriptionById(subscriptionId);
   return {
     start: subscription.currentPeriodStart,
     end: subscription.currentPeriodEnd,
@@ -140,7 +140,7 @@ export async function getUserWordLimit(userId: number): Promise<number> {
   }
 
   // Use the pure Stripe API function
-  const subscription = await retrievePaymentSubscriptionById_2(
+  const subscription = await retrievePaymentSubscriptionById(
     user.stripeSubscriptionId,
   );
   return subscription.wordLimit;
@@ -818,7 +818,7 @@ export async function retrievePaymentCustomerByCustomerId(
       console.log(
         `📌 Found single active subscription: ${activeSubscriptions[0].id}`,
       );
-      newestActiveSubscription = await retrievePaymentSubscriptionById_2(
+      newestActiveSubscription = await retrievePaymentSubscriptionById(
         activeSubscriptions[0].id,
       );
     } else {
@@ -853,7 +853,7 @@ ${activeSubscriptions
       console.log(
         `📌 Selected newest subscription: ${newestSubscription.id} (created: ${new Date(newestSubscription.created * 1000).toISOString()})`,
       );
-      newestActiveSubscription = await retrievePaymentSubscriptionById_2(
+      newestActiveSubscription = await retrievePaymentSubscriptionById(
         newestSubscription.id,
       );
     }
@@ -929,3 +929,6 @@ export async function cancelUserSubscription(
     };
   }
 }
+
+// Export alias for backward compatibility
+export const retrieveExistingSubscriptionById = retrievePaymentSubscriptionById;
