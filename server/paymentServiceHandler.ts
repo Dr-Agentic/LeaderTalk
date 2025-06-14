@@ -65,7 +65,7 @@ export async function retrievePaymentSubscriptionById(
   const product = await stripe.products.retrieve(price.product as string);
 
   // Extract word limit from product metadata
-  const wordLimit = getWordLimitFromMetadata(product);
+  const wordLimit = _getWordLimitFromMetadata(product);
 
   return {
     id: subscription.id,
@@ -200,7 +200,7 @@ ${allSubscriptions.data
 /**
  * Helper function to extract word limit from product metadata
  */
-function getWordLimitFromMetadata(product: Stripe.Product): number {
+function _getWordLimitFromMetadata(product: Stripe.Product): number {
   if (!product?.metadata) {
     throw new Error(`Product ${product.id} has no metadata`);
   }
@@ -386,27 +386,6 @@ export async function ensureUserHasStripeCustomer(user: any): Promise<string> {
       throw error;
     }
   }
-}
-
-/**
- * Initialize payment setup for a new user
- * Creates Stripe customer and default subscription, returns PaymentCustomer object
- */
-export async function initializePaymentForUser(user: any): Promise<PaymentCustomer> {
-  console.log(`🚀 Initializing payment setup for user ${user.id} (${user.email})`);
-  
-  // Step 1: Ensure user has a Stripe customer ID
-  const stripeCustomerId = await ensureUserHasStripeCustomer(user);
-  
-  // Step 2: Create default subscription
-  const subscriptionData = await createDefaultSubscription(user, stripeCustomerId);
-  
-  // Step 3: Retrieve full customer data with subscription
-  const paymentCustomer = await retrievePaymentCustomerByCustomerId(stripeCustomerId);
-  
-  console.log(`✅ Payment initialization complete for user ${user.id} - Customer: ${stripeCustomerId}, Subscription: ${subscriptionData.id}`);
-  
-  return paymentCustomer;
 }
 
 /**
