@@ -27,6 +27,7 @@ export interface SubscriptionData {
   productImage: string | null;
   metadata: Record<string, string>;
   wordLimit: number;
+  paymentCustomerId: string;
 }
 
 export interface PaymentCustomer {
@@ -43,7 +44,7 @@ export interface PaymentCustomer {
  * Pure Stripe API function to get subscription data by subscription ID
  * This function only retrieves data from Stripe - no database operations
  */
-export async function retrievePaymentSubscriptionById_2(
+export async function retrievePaymentSubscriptionById(
   stripeSubscriptionId: string,
 ): Promise<SubscriptionData> {
   if (!stripeSubscriptionId) {
@@ -110,6 +111,7 @@ export async function retrievePaymentSubscriptionById_2(
       product.images && product.images.length > 0 ? product.images[0] : null,
     metadata: product.metadata,
     wordLimit,
+    paymentCustomerId: subscription.customer as string,
   };
 }
 
@@ -138,7 +140,9 @@ export async function getUserWordLimit(userId: number): Promise<number> {
   }
 
   // Use the pure Stripe API function
-  const subscription = await retrievePaymentSubscriptionById_2(user.stripeSubscriptionId);
+  const subscription = await retrievePaymentSubscriptionById_2(
+    user.stripeSubscriptionId,
+  );
   return subscription.wordLimit;
 }
 
@@ -290,7 +294,7 @@ async function createStripeCustomerForUser(user: any): Promise<string> {
  */
 async function handleInvalidCustomer(user: any): Promise<string> {
   console.log(
-    `❌ Customer ${user.stripeCustomerId || 'N/A'} no longer exists or is deleted in Stripe`,
+    `❌ Customer ${user.stripeCustomerId || "N/A"} no longer exists or is deleted in Stripe`,
   );
 
   // Step 1: Try to lookup customer by email address
@@ -298,10 +302,8 @@ async function handleInvalidCustomer(user: any): Promise<string> {
   const existingCustomer = await lookupCustomerByEmail(user.email);
 
   if (existingCustomer) {
-    console.log(
-      `📋 Found existing customer by email: ${existingCustomer.id}`,
-    );
-    
+    console.log(`📋 Found existing customer by email: ${existingCustomer.id}`);
+
     // Import storage here to avoid circular dependencies
     const { storage } = await import("./storage");
     await storage.updateUser(user.id, {
@@ -337,9 +339,7 @@ export async function ensureUserHasStripeCustomer(user: any): Promise<string> {
 
     // Check if customer is deleted
     if (customer.deleted) {
-      console.log(
-        `❌ Customer ${user.stripeCustomerId} is deleted in Stripe`,
-      );
+      console.log(`❌ Customer ${user.stripeCustomerId} is deleted in Stripe`);
       return await handleInvalidCustomer(user);
     }
 
@@ -355,7 +355,6 @@ export async function ensureUserHasStripeCustomer(user: any): Promise<string> {
       `✅ Customer exists and is valid in Stripe: ${user.stripeCustomerId}`,
     );
     return user.stripeCustomerId;
-
   } catch (error: any) {
     if (
       error.code === "resource_missing" ||
@@ -449,60 +448,6 @@ export async function createDefaultSubscription(
       starterProduct.images && starterProduct.images.length > 0
         ? starterProduct.images[0]
         : null,
-    metadata: cleanMetadata,
-    wordLimit: parseInt(cleanMetadata.Words, 10),
-  };
-}
-
-/**
- * Retrieve existing subscription details from Stripe with full product information
- */
-export async function retrievePaymentSubscriptionById(
-  subscriptionId: string,
-): Promise<any> {
-  const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
-    expand: ["items.data.price"],
-  });
-
-  const item = subscription.items.data[0];
-  const price = item.price as Stripe.Price;
-  const product = await stripe.products.retrieve(price.product as string);
-
-  console.log("Stripe product details:");
-  console.log("- Name:", product.name);
-  console.log("- ID:", product.id);
-  console.log("- Metadata:", product.metadata);
-
-  // Extract only the values we need from the price object
-  const priceAmount = price.unit_amount ? price.unit_amount / 100 : 0;
-  const priceCurrency = price.currency || "usd";
-  const priceInterval = price.recurring?.interval || "month";
-
-  // Extract only the values we need from metadata
-  const cleanMetadata = {
-    Words: product.metadata?.Words || "500",
-  };
-
-  return {
-    id: subscription.id,
-    status: subscription.status,
-    plan: product.name.toLowerCase(),
-    planId: product.id,
-    priceId: price.id, // Add the Stripe price ID
-    isFree: priceAmount === 0,
-    startDate: subscription.start_date
-      ? new Date(subscription.start_date * 1000)
-      : new Date(),
-    currentPeriodStart: new Date(subscription.current_period_start * 1000),
-    currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-    nextRenewalDate: new Date(subscription.current_period_end * 1000),
-    nextRenewalTimestamp: subscription.current_period_end,
-    cancelAtPeriodEnd: subscription.cancel_at_period_end,
-    amount: priceAmount,
-    currency: priceCurrency,
-    interval: priceInterval,
-    productImage:
-      product.images && product.images.length > 0 ? product.images[0] : null,
     metadata: cleanMetadata,
     wordLimit: parseInt(cleanMetadata.Words, 10),
   };
@@ -845,7 +790,7 @@ export async function retrievePaymentCustomerByCustomerId(
     // Retrieve customer from payment provider
     const customer = await stripe.customers.retrieve(paymentCustomerId);
 
-    if (typeof customer === 'string' || customer.deleted) {
+    if (typeof customer === "string" || customer.deleted) {
       throw new Error(`Customer ${paymentCustomerId} is deleted or not found`);
     }
 
@@ -859,15 +804,23 @@ export async function retrievePaymentCustomerByCustomerId(
     });
 
     const activeSubscriptions = subscriptions.data;
-    console.log(`📊 Found ${activeSubscriptions.length} active subscriptions for customer ${paymentCustomerId}`);
+    console.log(
+      `📊 Found ${activeSubscriptions.length} active subscriptions for customer ${paymentCustomerId}`,
+    );
 
     let newestActiveSubscription: SubscriptionData | undefined;
 
     if (activeSubscriptions.length === 0) {
-      console.log(`📋 No active subscriptions found for customer ${paymentCustomerId}`);
+      console.log(
+        `📋 No active subscriptions found for customer ${paymentCustomerId}`,
+      );
     } else if (activeSubscriptions.length === 1) {
-      console.log(`📌 Found single active subscription: ${activeSubscriptions[0].id}`);
-      newestActiveSubscription = await retrievePaymentSubscriptionById_2(activeSubscriptions[0].id);
+      console.log(
+        `📌 Found single active subscription: ${activeSubscriptions[0].id}`,
+      );
+      newestActiveSubscription = await retrievePaymentSubscriptionById_2(
+        activeSubscriptions[0].id,
+      );
     } else {
       // Multiple active subscriptions - log them all and select the newest
       console.log(`
@@ -897,8 +850,12 @@ ${activeSubscriptions
         },
       );
 
-      console.log(`📌 Selected newest subscription: ${newestSubscription.id} (created: ${new Date(newestSubscription.created * 1000).toISOString()})`);
-      newestActiveSubscription = await retrievePaymentSubscriptionById_2(newestSubscription.id);
+      console.log(
+        `📌 Selected newest subscription: ${newestSubscription.id} (created: ${new Date(newestSubscription.created * 1000).toISOString()})`,
+      );
+      newestActiveSubscription = await retrievePaymentSubscriptionById_2(
+        newestSubscription.id,
+      );
     }
 
     const paymentCustomer: PaymentCustomer = {
@@ -911,16 +868,22 @@ ${activeSubscriptions
       newestActiveSubscription,
     };
 
-    console.log(`✅ Successfully retrieved payment customer ${paymentCustomerId} with ${newestActiveSubscription ? 'active subscription' : 'no active subscription'}`);
+    console.log(
+      `✅ Successfully retrieved payment customer ${paymentCustomerId} with ${newestActiveSubscription ? "active subscription" : "no active subscription"}`,
+    );
     return paymentCustomer;
-
   } catch (error: any) {
-    console.error(`❌ Error retrieving payment customer ${paymentCustomerId}:`, error);
-    
-    if (error.code === 'resource_missing') {
-      throw new Error(`Payment customer ${paymentCustomerId} not found in payment provider`);
+    console.error(
+      `❌ Error retrieving payment customer ${paymentCustomerId}:`,
+      error,
+    );
+
+    if (error.code === "resource_missing") {
+      throw new Error(
+        `Payment customer ${paymentCustomerId} not found in payment provider`,
+      );
     }
-    
+
     throw error;
   }
 }

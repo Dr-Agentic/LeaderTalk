@@ -2,12 +2,11 @@ import { Request, Response } from "express";
 import { storage } from "./storage";
 import { config } from "./config/environment";
 import {
-  retrieveExistingSubscriptionById_duplicate,
   getBillingCycleFromSubscription,
   getUserWordLimit,
   ensureUserHasStripeCustomer,
   createDefaultSubscription,
-  retrieveExistingSubscriptionById,
+  retrievePaymentSubscriptionById,
   retrievePaymentCustomerByCustomerId,
   updateUserSubscriptionToPlan,
   cancelUserSubscription,
@@ -39,17 +38,18 @@ async function validateUserAccess(
 async function ensureUserHasValidSubscription(userId: number): Promise<any> {
   const user = await storage.getUser(userId);
   if (!user) {
-    throw new Error("User not found");
+    throw new Error(`User not found: ${userId}`);
   }
 
-  var paymentUserId = user.stripeCustomerId;
+  var paymentCustomerId = user.stripeCustomerId;
   var paymentSubscriptionId = user.stripeSubscriptionId;
 
   var foundPaymentUserId;
   var foundPaymentSubscriptionId;
 
+  // if subscription not empty, exists, and valid, then return it and update the paymentUserId if needed. 
   if (paymentSubscriptionId) {
-    const subscription = await retrieveExistingSubscriptionById_duplicate(
+    const subscription = await retrievePaymentSubscriptionById(
       paymentSubscriptionId,
     );
     if (subscription?.status === "active") {
@@ -58,7 +58,7 @@ async function ensureUserHasValidSubscription(userId: number): Promise<any> {
       console.log("Found a non active subscription: ", subscription);
     }
   } else {
-    console.log(`🔍 Validating existing Stripe customer ID: ${paymentUserId}`);
+    console.log(`🔍 Validating existing Stripe customer ID: ${paymentCustomerId}`);
     retrieveExistingSubscriptionById;
   }
 
@@ -132,7 +132,7 @@ export async function getCurrentSubscription(req: Request, res: Response) {
  * Handle case where user has no valid active subscription
  * We will pull all the susbcriptions of that user and check if there is one active.
  */
-async function handleNoValidSubscription(userId: number): Promise<any> {
+async function handleNoValidSubscription_delete(userId: number): Promise<any> {
   console.log(`🔍 Handling no valid subscription for user ${userId}`);
 
   // Get user from database
