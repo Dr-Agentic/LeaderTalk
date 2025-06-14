@@ -99,7 +99,7 @@ async function ensureUserHasValidSubscription(userId: number): Promise<any> {
         foundSubscription = customer.newestActiveSubscription;
       } else {
         // Customer not found, we need to look it up by email.
-        // XXX code to retrieve the customer by email
+        // will do a bit further down
       }
     } else {
       // we don't have a customer ID, so we need to look it up by email.
@@ -112,7 +112,7 @@ async function ensureUserHasValidSubscription(userId: number): Promise<any> {
   if (!foundPaymentUserId) {
     // customer not found, the last resort is to search by email.
     // here, foundSubscription is also undefined (it can't be defined without a customer)
-    const paymentCustomer = lookupCustomerByEmail(user.email);
+    const paymentCustomer = await lookupCustomerByEmail(user.email);
     console.log("Found (or not) customer by email: ", paymentCustomer);
     if (paymentCustomer) {
       foundCustomer = paymentCustomer;
@@ -121,31 +121,12 @@ async function ensureUserHasValidSubscription(userId: number): Promise<any> {
       foundPaymentSubscriptionId = paymentCustomer.newestActiveSubscription?.id;
       foundSubscription = paymentCustomer.newestActiveSubscription;
     }
-
-    if (!foundPaymentUserId) {
-      // we have exhausted all options. Only left option is to create a new pyamnet customer.
-      const paymentCustomer = await initializePaymentForUser(user);
-      // since this is a fresh customer and subscription, we know all fields are good.
-      foundCustomer = paymentCustomer;
-      foundPaymentUserId = paymentCustomer.id;
-      foundPaymentSubscriptionId = paymentCustomer.newestActiveSubscription.id;
-      foundSubscription = paymentCustomer.newestActiveSubscription;
-    }
-
-    if (foundSubscription) {
-      // everthig is found and perfect. We will rely on the last part of the
-      // function to update the user with the new payment customer ID and subscription ID.
-    } else {
-      // I found a customer but no subscription, so let's create one
-      // in the next block of the function.
-    }
   }
 
   if (foundPaymentUserId && !foundPaymentSubscriptionId) {
     // I found a customer but no subscription, so let's create one.
     console.log("Found a customer but no subscription: ", foundCustomer);
     const subscription = await createDefaultSubscription(
-      //XXXX need to validate the stripeCustomerId
       user,
       foundPaymentUserId,
     );
@@ -156,8 +137,17 @@ async function ensureUserHasValidSubscription(userId: number): Promise<any> {
     // XXX code to create a new paymentCustomer and subscription.
   }
 
-  // At this stage, we must have a valid subscription and a valid customer ID.
+  if (!foundPaymentUserId) {
+    // we have exhausted all options. Only option left is to create a new payment customer.
+    const paymentCustomer = await initializePaymentForUser(user);
+    // since this is a fresh customer and subscription, we know all fields are good.
+    foundCustomer = paymentCustomer;
+    foundPaymentUserId = paymentCustomer.id;
+    foundPaymentSubscriptionId = paymentCustomer.newestActiveSubscription.id;
+    foundSubscription = paymentCustomer.newestActiveSubscription;
+  }
 
+  // At this stage, we must have a valid subscription and a valid customer ID.
   // let's just validate that we have now a valid subscription and customer ID.
   console.log(
     "foundSubscription: ",

@@ -1,3 +1,4 @@
+// Morsy - 2025-06-13
 import Stripe from "stripe";
 import { storage } from "./storage";
 import { User } from "../shared/schema";
@@ -38,6 +39,37 @@ export interface PaymentCustomer {
   deleted?: boolean;
   metadata: Record<string, string>;
   newestActiveSubscription?: SubscriptionData;
+}
+
+/**
+ * Initialize payment setup for a new user
+ * Creates Stripe customer and default subscription, returns PaymentCustomer object
+ */
+export async function initializePaymentForUser(
+  user: any,
+): Promise<PaymentCustomer> {
+  console.log(
+    `🚀 Initializing payment setup for user ${user.id} (${user.email})`,
+  );
+
+  // Step 1: Ensure user has a Stripe customer ID
+  const stripeCustomerId = await createStripeCustomerForUser(user);
+
+  // Step 2: Create default subscription
+  const subscriptionData = await createDefaultSubscription(
+    user,
+    stripeCustomerId,
+  );
+
+  // Step 3: Retrieve full customer data with subscription
+  const paymentCustomer =
+    await retrievePaymentCustomerByCustomerId(stripeCustomerId);
+
+  console.log(
+    `✅ Payment initialization complete for user ${user.id} - Customer: ${stripeCustomerId}, Subscription: ${subscriptionData.id}`,
+  );
+
+  return paymentCustomer;
 }
 
 /**
@@ -386,27 +418,6 @@ export async function ensureUserHasStripeCustomer(user: any): Promise<string> {
       throw error;
     }
   }
-}
-
-/**
- * Initialize payment setup for a new user
- * Creates Stripe customer and default subscription, returns PaymentCustomer object
- */
-export async function initializePaymentForUser(user: any): Promise<PaymentCustomer> {
-  console.log(`🚀 Initializing payment setup for user ${user.id} (${user.email})`);
-  
-  // Step 1: Ensure user has a Stripe customer ID
-  const stripeCustomerId = await ensureUserHasStripeCustomer(user);
-  
-  // Step 2: Create default subscription
-  const subscriptionData = await createDefaultSubscription(user, stripeCustomerId);
-  
-  // Step 3: Retrieve full customer data with subscription
-  const paymentCustomer = await retrievePaymentCustomerByCustomerId(stripeCustomerId);
-  
-  console.log(`✅ Payment initialization complete for user ${user.id} - Customer: ${stripeCustomerId}, Subscription: ${subscriptionData.id}`);
-  
-  return paymentCustomer;
 }
 
 /**
