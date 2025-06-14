@@ -233,9 +233,22 @@ function getWordLimitFromMetadata(product: Stripe.Product): number {
 }
 
 /**
+ * Lookup customer by email address in Stripe
+ * Returns a PaymentCustomer object if found, otherwise null
+ */
+export async function lookupCustomerByEmail(email: string): Promise<any> {
+  const stripeCustomer = await _lookupCustomerByEmail(email);
+  if (!stripeCustomer) return null;
+  // build a PaymentCustomer object
+  const paymentCustomer: PaymentCustomer =
+    await retrievePaymentCustomerByCustomerId(stripeCustomer.id);
+  return paymentCustomer;
+}
+
+/**
  * Lookup customer in Stripe by email address
  */
-async function lookupCustomerByEmail(email: string): Promise<any> {
+async function _lookupCustomerByEmail(email: string): Promise<any> {
   try {
     const customers = await stripe.customers.list({
       email: email,
@@ -254,7 +267,10 @@ async function lookupCustomerByEmail(email: string): Promise<any> {
       });
     }
 
-    return customers.data.length > 0 ? customers.data[0] : null;
+    if (customers.data.length > 0) {
+      return customers.data[0];
+    }
+    return null;
   } catch (error) {
     console.error(`❌ Error looking up customer by email ${email}:`, error);
     return null;
@@ -263,6 +279,7 @@ async function lookupCustomerByEmail(email: string): Promise<any> {
 
 /**
  * Create a new Stripe customer and update the user record
+ * Return the paymendCustomerId newly created.
  */
 async function createStripeCustomerForUser(user: any): Promise<string> {
   console.log(
@@ -299,7 +316,7 @@ async function handleInvalidCustomer(user: any): Promise<string> {
 
   // Step 1: Try to lookup customer by email address
   console.log(`🔍 Looking up customer by email: ${user.email}`);
-  const existingCustomer = await lookupCustomerByEmail(user.email);
+  const existingCustomer = await _lookupCustomerByEmail(user.email);
 
   if (existingCustomer) {
     console.log(`📋 Found existing customer by email: ${existingCustomer.id}`);
@@ -369,6 +386,27 @@ export async function ensureUserHasStripeCustomer(user: any): Promise<string> {
       throw error;
     }
   }
+}
+
+/**
+ * Initialize payment setup for a new user
+ * Creates Stripe customer and default subscription, returns PaymentCustomer object
+ */
+export async function initializePaymentForUser(user: any): Promise<PaymentCustomer> {
+  console.log(`🚀 Initializing payment setup for user ${user.id} (${user.email})`);
+  
+  // Step 1: Ensure user has a Stripe customer ID
+  const stripeCustomerId = await ensureUserHasStripeCustomer(user);
+  
+  // Step 2: Create default subscription
+  const subscriptionData = await createDefaultSubscription(user, stripeCustomerId);
+  
+  // Step 3: Retrieve full customer data with subscription
+  const paymentCustomer = await retrievePaymentCustomerByCustomerId(stripeCustomerId);
+  
+  console.log(`✅ Payment initialization complete for user ${user.id} - Customer: ${stripeCustomerId}, Subscription: ${subscriptionData.id}`);
+  
+  return paymentCustomer;
 }
 
 /**
@@ -450,6 +488,7 @@ export async function createDefaultSubscription(
         : null,
     metadata: cleanMetadata,
     wordLimit: parseInt(cleanMetadata.Words, 10),
+    paymentCustomerId: customerId,
   };
 }
 
@@ -929,6 +968,3 @@ export async function cancelUserSubscription(
     };
   }
 }
-
-// Export alias for backward compatibility
-export const retrieveExistingSubscriptionById = retrievePaymentSubscriptionById;

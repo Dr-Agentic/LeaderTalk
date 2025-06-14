@@ -1,12 +1,32 @@
-Write module code, adopting the handler/controller architecture.
-The handler module file name has to be suffixed with Handler.ts. Eg. PaymentProviderHandler.ts
-The controller module file name has to be suffexed with Controller.ts. Eg, dbStorageController.ts
-Each function has to be modular, reuable, well commented.
-A function should hold on an smartphone screen from definition to end.
-A non-exported function in a module has to be prefixed with '_', eg, _retrieveUserFromDatabase()
-An exported function in a module is defined according to normal conventions.
-Put all exported functions at the top of the module file.
-Put all non-exported functions at the bottom of the module file.
+Write module code using the handler/controller architecture.
 
-Never use quickfixes and hacks. Always implement things the proper way, unless instructed otherwise.
-Before implementation, analyze the existing code to make sure to reuse existing modules and functions. Avoid recreating similar functions.
+Handler module file names must end with Handler.ts (e.g., PaymentProviderHandler.ts).
+
+Controller module file names must end with Controller.ts (e.g., dbStorageController.ts).
+
+Handlers may only interact with entities within their responsibility. (e.g., PaymentProviderHandler must not access OpenAIHandler).
+
+Each function must be modular, reusable, and well-commented.
+
+Functions must fit within one smartphone screen (roughly 30 lines). If longer, refactor into smaller, reusable units.
+
+Private (non-exported) functions must be prefixed with _, e.g., _retrieveUserFromDatabase().
+
+Exported functions follow standard naming conventions.
+
+Place all exported functions at the top, and all private ones at the bottom of the module file.
+
+Always reuse existing functions and modules where applicable. Avoid duplicating logic.
+
+Avoid hacks and quick fixes. Always implement clean, idiomatic, production-grade code unless otherwise instructed.
+
+Export all functions via a default object.
+
+Import using a namespace, with a 3–5 letter lowercase alias based on the module name (e.g., import pph from './PaymentProviderHandler').
+
+Do not implement default values and fake data. Prefer to have the code fail so that we can fix it effetively as opposed to working with fake data.
+
+Use strong typing throughout. Avoid any unless absolutely necessary, and prefer interfaces for complex objects.
+
+Do not implement or change code without being 95% sure of the change. If there is doubt, ask questions.
+Do not start changing code with a clear instruction of what to do. 

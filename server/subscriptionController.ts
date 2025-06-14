@@ -10,6 +10,7 @@ import {
   retrievePaymentCustomerByCustomerId,
   updateUserSubscriptionToPlan,
   cancelUserSubscription,
+  lookupCustomerByEmail,
 } from "./paymentServiceHandler";
 
 /**
@@ -33,10 +34,9 @@ async function validateUserAccess(
 
 /**
  * Ensure user has a valid subscription, create one if missing
- * Pure business logic without HTTP request/response handling
  */
 async function ensureUserHasValidSubscription(userId: number): Promise<any> {
-  const user = await storage.getUser(userId);
+  var user = await storage.getUser(userId);
   if (!user) {
     throw new Error(`User not found: ${userId}`);
   }
@@ -46,47 +46,146 @@ async function ensureUserHasValidSubscription(userId: number): Promise<any> {
 
   var foundPaymentUserId;
   var foundPaymentSubscriptionId;
+  var foundSubscription;
+  var foundCustomer;
 
-  // if subscription not empty, exists, and valid, then return it and update the paymentUserId if needed. 
+  // if subscription not empty, exists, and valid, then return it and update the paymentUserId if needed.
   if (paymentSubscriptionId) {
     const subscription = await retrievePaymentSubscriptionById(
       paymentSubscriptionId,
     );
     if (subscription?.status === "active") {
       foundPaymentSubscriptionId = subscription.id;
+      foundPaymentUserId = subscription.paymentCustomerId;
+      foundSubscription = subscription;
+      if (paymentCustomerId === foundPaymentUserId) return foundSubscription;
+      console.log(
+        "Found an active subscription: ",
+        foundSubscription,
+        " but payment customer ID is different: ",
+        paymentCustomerId,
+        " vs ",
+        foundPaymentUserId,
+      );
+      // update the user with the new payment customer ID will take place
+      // at the end of the function
     } else {
       console.log("Found a non active subscription: ", subscription);
+      foundPaymentSubscriptionId = undefined;
+      // we will try through the customer ID further down.
     }
   } else {
-    console.log(`🔍 Validating existing Stripe customer ID: ${paymentCustomerId}`);
-    retrieveExistingSubscriptionById;
+    // subscription is undefined or null, so we will try through the customer ID.
+    // no action needed for now.
   }
 
-  // Check if user already has a valid subscription
-  if (user.stripeSubscriptionId) {
-    try {
-      // Validate existing subscription
-      const subscriptionData = await retrieveExistingSubscriptionById(
-        user.stripeSubscriptionId,
-      );
+  // if foundPaymentSubscriptionId, then we have a valid subscription and a valid foundPaymentUserId
+  // In this case, we just need to update the user with the new payment customer ID and subscription ID if needed.
+  // so we need to focus only on the case that foundPaymentSubscriptionId is undefined.
 
-      // Return subscription if active
-      if (subscriptionData.status === "active") {
-        return subscriptionData;
+  if (!foundPaymentSubscriptionId) {
+    // if the subscription lookup is not successful,
+    // then let's see if we can find it thru the customer ID.
+    if (paymentCustomerId) {
+      const customer =
+        await retrievePaymentCustomerByCustomerId(paymentCustomerId);
+      if (customer) {
+        // Customer found.
+        // The field foundPaymentSubscriptionId indicates if it has a valid subscription.
+        foundCustomer = customer;
+        foundPaymentUserId = customer.id;
+        foundPaymentSubscriptionId = customer.newestActiveSubscription?.id;
+        foundSubscription = customer.newestActiveSubscription;
+      } else {
+        // Customer not found, we need to look it up by email.
+        // XXX code to retrieve the customer by email
       }
-    } catch (error) {
-      console.log(
-        `Invalid subscription ${user.stripeSubscriptionId}, will create new one`,
-      );
+    } else {
+      // we don't have a customer ID, so we need to look it up by email.
     }
   }
 
-  // Create new subscription if missing or invalid
-  console.log(`Creating default subscription for user ${userId}`);
-  const customerId = await ensureUserHasStripeCustomer(user);
-  const subscriptionData = await createDefaultSubscription(user, customerId);
+  // At this stage, if I have still not found a customer, then I need to search for it via email.
+  // If the customer is found, I just need to check the subscription.
 
-  return subscriptionData;
+  if (!foundPaymentUserId) {
+    // customer not found, the last resort is to search by email.
+    // here, foundSubscription is also undefined (it can't be defined without a customer)
+    const paymentCustomer = lookupCustomerByEmail(user.email);
+    console.log("Found (or not) customer by email: ", paymentCustomer);
+    if (paymentCustomer) {
+      foundCustomer = paymentCustomer;
+      foundPaymentUserId = paymentCustomer.id;
+      // subscription can be undefined if not found.
+      foundPaymentSubscriptionId = paymentCustomer.newestActiveSubscription?.id;
+      foundSubscription = paymentCustomer.newestActiveSubscription;
+    }
+
+    if (!foundPaymentUserId) {
+      // we have exhausted all options. Only left option is to create a new pyamnet customer.
+      const paymentCustomer = await initializePaymentForUser(user);
+      // since this is a fresh customer and subscription, we know all fields are good.
+      foundCustomer = paymentCustomer;
+      foundPaymentUserId = paymentCustomer.id;
+      foundPaymentSubscriptionId = paymentCustomer.newestActiveSubscription.id;
+      foundSubscription = paymentCustomer.newestActiveSubscription;
+    }
+
+    if (foundSubscription) {
+      // everthig is found and perfect. We will rely on the last part of the
+      // function to update the user with the new payment customer ID and subscription ID.
+    } else {
+      // I found a customer but no subscription, so let's create one
+      // in the next block of the function.
+    }
+  }
+
+  if (foundPaymentUserId && !foundPaymentSubscriptionId) {
+    // I found a customer but no subscription, so let's create one.
+    console.log("Found a customer but no subscription: ", foundCustomer);
+    const subscription = await createDefaultSubscription(
+      //XXXX need to validate the stripeCustomerId
+      user,
+      foundPaymentUserId,
+    );
+    foundSubscription = subscription;
+    foundPaymentSubscriptionId = subscription.id;
+  } else {
+    // I can't find a customer or subscription, so let's create a new customer and subscription
+    // XXX code to create a new paymentCustomer and subscription.
+  }
+
+  // At this stage, we must have a valid subscription and a valid customer ID.
+
+  // let's just validate that we have now a valid subscription and customer ID.
+  console.log(
+    "foundSubscription: ",
+    foundSubscription,
+    "foundPaymentUserId: ",
+    foundPaymentUserId,
+  );
+
+  console.log(
+    "original user ids:",
+    user.stripeCustomerId,
+    user.stripeSubscriptionId,
+  );
+
+  // let's update the user records
+  if (
+    paymentCustomerId != foundPaymentUserId ||
+    paymentSubscriptionId != foundPaymentSubscriptionId
+  ) {
+    const updatedUser = await storage.updateUser(userId, {
+      stripeCustomerId: foundPaymentUserId,
+      stripeSubscriptionId: foundPaymentSubscriptionId,
+    });
+    console.log("Updated user: ", updatedUser);
+  }
+
+  // making sure that foundSubscription is not undefined.
+  console.log("end of ensure - foundSubscription: ", foundSubscription);
+  return foundSubscription;
 }
 
 /**
@@ -220,7 +319,7 @@ async function handleNoValidSubscription_delete(userId: number): Promise<any> {
       });
 
       // Get the subscription details using our payment service handler
-      const subscriptionData = await retrieveExistingSubscriptionById(
+      const subscriptionData = await retrievePaymentSubscriptionById(
         subscription.id,
       );
       console.log(
@@ -244,7 +343,7 @@ async function handleNoValidSubscription_delete(userId: number): Promise<any> {
       });
 
       // Get the subscription details using our payment service handler
-      const subscriptionData = await retrieveExistingSubscriptionById(
+      const subscriptionData = await retrievePaymentSubscriptionById(
         latestSubscription.id,
       );
       console.log(
@@ -717,7 +816,7 @@ export async function getHistoricalBillingCycleUsage(
       throw new Error(`User ${userId} has no Stripe subscription ID`);
     }
 
-    const subscriptionData = await retrieveExistingSubscriptionById_duplicate(
+    const subscriptionData = await retrievePaymentSubscriptionById(
       user.stripeSubscriptionId,
     );
     console.log(
