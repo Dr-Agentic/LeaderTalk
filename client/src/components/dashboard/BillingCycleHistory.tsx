@@ -59,7 +59,7 @@ function CustomTooltip({ active, payload, label }: any) {
 export default function BillingCycleHistory() {
   // Get current subscription to determine billing cycle dates
   const { data: subscriptionData } = useQuery({
-    queryKey: ["/api/current-subscription"],
+    queryKey: ["/api/billing/subscriptions/current"],
   });
 
   // Get historical billing cycle data (6 monthly cycles)

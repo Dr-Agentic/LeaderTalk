@@ -13,8 +13,8 @@ const requireAuth = (req: Request, res: Response, next: Function) => {
 };
 
 export function registerSubscriptionRoutes(app: Express) {
-  // Get current user's subscription details
-  app.get('/api/current-subscription', requireAuth, async (req, res) => {
+  // Get current user's subscription details - Marked for deletion
+  app.get('/api/current-subscription_delete', requireAuth, async (req, res) => {
     // Set explicit content type to ensure proper JSON response
     res.setHeader('Content-Type', 'application/json');
     
@@ -22,8 +22,8 @@ export function registerSubscriptionRoutes(app: Express) {
     return getCurrentSubscription(req, res);
   });
 
-  // Get all subscription plans
-  app.get('/api/subscription-plans', async (req, res) => {
+  // Get all subscription plans - Marked for deletion
+  app.get('/api/subscription-plans_delete', async (req, res) => {
     try {
       // Get all subscription plans
       const plans = await storage.getSubscriptionPlans();
@@ -34,8 +34,8 @@ export function registerSubscriptionRoutes(app: Express) {
     }
   });
 
-  // Get Stripe products (subscription plans)
-  app.get('/api/stripe-products', async (req, res) => {
+  // Get Stripe products (subscription plans) - Marked for deletion
+  app.get('/api/stripe-products_delete', async (req, res) => {
     try {
       // Get all subscription plans from database
       const plans = await storage.getSubscriptionPlans();
@@ -60,8 +60,8 @@ export function registerSubscriptionRoutes(app: Express) {
     }
   });
 
-  // Create Stripe subscription
-  app.post('/api/create-stripe-subscription', requireAuth, async (req, res) => {
+  // Create Stripe subscription - Marked for deletion
+  app.post('/api/create-stripe-subscription_delete', requireAuth, async (req, res) => {
     try {
       const { priceId } = req.body;
       
