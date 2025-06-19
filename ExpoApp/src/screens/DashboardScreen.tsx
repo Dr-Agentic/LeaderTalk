@@ -1,381 +1,397 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { StatusBar } from 'expo-status-bar';
-import { colors } from '../theme/colors';
-import GradientCard from '../components/ui/GradientCard';
-import BottomNavigation from '../components/ui/BottomNavigation';
+import { apiRequest } from '../lib/api';
+import { Ionicons } from '@expo/vector-icons';
 
-export default function DashboardScreen() {
-  const navigation = useNavigation();
-  const [activeTab, setActiveTab] = useState('home');
-
-  const handleTabChange = (tab: string) => {
-    setActiveTab(tab);
-    
-    // Navigate to the appropriate screen based on the tab
-    switch (tab) {
-      case 'home':
-        // Already on dashboard
-        break;
-      case 'explore':
-        // Navigate to explore screen when implemented
-        break;
-      case 'sessions':
-        navigation.navigate('Recording');
-        break;
-      case 'progress':
-        navigation.navigate('Transcripts');
-        break;
-      case 'profile':
-        navigation.navigate('Settings');
-        break;
-    }
-  };
-
-  return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar style="light" />
-      <LinearGradient colors={colors.backgroundGradient} style={StyleSheet.absoluteFill} />
-
-      {/* Floating Elements */}
-      <View style={styles.floatingElements}>
-        <View style={[styles.floatingCircle, styles.circle1]} />
-        <View style={[styles.floatingCircle, styles.circle2]} />
-        <View style={[styles.floatingCircle, styles.circle3]} />
-      </View>
-
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.logo}>LeaderTalk</Text>
-        
-        <TouchableOpacity 
-          style={styles.profilePicContainer}
-          onPress={() => navigation.navigate('Settings')}
-        >
-          <LinearGradient
-            colors={colors.accentGradient}
-            style={styles.profilePic}
-          >
-            <Text style={styles.profileText}>JD</Text>
-          </LinearGradient>
-        </TouchableOpacity>
-      </View>
-
-      {/* Content */}
-      <ScrollView 
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Hero Section */}
-        <LinearGradient
-          colors={colors.heroGradient}
-          style={styles.heroSection}
-        >
-          <Text style={styles.heroTitle}>Elevate Your{'\n'}Leadership</Text>
-          <Text style={styles.heroSubtitle}>
-            Connect with industry leaders and unlock your potential through meaningful conversations
-          </Text>
-          <LinearGradient
-            colors={colors.primaryGradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.ctaButton}
-          >
-            <TouchableOpacity 
-              style={styles.ctaButtonTouchable}
-              onPress={() => navigation.navigate('Recording')}
-            >
-              <Text style={styles.ctaText}>Start Your Journey</Text>
-            </TouchableOpacity>
-          </LinearGradient>
-        </LinearGradient>
-
-        {/* Stats */}
-        <View style={styles.statsRow}>
-          <StatCard number="47K" label="LEADERS" />
-          <StatCard number="180K" label="SESSIONS" />
-          <StatCard number="95%" label="SUCCESS" />
-        </View>
-
-        {/* Featured Sessions */}
-        <Text style={styles.sectionTitle}>Featured Sessions</Text>
-        <View style={styles.cardsContainer}>
-          <FeatureCard
-            icon="🚀"
-            title="Innovation Leadership"
-            description="Master the art of leading through change and driving innovation in your organization"
-            onPress={() => navigation.navigate('Training')}
-          />
-
-          <FeatureCard
-            icon="🎯"
-            title="Strategic Thinking"
-            description="Develop strategic mindset and learn to make decisions that shape the future"
-            onPress={() => navigation.navigate('Training')}
-          />
-
-          <FeatureCard
-            icon="💡"
-            title="Team Dynamics"
-            description="Build high-performing teams and create cultures of excellence and collaboration"
-            onPress={() => navigation.navigate('Training')}
-          />
-        </View>
-
-        {/* Quick Actions */}
-        <Text style={styles.sectionTitle}>Quick Actions</Text>
-        <View style={styles.cardsContainer}>
-          <FeatureCard
-            icon="📞"
-            title="Record Conversation"
-            description="Record a conversation to get AI-powered insights on your communication style"
-            onPress={() => navigation.navigate('Recording')}
-          />
-
-          <FeatureCard
-            icon="📚"
-            title="View Transcripts"
-            description="Review your past conversations and track your communication progress"
-            onPress={() => navigation.navigate('Transcripts')}
-          />
-        </View>
-        
-        {/* Add padding at the bottom to ensure content is scrollable past the bottom navigation */}
-        <View style={styles.bottomPadding} />
-      </ScrollView>
-
-      {/* Bottom Navigation */}
-      <BottomNavigation 
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
-      />
-    </SafeAreaView>
-  );
+// Types
+interface Transcript {
+  id: number;
+  title: string;
+  date: string;
+  duration: number;
+  score: number;
 }
 
-// StatCard Component
-const StatCard = ({ number, label }) => (
-  <LinearGradient
-    colors={colors.statsGradient}
-    style={styles.statCard}
-  >
-    <Text style={styles.statNumber}>{number}</Text>
-    <Text style={styles.statLabel}>{label}</Text>
-  </LinearGradient>
-);
+interface Insight {
+  id: number;
+  title: string;
+  description: string;
+  type: 'strength' | 'improvement';
+}
 
-// FeatureCard Component with gradient icon background
-const FeatureCard = ({ icon, title, description, onPress }) => (
-  <TouchableOpacity 
-    style={styles.card}
-    onPress={onPress}
-    activeOpacity={0.8}
-  >
-    <View style={styles.cardHeader}>
-      <LinearGradient
-        colors={colors.accentGradient}
-        style={styles.cardIcon}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-      >
-        <Text style={styles.iconText}>{icon}</Text>
-      </LinearGradient>
-      <Text style={styles.cardTitle}>{title}</Text>
-    </View>
-    <Text style={styles.cardDescription}>{description}</Text>
-  </TouchableOpacity>
-);
+const DashboardScreen = ({ navigation }: any) => {
+  const [loading, setLoading] = useState(true);
+  const [recentTranscripts, setRecentTranscripts] = useState<Transcript[]>([]);
+  const [insights, setInsights] = useState<Insight[]>([]);
+  const [userName, setUserName] = useState('');
+  
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch user data
+        const userData = await apiRequest<{ username: string }>('GET', '/api/users/me');
+        setUserName(userData.username || 'User');
+        
+        // Fetch recent transcripts
+        const transcriptsData = await apiRequest<Transcript[]>('GET', '/api/transcripts/recent');
+        setRecentTranscripts(transcriptsData || []);
+        
+        // Fetch insights
+        const insightsData = await apiRequest<Insight[]>('GET', '/api/insights/recent');
+        setInsights(insightsData || []);
+      } catch (error) {
+        console.error('Failed to fetch dashboard data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchDashboardData();
+  }, []);
+  
+  const formatDuration = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
+  
+  const handleStartRecording = () => {
+    navigation.navigate('Recording');
+  };
+  
+  const handleViewTranscript = (id: number) => {
+    navigation.navigate('TranscriptView', { id });
+  };
+  
+  const handleViewAllTranscripts = () => {
+    navigation.navigate('Transcripts');
+  };
+  
+  const handleViewTraining = () => {
+    navigation.navigate('Training');
+  };
+  
+  return (
+    <LinearGradient
+      colors={['#1a1a2e', '#16213e', '#1a1a2e']}
+      style={styles.container}
+    >
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.header}>
+          <Text style={styles.greeting}>Welcome back, {userName}</Text>
+          <TouchableOpacity 
+            style={styles.settingsButton}
+            onPress={() => navigation.navigate('Settings')}
+          >
+            <Ionicons name="settings-outline" size={24} color="#fff" />
+          </TouchableOpacity>
+        </View>
+        
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#7e22ce" />
+          </View>
+        ) : (
+          <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
+            {/* Quick Actions */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Quick Actions</Text>
+              <View style={styles.actionsContainer}>
+                <TouchableOpacity 
+                  style={styles.actionButton}
+                  onPress={handleStartRecording}
+                >
+                  <View style={styles.actionIconContainer}>
+                    <Ionicons name="mic" size={24} color="#fff" />
+                  </View>
+                  <Text style={styles.actionText}>Record</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={styles.actionButton}
+                  onPress={handleViewTraining}
+                >
+                  <View style={styles.actionIconContainer}>
+                    <Ionicons name="school" size={24} color="#fff" />
+                  </View>
+                  <Text style={styles.actionText}>Train</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={styles.actionButton}
+                  onPress={handleViewAllTranscripts}
+                >
+                  <View style={styles.actionIconContainer}>
+                    <Ionicons name="list" size={24} color="#fff" />
+                  </View>
+                  <Text style={styles.actionText}>History</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+            
+            {/* Recent Transcripts */}
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Recent Recordings</Text>
+                <TouchableOpacity onPress={handleViewAllTranscripts}>
+                  <Text style={styles.viewAllText}>View All</Text>
+                </TouchableOpacity>
+              </View>
+              
+              {recentTranscripts.length > 0 ? (
+                <View style={styles.transcriptsContainer}>
+                  {recentTranscripts.map(transcript => (
+                    <TouchableOpacity 
+                      key={transcript.id}
+                      style={styles.transcriptCard}
+                      onPress={() => handleViewTranscript(transcript.id)}
+                    >
+                      <View style={styles.transcriptHeader}>
+                        <Text style={styles.transcriptTitle}>{transcript.title}</Text>
+                        <Text style={styles.transcriptScore}>{transcript.score}/100</Text>
+                      </View>
+                      <View style={styles.transcriptFooter}>
+                        <Text style={styles.transcriptDate}>{transcript.date}</Text>
+                        <Text style={styles.transcriptDuration}>{formatDuration(transcript.duration)}</Text>
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              ) : (
+                <View style={styles.emptyState}>
+                  <Text style={styles.emptyStateText}>No recordings yet</Text>
+                  <TouchableOpacity 
+                    style={styles.emptyStateButton}
+                    onPress={handleStartRecording}
+                  >
+                    <Text style={styles.emptyStateButtonText}>Start Recording</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+            
+            {/* Insights */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Your Insights</Text>
+              
+              {insights.length > 0 ? (
+                <View style={styles.insightsContainer}>
+                  {insights.map(insight => (
+                    <View 
+                      key={insight.id}
+                      style={[
+                        styles.insightCard,
+                        insight.type === 'strength' ? styles.strengthCard : styles.improvementCard
+                      ]}
+                    >
+                      <View style={styles.insightIconContainer}>
+                        <Ionicons 
+                          name={insight.type === 'strength' ? 'star' : 'trending-up'} 
+                          size={20} 
+                          color={insight.type === 'strength' ? '#fbbf24' : '#7e22ce'} 
+                        />
+                      </View>
+                      <View style={styles.insightContent}>
+                        <Text style={styles.insightTitle}>{insight.title}</Text>
+                        <Text style={styles.insightDescription}>{insight.description}</Text>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              ) : (
+                <View style={styles.emptyState}>
+                  <Text style={styles.emptyStateText}>Complete recordings to get insights</Text>
+                </View>
+              )}
+            </View>
+          </ScrollView>
+        )}
+      </SafeAreaView>
+    </LinearGradient>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
-  floatingElements: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    pointerEvents: 'none',
-  },
-  floatingCircle: {
-    position: 'absolute',
-    borderRadius: 50,
-    backgroundColor: 'rgba(138, 43, 226, 0.1)',
-  },
-  circle1: {
-    width: 100,
-    height: 100,
-    top: '10%',
-    right: -20,
-  },
-  circle2: {
-    width: 60,
-    height: 60,
-    bottom: '20%',
-    left: -10,
-  },
-  circle3: {
-    width: 80,
-    height: 80,
-    top: '60%',
-    right: -30,
+  safeArea: {
+    flex: 1,
   },
   header: {
-    padding: 24,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    zIndex: 10,
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
   },
-  logoGradient: {
-    borderRadius: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-  },
-  logo: {
+  greeting: {
     fontSize: 24,
-    fontWeight: '800',
-    color: '#ffffff',
+    fontWeight: 'bold',
+    color: '#fff',
   },
-  profilePicContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    overflow: 'hidden',
+  settingsButton: {
+    padding: 8,
   },
-  profilePic: {
-    width: '100%',
-    height: '100%',
+  loadingContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  profileText: {
-    color: colors.text,
-    fontWeight: '600',
-  },
-  scrollView: {
+  content: {
     flex: 1,
   },
   scrollContent: {
-    paddingTop: 8,
+    padding: 20,
   },
-  heroSection: {
-    margin: 24,
-    borderRadius: 24,
-    padding: 32,
-    borderWidth: 1,
-    borderColor: colors.heroBorder,
-  },
-  heroTitle: {
-    color: colors.text,
-    fontSize: 32,
-    fontWeight: '800',
-    marginBottom: 12,
-    lineHeight: 38,
-  },
-  heroSubtitle: {
-    color: colors.textSecondary,
-    fontSize: 16,
+  section: {
     marginBottom: 24,
-    lineHeight: 22,
   },
-  ctaButton: {
-    borderRadius: 16,
-    alignSelf: 'flex-start',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 25,
-    elevation: 8,
-  },
-  ctaButtonTouchable: {
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-  },
-  ctaText: {
-    color: colors.text,
-    fontWeight: '600',
-    fontSize: 16,
-  },
-  statsRow: {
+  sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 24,
-    marginBottom: 32,
-    gap: 16,
-  },
-  statCard: {
-    flex: 1,
-    borderRadius: 16,
-    padding: 20,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.statsBorder,
-  },
-  statNumber: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: colors.text,
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: colors.textMuted,
-    fontWeight: '500',
-    letterSpacing: 0.5,
-  },
-  sectionTitle: {
-    color: colors.text,
-    fontSize: 24,
-    fontWeight: '700',
-    paddingHorizontal: 24,
-    marginTop: 8,
-    marginBottom: 20,
-  },
-  cardsContainer: {
-    paddingHorizontal: 24,
-    gap: 16,
-  },
-  card: {
-    backgroundColor: colors.cardBackground,
-    padding: 24,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: colors.cardBorder,
-  },
-  cardHeader: {
-    flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 16,
   },
-  cardIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 16,
-  },
-  iconText: {
+  sectionTitle: {
     fontSize: 20,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 16,
   },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.text,
+  viewAllText: {
+    color: '#7e22ce',
+    fontSize: 16,
+  },
+  actionsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  actionButton: {
+    flex: 1,
+    alignItems: 'center',
+    marginHorizontal: 8,
+  },
+  actionIconContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#7e22ce',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  actionText: {
+    color: '#fff',
+    fontSize: 16,
+  },
+  transcriptsContainer: {
+    gap: 12,
+  },
+  transcriptCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  transcriptHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  transcriptTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#fff',
     flex: 1,
   },
-  cardDescription: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    lineHeight: 20,
+  transcriptScore: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#7e22ce',
   },
-  bottomPadding: {
-    height: 120, // Extra padding at the bottom to ensure content is scrollable past the navigation bar
+  transcriptFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  transcriptDate: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.7)',
+  },
+  transcriptDuration: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.7)',
+  },
+  insightsContainer: {
+    gap: 12,
+  },
+  insightCard: {
+    flexDirection: 'row',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+  },
+  strengthCard: {
+    backgroundColor: 'rgba(251, 191, 36, 0.1)',
+    borderColor: 'rgba(251, 191, 36, 0.3)',
+  },
+  improvementCard: {
+    backgroundColor: 'rgba(126, 34, 206, 0.1)',
+    borderColor: 'rgba(126, 34, 206, 0.3)',
+  },
+  insightIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  insightContent: {
+    flex: 1,
+  },
+  insightTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 4,
+  },
+  insightDescription: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.7)',
+  },
+  emptyState: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 12,
+    padding: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyStateText: {
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.7)',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  emptyStateButton: {
+    backgroundColor: '#7e22ce',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+  },
+  emptyStateButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
+
+export default DashboardScreen;

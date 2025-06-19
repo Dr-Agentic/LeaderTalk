@@ -1,234 +1,330 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { Button, TextInput, Chip, Title, Paragraph } from 'react-native-paper';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { LinearGradient } from 'expo-linear-gradient';
 import { apiRequest } from '../lib/api';
 
-// Define the leader type
-interface Leader {
-  id: number;
-  name: string;
-  description: string;
-  isControversial: boolean;
-}
+// Placeholder component for leader selection
+const LeaderOption = ({ leader, selected, onToggle }: { 
+  leader: { id: number; name: string; description: string }; 
+  selected: boolean; 
+  onToggle: () => void 
+}) => (
+  <TouchableOpacity 
+    style={[styles.leaderOption, selected && styles.leaderOptionSelected]} 
+    onPress={onToggle}
+  >
+    <Text style={[styles.leaderName, selected && styles.leaderNameSelected]}>
+      {leader.name}
+    </Text>
+    <Text style={[styles.leaderDescription, selected && styles.leaderDescriptionSelected]}>
+      {leader.description}
+    </Text>
+  </TouchableOpacity>
+);
 
-// Define the onboarding data type
-interface OnboardingData {
-  dateOfBirth: string;
-  profession: string;
-  goals: string;
-  selectedLeaders: number[];
-}
-
-export default function OnboardingScreen() {
-  // State for form fields
+const OnboardingScreen = ({ navigation }: any) => {
+  const [step, setStep] = useState(1);
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [profession, setProfession] = useState('');
   const [goals, setGoals] = useState('');
   const [selectedLeaders, setSelectedLeaders] = useState<number[]>([]);
-  const [showControversial, setShowControversial] = useState(false);
-  const [step, setStep] = useState(1);
-
-  // Fetch available leaders
-  const { data: leaders = [], isLoading: leadersLoading } = useQuery({
-    queryKey: ['leaders'],
-    queryFn: () => apiRequest<Leader[]>('GET', '/api/leaders'),
-  });
-
-  // Filter leaders based on controversial setting
-  const filteredLeaders = showControversial 
-    ? leaders 
-    : leaders.filter(leader => !leader.isControversial);
-
-  // Mutation for submitting onboarding data
-  const { mutate: submitOnboarding, isPending } = useMutation({
-    mutationFn: (data: OnboardingData) => 
-      apiRequest('PATCH', '/api/users/me', data),
-    onSuccess: () => {
-      // Onboarding complete - the AppNavigator will handle navigation
-    },
-  });
-
-  // Handle leader selection/deselection
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Sample leaders data (would be fetched from API in real implementation)
+  const leaders = [
+    { id: 1, name: 'Barack Obama', description: 'Known for inspirational and inclusive communication' },
+    { id: 2, name: 'Oprah Winfrey', description: 'Master of empathetic and engaging conversation' },
+    { id: 3, name: 'Elon Musk', description: 'Direct and visionary technical communicator' },
+    { id: 4, name: 'Brené Brown', description: 'Authentic and vulnerable storytelling' },
+    { id: 5, name: 'Simon Sinek', description: 'Purpose-driven and clear conceptual communication' },
+  ];
+  
   const toggleLeader = (leaderId: number) => {
-    if (selectedLeaders.includes(leaderId)) {
-      setSelectedLeaders(selectedLeaders.filter(id => id !== leaderId));
-    } else {
-      // Limit to max 3 leaders
-      if (selectedLeaders.length < 3) {
-        setSelectedLeaders([...selectedLeaders, leaderId]);
-      }
+    setSelectedLeaders(prev => 
+      prev.includes(leaderId) 
+        ? prev.filter(id => id !== leaderId) 
+        : [...prev, leaderId]
+    );
+  };
+  
+  const handleNext = () => {
+    if (step < 3) {
+      setStep(step + 1);
     }
   };
-
-  // Handle form submission
-  const handleSubmit = () => {
-    submitOnboarding({
-      dateOfBirth,
-      profession,
-      goals,
-      selectedLeaders,
-    });
+  
+  const handleBack = () => {
+    if (step > 1) {
+      setStep(step - 1);
+    }
   };
-
-  // Render step 1 - Personal information
-  const renderStep1 = () => (
-    <View style={styles.formContainer}>
-      <Title style={styles.title}>Tell us about yourself</Title>
+  
+  const handleSubmit = async () => {
+    try {
+      setIsSubmitting(true);
       
-      <TextInput
-        label="Date of Birth (YYYY-MM-DD)"
-        value={dateOfBirth}
-        onChangeText={setDateOfBirth}
-        style={styles.input}
-        mode="outlined"
-      />
+      // Submit onboarding data to API
+      await apiRequest('POST', '/api/users/onboarding', {
+        dateOfBirth,
+        profession,
+        goals,
+        selectedLeaders
+      });
       
-      <TextInput
-        label="Profession"
-        value={profession}
-        onChangeText={setProfession}
-        style={styles.input}
-        mode="outlined"
-      />
-      
-      <TextInput
-        label="Communication Goals"
-        value={goals}
-        onChangeText={setGoals}
-        multiline
-        numberOfLines={4}
-        style={styles.input}
-        mode="outlined"
-      />
-      
-      <Button 
-        mode="contained" 
-        onPress={() => setStep(2)}
-        disabled={!dateOfBirth || !profession || !goals}
-        style={styles.button}
-      >
-        Next
-      </Button>
-    </View>
-  );
-
-  // Render step 2 - Leader selection
-  const renderStep2 = () => (
-    <View style={styles.formContainer}>
-      <Title style={styles.title}>Select your leadership inspiration</Title>
-      <Paragraph style={styles.subtitle}>
-        Choose 1-3 leaders whose communication style you'd like to emulate
-      </Paragraph>
-      
-      <Button
-        mode="outlined"
-        onPress={() => setShowControversial(!showControversial)}
-        style={styles.toggleButton}
-      >
-        {showControversial ? 'Hide Controversial Leaders' : 'Show All Leaders'}
-      </Button>
-      
-      {leadersLoading ? (
-        <Text>Loading leaders...</Text>
-      ) : (
-        <ScrollView style={styles.leadersList}>
-          <View style={styles.chipsContainer}>
-            {filteredLeaders.map((leader) => (
-              <Chip
-                key={leader.id}
-                selected={selectedLeaders.includes(leader.id)}
-                onPress={() => toggleLeader(leader.id)}
-                style={styles.chip}
-                selectedColor="#e53e3e"
-              >
-                {leader.name}
-              </Chip>
-            ))}
-          </View>
-        </ScrollView>
-      )}
-      
-      <View style={styles.buttonRow}>
-        <Button 
-          mode="outlined" 
-          onPress={() => setStep(1)}
-          style={[styles.button, styles.backButton]}
-        >
-          Back
-        </Button>
-        
-        <Button 
-          mode="contained" 
-          onPress={handleSubmit}
-          disabled={selectedLeaders.length === 0 || isPending}
-          style={[styles.button, styles.submitButton]}
-          loading={isPending}
-        >
-          Complete
-        </Button>
-      </View>
-    </View>
-  );
-
+      // Navigate to main app
+      // Navigation will be handled by the auth state listener in App.tsx
+      // which will detect that onboarding is complete
+    } catch (error) {
+      console.error('Failed to submit onboarding data:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  
   return (
-    <SafeAreaView style={styles.container}>
-      {step === 1 ? renderStep1() : renderStep2()}
-    </SafeAreaView>
+    <LinearGradient
+      colors={['#1a1a2e', '#16213e', '#1a1a2e']}
+      style={styles.container}
+    >
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Complete Your Profile</Text>
+          <Text style={styles.subtitle}>Step {step} of 3</Text>
+        </View>
+        
+        <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
+          {step === 1 && (
+            <View style={styles.stepContainer}>
+              <Text style={styles.stepTitle}>Basic Information</Text>
+              
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Date of Birth</Text>
+                <TextInput
+                  style={styles.input}
+                  value={dateOfBirth}
+                  onChangeText={setDateOfBirth}
+                  placeholder="YYYY-MM-DD"
+                  placeholderTextColor="rgba(255, 255, 255, 0.5)"
+                />
+              </View>
+              
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Profession</Text>
+                <TextInput
+                  style={styles.input}
+                  value={profession}
+                  onChangeText={setProfession}
+                  placeholder="Your profession"
+                  placeholderTextColor="rgba(255, 255, 255, 0.5)"
+                />
+              </View>
+            </View>
+          )}
+          
+          {step === 2 && (
+            <View style={styles.stepContainer}>
+              <Text style={styles.stepTitle}>Your Communication Goals</Text>
+              
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>What do you want to improve?</Text>
+                <TextInput
+                  style={[styles.input, styles.textArea]}
+                  value={goals}
+                  onChangeText={setGoals}
+                  placeholder="Describe your communication goals..."
+                  placeholderTextColor="rgba(255, 255, 255, 0.5)"
+                  multiline
+                  numberOfLines={4}
+                  textAlignVertical="top"
+                />
+              </View>
+            </View>
+          )}
+          
+          {step === 3 && (
+            <View style={styles.stepContainer}>
+              <Text style={styles.stepTitle}>Select Leaders to Emulate</Text>
+              <Text style={styles.stepDescription}>
+                Choose leaders whose communication style you admire and would like to learn from.
+              </Text>
+              
+              <View style={styles.leadersContainer}>
+                {leaders.map(leader => (
+                  <LeaderOption
+                    key={leader.id}
+                    leader={leader}
+                    selected={selectedLeaders.includes(leader.id)}
+                    onToggle={() => toggleLeader(leader.id)}
+                  />
+                ))}
+              </View>
+            </View>
+          )}
+        </ScrollView>
+        
+        <View style={styles.footer}>
+          {step > 1 && (
+            <TouchableOpacity 
+              style={styles.backButton} 
+              onPress={handleBack}
+              disabled={isSubmitting}
+            >
+              <Text style={styles.backButtonText}>Back</Text>
+            </TouchableOpacity>
+          )}
+          
+          {step < 3 ? (
+            <TouchableOpacity 
+              style={styles.nextButton} 
+              onPress={handleNext}
+            >
+              <Text style={styles.nextButtonText}>Next</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity 
+              style={[styles.nextButton, isSubmitting && styles.disabledButton]} 
+              onPress={handleSubmit}
+              disabled={isSubmitting}
+            >
+              <Text style={styles.nextButtonText}>
+                {isSubmitting ? 'Submitting...' : 'Complete'}
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </SafeAreaView>
+    </LinearGradient>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
   },
-  formContainer: {
-    padding: 20,
+  safeArea: {
     flex: 1,
+  },
+  header: {
+    padding: 20,
+    alignItems: 'center',
   },
   title: {
     fontSize: 24,
-    marginBottom: 20,
-    textAlign: 'center',
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 8,
   },
   subtitle: {
-    textAlign: 'center',
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.7)',
+  },
+  content: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 20,
+  },
+  stepContainer: {
     marginBottom: 20,
   },
+  stepTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 16,
+  },
+  stepDescription: {
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.7)',
+    marginBottom: 20,
+  },
+  inputContainer: {
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 16,
+    color: '#fff',
+    marginBottom: 8,
+  },
   input: {
-    marginBottom: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 8,
+    padding: 12,
+    color: '#fff',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
-  button: {
-    marginTop: 10,
-    paddingVertical: 6,
+  textArea: {
+    height: 120,
+    textAlignVertical: 'top',
   },
-  toggleButton: {
-    marginBottom: 16,
+  leadersContainer: {
+    gap: 12,
   },
-  leadersList: {
-    flex: 1,
-    marginBottom: 16,
+  leaderOption: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 8,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
-  chipsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 16,
+  leaderOptionSelected: {
+    backgroundColor: 'rgba(126, 34, 206, 0.3)',
+    borderColor: '#7e22ce',
   },
-  chip: {
-    margin: 4,
+  leaderName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 4,
   },
-  buttonRow: {
+  leaderNameSelected: {
+    color: '#fff',
+  },
+  leaderDescription: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.7)',
+  },
+  leaderDescriptionSelected: {
+    color: 'rgba(255, 255, 255, 0.9)',
+  },
+  footer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    padding: 20,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.1)',
   },
   backButton: {
-    flex: 1,
-    marginRight: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
-  submitButton: {
-    flex: 2,
-    marginLeft: 8,
+  backButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  nextButton: {
+    backgroundColor: '#7e22ce',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    flex: 1,
+    marginLeft: 12,
+    alignItems: 'center',
+  },
+  nextButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  disabledButton: {
+    opacity: 0.7,
   },
 });
+
+export default OnboardingScreen;

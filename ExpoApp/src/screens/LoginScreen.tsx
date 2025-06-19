@@ -1,260 +1,172 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Image, Alert, TextInput, SafeAreaView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { StatusBar } from 'expo-status-bar';
-import { signIn } from '../lib/auth';
-import { colors } from '../theme/colors';
+import { signInWithGoogle } from '../lib/supabaseAuth';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-export default function LoginScreen() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+const LoginScreen = ({ navigation }: any) => {
+  const [loading, setLoading] = useState(false);
 
-  const handleSignIn = async () => {
-    if (!email.trim()) {
-      Alert.alert('Email Required', 'Please enter your email address.');
-      return;
-    }
-    
-    if (!password.trim()) {
-      Alert.alert('Password Required', 'Please enter your password.');
-      return;
-    }
-    
-    setIsLoading(true);
+  const handleGoogleSignIn = async () => {
     try {
-      await signIn(email, password);
-      // The App.tsx will handle navigation after auth state changes
-    } catch (error) {
-      console.error('Sign-in error:', error);
-      Alert.alert('Authentication Error', 'Failed to sign in. Please try again.');
+      setLoading(true);
+      console.log("Google sign-in process initiated from UI");
+      await signInWithGoogle();
+      // Navigation will be handled by the auth state listener in App.tsx
+    } catch (error: any) {
+      console.error("Google sign-in error:", error);
     } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDemoLogin = async () => {
-    setIsLoading(true);
-    try {
-      // Use demo credentials
-      await signIn('demo@example.com', 'password123');
-    } catch (error) {
-      console.error('Demo login error:', error);
-      Alert.alert(
-        'Demo Login Error',
-        'Failed to login with demo account. Please try again.'
-      );
-    } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar style="light" />
-      <LinearGradient colors={colors.backgroundGradient} style={StyleSheet.absoluteFill} />
-      
-      <View style={styles.content}>
-        <View style={styles.logoContainer}>
-          <Image
-            source={require('../../assets/icon.png')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-          <Text style={styles.appName}>LeaderTalk</Text>
-          <Text style={styles.tagline}>
-            Transform your communication skills with AI-powered coaching
-          </Text>
-        </View>
-
-        <LinearGradient
-          colors={[colors.primaryLight, 'rgba(255, 107, 107, 0.1)']}
-          style={styles.formContainer}
-        >
-          <Text style={styles.formTitle}>Sign In</Text>
-          
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            placeholderTextColor={colors.textMuted}
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-          
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            placeholderTextColor={colors.textMuted}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
-          
-          <TouchableOpacity
-            style={[styles.button, styles.primaryButton, isLoading && styles.disabledButton]}
-            onPress={handleSignIn}
-            disabled={isLoading}
-          >
-            <Text style={styles.buttonText}>
-              {isLoading ? 'Signing In...' : 'Sign In'}
-            </Text>
-          </TouchableOpacity>
-
-          <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>OR</Text>
-            <View style={styles.dividerLine} />
+    <LinearGradient
+      colors={['#1a1a2e', '#16213e', '#1a1a2e']}
+      style={styles.container}
+    >
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.content}>
+          <View style={styles.logoContainer}>
+            <Text style={styles.logoText}>LeaderTalk</Text>
           </View>
-
-          <TouchableOpacity
-            style={[styles.button, styles.secondaryButton, isLoading && styles.disabledButton]}
-            onPress={handleDemoLogin}
-            disabled={isLoading}
-          >
-            <Text style={styles.secondaryButtonText}>Try Demo</Text>
-          </TouchableOpacity>
-        </LinearGradient>
-
-        <View style={styles.featuresContainer}>
-          {[
-            { icon: '🚀', title: 'Record & Analyze', desc: 'Record conversations and get AI-powered analysis' },
-            { icon: '🎯', title: 'Leadership Insights', desc: 'Learn from communication styles of selected leaders' },
-            { icon: '💡', title: 'Training Modules', desc: 'Practice with structured learning modules' },
-          ].map((feature, index) => (
-            <View key={index} style={styles.featureItem}>
-              <Text style={styles.featureIcon}>{feature.icon}</Text>
-              <View style={styles.featureTextContainer}>
-                <Text style={styles.featureTitle}>{feature.title}</Text>
-                <Text style={styles.featureDescription}>{feature.desc}</Text>
-              </View>
+          
+          <View style={styles.cardContainer}>
+            <View style={styles.card}>
+              <Text style={styles.title}>Welcome to LeaderTalk</Text>
+              <Text style={styles.description}>
+                Transform your communication skills with AI-powered coaching
+              </Text>
+              
+              <TouchableOpacity
+                style={styles.googleButton}
+                onPress={handleGoogleSignIn}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <View style={styles.buttonContent}>
+                    {/* Replace with actual Google logo */}
+                    <View style={styles.googleLogo}>
+                      <Text style={styles.googleLogoText}>G</Text>
+                    </View>
+                    <Text style={styles.buttonText}>Sign in with Google</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
             </View>
-          ))}
+          </View>
         </View>
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+      
+      {/* Background elements */}
+      <View style={[styles.bubble, styles.bubble1]} />
+      <View style={[styles.bubble, styles.bubble2]} />
+    </LinearGradient>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+  },
+  safeArea: {
+    flex: 1,
   },
   content: {
     flex: 1,
-    padding: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
   },
   logoContainer: {
-    alignItems: 'center',
-    marginTop: 20,
     marginBottom: 40,
   },
-  logo: {
-    width: 100,
-    height: 100,
-    marginBottom: 16,
-  },
-  appName: {
+  logoText: {
     fontSize: 32,
-    fontWeight: '800',
-    color: colors.text,
-    marginBottom: 8,
+    fontWeight: 'bold',
+    color: '#fff',
   },
-  tagline: {
-    fontSize: 16,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-  formContainer: {
-    borderRadius: 24,
-    padding: 24,
-    marginBottom: 32,
-    borderWidth: 1,
-    borderColor: colors.borderAccent,
-  },
-  formTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: 24,
-  },
-  input: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    color: colors.text,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  button: {
+  cardContainer: {
+    width: '100%',
+    maxWidth: 400,
     borderRadius: 16,
-    padding: 16,
+    overflow: 'hidden',
+  },
+  card: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 16,
+    padding: 24,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  description: {
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.7)',
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  googleButton: {
+    backgroundColor: '#7e22ce', // Purple color
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 48,
+  },
+  buttonContent: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  primaryButton: {
-    backgroundColor: colors.primary,
+  googleLogo: {
+    width: 24,
+    height: 24,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
   },
-  secondaryButton: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: colors.primary,
-  },
-  disabledButton: {
-    opacity: 0.7,
+  googleLogoText: {
+    color: '#7e22ce',
+    fontWeight: 'bold',
   },
   buttonText: {
-    color: colors.text,
-    fontWeight: '600',
-    fontSize: 16,
-  },
-  secondaryButtonText: {
-    color: colors.primary,
-    fontWeight: '600',
-    fontSize: 16,
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 24,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: colors.border,
-  },
-  dividerText: {
-    color: colors.textMuted,
-    paddingHorizontal: 16,
-    fontSize: 14,
-  },
-  featuresContainer: {
-    marginTop: 16,
-  },
-  featureItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  featureIcon: {
-    fontSize: 24,
-    marginRight: 16,
-  },
-  featureTextContainer: {
-    flex: 1,
-  },
-  featureTitle: {
+    color: '#fff',
     fontSize: 16,
     fontWeight: '600',
-    color: colors.text,
-    marginBottom: 4,
   },
-  featureDescription: {
-    fontSize: 14,
-    color: colors.textSecondary,
+  bubble: {
+    position: 'absolute',
+    borderRadius: 300,
+    opacity: 0.2,
+  },
+  bubble1: {
+    backgroundColor: '#7e22ce',
+    width: 300,
+    height: 300,
+    top: '20%',
+    left: '-20%',
+  },
+  bubble2: {
+    backgroundColor: '#d946ef',
+    width: 250,
+    height: 250,
+    bottom: '10%',
+    right: '-10%',
   },
 });
+
+export default LoginScreen;

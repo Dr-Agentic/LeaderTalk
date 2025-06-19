@@ -3,11 +3,10 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { StatusBar } from 'expo-status-bar';
-import { View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { loadFonts } from './src/utils/fontLoader';
-import { colors } from './src/theme/colors';
-import { onAuthStateChanged, User, initializeAuth } from './src/lib/auth';
+import * as Linking from 'expo-linking';
+import * as WebBrowser from 'expo-web-browser';
 
 // Import screens
 import LoginScreen from './src/screens/LoginScreen';
@@ -18,6 +17,14 @@ import TranscriptViewScreen from './src/screens/TranscriptViewScreen';
 import AllTranscriptsScreen from './src/screens/AllTranscriptsScreen';
 import TrainingScreen from './src/screens/TrainingScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
+
+// Import auth and API functions
+import { initializeSupabase } from './src/supabase';
+import { onAuthStateChanged, setupAuthUrlListener, AuthUser } from './src/lib/supabaseAuth';
+import { apiRequest } from './src/lib/api';
+
+// Ensure WebBrowser redirects work properly
+WebBrowser.maybeCompleteAuthSession();
 
 // Define navigation types
 type RootStackParamList = {
@@ -73,62 +80,111 @@ const MainNavigator = () => (
   </MainStack.Navigator>
 );
 
+// Configure linking
+const linking = {
+  prefixes: ['leadertalk://', 'https://app.leadertalk.app'],
+  config: {
+    screens: {
+      Auth: {
+        screens: {
+          Login: 'login',
+        },
+      },
+      Onboarding: 'onboarding',
+      Main: {
+        screens: {
+          Dashboard: 'dashboard',
+          Recording: 'recording',
+          Transcripts: 'transcripts',
+          TranscriptView: 'transcript/:id',
+          Training: 'training',
+          Settings: 'settings',
+        },
+      },
+    },
+  },
+};
+
 export default function App() {
-  const [fontsLoaded, setFontsLoaded] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [onboardingComplete, setOnboardingComplete] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [showSplash, setShowSplash] = useState(true);
 
-  // Load fonts
+  // Initialize app
   useEffect(() => {
-    async function loadAppFonts() {
+    async function initializeApp() {
       try {
-        await loadFonts();
-        setFontsLoaded(true);
+        console.log("Initializing app...");
+        
+        // Initialize Supabase
+        await initializeSupabase();
+        console.log("Supabase initialized");
+        
+        // Set up auth URL listener
+        const unsubscribeUrlListener = setupAuthUrlListener();
+        
+        // Set up auth state listener
+        const unsubscribeAuthListener = onAuthStateChanged(async (currentUser) => {
+          console.log("Auth state changed:", currentUser ? "User authenticated" : "No user");
+          
+          setUser(currentUser);
+          setIsAuthenticated(!!currentUser);
+          
+          if (currentUser) {
+            // User is authenticated, check if onboarding is complete
+            try {
+              const userData = await apiRequest('GET', '/api/users/me');
+              
+              // Check if onboarding is complete
+              setOnboardingComplete(
+                !!(userData.dateOfBirth && userData.profession && userData.goals && userData.selectedLeaders)
+              );
+            } catch (error) {
+              console.error("Failed to fetch user data:", error);
+              setOnboardingComplete(false);
+            }
+          } else {
+            setOnboardingComplete(false);
+          }
+          
+          setIsLoading(false);
+        });
+        
+        // Hide splash screen after a delay
+        setTimeout(() => {
+          setShowSplash(false);
+        }, 2000);
+        
+        return () => {
+          unsubscribeAuthListener();
+          unsubscribeUrlListener();
+        };
       } catch (error) {
-        console.error('Error loading fonts:', error);
-        // Continue without custom fonts if loading fails
-        setFontsLoaded(true);
+        console.error("App initialization error:", error);
+        setIsLoading(false);
+        setShowSplash(false);
       }
     }
-
-    loadAppFonts();
+    
+    initializeApp();
   }, []);
 
-  // Initialize auth and check authentication status
-  useEffect(() => {
-    // Initialize auth first
-    const init = async () => {
-      await initializeAuth();
-      setIsLoading(false);
-    };
-    
-    init();
-    
-    // Listen for auth state changes
-    const unsubscribe = onAuthStateChanged((currentUser) => {
-      setUser(currentUser);
-      setIsAuthenticated(!!currentUser);
-      
-      // For demo purposes, we'll consider onboarding complete if user is authenticated
-      if (currentUser) {
-        setOnboardingComplete(true);
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  if (!fontsLoaded || isLoading) {
+  // Show splash screen
+  if (showSplash) {
     return (
-      <View style={{ 
-        flex: 1, 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        backgroundColor: colors.background 
-      }}>
-        <ActivityIndicator size="large" color={colors.primary} />
+      <View style={styles.splashContainer}>
+        <ActivityIndicator size="large" color="#7e22ce" />
+      </View>
+    );
+  }
+
+  // Show loading indicator
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#7e22ce" />
       </View>
     );
   }
@@ -136,7 +192,7 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
-        <NavigationContainer>
+        <NavigationContainer linking={linking}>
           <StatusBar style="light" />
           <RootStack.Navigator screenOptions={{ headerShown: false }}>
             {!isAuthenticated ? (
@@ -152,3 +208,18 @@ export default function App() {
     </SafeAreaProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  splashContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#1a1a2e',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#1a1a2e',
+  },
+});

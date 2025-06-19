@@ -1,10 +1,8 @@
 // API client for communicating with the backend
-import { logInfo, logError, logDebug, logWarn } from './debugLogger';
+import { getSessionToken } from './supabaseAuth';
 
-// API base URL - replace with your actual API URL
-// For development, you might want to use your local server
-// For production, use your deployed API URL
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'https://api.leadertalk.com';
+// API base URL - updated to the new domain
+const API_BASE_URL = 'https://app.leadertalk.app';
 
 // Session state to track auth state
 let sessionChecked = false;
@@ -15,12 +13,21 @@ let currentUserId: number | null = null;
 export async function checkSession(): Promise<boolean> {
   try {
     const timestamp = Date.now(); // Add timestamp to prevent caching
-    logDebug("Checking session", { timestamp });
+    console.log("Checking session", { timestamp });
     
+    // Get the session token from Supabase
+    const token = await getSessionToken();
+    
+    if (!token) {
+      console.log("No session token available");
+      sessionChecked = true;
+      return false;
+    }
+    
+    // Make the session check request with the token
     const response = await fetch(`${API_BASE_URL}/api/debug/session?t=${timestamp}`, {
-      credentials: 'include', // Ensure cookies are sent
-      cache: 'no-cache',      // Prevent caching
       headers: {
+        'Authorization': `Bearer ${token}`,
         'Cache-Control': 'no-cache, no-store, must-revalidate',
         'Pragma': 'no-cache',
         'Expires': '0'
@@ -30,13 +37,12 @@ export async function checkSession(): Promise<boolean> {
     if (!response.ok) {
       const errorMsg = `Session check failed: ${response.status} ${response.statusText}`;
       console.error(errorMsg);
-      logError(errorMsg);
       sessionChecked = true;
       return false;
     }
     
     const data = await response.json();
-    logDebug("Received session data", data);
+    console.log("Received session data", data);
     
     // Update our tracking variables
     sessionChecked = true;
@@ -48,10 +54,6 @@ export async function checkSession(): Promise<boolean> {
     if (previousSessionId && currentSessionId && previousSessionId !== currentSessionId) {
       const msg = "Session ID changed - user likely logged out and back in";
       console.log(msg);
-      logInfo(msg, { 
-        previous: previousSessionId, 
-        current: currentSessionId 
-      });
     }
     
     currentUserId = data.userId || null;
@@ -60,29 +62,14 @@ export async function checkSession(): Promise<boolean> {
     if (data.sessionExists && data.isLoggedIn) {
       const msg = `Session confirmed valid, user ID: ${currentUserId || 'unknown'}`;
       console.log(msg);
-      logInfo(msg, { 
-        userId: currentUserId,
-        sessionId: data.sessionId,
-        cookiePresent: data.cookiePresent,
-        cookieExists: data.cookieExists
-      });
       return true;
     } else {
       const msg = "No valid session found";
       console.log(msg);
-      logWarn(msg, {
-        sessionExists: data.sessionExists,
-        cookiePresent: data.cookiePresent,
-        cookieExists: data.cookieExists
-      });
       return false;
     }
   } catch (error: any) {
     console.error("Auth check error:", error);
-    logError("Auth check error", {
-      message: error?.message || "Unknown error",
-      stack: error?.stack || "No stack trace available"
-    });
     return false;
   }
 }
@@ -95,7 +82,7 @@ export async function apiRequest<T>(
   options?: RequestInit
 ): Promise<T> {
   try {
-    logDebug("API request", { method, endpoint, hasData: !!data });
+    console.log("API request", { method, endpoint, hasData: !!data });
     
     // For authenticated API routes, check session first
     if (endpoint.includes('/api/') && !endpoint.includes('/api/auth/') && method !== 'GET') {
@@ -104,16 +91,10 @@ export async function apiRequest<T>(
         if (!isLoggedIn) {
           const msg = "Session check prior to API call shows not logged in";
           console.log(msg);
-          logWarn(msg, { method, endpoint });
           throw new Error("Unauthorized - Session invalid");
         }
       } catch (sessionError: any) {
         console.error("Session check error:", sessionError);
-        logError("Session check error before API call", {
-          message: sessionError?.message || "Unknown error",
-          endpoint,
-          method
-        });
         // Continue with request, server will handle auth validation
       }
     }
@@ -125,6 +106,9 @@ export async function apiRequest<T>(
       ? `${url}&_t=${Date.now()}` 
       : `${url}?_t=${Date.now()}`;
     
+    // Get the session token for authentication
+    const token = await getSessionToken();
+    
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
       'Cache-Control': 'no-cache, no-store, must-revalidate',
@@ -133,10 +117,14 @@ export async function apiRequest<T>(
       ...options?.headers,
     };
     
+    // Add authorization header if we have a token
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    
     const config: RequestInit = {
       method,
       headers,
-      credentials: 'include', // Include cookies for authentication
       ...options,
     };
     
@@ -156,7 +144,7 @@ export async function apiRequest<T>(
       } catch (networkError: any) {
         retries++;
         if (retries > MAX_RETRIES) {
-          logError("Network request failed after retries", {
+          console.error("Network request failed after retries", {
             url: timestampedUrl,
             retries,
             error: networkError?.message || "Unknown network error"
@@ -164,7 +152,7 @@ export async function apiRequest<T>(
           throw networkError; // Re-throw after max retries
         }
         
-        logWarn("Network request failed, retrying...", {
+        console.warn("Network request failed, retrying...", {
           url: timestampedUrl,
           retry: retries,
           error: networkError?.message
@@ -179,14 +167,12 @@ export async function apiRequest<T>(
     if (response.status === 401 && endpoint.includes('/api/') && !endpoint.includes('/api/auth/')) {
       const msg = "Unauthorized response, checking session again...";
       console.log(msg);
-      logWarn(msg, { endpoint, method, status: response.status });
       
       // Double-check session status
       const isLoggedIn = await checkSession();
       if (!isLoggedIn) {
         const redirectMsg = "Confirmed session is invalid";
         console.log(redirectMsg);
-        logWarn(redirectMsg, { endpoint, method });
         throw new Error("Unauthorized - Session invalid");
       }
     }
@@ -194,7 +180,7 @@ export async function apiRequest<T>(
     if (!response.ok) {
       const errorText = await response.text();
       const errorMsg = `API Error: ${response.status} - ${errorText}`;
-      logError("API request failed", {
+      console.error("API request failed", {
         status: response.status,
         endpoint,
         method,
@@ -210,16 +196,10 @@ export async function apiRequest<T>(
     }
     
     // Parse JSON response
-    logDebug("API request successful", { endpoint, method, status: response.status });
+    console.log("API request successful", { endpoint, method, status: response.status });
     return JSON.parse(text) as T;
   } catch (error: any) {
     console.error('API request failed:', error);
-    logError("API request failed", {
-      endpoint,
-      method,
-      message: error?.message || "Unknown error",
-      stack: error?.stack || "No stack trace available"
-    });
     throw error;
   }
 }
@@ -232,7 +212,16 @@ export async function uploadRecording(
   createTranscript: boolean = true
 ): Promise<{ success: boolean; message?: string }> {
   try {
-    logDebug("Uploading recording", { recordingId, audioUri, detectSpeakers, createTranscript });
+    console.log("Uploading recording", { recordingId, audioUri, detectSpeakers, createTranscript });
+    
+    // Get the session token for authentication
+    const token = await getSessionToken();
+    if (!token) {
+      return { 
+        success: false, 
+        message: 'Not authenticated. Please sign in again.' 
+      };
+    }
     
     const formData = new FormData();
     
@@ -253,14 +242,14 @@ export async function uploadRecording(
       body: formData,
       headers: {
         'Content-Type': 'multipart/form-data',
+        'Authorization': `Bearer ${token}`
       },
-      credentials: 'include',
     });
     
     if (!response.ok) {
       const errorText = await response.text();
       const errorMsg = `Upload failed: ${response.status} - ${errorText}`;
-      logError("Recording upload failed", {
+      console.error("Recording upload failed", {
         status: response.status,
         errorText,
         recordingId
@@ -268,15 +257,10 @@ export async function uploadRecording(
       throw new Error(errorMsg);
     }
     
-    logInfo("Recording uploaded successfully", { recordingId });
+    console.log("Recording uploaded successfully", { recordingId });
     return { success: true };
   } catch (error: any) {
     console.error('Recording upload failed:', error);
-    logError("Recording upload failed", {
-      recordingId,
-      message: error?.message || "Unknown error",
-      stack: error?.stack || "No stack trace available"
-    });
     return { 
       success: false, 
       message: error instanceof Error ? error.message : 'Unknown error during upload' 
