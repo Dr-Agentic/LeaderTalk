@@ -1,211 +1,300 @@
 import React from 'react';
-import { Pressable, Text, StyleSheet, ViewStyle, TextStyle, ActivityIndicator } from 'react-native';
+import { TouchableOpacity, ViewStyle, TextStyle, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { theme } from '../../styles/theme';
+import { BlurView } from 'expo-blur';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withTiming,
+  interpolate,
+} from 'react-native-reanimated';
+import { ThemedText } from '../ThemedText';
 
 interface ButtonProps {
-  onPress: () => void;
   title: string;
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
-  size?: 'sm' | 'md' | 'lg';
+  onPress: () => void;
+  variant?: 'primary' | 'secondary' | 'glass' | 'cta';
+  size?: 'small' | 'medium' | 'large';
   disabled?: boolean;
-  loading?: boolean;
-  fullWidth?: boolean;
   style?: ViewStyle;
   textStyle?: TextStyle;
   icon?: React.ReactNode;
-  iconPosition?: 'left' | 'right';
+  loading?: boolean;
 }
 
-export const Button = ({
-  onPress,
+export function Button({
   title,
+  onPress,
   variant = 'primary',
-  size = 'md',
+  size = 'medium',
   disabled = false,
-  loading = false,
-  fullWidth = false,
   style,
   textStyle,
   icon,
-  iconPosition = 'left',
-}: ButtonProps) => {
-  // Determine button styles based on variant
-  const getButtonStyles = () => {
-    switch (variant) {
-      case 'primary':
-        return {
-          container: styles.primaryContainer,
-          text: styles.primaryText,
-        };
-      case 'secondary':
-        return {
-          container: styles.secondaryContainer,
-          text: styles.secondaryText,
-        };
-      case 'outline':
-        return {
-          container: styles.outlineContainer,
-          text: styles.outlineText,
-        };
-      case 'ghost':
-        return {
-          container: styles.ghostContainer,
-          text: styles.ghostText,
-        };
-      default:
-        return {
-          container: styles.primaryContainer,
-          text: styles.primaryText,
-        };
-    }
+  loading = false,
+}: ButtonProps) {
+  const scale = useSharedValue(1);
+  const glowOpacity = useSharedValue(0);
+  const shimmerPosition = useSharedValue(-100);
+
+  const handlePressIn = () => {
+    if (disabled || loading) return;
+    scale.value = withSpring(0.95, { damping: 15 });
+    glowOpacity.value = withTiming(1, { duration: 150 });
+    
+    // Shimmer effect on press
+    shimmerPosition.value = withTiming(100, { duration: 600 });
   };
 
-  // Determine button size
+  const handlePressOut = () => {
+    if (disabled || loading) return;
+    scale.value = withSpring(1, { damping: 15 });
+    glowOpacity.value = withTiming(0, { duration: 300 });
+    shimmerPosition.value = -100;
+  };
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const glowStyle = useAnimatedStyle(() => ({
+    opacity: glowOpacity.value,
+  }));
+
+  const shimmerStyle = useAnimatedStyle(() => {
+    const translateX = interpolate(
+      shimmerPosition.value,
+      [-100, 100],
+      [-200, 200]
+    );
+
+    return {
+      transform: [{ translateX }],
+    };
+  });
+
   const getSizeStyles = () => {
     switch (size) {
-      case 'sm':
-        return styles.smallButton;
-      case 'md':
-        return styles.mediumButton;
-      case 'lg':
-        return styles.largeButton;
+      case 'small':
+        return {
+          paddingHorizontal: 16,
+          paddingVertical: 8,
+          borderRadius: 12,
+          minHeight: 36,
+        };
+      case 'large':
+        return {
+          paddingHorizontal: 32,
+          paddingVertical: 16,
+          borderRadius: 20,
+          minHeight: 56,
+        };
       default:
-        return styles.mediumButton;
+        return {
+          paddingHorizontal: 24,
+          paddingVertical: 12,
+          borderRadius: 16,
+          minHeight: 48,
+        };
     }
   };
 
-  const buttonStyles = getButtonStyles();
-  const sizeStyles = getSizeStyles();
-  const widthStyle = fullWidth ? { width: '100%' } : {};
+  const getTextSize = () => {
+    switch (size) {
+      case 'small':
+        return 14;
+      case 'large':
+        return 18;
+      default:
+        return 16;
+    }
+  };
 
-  // For primary buttons, use LinearGradient
-  if (variant === 'primary' && !disabled) {
-    return (
-      <Pressable
-        onPress={onPress}
-        disabled={disabled || loading}
+  const renderButtonContent = () => (
+    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+      {icon && <View style={{ marginRight: 8 }}>{icon}</View>}
+      <ThemedText
         style={[
-          styles.baseButton,
-          sizeStyles,
-          widthStyle,
-          disabled && styles.disabledButton,
-          style,
+          {
+            fontSize: getTextSize(),
+            fontWeight: '600',
+            color: variant === 'secondary' ? 'rgba(255, 255, 255, 0.9)' : 'white',
+            textAlign: 'center',
+          },
+          textStyle,
         ]}
       >
-        <LinearGradient
-          colors={['#8A2BE2', '#FF6B6B']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={[styles.gradient, sizeStyles, widthStyle]}
+        {loading ? 'Loading...' : title}
+      </ThemedText>
+    </View>
+  );
+
+  if (variant === 'cta') {
+    return (
+      <Animated.View style={[animatedStyle, style]}>
+        <TouchableOpacity
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}
+          onPress={onPress}
+          disabled={disabled || loading}
+          style={{ position: 'relative', overflow: 'hidden' }}
         >
-          {loading ? (
-            <ActivityIndicator color="#fff" size="small" />
-          ) : (
-            <>
-              {icon && iconPosition === 'left' && icon}
-              <Text style={[styles.baseText, buttonStyles.text, textStyle]}>
-                {title}
-              </Text>
-              {icon && iconPosition === 'right' && icon}
-            </>
-          )}
-        </LinearGradient>
-      </Pressable>
+          {/* Glow effect */}
+          <Animated.View
+            style={[
+              {
+                position: 'absolute',
+                top: -4,
+                left: -4,
+                right: -4,
+                bottom: -4,
+                borderRadius: getSizeStyles().borderRadius + 4,
+                backgroundColor: 'transparent',
+                shadowColor: '#8A2BE2',
+                shadowOffset: { width: 0, height: 0 },
+                shadowOpacity: 0.8,
+                shadowRadius: 20,
+                elevation: 20,
+              },
+              glowStyle,
+            ]}
+          />
+
+          <LinearGradient
+            colors={['#8A2BE2', '#FF6B6B']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={[
+              getSizeStyles(),
+              {
+                opacity: disabled ? 0.6 : 1,
+                position: 'relative',
+                overflow: 'hidden',
+              },
+            ]}
+          >
+            {/* Shimmer effect */}
+            <Animated.View
+              style={[
+                {
+                  position: 'absolute',
+                  top: 0,
+                  left: -100,
+                  right: -100,
+                  bottom: 0,
+                  zIndex: 1,
+                },
+                shimmerStyle,
+              ]}
+            >
+              <LinearGradient
+                colors={['transparent', 'rgba(255, 255, 255, 0.3)', 'transparent']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={{ flex: 1, width: 100 }}
+              />
+            </Animated.View>
+
+            <View style={{ zIndex: 2 }}>
+              {renderButtonContent()}
+            </View>
+          </LinearGradient>
+        </TouchableOpacity>
+      </Animated.View>
     );
   }
 
-  // For other button types
-  return (
-    <Pressable
-      onPress={onPress}
-      disabled={disabled || loading}
-      style={[
-        styles.baseButton,
-        buttonStyles.container,
-        sizeStyles,
-        widthStyle,
-        disabled && styles.disabledButton,
-        style,
-      ]}
-    >
-      {loading ? (
-        <ActivityIndicator color={variant === 'primary' ? '#fff' : theme.colors.primary} size="small" />
-      ) : (
-        <>
-          {icon && iconPosition === 'left' && icon}
-          <Text style={[styles.baseText, buttonStyles.text, textStyle]}>
-            {title}
-          </Text>
-          {icon && iconPosition === 'right' && icon}
-        </>
-      )}
-    </Pressable>
-  );
-};
+  if (variant === 'glass') {
+    return (
+      <Animated.View style={[animatedStyle, style]}>
+        <TouchableOpacity
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}
+          onPress={onPress}
+          disabled={disabled || loading}
+          style={{ position: 'relative', overflow: 'hidden' }}
+        >
+          <View
+            style={[
+              getSizeStyles(),
+              {
+                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                borderWidth: 1,
+                borderColor: 'rgba(255, 255, 255, 0.1)',
+                opacity: disabled ? 0.6 : 1,
+                position: 'relative',
+                overflow: 'hidden',
+              },
+            ]}
+          >
+            <BlurView
+              intensity={20}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+              }}
+            />
+            
+            <View style={{ zIndex: 2 }}>
+              {renderButtonContent()}
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Animated.View>
+    );
+  }
 
-const styles = StyleSheet.create({
-  baseButton: {
-    borderRadius: theme.borderRadius.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
-  },
-  gradient: {
-    borderRadius: theme.borderRadius.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
-  },
-  baseText: {
-    fontWeight: '600',
-  },
-  smallButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    minHeight: 36,
-  },
-  mediumButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    minHeight: 44,
-  },
-  largeButton: {
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    minHeight: 52,
-  },
-  primaryContainer: {
-    backgroundColor: theme.colors.primary,
-  },
-  primaryText: {
-    color: theme.colors.primaryForeground,
-    fontSize: 16,
-  },
-  secondaryContainer: {
-    backgroundColor: theme.colors.secondary,
-  },
-  secondaryText: {
-    color: theme.colors.secondaryForeground,
-    fontSize: 16,
-  },
-  outlineContainer: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-  },
-  outlineText: {
-    color: theme.colors.foreground,
-    fontSize: 16,
-  },
-  ghostContainer: {
-    backgroundColor: 'transparent',
-  },
-  ghostText: {
-    color: theme.colors.foreground,
-    fontSize: 16,
-  },
-  disabledButton: {
-    opacity: 0.6,
-  },
-});
+  if (variant === 'secondary') {
+    return (
+      <Animated.View style={[animatedStyle, style]}>
+        <TouchableOpacity
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}
+          onPress={onPress}
+          disabled={disabled || loading}
+          style={[
+            getSizeStyles(),
+            {
+              backgroundColor: 'rgba(255, 255, 255, 0.08)',
+              borderWidth: 1,
+              borderColor: 'rgba(255, 255, 255, 0.2)',
+              opacity: disabled ? 0.6 : 1,
+            },
+          ]}
+        >
+          {renderButtonContent()}
+        </TouchableOpacity>
+      </Animated.View>
+    );
+  }
+
+  // Default primary variant
+  return (
+    <Animated.View style={[animatedStyle, style]}>
+      <TouchableOpacity
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        onPress={onPress}
+        disabled={disabled || loading}
+      >
+        <LinearGradient
+          colors={['#8A2BE2', '#7B1FA2']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[
+            getSizeStyles(),
+            {
+              opacity: disabled ? 0.6 : 1,
+            },
+          ]}
+        >
+          {renderButtonContent()}
+        </LinearGradient>
+      </TouchableOpacity>
+    </Animated.View>
+  );
+}

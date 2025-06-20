@@ -9,6 +9,8 @@ import { initializeSupabase, getSupabase } from '../src/lib/supabaseAuth';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ActivityIndicator } from 'react-native';
 import { API_URL } from '../src/lib/api';
+import * as Linking from 'expo-linking';
+import { AnimatedBackground } from '../src/components/ui/AnimatedBackground';
 
 export default function RootLayout() {
   const [session, setSession] = useState<Session | null>(null);
@@ -25,6 +27,10 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
+    // Log the URL prefix for debugging
+    const prefix = Linking.createURL('/');
+    console.log('App URL prefix:', prefix);
+
     async function initializeAuth() {
       try {
         console.log('Initializing app with API URL:', API_URL);
@@ -74,33 +80,34 @@ export default function RootLayout() {
   // Wait for fonts to load and auth check to complete
   if (!fontsLoaded || isLoading) {
     return (
-      <LinearGradient
-        colors={['#0a0a0a', '#1a0033', '#0a0a0a']}
-        style={styles.loadingContainer}
-      >
-        <ActivityIndicator size="large" color="#8A2BE2" />
-        <Text style={styles.loadingText}>Loading LeaderTalk...</Text>
-      </LinearGradient>
+      <View style={styles.container}>
+        <AnimatedBackground />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#8A2BE2" />
+          <Text style={styles.loadingText}>Loading LeaderTalk...</Text>
+        </View>
+      </View>
     );
   }
 
   // Show error screen if initialization failed
   if (initError) {
     return (
-      <LinearGradient
-        colors={['#0a0a0a', '#1a0033', '#0a0a0a']}
-        style={styles.loadingContainer}
-      >
-        <Text style={styles.errorText}>Failed to initialize app</Text>
-        <Text style={styles.errorDetail}>{initError}</Text>
-        <Text style={styles.errorHelp}>Please check your connection and restart the app</Text>
-      </LinearGradient>
+      <View style={styles.container}>
+        <AnimatedBackground />
+        <View style={styles.loadingContainer}>
+          <Text style={styles.errorText}>Failed to initialize app</Text>
+          <Text style={styles.errorDetail}>{initError}</Text>
+          <Text style={styles.errorHelp}>Please check your connection and restart the app</Text>
+        </View>
+      </View>
     );
   }
 
   return (
     <GestureHandlerRootView style={styles.container}>
       <StatusBar style="light" />
+      <AnimatedBackground />
       
       {/* If auth is checked and there's no session, redirect to login */}
       {authChecked && !session && <Redirect href="/login" />}
@@ -108,21 +115,26 @@ export default function RootLayout() {
       <Stack
         screenOptions={{
           headerStyle: {
-            backgroundColor: '#0f0f23',
+            backgroundColor: 'transparent',
           },
           headerTintColor: '#fff',
           headerTitleStyle: {
             fontWeight: '600',
           },
           contentStyle: {
-            backgroundColor: '#0f0f23',
+            backgroundColor: 'transparent',
           },
+          headerTransparent: true,
         }}
       >
         <Stack.Screen name="login" options={{ headerShown: false }} />
         <Stack.Screen name="auth/callback" options={{ headerShown: false }} />
         <Stack.Screen name="dashboard" options={{ 
           title: "LeaderTalk Dashboard",
+          headerShown: true 
+        }} />
+        <Stack.Screen name="deep-link-test" options={{ 
+          title: "Deep Link Test",
           headerShown: true 
         }} />
         <Stack.Screen name="index" options={{ 
@@ -142,6 +154,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    zIndex: 10,
   },
   loadingText: {
     color: '#fff',

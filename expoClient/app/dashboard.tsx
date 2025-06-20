@@ -8,16 +8,16 @@ import {
   ActivityIndicator,
   Alert
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { BlurView } from 'expo-blur';
 import { router } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { getSupabase, signOut } from '../src/lib/supabaseAuth';
 import QuickActions from '../src/components/dashboard/QuickActions';
 import { QuoteDisplay } from '../src/components/dashboard/QuoteDisplay';
-import AnalysisDisplay from '../src/components/dashboard/AnalysisDisplay';
+import { GlassCard } from '../src/components/ui/GlassCard';
+import { Button } from '../src/components/ui/Button';
+import { ThemedText } from '../src/components/ThemedText';
 
 // Mock data for demonstration purposes
 const MOCK_RECORDINGS = [
@@ -96,7 +96,7 @@ function calculateWeeklyImprovement(recordings: any[]) {
 }
 
 export default function DashboardScreen() {
-  const [userName, setUserName] = useState('');
+  const [user, setUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showQuote, setShowQuote] = useState(true);
   const [recordings, setRecordings] = useState<any[]>([]);
@@ -125,12 +125,17 @@ export default function DashboardScreen() {
         const isDemo = user.email === 'demo@example.com';
         
         if (isDemo) {
-          setUserName('Demo User');
+          setUser({
+            email: 'demo@example.com',
+            user_metadata: {
+              full_name: 'Demo User'
+            }
+          });
           // Load mock data for demo user
           setRecordings(MOCK_RECORDINGS);
           setLeaders(MOCK_LEADERS);
         } else {
-          setUserName(user?.user_metadata?.full_name || user?.email || 'User');
+          setUser(user);
           // In a real app, we would fetch real data from the API
           // For now, use mock data for all users
           setRecordings(MOCK_RECORDINGS);
@@ -168,101 +173,70 @@ export default function DashboardScreen() {
 
   if (isLoading) {
     return (
-      <LinearGradient
-        colors={['#0a0a0a', '#1a0033', '#0a0a0a']}
-        style={styles.loadingContainer}
-      >
+      <View style={styles.loadingContainer}>
         <StatusBar style="light" />
         <ActivityIndicator size="large" color="#8A2BE2" />
-        <Text style={styles.loadingText}>Loading dashboard...</Text>
-      </LinearGradient>
+        <ThemedText style={styles.loadingText}>Loading dashboard...</ThemedText>
+      </View>
     );
   }
 
   const lastRecording = recordings && recordings.length > 0 ? recordings[0] : null;
 
   return (
-    <LinearGradient
-      colors={['#0a0a0a', '#1a0033', '#0a0a0a']}
-      style={styles.container}
-    >
+    <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
-      <SafeAreaView style={styles.safeArea}>
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.title}>Dashboard</Text>
-            <TouchableOpacity 
-              style={styles.viewAllLink}
-              onPress={() => router.push('/transcripts')}
-            >
-              <Text style={styles.viewAllText}>View all transcripts</Text>
-              <Feather name="chevron-right" size={16} color="#fff" />
-            </TouchableOpacity>
-          </View>
-
-          {/* Quote Display */}
-          {showQuote && (
-            <QuoteDisplay />
-          )}
-
-          {/* Quick Actions */}
-          <QuickActions 
-            recordingsCount={recordings.length}
-            weeklyImprovement={Math.round(calculateWeeklyImprovement(recordings))}
-          />
-
-          {/* Analysis Display */}
-          {lastRecording && lastRecording.analysisResult && (
-            <AnalysisDisplay 
-              recording={lastRecording}
-              leaders={leaders}
-            />
-          )}
-
-          {/* Record Conversation Card */}
-          <View style={styles.recordCard}>
-            <BlurView intensity={20} tint="dark" style={styles.blurContainer}>
-              <View style={styles.recordCardContent}>
-                <Text style={styles.recordCardTitle}>Record a Conversation</Text>
-                <Text style={styles.recordCardDescription}>
-                  Record your conversations to get AI-powered insights on your communication style.
-                </Text>
-                
-                <TouchableOpacity 
-                  style={styles.recordButton}
-                  onPress={() => router.push('/recording')}
-                >
-                  <LinearGradient
-                    colors={['#8A2BE2', '#FF6B6B']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={styles.recordButtonGradient}
-                  >
-                    <Feather name="mic" size={20} color="#fff" style={styles.recordButtonIcon} />
-                    <Text style={styles.recordButtonText}>Start Recording</Text>
-                  </LinearGradient>
-                </TouchableOpacity>
-              </View>
-            </BlurView>
-          </View>
-          
-          {/* Sign Out Button */}
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* Header */}
+        <View style={styles.header}>
+          <ThemedText style={styles.title}>Dashboard</ThemedText>
           <TouchableOpacity 
-            style={styles.signOutButton}
-            onPress={handleSignOut}
+            style={styles.viewAllLink}
+            onPress={() => router.push('/transcripts')}
           >
-            <Text style={styles.signOutButtonText}>Sign Out</Text>
+            <ThemedText style={styles.viewAllText}>View all transcripts</ThemedText>
+            <Feather name="chevron-right" size={16} color="#fff" />
           </TouchableOpacity>
-        </ScrollView>
-      </SafeAreaView>
-    </LinearGradient>
+        </View>
+
+        {/* Quote Display */}
+        {showQuote && (
+          <QuoteDisplay />
+        )}
+
+        {/* Quick Actions */}
+        <QuickActions 
+          recordingsCount={recordings.length}
+          weeklyImprovement={Math.round(calculateWeeklyImprovement(recordings))}
+        />
+
+        {/* Record Conversation Card */}
+        <GlassCard style={styles.recordCard}>
+          <View style={styles.recordCardContent}>
+            <ThemedText style={styles.recordCardTitle}>Record a Conversation</ThemedText>
+            <ThemedText style={styles.recordCardDescription}>
+              Record your conversations to get AI-powered insights on your communication style.
+            </ThemedText>
+            
+            <Button
+              title="Start Recording"
+              onPress={() => router.push('/recording')}
+              variant="cta"
+              size="large"
+              style={styles.recordButton}
+              icon={<Feather name="mic" size={20} color="#fff" style={styles.recordButtonIcon} />}
+            />
+          </View>
+        </GlassCard>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: 'transparent',
   },
   loadingContainer: {
     flex: 1,
@@ -273,9 +247,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     marginTop: 20,
     fontSize: 16,
-  },
-  safeArea: {
-    flex: 1,
   },
   scrollContent: {
     padding: 20,
@@ -303,14 +274,6 @@ const styles = StyleSheet.create({
   },
   recordCard: {
     marginTop: 32,
-    borderRadius: 16,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  blurContainer: {
-    overflow: 'hidden',
-    borderRadius: 16,
   },
   recordCardContent: {
     padding: 24,
@@ -327,35 +290,9 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   recordButton: {
-    height: 48,
-    borderRadius: 16,
-    overflow: 'hidden',
     marginTop: 8,
-  },
-  recordButtonGradient: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   recordButtonIcon: {
     marginRight: 8,
-  },
-  recordButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  signOutButton: {
-    marginTop: 40,
-    padding: 16,
-    backgroundColor: 'rgba(255, 107, 107, 0.2)',
-    borderRadius: 16,
-    alignSelf: 'center',
-  },
-  signOutButtonText: {
-    color: '#ff6b6b',
-    fontWeight: '600',
-    fontSize: 16,
   },
 });

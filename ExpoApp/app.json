@@ -19,7 +19,9 @@
       "bundleIdentifier": "com.leadertalk.app",
       "infoPlist": {
         "NSMicrophoneUsageDescription": "LeaderTalk needs access to your microphone to record conversations for analysis.",
-        "UIBackgroundModes": ["audio"]
+        "UIBackgroundModes": [
+          "audio"
+        ]
       }
     },
     "android": {
@@ -43,7 +45,7 @@
           "microphonePermission": "Allow LeaderTalk to access your microphone to record conversations for analysis."
         }
       ],
-      "expo-linking"
+      "expo-web-browser"
     ],
     "scheme": "leadertalk"
   }

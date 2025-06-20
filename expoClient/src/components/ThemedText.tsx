@@ -59,26 +59,3 @@ const styles = StyleSheet.create({
     fontWeight: '400',
   },
 });
-
-const styles = StyleSheet.create({
-  default: {
-    fontSize: 16,
-    fontWeight: '400',
-  },
-  defaultSemiBold: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  subtitle: {
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  small: {
-    fontSize: 14,
-    fontWeight: '400',
-  },
-});

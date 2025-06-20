@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { BlurView } from 'expo-blur';
+import { View, StyleSheet } from 'react-native';
+import { GlassCard } from '../ui/GlassCard';
+import { ThemedText } from '../ThemedText';
 
 interface Quote {
   quote: string;
@@ -61,35 +62,27 @@ export function QuoteDisplay() {
   if (!currentQuote) return null;
 
   return (
-    <View style={styles.container}>
-      <BlurView intensity={20} tint="dark" style={styles.blurContainer}>
-        <View style={styles.content}>
-          <Text style={styles.quoteText}>"{currentQuote.quote}"</Text>
-          <Text style={styles.authorText}>— {currentQuote.author}</Text>
-        </View>
-      </BlurView>
-    </View>
+    <GlassCard style={styles.container}>
+      <View style={styles.content}>
+        <ThemedText style={styles.quoteText}>"{currentQuote.quote}"</ThemedText>
+        <ThemedText style={styles.authorText}>— {currentQuote.author}</ThemedText>
+      </View>
+    </GlassCard>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     marginBottom: 24,
-    borderRadius: 16,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  blurContainer: {
-    overflow: 'hidden',
-    borderRadius: 16,
   },
   content: {
-    padding: 20,
+    padding: 24,
+    paddingBottom: 16,
   },
   quoteText: {
     fontSize: 16,
     fontStyle: 'italic',
+    fontWeight: '300',
     color: '#fff',
     marginBottom: 8,
     lineHeight: 24,
@@ -98,5 +91,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: 'rgba(255, 255, 255, 0.7)',
     textAlign: 'right',
+    fontWeight: '500',
   },
 });

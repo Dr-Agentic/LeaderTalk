@@ -65,7 +65,7 @@ export async function signInWithGoogle(): Promise<AuthUser | null> {
 
     // Open the authentication URL in a browser
     if (data.url) {
-      console.log("Opening OAuth URL in browser");
+      console.log("Opening OAuth URL in browser", data.url);
       
       // Use WebBrowser to handle the OAuth flow
       const result = await WebBrowser.openAuthSessionAsync(

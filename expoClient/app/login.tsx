@@ -11,13 +11,14 @@ import {
   Text,
   Alert
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { signInWithGoogle } from '../src/lib/supabaseAuth';
 import { signInWithDemo } from '../src/lib/demoAuth';
 import { router } from 'expo-router';
+import { GlassCard } from '../src/components/ui/GlassCard';
+import { Button } from '../src/components/ui/Button';
+import { ThemedText } from '../src/components/ThemedText';
 
 // Get screen dimensions
 const { width, height } = Dimensions.get('window');
@@ -27,17 +28,11 @@ export default function LoginScreen() {
   const [demoLoading, setDemoLoading] = useState(false);
   const [initError, setInitError] = useState<string | null>(null);
   
-  // Animation values for the glowing orbs
-  const purpleOpacity = new Animated.Value(0.7);
-  const pinkOpacity = new Animated.Value(0.7);
-  const purpleScale = new Animated.Value(1);
-  const pinkScale = new Animated.Value(1);
-  
-  // Animation value for the card
+  // Animation value for the card entrance
   const cardOpacity = new Animated.Value(0);
   const cardTranslateY = new Animated.Value(20);
   
-  // Set up animations
+  // Set up entrance animation
   useEffect(() => {
     // Card entrance animation
     Animated.parallel([
@@ -50,89 +45,22 @@ export default function LoginScreen() {
         toValue: 0,
         duration: 800,
         useNativeDriver: true,
-      })
+      }),
     ]).start();
-    
-    // Purple glow animation - pulse effect
-    Animated.loop(
-      Animated.sequence([
-        Animated.parallel([
-          Animated.timing(purpleOpacity, {
-            toValue: 0.9,
-            duration: 2000,
-            useNativeDriver: true,
-          }),
-          Animated.timing(purpleScale, {
-            toValue: 1.1,
-            duration: 2000,
-            useNativeDriver: true,
-          })
-        ]),
-        Animated.parallel([
-          Animated.timing(purpleOpacity, {
-            toValue: 0.7,
-            duration: 2000,
-            useNativeDriver: true,
-          }),
-          Animated.timing(purpleScale, {
-            toValue: 1,
-            duration: 2000,
-            useNativeDriver: true,
-          })
-        ])
-      ])
-    ).start();
-    
-    // Pink glow animation with delay - pulse effect
-    Animated.loop(
-      Animated.sequence([
-        Animated.parallel([
-          Animated.timing(pinkOpacity, {
-            toValue: 0.9,
-            duration: 3000,
-            useNativeDriver: true,
-          }),
-          Animated.timing(pinkScale, {
-            toValue: 1.1,
-            duration: 3000,
-            useNativeDriver: true,
-          })
-        ]),
-        Animated.parallel([
-          Animated.timing(pinkOpacity, {
-            toValue: 0.7,
-            duration: 3000,
-            useNativeDriver: true,
-          }),
-          Animated.timing(pinkScale, {
-            toValue: 1,
-            duration: 3000,
-            useNativeDriver: true,
-          })
-        ])
-      ])
-    ).start();
   }, []);
 
   const handleGoogleSignIn = async () => {
     try {
-      console.log("Google sign-in button pressed");
       setLoading(true);
-      setInitError(null);
-      
+      console.log("Google sign-in process initiated from UI");
       await signInWithGoogle();
-      
-      // If successful, navigate to the dashboard
-      router.replace('/dashboard');
-    } catch (error: any) {
-      console.error("Google sign-in error:", error);
-      setInitError(error.message || 'Failed to sign in with Google');
-      
-      // Show error in an alert
+      // Navigation will be handled by the auth state change listener
+    } catch (error) {
+      console.error('Google sign-in error:', error);
       Alert.alert(
-        "Sign In Failed",
-        `Error: ${error.message || 'Unknown error'}`,
-        [{ text: "OK" }]
+        'Sign In Failed',
+        'Unable to sign in with Google. Please try again.',
+        [{ text: 'OK' }]
       );
     } finally {
       setLoading(false);
@@ -141,23 +69,23 @@ export default function LoginScreen() {
 
   const handleDemoSignIn = async () => {
     try {
-      console.log("Demo sign-in button pressed");
       setDemoLoading(true);
-      setInitError(null);
-      
-      await signInWithDemo();
-      
-      // If successful, navigate to the dashboard
-      router.replace('/dashboard');
-    } catch (error: any) {
-      console.error("Demo sign-in error:", error);
-      setInitError(error.message || 'Failed to sign in with demo account');
-      
-      // Show error in an alert
+      const success = await signInWithDemo();
+      if (success) {
+        router.replace('/dashboard');
+      } else {
+        Alert.alert(
+          'Demo Sign In Failed',
+          'Unable to sign in with demo account. Please try again.',
+          [{ text: 'OK' }]
+        );
+      }
+    } catch (error) {
+      console.error('Demo sign-in error:', error);
       Alert.alert(
-        "Demo Sign In Failed",
-        `Error: ${error.message || 'Unknown error'}`,
-        [{ text: "OK" }]
+        'Demo Sign In Failed',
+        'Unable to sign in with demo account. Please try again.',
+        [{ text: 'OK' }]
       );
     } finally {
       setDemoLoading(false);
@@ -168,132 +96,107 @@ export default function LoginScreen() {
     <View style={styles.container}>
       <StatusBar style="light" />
       
-      {/* Background gradient */}
-      <LinearGradient
-        colors={['#111827', '#4B2D6F', '#111827']} // from-gray-900 via-purple-900/20 to-gray-900
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={StyleSheet.absoluteFill}
-      />
-      
-      {/* Animated background elements */}
-      <View style={styles.backgroundElements}>
-        <Animated.View 
-          style={[
-            styles.purpleGlow, 
-            { 
-              opacity: purpleOpacity,
-              transform: [{ scale: purpleScale }]
-            }
-          ]} 
-        />
-        <Animated.View 
-          style={[
-            styles.pinkGlow, 
-            { 
-              opacity: pinkOpacity,
-              transform: [{ scale: pinkScale }]
-            }
-          ]} 
-        />
-      </View>
-
       <SafeAreaView style={styles.safeArea}>
-        <Animated.View 
-          style={[
-            styles.cardContainer,
-            { 
-              opacity: cardOpacity,
-              transform: [{ translateY: cardTranslateY }]
-            }
-          ]}
-        >
-          <BlurView intensity={30} tint="dark" style={styles.blurContainer}>
-            <LinearGradient
-              colors={['rgba(147, 51, 234, 0.2)', 'rgba(236, 72, 153, 0.2)']} // from-purple-600/20 to-pink-500/20
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.gradientCard}
+        <View style={styles.content}>
+          {/* Logo Section */}
+          <View style={styles.logoContainer}>
+            <ThemedText style={styles.logoText}>LeaderTalk</ThemedText>
+            <ThemedText style={styles.tagline}>
+              Talk Like the Leader You Aspire to Be
+            </ThemedText>
+          </View>
+          
+          {/* Main Card with Glass Effect */}
+          <Animated.View 
+            style={[
+              styles.cardContainer,
+              {
+                opacity: cardOpacity,
+                transform: [{ translateY: cardTranslateY }]
+              }
+            ]}
+          >
+            <GlassCard 
+              variant="hero" 
+              style={styles.glassCard}
+              showShimmer={true}
             >
-              <View style={styles.cardHeader}>
-                <Text style={styles.title}>
-                  Welcome to LeaderTalk
-                </Text>
-                <Text style={styles.description}>
-                  Transform your communication skills with AI-powered coaching
-                </Text>
-              </View>
-              
               <View style={styles.cardContent}>
-                <TouchableOpacity
-                  style={styles.googleButton}
-                  onPress={handleGoogleSignIn}
-                  disabled={loading || demoLoading}
-                  activeOpacity={0.9}
-                >
-                  <LinearGradient
-                    colors={['#8A2BE2', '#FF6B6B']} // cta-button gradient
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={styles.buttonGradient}
-                  >
-                    {loading ? (
-                      <View style={styles.buttonContent}>
-                        <ActivityIndicator color="#fff" size="small" style={styles.loader} />
-                        <Text style={styles.buttonText}>Signing in...</Text>
-                      </View>
-                    ) : (
-                      <View style={styles.buttonContent}>
-                        <Image 
-                          source={require('../assets/images/google-logo.png')} 
-                          style={styles.googleLogo} 
-                        />
-                        <Text style={styles.buttonText}>Sign in with Google</Text>
-                      </View>
-                    )}
-                  </LinearGradient>
-                </TouchableOpacity>
+                <ThemedText style={styles.title}>Welcome to LeaderTalk</ThemedText>
+                <ThemedText style={styles.description}>
+                  Transform your communication skills with AI-powered coaching and personalized feedback.
+                </ThemedText>
                 
-                <View style={styles.dividerContainer}>
-                  <View style={styles.divider} />
-                  <Text style={styles.dividerText}>OR</Text>
-                  <View style={styles.divider} />
+                {/* Features List */}
+                <View style={styles.featuresList}>
+                  <View style={styles.featureItem}>
+                    <ThemedText style={styles.featureIcon}>🎯</ThemedText>
+                    <ThemedText style={styles.featureText}>
+                      Personalized speech analysis
+                    </ThemedText>
+                  </View>
+                  
+                  <View style={styles.featureItem}>
+                    <ThemedText style={styles.featureIcon}>🎭</ThemedText>
+                    <ThemedText style={styles.featureText}>
+                      Leadership style emulation
+                    </ThemedText>
+                  </View>
+                  
+                  <View style={styles.featureItem}>
+                    <ThemedText style={styles.featureIcon}>📈</ThemedText>
+                    <ThemedText style={styles.featureText}>
+                      Progress tracking & insights
+                    </ThemedText>
+                  </View>
                 </View>
-                
-                <TouchableOpacity
-                  style={styles.demoButton}
-                  onPress={handleDemoSignIn}
-                  disabled={loading || demoLoading}
-                  activeOpacity={0.9}
-                >
-                  <LinearGradient
-                    colors={['rgba(255, 255, 255, 0.1)', 'rgba(255, 255, 255, 0.05)']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={styles.buttonGradient}
-                  >
-                    {demoLoading ? (
-                      <View style={styles.buttonContent}>
-                        <ActivityIndicator color="#fff" size="small" style={styles.loader} />
-                        <Text style={styles.buttonText}>Accessing Demo...</Text>
-                      </View>
-                    ) : (
-                      <View style={styles.buttonContent}>
-                        <Text style={styles.buttonText}>Enter Demo Mode</Text>
-                      </View>
-                    )}
-                  </LinearGradient>
-                </TouchableOpacity>
-                
-                {initError && (
-                  <Text style={styles.errorText}>
-                    {initError}
-                  </Text>
-                )}
+
+                {/* Action Buttons */}
+                <View style={styles.buttonSection}>
+                  <Button
+                    title="Continue with Google"
+                    onPress={handleGoogleSignIn}
+                    variant="cta"
+                    size="large"
+                    loading={loading}
+                    disabled={loading || demoLoading}
+                    style={styles.googleButton}
+                    icon={
+                      !loading && (
+                        <View style={styles.googleLogo}>
+                          <ThemedText style={styles.googleLogoText}>G</ThemedText>
+                        </View>
+                      )
+                    }
+                  />
+
+                  <Button
+                    title="Try Demo Account"
+                    onPress={handleDemoSignIn}
+                    variant="glass"
+                    size="large"
+                    loading={demoLoading}
+                    disabled={loading || demoLoading}
+                    style={styles.demoButton}
+                  />
+
+                  {/* Deep Link Test Button */}
+                  <Button
+                    title="Test Deep Linking"
+                    onPress={() => router.push('/deep-link-test')}
+                    variant="secondary"
+                    size="medium"
+                    style={styles.deepLinkButton}
+                  />
+                </View>
+
+                <ThemedText style={styles.termsText}>
+                  By continuing, you agree to our Terms of Service and Privacy Policy
+                </ThemedText>
               </View>
-            </LinearGradient>
-          </BlurView>
-        </Animated.View>
+            </GlassCard>
+          </Animated.View>
+        </View>
       </SafeAreaView>
     </View>
   );
@@ -305,170 +208,105 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
+  },
+  content: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  backgroundElements: {
-    position: 'absolute',
-    width: '100%',
-    height: '100%',
-    overflow: 'hidden',
-  },
-  purpleGlow: {
-    position: 'absolute',
-    top: '25%',
-    left: '25%',
-    width: width * 0.6, // Responsive size
-    height: width * 0.6,
-    backgroundColor: 'rgba(124, 58, 237, 0.1)', // bg-purple-600/10
-    borderRadius: width * 0.6, // Make it circular
-    ...Platform.select({
-      ios: {
-        shadowColor: '#7C3AED',
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.3,
-        shadowRadius: 20,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
-  },
-  pinkGlow: {
-    position: 'absolute',
-    bottom: '25%',
-    right: '25%',
-    width: width * 0.6, // Responsive size
-    height: width * 0.6,
-    backgroundColor: 'rgba(236, 72, 153, 0.1)', // bg-pink-500/10
-    borderRadius: width * 0.6, // Make it circular
-    ...Platform.select({
-      ios: {
-        shadowColor: '#EC4899',
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.3,
-        shadowRadius: 20,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
-  },
-  cardContainer: {
-    width: '90%',
-    maxWidth: 400,
-    borderRadius: 16,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(147, 51, 234, 0.3)', // border-purple-600/30
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.2,
-        shadowRadius: 12,
-      },
-      android: {
-        elevation: 8,
-      },
-    }),
-  },
-  blurContainer: {
-    overflow: 'hidden',
-    borderRadius: 16,
-  },
-  gradientCard: {
-    borderRadius: 16,
-    overflow: 'hidden',
     padding: 20,
   },
-  cardHeader: {
+  logoContainer: {
+    marginBottom: 40,
+    alignItems: 'center',
+  },
+  logoText: {
+    fontSize: 36,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  tagline: {
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.7)',
+    textAlign: 'center',
+  },
+  cardContainer: {
+    width: '100%',
+    maxWidth: 400,
+  },
+  glassCard: {
+    padding: 0, // Remove default padding since we'll add it to cardContent
+  },
+  cardContent: {
     padding: 24,
     alignItems: 'center',
   },
   title: {
-    color: '#fff',
-    textAlign: 'center',
-    marginBottom: 8,
     fontSize: 24,
-    fontWeight: '700',
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 12,
+    textAlign: 'center',
   },
   description: {
-    color: 'rgba(255, 255, 255, 0.7)', // text-white/70
-    textAlign: 'center',
     fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.8)',
+    marginBottom: 24,
+    textAlign: 'center',
+    lineHeight: 24,
   },
-  cardContent: {
-    padding: 24,
-    paddingTop: 0,
-  },
-  googleButton: {
+  featuresList: {
     width: '100%',
-    height: 48, // min-height: 48px from web
-    borderRadius: 16,
-    overflow: 'hidden',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#8A2BE2',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-      },
-      android: {
-        elevation: 5,
-      },
-    }),
+    marginBottom: 32,
   },
-  demoButton: {
-    width: '100%',
-    height: 48,
-    borderRadius: 16,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  buttonGradient: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  buttonContent: {
+  featureItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  featureIcon: {
+    fontSize: 20,
+    marginRight: 12,
+    width: 32,
+  },
+  featureText: {
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.9)',
+    flex: 1,
+  },
+  buttonSection: {
+    width: '100%',
+    gap: 12,
+    marginBottom: 20,
+  },
+  googleButton: {
+    marginBottom: 4,
+  },
+  demoButton: {
+    marginBottom: 4,
+  },
+  deepLinkButton: {
+    marginBottom: 8,
   },
   googleLogo: {
     width: 24,
     height: 24,
-    marginRight: 10,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  loader: {
-    marginRight: 10,
-  },
-  errorText: {
-    color: '#ff6b6b',
-    textAlign: 'center',
-    marginTop: 16,
-    fontSize: 14,
-  },
-  dividerContainer: {
-    flexDirection: 'row',
+    backgroundColor: '#fff',
+    borderRadius: 12,
     alignItems: 'center',
-    marginVertical: 24,
+    justifyContent: 'center',
+    marginRight: 8,
   },
-  divider: {
-    flex: 1,
-    height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+  googleLogoText: {
+    color: '#7e22ce',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
-  dividerText: {
+  termsText: {
+    fontSize: 12,
     color: 'rgba(255, 255, 255, 0.6)',
-    paddingHorizontal: 16,
-    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 18,
   },
 });
