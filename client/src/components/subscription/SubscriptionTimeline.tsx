@@ -36,7 +36,7 @@ interface SubscriptionTimelineProps {
 export default function SubscriptionTimeline({ data: propData, className = "" }: SubscriptionTimelineProps) {
   // Fetch subscription information if not provided via props
   const { data: fetchedData, isLoading: queryLoading, error: queryError } = useQuery({
-    queryKey: ['/api/current-subscription'],
+    queryKey: ['/api/billing/subscriptions/current'],
     retry: 2,
     retryDelay: 1000,
     // Skip the query if data is provided via props
