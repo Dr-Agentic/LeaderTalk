@@ -919,9 +919,26 @@ export async function getSubscriptionChangePreview(
 }> {
   const currentSubscription = await _getCurrentActiveSubscription(stripeCustomerId);
   const currentPrice = currentSubscription.items.data[0].price;
-  const newPrice = await stripe.prices.retrieve(newPriceId);
   
-  const currentAmount = currentPrice.unit_amount || 0;
+  // Expand product data for both current and new prices to get proper names
+  const [expandedCurrentPrice, newPrice] = await Promise.all([
+    stripe.prices.retrieve(currentPrice.id, { expand: ['product'] }),
+    stripe.prices.retrieve(newPriceId, { expand: ['product'] })
+  ]);
+  
+  console.log('🔍 Current price data:', JSON.stringify({
+    id: expandedCurrentPrice.id,
+    nickname: expandedCurrentPrice.nickname,
+    product: expandedCurrentPrice.product
+  }, null, 2));
+  
+  console.log('🔍 New price data:', JSON.stringify({
+    id: newPrice.id,
+    nickname: newPrice.nickname,
+    product: newPrice.product
+  }, null, 2));
+  
+  const currentAmount = expandedCurrentPrice.unit_amount || 0;
   const newAmount = newPrice.unit_amount || 0;
   
   const changeType = newAmount > currentAmount ? 'upgrade' : 
@@ -945,7 +962,9 @@ export async function getSubscriptionChangePreview(
     const priceDifference = newAmount - currentAmount;
     immediateCharge = Math.round((priceDifference * remainingDays) / totalPeriodDays);
 
-    description = `Upgrade to ${newPrice.nickname || newPrice.product || 'new plan'}. You'll be charged $${(immediateCharge / 100).toFixed(2)} immediately for the prorated difference and gain access to new features right away.`;
+    // Get proper plan names from expanded price data
+    const newPlanName = newPrice.nickname || (typeof newPrice.product === 'object' && 'name' in newPrice.product ? newPrice.product.name : newPrice.product) || 'new plan';
+    description = `Upgrade to ${newPlanName}. You'll be charged $${(immediateCharge / 100).toFixed(2)} immediately for the prorated difference and gain access to new features right away.`;
     
   } else if (changeType === 'downgrade') {
     // Downgrades: Scheduled for end of period
@@ -953,17 +972,23 @@ export async function getSubscriptionChangePreview(
     const periodEnd = new Date((currentSubscription as any).current_period_end * 1000);
     scheduledDate = periodEnd.toISOString();
     
-    description = `Downgrade to ${newPrice.nickname || newPrice.product || 'new plan'} will take effect at the end of your current billing period (${periodEnd.toLocaleDateString()}). You'll keep all current features until then.`;
+    const newPlanName = newPrice.nickname || (typeof newPrice.product === 'object' && 'name' in newPrice.product ? newPrice.product.name : newPrice.product) || 'new plan';
+    description = `Downgrade to ${newPlanName} will take effect at the end of your current billing period (${periodEnd.toLocaleDateString()}). You'll keep all current features until then.`;
     
   } else {
     // Same price: Immediate change, no billing impact
-    description = `Switch to ${newPrice.nickname || newPrice.product || 'new plan'}. No billing changes, just feature/limit adjustments.`;
+    const newPlanName = newPrice.nickname || (typeof newPrice.product === 'object' && 'name' in newPrice.product ? newPrice.product.name : newPrice.product) || 'new plan';
+    description = `Switch to ${newPlanName}. No billing changes, just feature/limit adjustments.`;
   }
+
+  // Get proper plan names for return values
+  const currentPlanName = expandedCurrentPrice.nickname || (typeof expandedCurrentPrice.product === 'object' && 'name' in expandedCurrentPrice.product ? expandedCurrentPrice.product.name : expandedCurrentPrice.product) || 'Current Plan';
+  const newPlanName = newPrice.nickname || (typeof newPrice.product === 'object' && 'name' in newPrice.product ? newPrice.product.name : newPrice.product) || 'New Plan';
 
   return {
     changeType,
-    currentPlan: currentPrice.nickname || (currentPrice as any).product?.name || 'Current Plan',
-    newPlan: newPrice.nickname || (newPrice as any).product?.name || 'New Plan',
+    currentPlan: currentPlanName,
+    newPlan: newPlanName,
     immediateCharge: immediateCharge / 100,
     proratedCredit: proratedCredit / 100,
     nextBillingAmount: newAmount / 100,
@@ -1070,40 +1095,87 @@ export async function getScheduledSubscriptions(
   scheduledDate: string;
   status: string;
 }>> {
-  const subscriptions = await stripe.subscriptions.list({
-    customer: stripeCustomerId,
-    status: 'all',
-    limit: 10,
-  });
+  try {
+    // Get subscription schedules (for downgrades scheduled at period end)
+    const subscriptionSchedules = await stripe.subscriptionSchedules.list({
+      customer: stripeCustomerId,
+      limit: 10,
+    });
 
-  const scheduled = [];
+    console.log('🔍 Raw subscription schedules:', JSON.stringify(subscriptionSchedules.data.map(s => ({
+      id: s.id,
+      status: s.status,
+      phases: s.phases?.length || 0,
+      current_phase: s.current_phase,
+      subscription: s.subscription
+    })), null, 2));
 
-  for (const sub of subscriptions.data) {
-    // Check for subscriptions with trial_end (scheduled to start)
-    if (sub.status === 'trialing' && sub.trial_end) {
-      const price = sub.items.data[0]?.price;
-      scheduled.push({
-        id: sub.id,
-        currentPlan: 'Current Plan',
-        scheduledPlan: price?.nickname || 'New Plan',
-        scheduledDate: new Date(sub.trial_end * 1000).toISOString(),
-        status: 'scheduled',
-      });
+    const scheduled = [];
+
+    // Filter only active/not_started schedules (exclude canceled, completed, released)
+    const activeSchedules = subscriptionSchedules.data.filter(schedule => 
+      schedule.status === 'active' || schedule.status === 'not_started'
+    );
+
+    for (const schedule of activeSchedules) {
+      if (schedule.phases && schedule.phases.length > 1) {
+        // This is a scheduled change (has multiple phases)
+        const currentPhase = schedule.phases[0];
+        const nextPhase = schedule.phases[1];
+        
+        if (nextPhase && nextPhase.start_date) {
+          // Get expanded price data for proper plan names
+          const currentPriceId = typeof currentPhase.items[0].price === 'string' ? currentPhase.items[0].price : currentPhase.items[0].price.id;
+          const nextPriceId = typeof nextPhase.items[0].price === 'string' ? nextPhase.items[0].price : nextPhase.items[0].price.id;
+          
+          const [currentPrice, nextPrice] = await Promise.all([
+            stripe.prices.retrieve(currentPriceId, { expand: ['product'] }),
+            stripe.prices.retrieve(nextPriceId, { expand: ['product'] })
+          ]);
+
+          const currentPlanName = currentPrice.nickname || (typeof currentPrice.product === 'object' && 'name' in currentPrice.product ? currentPrice.product.name : 'Current Plan');
+          const nextPlanName = nextPrice.nickname || (typeof nextPrice.product === 'object' && 'name' in nextPrice.product ? nextPrice.product.name : 'New Plan');
+
+          scheduled.push({
+            id: schedule.id,
+            currentPlan: currentPlanName,
+            scheduledPlan: nextPlanName,
+            scheduledDate: new Date(nextPhase.start_date * 1000).toISOString(),
+            status: 'scheduled',
+          });
+        }
+      }
     }
-    
-    // Check for subscriptions marked to cancel at period end
-    if (sub.cancel_at_period_end && sub.current_period_end) {
-      scheduled.push({
-        id: sub.id,
-        currentPlan: sub.items.data[0]?.price?.nickname || 'Current Plan',
-        scheduledPlan: 'Cancelled',
-        scheduledDate: new Date(sub.current_period_end * 1000).toISOString(),
-        status: 'cancelling',
-      });
+
+    // Also check for subscriptions marked to cancel at period end
+    const subscriptions = await stripe.subscriptions.list({
+      customer: stripeCustomerId,
+      status: 'active',
+      limit: 10,
+    });
+
+    for (const sub of subscriptions.data) {
+      if (sub.cancel_at_period_end && sub.current_period_end) {
+        const currentPrice = await stripe.prices.retrieve(sub.items.data[0].price.id, { expand: ['product'] });
+        const currentPlanName = currentPrice.nickname || (typeof currentPrice.product === 'object' ? currentPrice.product.name : currentPrice.product) || 'Current Plan';
+
+        scheduled.push({
+          id: sub.id,
+          currentPlan: currentPlanName,
+          scheduledPlan: 'Cancelled',
+          scheduledDate: new Date(sub.current_period_end * 1000).toISOString(),
+          status: 'cancelling',
+        });
+      }
     }
+
+    console.log('🔍 Filtered active scheduled changes:', scheduled);
+    return scheduled;
+
+  } catch (error: any) {
+    console.error("Error fetching scheduled subscriptions:", error);
+    return [];
   }
-
-  return scheduled;
 }
 
 /**
