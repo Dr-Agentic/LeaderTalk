@@ -92,6 +92,10 @@ function PaymentSetupForm({
         if (originalRequest) {
           console.log("🔄 Retrying original subscription update...", originalRequest);
           
+          // Add a small delay to allow Stripe to process the payment method attachment
+          console.log("⏳ Waiting 2 seconds for Stripe to process payment method...");
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          
           try {
             const retryResponse = await fetch("/api/billing/subscriptions/update", {
               method: "POST",
