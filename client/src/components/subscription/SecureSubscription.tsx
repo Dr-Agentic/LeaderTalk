@@ -90,7 +90,7 @@ function PaymentSetupForm({
         
         // If we have an original request, retry the subscription update
         if (originalRequest) {
-          console.log("🔄 Retrying original subscription update...");
+          console.log("🔄 Retrying original subscription update...", originalRequest);
           
           try {
             const retryResponse = await fetch("/api/billing/subscriptions/update", {
@@ -100,15 +100,30 @@ function PaymentSetupForm({
               body: JSON.stringify(originalRequest),
             });
 
+            console.log("🔍 Retry response status:", retryResponse.status);
+            
             if (retryResponse.ok) {
               const retryData = await retryResponse.json();
-              console.log("✅ Subscription update completed successfully!");
-              toast({
-                title: "Subscription Updated!",
-                description: "Your subscription has been successfully updated with the new payment method.",
-              });
+              console.log("✅ Subscription update completed successfully!", retryData);
+              
+              // Check if the retry was actually successful or still requires payment
+              if (retryData.requiresPayment) {
+                console.log("⚠️ Retry still requires payment - something went wrong");
+                toast({
+                  title: "Payment Method Added",
+                  description: "Payment method added, but subscription update still pending. Please try again.",
+                  variant: "destructive",
+                });
+              } else {
+                toast({
+                  title: "Subscription Updated!",
+                  description: "Your subscription has been successfully updated with the new payment method.",
+                });
+              }
             } else {
-              throw new Error("Subscription update failed after payment setup");
+              const errorData = await retryResponse.json();
+              console.error("❌ Retry response error:", errorData);
+              throw new Error(errorData.error || "Subscription update failed after payment setup");
             }
           } catch (retryError) {
             console.error("❌ Failed to complete subscription update:", retryError);
