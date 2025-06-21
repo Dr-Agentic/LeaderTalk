@@ -1096,7 +1096,9 @@ export async function getScheduledSubscriptions(
   status: string;
 }>> {
   try {
-    // Get subscription schedules (for downgrades scheduled at period end)
+    const scheduled = [];
+
+    // Method 1: Check Subscription Schedules (for complex multi-phase changes)
     const subscriptionSchedules = await stripe.subscriptionSchedules.list({
       customer: stripeCustomerId,
       limit: 10,
@@ -1110,48 +1112,159 @@ export async function getScheduledSubscriptions(
       subscription: s.subscription
     })), null, 2));
 
-    const scheduled = [];
-
-    // Filter only active/not_started schedules (exclude canceled, completed, released)
+    // Process subscription schedules
     const activeSchedules = subscriptionSchedules.data.filter(schedule => 
       schedule.status === 'active' || schedule.status === 'not_started'
     );
 
     for (const schedule of activeSchedules) {
-      if (schedule.phases && schedule.phases.length > 1) {
-        // This is a scheduled change (has multiple phases)
-        const currentPhase = schedule.phases[0];
-        const nextPhase = schedule.phases[1];
+      if (schedule.phases && schedule.phases.length > 1 && schedule.current_phase !== null && typeof schedule.current_phase === 'number') {
+        const currentPhase = schedule.phases[schedule.current_phase];
+        const nextPhaseIndex = schedule.current_phase + 1;
+        const nextPhase = schedule.phases[nextPhaseIndex];
         
-        if (nextPhase && nextPhase.start_date) {
-          // Get expanded price data for proper plan names
-          const currentPriceId = typeof currentPhase.items[0].price === 'string' ? currentPhase.items[0].price : currentPhase.items[0].price.id;
-          const nextPriceId = typeof nextPhase.items[0].price === 'string' ? nextPhase.items[0].price : nextPhase.items[0].price.id;
-          
-          const [currentPrice, nextPrice] = await Promise.all([
-            stripe.prices.retrieve(currentPriceId, { expand: ['product'] }),
-            stripe.prices.retrieve(nextPriceId, { expand: ['product'] })
-          ]);
+        if (nextPhase && nextPhase.start_date && nextPhase.items?.[0] && currentPhase?.items?.[0]) {
+          try {
+            // Get expanded price data for proper plan names
+            const currentPriceId = typeof currentPhase.items[0].price === 'string' 
+              ? currentPhase.items[0].price 
+              : (currentPhase.items[0].price as any)?.id;
+            const nextPriceId = typeof nextPhase.items[0].price === 'string' 
+              ? nextPhase.items[0].price 
+              : (nextPhase.items[0].price as any)?.id;
+            
+            const [currentPrice, nextPrice] = await Promise.all([
+              stripe.prices.retrieve(currentPriceId, { expand: ['product'] }),
+              stripe.prices.retrieve(nextPriceId, { expand: ['product'] })
+            ]);
 
-          const currentPlanName = currentPrice.nickname || (typeof currentPrice.product === 'object' && 'name' in currentPrice.product ? currentPrice.product.name : 'Current Plan');
-          const nextPlanName = nextPrice.nickname || (typeof nextPrice.product === 'object' && 'name' in nextPrice.product ? nextPrice.product.name : 'New Plan');
+            const currentPlanName = currentPrice.nickname || 
+              (typeof currentPrice.product === 'object' && 'name' in currentPrice.product ? currentPrice.product.name : 'Current Plan');
+            const nextPlanName = nextPrice.nickname || 
+              (typeof nextPrice.product === 'object' && 'name' in nextPrice.product ? nextPrice.product.name : 'New Plan');
 
-          scheduled.push({
-            id: schedule.id,
-            currentPlan: currentPlanName,
-            scheduledPlan: nextPlanName,
-            scheduledDate: new Date(nextPhase.start_date * 1000).toISOString(),
-            status: 'scheduled',
-          });
+            scheduled.push({
+              id: schedule.id,
+              currentPlan: currentPlanName,
+              scheduledPlan: nextPlanName,
+              scheduledDate: new Date(nextPhase.start_date * 1000).toISOString(),
+              status: 'scheduled',
+            });
+          } catch (priceError) {
+            console.error('Error fetching price data for schedule:', schedule.id, priceError);
+          }
         }
       }
     }
 
-    // Note: Cancelled subscriptions (cancel_at_period_end: true) are NOT included here
-    // They are handled in the subscription status display, not as "scheduled changes"
-    // Only actual plan changes (upgrade/downgrade schedules) should appear here
+    // Method 2: Check for subscriptions in trialing status (our scheduled downgrades)
+    const trialingSubscriptions = await stripe.subscriptions.list({
+      customer: stripeCustomerId,
+      status: 'trialing',
+      limit: 10,
+    });
 
-    console.log('🔍 Filtered active scheduled changes:', scheduled);
+    console.log('🔍 Found trialing subscriptions:', JSON.stringify(trialingSubscriptions.data.map(s => ({
+      id: s.id,
+      status: s.status,
+      trial_end: s.trial_end,
+      price_id: s.items.data[0]?.price?.id,
+      current_period_start: (s as any).current_period_start,
+      current_period_end: (s as any).current_period_end
+    })), null, 2));
+
+    for (const trialSubscription of trialingSubscriptions.data) {
+      try {
+        // Get the current active subscription to compare
+        const activeSubscriptions = await stripe.subscriptions.list({
+          customer: stripeCustomerId,
+          status: 'active',
+          limit: 10,
+        });
+
+        // Find active subscription marked for cancellation
+        const cancellingSubscription = activeSubscriptions.data.find(s => s.cancel_at_period_end);
+        
+        if (cancellingSubscription && trialSubscription.trial_end) {
+          // Get price data for both subscriptions
+          const currentPriceId = typeof cancellingSubscription.items.data[0].price === 'string' 
+            ? cancellingSubscription.items.data[0].price 
+            : cancellingSubscription.items.data[0].price.id;
+          const scheduledPriceId = typeof trialSubscription.items.data[0].price === 'string' 
+            ? trialSubscription.items.data[0].price 
+            : trialSubscription.items.data[0].price.id;
+            
+          const [currentPrice, scheduledPrice] = await Promise.all([
+            stripe.prices.retrieve(currentPriceId, { expand: ['product'] }),
+            stripe.prices.retrieve(scheduledPriceId, { expand: ['product'] })
+          ]);
+
+          const currentPlanName = currentPrice.nickname || 
+            (typeof currentPrice.product === 'object' && 'name' in currentPrice.product ? currentPrice.product.name : 'Current Plan');
+          const scheduledPlanName = scheduledPrice.nickname || 
+            (typeof scheduledPrice.product === 'object' && 'name' in scheduledPrice.product ? scheduledPrice.product.name : 'New Plan');
+
+          scheduled.push({
+            id: trialSubscription.id,
+            currentPlan: currentPlanName,
+            scheduledPlan: scheduledPlanName,
+            scheduledDate: new Date(trialSubscription.trial_end * 1000).toISOString(),
+            status: 'scheduled_downgrade',
+          });
+        }
+      } catch (trialError) {
+        console.error('Error processing trialing subscription:', trialSubscription.id, trialError);
+      }
+    }
+
+    // Method 3: Check regular active subscriptions for pending updates
+    const activeSubscriptions = await stripe.subscriptions.list({
+      customer: stripeCustomerId,
+      status: 'active',
+      limit: 10,
+    });
+
+    for (const subscription of activeSubscriptions.data) {
+      // Check if subscription has pending updates (Stripe stores these in subscription.pending_update)
+      if (subscription.pending_update) {
+        try {
+          const currentPriceId = typeof subscription.items.data[0].price === 'string' 
+            ? subscription.items.data[0].price 
+            : subscription.items.data[0].price.id;
+          const currentPrice = await stripe.prices.retrieve(currentPriceId, { expand: ['product'] });
+          
+          // For pending updates, we need to check what the new price will be
+          if (subscription.pending_update.subscription_items?.[0]?.price) {
+            const pendingPriceId = typeof subscription.pending_update.subscription_items[0].price === 'string'
+              ? subscription.pending_update.subscription_items[0].price
+              : subscription.pending_update.subscription_items[0].price;
+            const pendingPrice = await stripe.prices.retrieve(pendingPriceId, { expand: ['product'] });
+            
+            const currentPlanName = currentPrice.nickname || 
+              (typeof currentPrice.product === 'object' && 'name' in currentPrice.product ? currentPrice.product.name : 'Current Plan');
+            const pendingPlanName = pendingPrice.nickname || 
+              (typeof pendingPrice.product === 'object' && 'name' in pendingPrice.product ? pendingPrice.product.name : 'New Plan');
+
+            // Use the billing cycle anchor as the change date
+            const changeDate = subscription.pending_update.billing_cycle_anchor 
+              ? new Date(subscription.pending_update.billing_cycle_anchor * 1000)
+              : new Date((subscription as any).current_period_end * 1000);
+
+            scheduled.push({
+              id: subscription.id,
+              currentPlan: currentPlanName,
+              scheduledPlan: pendingPlanName,
+              scheduledDate: changeDate.toISOString(),
+              status: 'pending_update',
+            });
+          }
+        } catch (pendingError) {
+          console.error('Error processing pending subscription update:', subscription.id, pendingError);
+        }
+      }
+    }
+
+    console.log('🔍 Found scheduled changes:', scheduled);
     return scheduled;
 
   } catch (error: any) {
