@@ -1308,6 +1308,63 @@ export async function getScheduledSubscriptions(
     }
 
     console.log('🔍 Found scheduled changes:', scheduled);
+    
+    // Deduplicate scheduled subscriptions - merge multiple into one
+    if (scheduled.length > 1) {
+      console.log('⚠️ Multiple scheduled changes detected, deduplicating...');
+      
+      // Sort by criteria: latest date first, then lowest price (downgrades)
+      const sorted = [...scheduled].sort((a, b) => {
+        // First, compare by date (latest first)
+        const dateA = new Date(a.scheduledDate).getTime();
+        const dateB = new Date(b.scheduledDate).getTime();
+        
+        if (dateA !== dateB) {
+          return dateB - dateA; // Latest date first
+        }
+        
+        // If dates are equal, prefer downgrades (Starter plan over Exec)
+        if (a.scheduledPlan.includes('Starter') && !b.scheduledPlan.includes('Starter')) {
+          return -1; // a (Starter) comes first
+        }
+        if (!a.scheduledPlan.includes('Starter') && b.scheduledPlan.includes('Starter')) {
+          return 1; // b (Starter) comes first
+        }
+        
+        // If all else equal, just take the first one
+        return 0;
+      });
+
+      const keepSubscription = sorted[0];
+      const duplicatesToRemove = sorted.slice(1);
+
+      console.log(`✅ Keeping subscription: ${keepSubscription.id} (${keepSubscription.scheduledPlan} on ${new Date(keepSubscription.scheduledDate).toLocaleDateString()})`);
+      console.log(`🗑️ Removing ${duplicatesToRemove.length} duplicate subscriptions:`, duplicatesToRemove.map(s => s.id));
+
+      // Remove duplicate subscriptions from Stripe
+      for (const duplicate of duplicatesToRemove) {
+        try {
+          if (duplicate.status === 'scheduled_downgrade') {
+            // This is a trialing subscription - cancel it
+            await stripe.subscriptions.cancel(duplicate.id);
+            console.log(`✅ Cancelled trialing subscription: ${duplicate.id}`);
+          } else if (duplicate.status === 'scheduled') {
+            // This is a subscription schedule - cancel it
+            await stripe.subscriptionSchedules.cancel(duplicate.id);
+            console.log(`✅ Cancelled subscription schedule: ${duplicate.id}`);
+          } else if (duplicate.status === 'pending_update') {
+            // This is a pending update - we can't directly clear it via API
+            // Instead, we'll just log it and let it be handled naturally
+            console.log(`⚠️ Pending update found: ${duplicate.id} - will be handled by Stripe automatically`);
+          }
+        } catch (error) {
+          console.error(`❌ Failed to remove duplicate subscription ${duplicate.id}:`, error);
+        }
+      }
+
+      return [keepSubscription];
+    }
+    
     return scheduled;
 
   } catch (error: any) {
