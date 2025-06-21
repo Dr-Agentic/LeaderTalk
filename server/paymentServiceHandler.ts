@@ -608,6 +608,20 @@ async function _validateCustomerAndPaymentMethods(stripeCustomerId: string) {
   return { needsPaymentMethod: false };
 }
 
+async function _getCurrentActiveSubscription(stripeCustomerId: string) {
+  const subscriptions = await stripe.subscriptions.list({
+    customer: stripeCustomerId,
+    status: "active",
+    limit: 1,
+  });
+
+  if (subscriptions.data.length === 0) {
+    throw new Error("No active subscription found");
+  }
+
+  return subscriptions.data[0];
+}
+
 async function _updateSubscriptionPrice(stripeCustomerId: string, stripePriceId: string) {
   const subscriptions = await stripe.subscriptions.list({
     customer: stripeCustomerId,
@@ -886,7 +900,7 @@ export async function createPaymentMethodSetupIntent(
 }
 
 /**
- * Preview upcoming invoice for subscription change (Stripe's prorated calculation)
+ * Preview subscription change with hybrid billing logic
  */
 export async function getSubscriptionChangePreview(
   stripeCustomerId: string,
@@ -900,122 +914,215 @@ export async function getSubscriptionChangePreview(
   nextBillingAmount: number;
   currency: string;
   description: string;
+  scheduledDate?: string;
+  timing: 'immediate' | 'end_of_period';
 }> {
-  // Get current subscription
-  const subscriptions = await stripe.subscriptions.list({
-    customer: stripeCustomerId,
-    status: "active",
-    limit: 1,
-  });
-
-  if (subscriptions.data.length === 0) {
-    throw new Error("No active subscription found");
-  }
-
-  const currentSubscription = subscriptions.data[0];
+  const currentSubscription = await _getCurrentActiveSubscription(stripeCustomerId);
   const currentPrice = currentSubscription.items.data[0].price;
   const newPrice = await stripe.prices.retrieve(newPriceId);
   
-  // Get upcoming invoice preview from Stripe
-  const upcomingInvoice = await stripe.invoices.retrieveUpcoming({
-    customer: stripeCustomerId,
-    subscription: currentSubscription.id,
-    subscription_items: [{
-      id: currentSubscription.items.data[0].id,
-      price: newPriceId,
-    }],
-    subscription_proration_behavior: 'create_prorations',
-  });
-
   const currentAmount = currentPrice.unit_amount || 0;
   const newAmount = newPrice.unit_amount || 0;
   
   const changeType = newAmount > currentAmount ? 'upgrade' : 
                     newAmount < currentAmount ? 'downgrade' : 'same';
 
-  // Calculate immediate charge and prorated amounts
   let immediateCharge = 0;
   let proratedCredit = 0;
-  
-  upcomingInvoice.lines.data.forEach(line => {
-    if (line.proration) {
-      if (line.amount < 0) {
-        proratedCredit += Math.abs(line.amount);
-      } else {
-        immediateCharge += line.amount;
-      }
-    }
-  });
+  let description = '';
+  let timing: 'immediate' | 'end_of_period' = 'immediate';
+  let scheduledDate: string | undefined;
 
-  const description = changeType === 'upgrade' 
-    ? `Upgrade to ${newPrice.nickname}. You'll be charged the prorated difference immediately.`
-    : changeType === 'downgrade'
-    ? `Downgrade to ${newPrice.nickname}. You'll receive a prorated credit applied to your next bill.`
-    : `No change in price. Your plan will be updated immediately.`;
+  if (changeType === 'upgrade') {
+    // Upgrades: Immediate with proration - calculate basic prorated difference
+    const currentPeriodStart = (currentSubscription as any).current_period_start;
+    const currentPeriodEnd = (currentSubscription as any).current_period_end;
+    const now = Math.floor(Date.now() / 1000);
+    
+    const totalPeriodDays = Math.ceil((currentPeriodEnd - currentPeriodStart) / (60 * 60 * 24));
+    const remainingDays = Math.ceil((currentPeriodEnd - now) / (60 * 60 * 24));
+    
+    const priceDifference = newAmount - currentAmount;
+    immediateCharge = Math.round((priceDifference * remainingDays) / totalPeriodDays);
+
+    description = `Upgrade to ${newPrice.nickname}. You'll be charged $${(immediateCharge / 100).toFixed(2)} immediately for the prorated difference and gain access to new features right away.`;
+    
+  } else if (changeType === 'downgrade') {
+    // Downgrades: Scheduled for end of period
+    timing = 'end_of_period';
+    const periodEnd = new Date((currentSubscription as any).current_period_end * 1000);
+    scheduledDate = periodEnd.toISOString();
+    
+    description = `Downgrade to ${newPrice.nickname} will take effect at the end of your current billing period (${periodEnd.toLocaleDateString()}). You'll keep all current features until then.`;
+    
+  } else {
+    // Same price: Immediate change, no billing impact
+    description = `Switch to ${newPrice.nickname}. No billing changes, just feature/limit adjustments.`;
+  }
 
   return {
     changeType,
     currentPlan: currentPrice.nickname || 'Current Plan',
     newPlan: newPrice.nickname || 'New Plan',
-    immediateCharge: immediateCharge / 100, // Convert from cents
-    proratedCredit: proratedCredit / 100, // Convert from cents
-    nextBillingAmount: newAmount / 100, // Convert from cents
-    currency: upcomingInvoice.currency,
+    immediateCharge: immediateCharge / 100,
+    proratedCredit: proratedCredit / 100,
+    nextBillingAmount: newAmount / 100,
+    currency: currentPrice.currency || 'usd',
     description,
+    scheduledDate,
+    timing,
   };
 }
 
 /**
- * Get subscription change impact details
+ * Execute immediate upgrade with prorated billing
  */
-export async function getSubscriptionChangeImpact(
-  stripeSubscriptionId: string,
+export async function executeUpgradeWithProration(
+  stripeCustomerId: string,
   newPriceId: string,
 ): Promise<{
-  changeType: 'upgrade' | 'downgrade' | 'same';
-  currentPlan: string;
-  newPlan: string;
-  proratedCredit: number;
-  immediateCharge: number;
-  nextBillingAmount: number;
-  currency: string;
-  warningMessage?: string;
+  success: boolean;
+  requiresPayment?: boolean;
+  clientSecret?: string;
+  message?: string;
+  error?: string;
 }> {
-  const subscription = await stripe.subscriptions.retrieve(stripeSubscriptionId);
-  const currentPrice = subscription.items.data[0].price;
-  const newPrice = await stripe.prices.retrieve(newPriceId);
-  
-  const currentAmount = currentPrice.unit_amount || 0;
-  const newAmount = newPrice.unit_amount || 0;
-  
-  const changeType = newAmount > currentAmount ? 'upgrade' : 
-                    newAmount < currentAmount ? 'downgrade' : 'same';
-  
-  const creditInfo = await calculateProratedCredit(stripeSubscriptionId);
-  
-  let immediateCharge = 0;
-  let warningMessage: string | undefined;
-  
-  if (changeType === 'upgrade') {
-    // For upgrades, charge the prorated difference immediately
-    const proratedNewAmount = Math.round((newAmount * creditInfo.remainingDays) / creditInfo.totalDays);
-    immediateCharge = (proratedNewAmount - (creditInfo.proratedCredit * 100)) / 100;
-  } else if (changeType === 'downgrade') {
-    // For downgrades, warn about lost value
-    warningMessage = `You'll lose $${creditInfo.proratedCredit.toFixed(2)} from your current subscription. This change will take effect at your next billing cycle.`;
-  }
-  
-  return {
-    changeType,
-    currentPlan: currentPrice.nickname || 'Current Plan',
-    newPlan: newPrice.nickname || 'New Plan',
-    proratedCredit: creditInfo.proratedCredit,
-    immediateCharge: Math.max(0, immediateCharge),
-    nextBillingAmount: newAmount / 100,
-    currency: creditInfo.currency,
-    warningMessage,
-  };
+  return await updateUserSubscriptionToPlan(stripeCustomerId, newPriceId);
 }
+
+/**
+ * Schedule subscription downgrade for end of billing period
+ */
+export async function scheduleSubscriptionDowngrade(
+  stripeCustomerId: string,
+  newPriceId: string,
+): Promise<{
+  success: boolean;
+  scheduledDate: string;
+  message?: string;
+  error?: string;
+}> {
+  try {
+    const currentSubscription = await _getCurrentActiveSubscription(stripeCustomerId);
+    
+    // Cancel current subscription at period end
+    await stripe.subscriptions.update(currentSubscription.id, {
+      cancel_at_period_end: true,
+    });
+
+    // Create new subscription scheduled to start at period end
+    const periodEndDate = currentSubscription.current_period_end;
+    const newSubscription = await stripe.subscriptions.create({
+      customer: stripeCustomerId,
+      items: [{ price: newPriceId }],
+      trial_end: periodEndDate,
+      expand: ['latest_invoice'],
+    });
+
+    const scheduledDate = new Date(periodEndDate * 1000).toISOString();
+
+    return {
+      success: true,
+      scheduledDate,
+      message: `Downgrade scheduled successfully. Change will take effect on ${new Date(periodEndDate * 1000).toLocaleDateString()}.`,
+    };
+    
+  } catch (error: any) {
+    console.error("❌ Failed to schedule downgrade:", error);
+    return {
+      success: false,
+      scheduledDate: '',
+      error: error.message || "Failed to schedule subscription downgrade",
+    };
+  }
+}
+
+/**
+ * Get scheduled subscription changes for a customer
+ */
+export async function getScheduledSubscriptions(
+  stripeCustomerId: string,
+): Promise<Array<{
+  id: string;
+  currentPlan: string;
+  scheduledPlan: string;
+  scheduledDate: string;
+  status: string;
+}>> {
+  const subscriptions = await stripe.subscriptions.list({
+    customer: stripeCustomerId,
+    status: 'all',
+    limit: 10,
+  });
+
+  const scheduled = [];
+
+  for (const sub of subscriptions.data) {
+    // Check for subscriptions with trial_end (scheduled to start)
+    if (sub.status === 'trialing' && sub.trial_end) {
+      const price = sub.items.data[0]?.price;
+      scheduled.push({
+        id: sub.id,
+        currentPlan: 'Current Plan',
+        scheduledPlan: price?.nickname || 'New Plan',
+        scheduledDate: new Date(sub.trial_end * 1000).toISOString(),
+        status: 'scheduled',
+      });
+    }
+    
+    // Check for subscriptions marked to cancel at period end
+    if (sub.cancel_at_period_end && sub.current_period_end) {
+      scheduled.push({
+        id: sub.id,
+        currentPlan: sub.items.data[0]?.price?.nickname || 'Current Plan',
+        scheduledPlan: 'Cancelled',
+        scheduledDate: new Date(sub.current_period_end * 1000).toISOString(),
+        status: 'cancelling',
+      });
+    }
+  }
+
+  return scheduled;
+}
+
+/**
+ * Cancel a scheduled subscription change
+ */
+export async function cancelScheduledChange(
+  stripeSubscriptionId: string,
+): Promise<{
+  success: boolean;
+  message?: string;
+  error?: string;
+}> {
+  try {
+    const subscription = await stripe.subscriptions.retrieve(stripeSubscriptionId);
+    
+    if (subscription.status === 'trialing') {
+      // Cancel scheduled subscription
+      await stripe.subscriptions.cancel(stripeSubscriptionId);
+    } else if (subscription.cancel_at_period_end) {
+      // Reactivate subscription (remove cancel_at_period_end)
+      await stripe.subscriptions.update(stripeSubscriptionId, {
+        cancel_at_period_end: false,
+      });
+    }
+
+    return {
+      success: true,
+      message: "Scheduled change cancelled successfully.",
+    };
+    
+  } catch (error: any) {
+    console.error("❌ Failed to cancel scheduled change:", error);
+    return {
+      success: false,
+      error: error.message || "Failed to cancel scheduled change",
+    };
+  }
+}
+
+
 
 /**
  * Cancel a user's subscription at period end

@@ -7,7 +7,11 @@ import {
   getCustomerPaymentMethods,
   setDefaultPaymentMethod,
   createPaymentMethodSetupIntent,
-  getSubscriptionChangeImpact
+  getSubscriptionChangePreview,
+  executeUpgradeWithProration,
+  scheduleSubscriptionDowngrade,
+  getScheduledSubscriptions,
+  cancelScheduledChange
 } from "../paymentServiceHandler";
 import { 
   getBillingProducts,
@@ -247,8 +251,8 @@ export function registerBillingRoutes(app: Express) {
     }
   });
 
-  // POST /api/billing/subscriptions/change-impact - Get subscription change impact
-  app.post('/api/billing/subscriptions/change-impact', requireAuth, async (req, res) => {
+  // POST /api/billing/subscription/preview - Get subscription change preview
+  app.post('/api/billing/subscription/preview', requireAuth, async (req, res) => {
     try {
       const userId = req.session!.userId!;
       const { stripePriceId } = req.body;
@@ -262,30 +266,85 @@ export function registerBillingRoutes(app: Express) {
         return res.status(404).json({ error: "User not found" });
       }
 
-      // Get current subscription data
-      const response = await fetch(`http://localhost:5000/api/billing/subscriptions/current`, {
-        headers: { 'Cookie': req.headers.cookie || '' }
-      });
-      
-      if (!response.ok) {
-        return res.status(404).json({ error: "No active subscription found" });
-      }
-      
-      const subscriptionData = await response.json();
-      if (!subscriptionData.subscription?.id) {
-        return res.status(404).json({ error: "No active subscription found" });
-      }
-
-      const impact = await getSubscriptionChangeImpact(
-        subscriptionData.subscription.id,
+      const preview = await getSubscriptionChangePreview(
+        user.stripeCustomerId,
         stripePriceId
       );
       
-      res.json(impact);
+      res.json(preview);
       
     } catch (error: any) {
-      console.error("Error calculating subscription change impact:", error);
-      res.status(500).json({ error: "Failed to calculate subscription change impact" });
+      console.error("Error getting subscription change preview:", error);
+      res.status(500).json({ error: "Failed to get subscription change preview" });
+    }
+  });
+
+  // POST /api/billing/subscription/change - Execute subscription change
+  app.post('/api/billing/subscription/change', requireAuth, async (req, res) => {
+    try {
+      const userId = req.session!.userId!;
+      const { stripePriceId, changeType } = req.body;
+      
+      if (!stripePriceId || !changeType) {
+        return res.status(400).json({ error: "Price ID and change type are required" });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user || !user.stripeCustomerId) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      let result;
+      if (changeType === 'upgrade' || changeType === 'same') {
+        result = await executeUpgradeWithProration(user.stripeCustomerId, stripePriceId);
+      } else if (changeType === 'downgrade') {
+        result = await scheduleSubscriptionDowngrade(user.stripeCustomerId, stripePriceId);
+      } else {
+        return res.status(400).json({ error: "Invalid change type" });
+      }
+      
+      res.json(result);
+      
+    } catch (error: any) {
+      console.error("Error executing subscription change:", error);
+      res.status(500).json({ error: "Failed to execute subscription change" });
+    }
+  });
+
+  // GET /api/billing/subscription/scheduled - Get scheduled subscription changes
+  app.get('/api/billing/subscription/scheduled', requireAuth, async (req, res) => {
+    try {
+      const userId = req.session!.userId!;
+      
+      const user = await storage.getUser(userId);
+      if (!user || !user.stripeCustomerId) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      const scheduled = await getScheduledSubscriptions(user.stripeCustomerId);
+      res.json({ scheduled });
+      
+    } catch (error: any) {
+      console.error("Error getting scheduled subscriptions:", error);
+      res.status(500).json({ error: "Failed to get scheduled subscriptions" });
+    }
+  });
+
+  // DELETE /api/billing/subscription/scheduled/:id - Cancel scheduled change
+  app.delete('/api/billing/subscription/scheduled/:id', requireAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      if (!id) {
+        return res.status(400).json({ error: "Subscription ID is required" });
+      }
+
+      const result = await cancelScheduledChange(id);
+      res.json(result);
+      
+    } catch (error: any) {
+      console.error("Error cancelling scheduled change:", error);
+      res.status(500).json({ error: "Failed to cancel scheduled change" });
     }
   });
 
