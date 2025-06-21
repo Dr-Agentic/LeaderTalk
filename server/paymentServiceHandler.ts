@@ -886,36 +886,82 @@ export async function createPaymentMethodSetupIntent(
 }
 
 /**
- * Calculate prorated credit for subscription changes
+ * Preview upcoming invoice for subscription change (Stripe's prorated calculation)
  */
-export async function calculateProratedCredit(
-  stripeSubscriptionId: string,
+export async function getSubscriptionChangePreview(
+  stripeCustomerId: string,
+  newPriceId: string,
 ): Promise<{
-  currentAmount: number;
+  changeType: 'upgrade' | 'downgrade' | 'same';
+  currentPlan: string;
+  newPlan: string;
+  immediateCharge: number;
   proratedCredit: number;
-  remainingDays: number;
-  totalDays: number;
+  nextBillingAmount: number;
   currency: string;
+  description: string;
 }> {
-  const subscription = await stripe.subscriptions.retrieve(stripeSubscriptionId);
+  // Get current subscription
+  const subscriptions = await stripe.subscriptions.list({
+    customer: stripeCustomerId,
+    status: "active",
+    limit: 1,
+  });
+
+  if (subscriptions.data.length === 0) {
+    throw new Error("No active subscription found");
+  }
+
+  const currentSubscription = subscriptions.data[0];
+  const currentPrice = currentSubscription.items.data[0].price;
+  const newPrice = await stripe.prices.retrieve(newPriceId);
   
-  const currentPeriodStart = subscription.current_period_start * 1000;
-  const currentPeriodEnd = subscription.current_period_end * 1000;
-  const now = Date.now();
+  // Get upcoming invoice preview from Stripe
+  const upcomingInvoice = await stripe.invoices.retrieveUpcoming({
+    customer: stripeCustomerId,
+    subscription: currentSubscription.id,
+    subscription_items: [{
+      id: currentSubscription.items.data[0].id,
+      price: newPriceId,
+    }],
+    subscription_proration_behavior: 'create_prorations',
+  });
+
+  const currentAmount = currentPrice.unit_amount || 0;
+  const newAmount = newPrice.unit_amount || 0;
   
-  const totalDays = Math.ceil((currentPeriodEnd - currentPeriodStart) / (1000 * 60 * 60 * 24));
-  const remainingDays = Math.ceil((currentPeriodEnd - now) / (1000 * 60 * 60 * 24));
+  const changeType = newAmount > currentAmount ? 'upgrade' : 
+                    newAmount < currentAmount ? 'downgrade' : 'same';
+
+  // Calculate immediate charge and prorated amounts
+  let immediateCharge = 0;
+  let proratedCredit = 0;
   
-  const item = subscription.items.data[0];
-  const currentAmount = item.price.unit_amount || 0;
-  const proratedCredit = Math.round((currentAmount * remainingDays) / totalDays);
-  
+  upcomingInvoice.lines.data.forEach(line => {
+    if (line.proration) {
+      if (line.amount < 0) {
+        proratedCredit += Math.abs(line.amount);
+      } else {
+        immediateCharge += line.amount;
+      }
+    }
+  });
+
+  const description = changeType === 'upgrade' 
+    ? `Upgrade to ${newPrice.nickname}. You'll be charged the prorated difference immediately.`
+    : changeType === 'downgrade'
+    ? `Downgrade to ${newPrice.nickname}. You'll receive a prorated credit applied to your next bill.`
+    : `No change in price. Your plan will be updated immediately.`;
+
   return {
-    currentAmount: currentAmount / 100, // Convert from cents
+    changeType,
+    currentPlan: currentPrice.nickname || 'Current Plan',
+    newPlan: newPrice.nickname || 'New Plan',
+    immediateCharge: immediateCharge / 100, // Convert from cents
     proratedCredit: proratedCredit / 100, // Convert from cents
-    remainingDays: Math.max(0, remainingDays),
-    totalDays,
-    currency: item.price.currency || 'usd',
+    nextBillingAmount: newAmount / 100, // Convert from cents
+    currency: upcomingInvoice.currency,
+    description,
   };
 }
 
