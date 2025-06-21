@@ -38,6 +38,7 @@ import {
   useStripe,
   useElements,
 } from "@stripe/react-stripe-js";
+import PaymentMethodSelector from "./PaymentMethodSelector";
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY!);
 
@@ -314,6 +315,8 @@ export default function SecureSubscription() {
     originalRequest?: { stripePriceId: string };
   } | null>(null);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [showPaymentMethodSelector, setShowPaymentMethodSelector] = useState(false);
+  const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<string | undefined>();
   const { toast } = useToast();
 
   // Fetch current subscription
@@ -648,6 +651,17 @@ export default function SecureSubscription() {
           </Card>
         ))}
       </div>
+
+      {/* Payment Method Selection */}
+      {currentSubscription?.hasSubscription && (
+        <PaymentMethodSelector
+          onPaymentMethodSelected={(paymentMethodId) => {
+            setSelectedPaymentMethodId(paymentMethodId);
+          }}
+          selectedPaymentMethodId={selectedPaymentMethodId}
+          showAddNewOption={true}
+        />
+      )}
 
       {/* Payment Setup Form */}
       {paymentSetup && (
