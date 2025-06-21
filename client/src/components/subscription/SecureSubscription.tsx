@@ -326,7 +326,7 @@ export default function SecureSubscription() {
   const { toast } = useToast();
 
   // Fetch current subscription
-  const { data: currentSubscription, isLoading: subscriptionLoading } =
+  const { data: currentSubscription, isLoading: subscriptionLoading, refetch: refetchSubscription } =
     useQuery<CurrentSubscription>({
       queryKey: ["/api/billing/subscriptions/current"],
       enabled: true,
@@ -553,7 +553,7 @@ export default function SecureSubscription() {
       const result = await response.json();
 
       if (result.success) {
-        await subscriptionQuery.refetch();
+        await refetchSubscription();
         
         // Show appropriate success message based on change type
         if (changeType === 'upgrade') {
