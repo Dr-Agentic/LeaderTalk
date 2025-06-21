@@ -584,21 +584,48 @@ export async function updateUserSubscriptionToPlan(
       throw new Error(`Customer ${stripeCustomerId} not found or deleted`);
     }
 
-    // Step 2: Check payment methods with enhanced validation
-    const paymentMethods = await stripe.paymentMethods.list({
-      customer: stripeCustomerId,
-      type: "card",
-    });
+    // Step 2: Enhanced payment method validation with retry logic
+    let paymentMethods;
+    let hasValidPaymentMethod = false;
+    const maxRetries = 5;
+    const baseDelay = 500; // Start with 500ms
 
-    console.log(`💳 Payment method status:`, {
-      customerId: stripeCustomerId,
-      methodCount: paymentMethods.data.length,
-      defaultMethod: customer.invoice_settings?.default_payment_method,
-    });
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        paymentMethods = await stripe.paymentMethods.list({
+          customer: stripeCustomerId,
+          type: "card",
+        });
 
-    // Step 3: Ensure default payment method is set
-    if (paymentMethods.data.length === 0) {
-      console.log("❌ No payment methods found - creating setup intent");
+        console.log(`💳 Payment method check attempt ${attempt}/${maxRetries}:`, {
+          customerId: stripeCustomerId,
+          methodCount: paymentMethods.data.length,
+          defaultMethod: customer.invoice_settings?.default_payment_method,
+        });
+
+        if (paymentMethods.data.length > 0) {
+          hasValidPaymentMethod = true;
+          break;
+        }
+
+        // If this is the first few attempts, wait longer for payment method attachment
+        if (attempt < maxRetries) {
+          const delay = baseDelay * Math.pow(2, attempt - 1); // Exponential backoff
+          console.log(`⏳ Waiting ${delay}ms before retry ${attempt + 1}...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      } catch (error: any) {
+        console.error(`❌ Error checking payment methods (attempt ${attempt}):`, error);
+        if (attempt === maxRetries) {
+          throw error;
+        }
+        await new Promise(resolve => setTimeout(resolve, baseDelay * attempt));
+      }
+    }
+
+    // Step 3: Handle no payment methods found after all retries
+    if (!hasValidPaymentMethod) {
+      console.log("❌ No payment methods found after retries - creating setup intent");
       const setupIntent = await stripe.setupIntents.create({
         customer: stripeCustomerId,
         usage: "off_session",
@@ -645,7 +672,7 @@ export async function updateUserSubscriptionToPlan(
     );
     const newPrice = await stripe.prices.retrieve(stripePriceId);
 
-    const changingIntervals = 
+    let changingIntervals = 
       currentPrice.recurring?.interval !== newPrice.recurring?.interval;
 
     console.log("🔍 Subscription update analysis:", {
@@ -656,7 +683,7 @@ export async function updateUserSubscriptionToPlan(
       newPriceId: stripePriceId,
     });
 
-    let updatedSubscription;
+    let updatedSubscription: any = currentSubscription;
     let isScheduledChange = false;
 
     if (changingIntervals) {
@@ -667,7 +694,7 @@ export async function updateUserSubscriptionToPlan(
         // Create a new subscription schedule for interval changes
         const schedule = await stripe.subscriptionSchedules.create({
           customer: stripeCustomerId,
-          start_date: currentSubscription.current_period_end,
+          start_date: (currentSubscription as any).current_period_end,
           end_behavior: "release",
           phases: [
             {
@@ -684,7 +711,7 @@ export async function updateUserSubscriptionToPlan(
 
         console.log("✅ Subscription schedule created:", schedule.id);
         isScheduledChange = true;
-        updatedSubscription = currentSubscription; // Return current subscription since change is scheduled
+        // Keep current subscription as the updated one since change is scheduled
       } catch (scheduleError: any) {
         console.log("⚠️ Schedule creation failed, falling back to immediate update:", scheduleError.message);
         // Fall back to immediate update
@@ -742,7 +769,7 @@ export async function updateUserSubscriptionToPlan(
     );
 
     const message = isScheduledChange 
-      ? `Your plan change has been scheduled! You'll continue with your current plan until ${new Date(currentSubscription.current_period_end * 1000).toLocaleDateString()}, then automatically switch to the new plan.`
+      ? `Your plan change has been scheduled! You'll continue with your current plan until ${new Date((currentSubscription as any).current_period_end * 1000).toLocaleDateString()}, then automatically switch to the new plan.`
       : "Subscription updated successfully";
 
     return {

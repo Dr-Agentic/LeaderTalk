@@ -11,6 +11,8 @@ import {
   updateUserSubscription,
   cancelSubscription
 } from "../subscriptionController";
+import Stripe from "stripe";
+import { config } from "../config/environment";
 
 const requireAuth = (req: Request, res: Response, next: Function) => {
   if (!(req.session as any)?.userId) {
