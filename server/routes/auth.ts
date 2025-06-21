@@ -167,6 +167,7 @@ export function registerAuthRoutes(app: Express) {
           }, {})
         : {};
 
+      /*
       console.log("🔐 AUTH CALLBACK COOKIE DEBUG:", {
         expectedCookieName: "leadertalk.sid",
         hasLeadertalkSid: !!cookies["leadertalk.sid"],
@@ -175,6 +176,7 @@ export function registerAuthRoutes(app: Express) {
         sessionIdBefore: req.sessionID?.substring(0, 8) + "...",
         sessionReceived: req.session,
       });
+      */
 
       console.log("Processing Supabase authentication for:", {
         uid,
