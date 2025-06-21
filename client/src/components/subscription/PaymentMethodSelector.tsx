@@ -116,31 +116,30 @@ function AddPaymentMethodForm({
   };
 
   return (
-    <Card className="border-gray-600/50 bg-gradient-to-br from-gray-900/90 to-gray-800/80 backdrop-blur-sm shadow-2xl">
-      <CardHeader className="pb-4">
-        <CardTitle className="flex items-center justify-between text-white text-lg">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 rounded-lg bg-primary/20">
-              <CreditCard className="h-5 w-5 text-primary" />
+    <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 via-transparent to-white/5 backdrop-blur-xl shadow-2xl">
+      {/* Glass effect overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/10 opacity-60" />
+      
+      <div className="relative p-6 space-y-6">
+        {/* Header */}
+        <div className="text-center space-y-3">
+          <div className="flex justify-center">
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 backdrop-blur-sm shadow-lg shadow-primary/20">
+              <CreditCard className="h-6 w-6 text-primary" />
             </div>
-            <span>Add New Payment Method</span>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onCancel}
-            className="text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-lg"
-          >
-            Cancel
-          </Button>
-        </CardTitle>
-        <CardDescription className="text-gray-300 text-sm leading-relaxed">
-          Add a secure payment method to your account
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="pb-6">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="p-4 rounded-xl border border-gray-600/40 bg-gray-800/30">
+          <div>
+            <h3 className="text-xl font-semibold text-white mb-2">Add Payment Method</h3>
+            <p className="text-gray-300 text-sm leading-relaxed">
+              Secure bank-level encryption
+            </p>
+          </div>
+        </div>
+
+        {/* Payment Element */}
+        <div className="relative overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-transparent backdrop-blur-sm">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-30" />
+          <div className="relative p-5">
             <PaymentElement 
               options={{
                 layout: 'tabs',
@@ -148,40 +147,45 @@ function AddPaymentMethodForm({
               }}
             />
           </div>
-          
-          <div className="flex flex-col sm:flex-row gap-3">
-            <Button
-              type="submit"
-              disabled={!stripe || isProcessing}
-              className="flex-1 bg-primary hover:bg-primary/90 text-white shadow-lg h-12"
-              size="lg"
-            >
+        </div>
+        
+        {/* Action Buttons - Vertical Layout */}
+        <div className="space-y-4 pt-2">
+          <Button
+            type="submit"
+            disabled={!stripe || isProcessing}
+            onClick={handleSubmit}
+            className="w-full h-14 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 text-white font-semibold text-base shadow-lg shadow-primary/25 backdrop-blur-sm border border-white/10 transition-all duration-200"
+            size="lg"
+          >
+            <div className="flex items-center justify-center">
               {isProcessing ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Adding payment method...
+                  <Loader2 className="mr-3 h-5 w-5 animate-spin" />
+                  <span>Adding...</span>
                 </>
               ) : (
                 <>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Payment Method
+                  <Plus className="mr-3 h-5 w-5" />
+                  <span>Add Payment Method</span>
                 </>
               )}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onCancel}
-              disabled={isProcessing}
-              className="border-gray-600 text-gray-300 hover:bg-gray-700/50 hover:text-white h-12 sm:w-auto"
-              size="lg"
-            >
-              Cancel
-            </Button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+            </div>
+          </Button>
+          
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+            disabled={isProcessing}
+            className="w-full h-12 border border-white/20 bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white backdrop-blur-sm font-medium transition-all duration-200"
+            size="lg"
+          >
+            Cancel
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -218,8 +222,10 @@ export default function PaymentMethodSelector({
       return response.json();
     },
     onSuccess: (data) => {
-      setSetupClientSecret(data.clientSecret);
-      setIsAddingNew(true);
+      if (data.clientSecret) {
+        setSetupClientSecret(data.clientSecret);
+        setIsAddingNew(true);
+      }
     },
     onError: () => {
       toast({
@@ -306,8 +312,8 @@ export default function PaymentMethodSelector({
 
   if (isLoading) {
     return (
-      <Card className="border-gray-600/50 bg-gradient-to-br from-gray-900/90 to-gray-800/80 backdrop-blur-sm shadow-2xl">
-        <CardContent className="p-8">
+      <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 via-transparent to-white/5 backdrop-blur-xl shadow-2xl">
+        <div className="relative p-8">
           <div className="flex flex-col items-center justify-center space-y-4">
             <div className="relative">
               <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
@@ -320,8 +326,8 @@ export default function PaymentMethodSelector({
               <p className="text-gray-400 text-sm mt-1">Please wait a moment...</p>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   }
 
@@ -350,172 +356,148 @@ export default function PaymentMethodSelector({
   }
 
   return (
-    <Card className="border-gray-600/50 bg-gradient-to-br from-gray-900/90 to-gray-800/80 backdrop-blur-sm shadow-2xl">
-      <CardHeader className="pb-4">
-        <CardTitle className="flex items-center space-x-3 text-white text-lg">
-          <div className="p-2 rounded-lg bg-primary/20">
-            <CreditCard className="h-5 w-5 text-primary" />
-          </div>
-          <span>Payment Method</span>
-        </CardTitle>
-        <CardDescription className="text-gray-300 text-sm leading-relaxed">
-          Select a payment method for your subscription
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-3 pb-6">
-        {paymentMethods.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="mb-6">
-              <div className="w-16 h-16 mx-auto rounded-full bg-gray-700/30 flex items-center justify-center mb-4">
-                <CreditCard className="h-8 w-8 text-gray-500" />
-              </div>
-              <h3 className="text-white font-medium mb-2">No payment methods</h3>
-              <p className="text-gray-400 text-sm">Add a payment method to continue</p>
+    <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 via-transparent to-white/5 backdrop-blur-xl shadow-2xl">
+      {/* Glass effect overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/10 opacity-60" />
+      
+      <div className="relative p-6 space-y-6">
+        {/* Header */}
+        <div className="text-center space-y-3">
+          <div className="flex justify-center">
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 backdrop-blur-sm shadow-lg shadow-primary/20">
+              <CreditCard className="h-6 w-6 text-primary" />
             </div>
-            <Button
-              onClick={() => setupPaymentMethod.mutate()}
-              disabled={setupPaymentMethod.isPending}
-              className="w-full max-w-xs mx-auto bg-primary hover:bg-primary/90 text-white shadow-lg"
-              size="lg"
-            >
-              {setupPaymentMethod.isPending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Setting up...
-                </>
-              ) : (
-                <>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Payment Method
-                </>
-              )}
-            </Button>
           </div>
-        ) : (
-          <>
-            {/* Payment Method Cards - Mobile Optimized */}
-            <div className="space-y-3">
+          <div>
+            <h3 className="text-xl font-semibold text-white mb-2">Select Payment Method</h3>
+            <p className="text-gray-300 text-sm leading-relaxed">
+              Choose your preferred payment method
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          {paymentMethods.length === 0 ? (
+            <div className="text-center py-8 space-y-6">
+              <div className="flex justify-center">
+                <div className="p-6 rounded-2xl bg-gradient-to-br from-gray-700/30 to-gray-600/20 backdrop-blur-sm">
+                  <CreditCard className="h-10 w-10 text-gray-400" />
+                </div>
+              </div>
+              <div>
+                <h3 className="text-white font-semibold mb-2">No Payment Methods</h3>
+                <p className="text-gray-400 text-sm mb-6">Add a payment method to continue</p>
+                <Button
+                  onClick={() => setupPaymentMethod.mutate()}
+                  disabled={setupPaymentMethod.isPending}
+                  className="w-full h-14 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 text-white font-semibold shadow-lg shadow-primary/25 backdrop-blur-sm border border-white/10 transition-all duration-200"
+                  size="lg"
+                >
+                  {setupPaymentMethod.isPending ? (
+                    <div className="flex items-center">
+                      <Loader2 className="mr-3 h-5 w-5 animate-spin" />
+                      <span>Setting up...</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center">
+                      <Plus className="mr-3 h-5 w-5" />
+                      <span>Add Payment Method</span>
+                    </div>
+                  )}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {/* Payment Method Cards */}
               {paymentMethods.map((pm) => (
                 <div
                   key={pm.id}
                   onClick={() => handlePaymentMethodSelect(pm.id)}
-                  className={`group relative overflow-hidden rounded-xl border transition-all duration-300 cursor-pointer touch-manipulation
-                    ${(selectedPaymentMethodId || defaultPaymentMethod?.id) === pm.id
-                      ? "border-primary/60 bg-gradient-to-r from-primary/10 to-primary/5 shadow-lg shadow-primary/20 transform scale-[1.02]"
-                      : "border-gray-600/40 bg-gradient-to-r from-gray-800/40 to-gray-700/20 hover:border-primary/30 hover:shadow-md active:scale-[0.98]"
-                    }`}
+                  className={`group relative overflow-hidden rounded-xl border transition-all duration-300 cursor-pointer backdrop-blur-sm ${
+                    (selectedPaymentMethodId || defaultPaymentMethod?.id) === pm.id
+                      ? "border-primary/40 bg-gradient-to-br from-primary/10 to-primary/5 shadow-lg shadow-primary/20"
+                      : "border-white/10 bg-gradient-to-br from-white/5 to-transparent hover:border-primary/30 hover:from-primary/5"
+                  }`}
                   style={{ minHeight: '80px' }}
                 >
-                  {/* Selection indicator with animation */}
-                  {(selectedPaymentMethodId || defaultPaymentMethod?.id) === pm.id && (
-                    <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent animate-in fade-in duration-300" />
-                  )}
-                  
-                  {/* Active border glow */}
-                  {(selectedPaymentMethodId || defaultPaymentMethod?.id) === pm.id && (
-                    <div className="absolute inset-0 rounded-xl border border-primary/30 animate-in fade-in duration-300" />
-                  )}
-                  
                   <div className="relative p-5">
-                    {/* Top row - Payment method info */}
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-4 flex-1 min-w-0">
-                        <div className={`p-3 rounded-xl transition-all duration-200
-                          ${(selectedPaymentMethodId || defaultPaymentMethod?.id) === pm.id
+                        <div className={`p-3 rounded-xl transition-all duration-200 ${
+                          (selectedPaymentMethodId || defaultPaymentMethod?.id) === pm.id
                             ? "bg-primary/20 text-primary shadow-lg shadow-primary/20"
-                            : "bg-gray-700/50 text-gray-400 group-hover:bg-primary/10 group-hover:text-primary"
-                          }`}>
+                            : "bg-white/10 text-gray-400 group-hover:bg-primary/10 group-hover:text-primary"
+                        }`}>
                           {getPaymentMethodIcon(pm)}
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-white font-semibold text-base truncate">
                             {formatPaymentMethod(pm)}
                           </p>
-                          <p className="text-gray-400 text-sm mt-1">
-                            Added {new Date(pm.created * 1000).toLocaleDateString()}
-                          </p>
+                          <div className="flex items-center space-x-2 mt-1">
+                            <p className="text-gray-400 text-sm">
+                              Added {new Date(pm.created * 1000).toLocaleDateString()}
+                            </p>
+                            {pm.isDefault && (
+                              <Badge 
+                                variant="secondary" 
+                                className="bg-primary/20 text-primary border-primary/30 text-xs"
+                              >
+                                Default
+                              </Badge>
+                            )}
+                          </div>
                         </div>
                       </div>
                       
-                      {/* Selection checkmark with animation */}
                       {(selectedPaymentMethodId || defaultPaymentMethod?.id) === pm.id && (
-                        <div className="flex-shrink-0 ml-3 animate-in zoom-in duration-300">
+                        <div className="flex-shrink-0 ml-3">
                           <div className="w-8 h-8 rounded-full bg-primary shadow-lg shadow-primary/30 flex items-center justify-center">
                             <Check className="h-4 w-4 text-white" />
                           </div>
                         </div>
                       )}
                     </div>
-
-                    {/* Bottom row - Status and actions */}
-                    <div className="flex items-center justify-between pt-2 border-t border-gray-700/30">
-                      <div className="flex items-center space-x-3">
-                        {pm.isDefault && (
-                          <Badge variant="secondary" className="text-xs bg-primary/20 text-primary border-primary/30 px-3 py-1">
-                            <Check className="h-3 w-3 mr-1" />
-                            Default
-                          </Badge>
-                        )}
-                      </div>
-                      
-                      {!pm.isDefault && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleSetAsDefault(pm.id);
-                          }}
-                          disabled={setDefaultPaymentMethod.isPending}
-                          className="text-sm text-gray-400 hover:text-primary hover:bg-primary/10 px-4 py-2 h-auto rounded-lg transition-all duration-200"
-                        >
-                          {setDefaultPaymentMethod.isPending ? (
-                            <Loader2 className="h-3 w-3 animate-spin" />
-                          ) : (
-                            "Set Default"
-                          )}
-                        </Button>
-                      )}
-                    </div>
                   </div>
                 </div>
               ))}
-            </div>
 
-            {/* Add New Payment Method Card - Mobile Optimized */}
-            {showAddNewOption && (
-              <div
-                onClick={handleAddNewPaymentMethod}
-                className="group relative mt-4 p-6 rounded-xl border-2 border-dashed border-gray-600/40 bg-gradient-to-r from-gray-800/20 to-gray-700/10 cursor-pointer transition-all duration-300 hover:border-primary/40 hover:bg-gradient-to-r hover:from-primary/5 hover:to-primary/2 active:scale-[0.98] touch-manipulation"
-                style={{ minHeight: '80px' }}
-              >
-                <div className="flex items-center justify-center space-x-4">
-                  <div className="p-3 rounded-xl bg-gray-700/30 group-hover:bg-primary/20 transition-all duration-200 group-hover:shadow-lg group-hover:shadow-primary/20">
-                    <Plus className="h-5 w-5 text-gray-400 group-hover:text-primary transition-colors duration-200" />
-                  </div>
-                  <div className="text-center">
-                    <p className="font-semibold text-gray-400 group-hover:text-primary transition-colors duration-200 text-base">
-                      Add New Payment Method
-                    </p>
-                    <p className="text-gray-500 text-sm mt-1 group-hover:text-gray-400 transition-colors duration-200">
-                      Tap to add a new payment option
-                    </p>
-                  </div>
-                </div>
-                
-                {setupPaymentMethod.isPending && (
-                  <div className="absolute inset-0 bg-gray-900/50 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                    <div className="flex items-center space-x-3 text-white">
-                      <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                      <span className="font-medium">Setting up...</span>
+              {/* Add New Payment Method */}
+              {showAddNewOption && (
+                <div
+                  onClick={handleAddNewPaymentMethod}
+                  className="group relative p-6 rounded-xl border-2 border-dashed border-white/20 bg-gradient-to-br from-white/5 to-transparent hover:border-primary/40 hover:from-primary/5 cursor-pointer transition-all duration-300 backdrop-blur-sm"
+                  style={{ minHeight: '80px' }}
+                >
+                  <div className="flex items-center justify-center space-x-4">
+                    <div className="p-3 rounded-xl bg-white/10 group-hover:bg-primary/20 transition-all duration-200">
+                      <Plus className="h-5 w-5 text-gray-400 group-hover:text-primary transition-colors duration-200" />
+                    </div>
+                    <div className="text-center">
+                      <p className="font-semibold text-gray-400 group-hover:text-primary transition-colors duration-200">
+                        Add New Method
+                      </p>
+                      <p className="text-gray-500 text-sm mt-1 group-hover:text-gray-400 transition-colors duration-200">
+                        Tap to add payment option
+                      </p>
                     </div>
                   </div>
-                )}
-              </div>
-            )}
-          </>
-        )}
-      </CardContent>
-    </Card>
+                  
+                  {setupPaymentMethod.isPending && (
+                    <div className="absolute inset-0 bg-black/50 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                      <div className="flex items-center space-x-3 text-white">
+                        <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                        <span className="font-medium">Setting up...</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
