@@ -458,6 +458,9 @@ export default function SecureSubscription() {
         
         // Refetch subscription and scheduled changes
         await refetchSubscription();
+        queryClient.invalidateQueries({
+          queryKey: ["/api/billing/subscription/scheduled"],
+        });
       } else {
         toast({
           variant: "destructive",
