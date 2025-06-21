@@ -41,6 +41,44 @@ import {
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY!);
 
+// Helper function to poll setup intent status until payment method is attached
+async function waitForPaymentMethodAttachment(setupIntentId: string): Promise<void> {
+  const maxAttempts = 10;
+  const delayMs = 1000;
+  
+  console.log("⏳ Polling setup intent status to confirm payment method attachment...");
+  
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const response = await fetch(`/api/billing/setup-intent/${setupIntentId}`, {
+        credentials: "include",
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log(`🔍 Setup intent check ${attempt}/${maxAttempts}:`, data);
+        
+        if (data.paymentMethodAttached) {
+          console.log("✅ Payment method confirmed as attached!");
+          return;
+        }
+      }
+      
+      if (attempt < maxAttempts) {
+        console.log(`⏳ Attempt ${attempt}/${maxAttempts} - waiting ${delayMs}ms before retry...`);
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+      }
+    } catch (error) {
+      console.error(`❌ Error checking setup intent status:`, error);
+      if (attempt === maxAttempts) {
+        throw error;
+      }
+    }
+  }
+  
+  throw new Error("Payment method attachment verification timeout");
+}
+
 // Payment Setup Form Component
 function PaymentSetupForm({
   clientSecret,
@@ -92,9 +130,8 @@ function PaymentSetupForm({
         if (originalRequest) {
           console.log("🔄 Retrying original subscription update...", originalRequest);
           
-          // Add a small delay to allow Stripe to process the payment method attachment
-          console.log("⏳ Waiting 2 seconds for Stripe to process payment method...");
-          await new Promise(resolve => setTimeout(resolve, 2000));
+          // Poll setup intent to ensure payment method is fully attached
+          await waitForPaymentMethodAttachment(setupIntent.id);
           
           try {
             const retryResponse = await fetch("/api/billing/subscriptions/update", {
