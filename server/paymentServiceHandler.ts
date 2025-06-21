@@ -916,7 +916,30 @@ export async function getSubscriptionChangePreview(
   description: string;
   scheduledDate?: string;
   timing: 'immediate' | 'end_of_period';
+  error?: string;
+  hasScheduledChanges?: boolean;
 }> {
+  // Check for existing scheduled changes first
+  const scheduledChanges = await getScheduledSubscriptions(stripeCustomerId);
+  if (scheduledChanges.length > 0) {
+    console.log('🚫 Subscription change blocked: Existing scheduled changes found:', scheduledChanges);
+    
+    const scheduledChange = scheduledChanges[0];
+    return {
+      changeType: 'same',
+      currentPlan: scheduledChange.currentPlan,
+      newPlan: scheduledChange.scheduledPlan,
+      immediateCharge: 0,
+      proratedCredit: 0,
+      nextBillingAmount: 0,
+      currency: 'usd',
+      description: `Cannot modify subscription: You have a scheduled change to ${scheduledChange.scheduledPlan} on ${new Date(scheduledChange.scheduledDate).toLocaleDateString()}. Please cancel the existing scheduled change first.`,
+      error: 'SCHEDULED_CHANGE_EXISTS',
+      hasScheduledChanges: true,
+      timing: 'immediate'
+    };
+  }
+
   const currentSubscription = await _getCurrentActiveSubscription(stripeCustomerId);
   const currentPrice = currentSubscription.items.data[0].price;
   
@@ -1012,6 +1035,16 @@ export async function executeUpgradeWithProration(
   message?: string;
   error?: string;
 }> {
+  // Check for existing scheduled changes first
+  const scheduledChanges = await getScheduledSubscriptions(stripeCustomerId);
+  if (scheduledChanges.length > 0) {
+    const scheduledChange = scheduledChanges[0];
+    return {
+      success: false,
+      error: `Cannot modify subscription: You have a scheduled change to ${scheduledChange.scheduledPlan} on ${new Date(scheduledChange.scheduledDate).toLocaleDateString()}. Please cancel the existing scheduled change first.`,
+    };
+  }
+
   // Check if the new price is free (0 amount)
   const newPrice = await stripe.prices.retrieve(newPriceId);
   const isFreePrice = (newPrice.unit_amount || 0) === 0;
@@ -1049,6 +1082,17 @@ export async function scheduleSubscriptionDowngrade(
   error?: string;
 }> {
   try {
+    // Check for existing scheduled changes first
+    const scheduledChanges = await getScheduledSubscriptions(stripeCustomerId);
+    if (scheduledChanges.length > 0) {
+      const scheduledChange = scheduledChanges[0];
+      return {
+        success: false,
+        scheduledDate: '',
+        error: `Cannot schedule downgrade: You have a scheduled change to ${scheduledChange.scheduledPlan} on ${new Date(scheduledChange.scheduledDate).toLocaleDateString()}. Please cancel the existing scheduled change first.`,
+      };
+    }
+
     const currentSubscription = await _getCurrentActiveSubscription(stripeCustomerId);
     
     // Cancel current subscription at period end

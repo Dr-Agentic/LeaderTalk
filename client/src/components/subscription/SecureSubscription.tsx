@@ -554,6 +554,17 @@ export default function SecureSubscription() {
       // Get subscription change preview from API
       const preview = await getSubscriptionChangePreview(plan);
       
+      // Check if there are scheduled changes blocking this operation
+      if (preview.error === 'SCHEDULED_CHANGE_EXISTS' || preview.hasScheduledChanges) {
+        toast({
+          variant: "destructive",
+          title: "Subscription Change Blocked",
+          description: preview.description,
+          duration: 8000,
+        });
+        return;
+      }
+      
       // Set pending subscription change with preview data
       setPendingSubscriptionChange({ 
         plan, 
@@ -588,11 +599,21 @@ export default function SecureSubscription() {
         }),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to update subscription');
-      }
-
       const result = await response.json();
+
+      if (!response.ok) {
+        // Handle validation errors specifically
+        if (result.error && result.error.includes('scheduled change')) {
+          toast({
+            variant: "destructive",
+            title: "Subscription Change Blocked",
+            description: result.error,
+            duration: 8000,
+          });
+          return;
+        }
+        throw new Error(result.error || 'Failed to update subscription');
+      }
 
       if (result.success) {
         await refetchSubscription();
