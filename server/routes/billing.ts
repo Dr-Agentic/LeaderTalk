@@ -1,4 +1,4 @@
-import { Express, Request, Response } from "express";
+import express, { Express, Request, Response } from "express";
 import { storage } from "../storage";
 import { 
   retrievePaymentSubscriptionById,
@@ -22,6 +22,60 @@ const requireAuth = (req: Request, res: Response, next: Function) => {
 };
 
 export function registerBillingRoutes(app: Express) {
+  
+  // Stripe webhook endpoint for handling payment events
+  app.post('/api/billing/webhooks/stripe', express.raw({type: 'application/json'}), async (req: Request, res: Response) => {
+    const sig = req.headers['stripe-signature'];
+    const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+    if (!endpointSecret) {
+      console.log('⚠️ Stripe webhook secret not configured');
+      return res.status(400).send('Webhook secret not configured');
+    }
+
+    let event;
+    try {
+      const stripe = new Stripe(config.stripe.secretKey, {
+        apiVersion: '2023-10-16',
+      });
+      
+      event = stripe.webhooks.constructEvent(req.body, sig as string, endpointSecret);
+      console.log('✅ Stripe webhook event received:', event.type);
+    } catch (err: any) {
+      console.log('❌ Webhook signature verification failed:', err.message);
+      return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+
+    // Handle the event
+    switch (event.type) {
+      case 'setup_intent.succeeded':
+        console.log('🎯 Setup intent succeeded:', event.data.object.id);
+        // Payment method has been successfully attached
+        break;
+        
+      case 'payment_method.attached':
+        console.log('💳 Payment method attached:', event.data.object.id);
+        // Payment method is now available for subscriptions
+        break;
+        
+      case 'customer.subscription.updated':
+        console.log('🔄 Subscription updated:', event.data.object.id);
+        break;
+        
+      case 'invoice.payment_succeeded':
+        console.log('✅ Payment succeeded for invoice:', event.data.object.id);
+        break;
+        
+      case 'invoice.payment_failed':
+        console.log('❌ Payment failed for invoice:', event.data.object.id);
+        break;
+        
+      default:
+        console.log(`Unhandled event type ${event.type}`);
+    }
+
+    res.json({received: true});
+  });
   
   // GET /api/billing/products - Get all available subscription plans with server-side formatting
   app.get('/api/billing/products', getBillingProducts);

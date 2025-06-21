@@ -644,7 +644,7 @@ export async function updateUserSubscriptionToPlan(
     }
 
     // Step 4: Set default payment method if not set
-    if (!customer.invoice_settings?.default_payment_method) {
+    if (!customer.invoice_settings?.default_payment_method && paymentMethods && paymentMethods.data.length > 0) {
       console.log("🔧 Setting default payment method:", paymentMethods.data[0].id);
       await stripe.customers.update(stripeCustomerId, {
         invoice_settings: {
