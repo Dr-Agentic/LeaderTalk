@@ -317,6 +317,10 @@ export default function SecureSubscription() {
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [showPaymentMethodSelector, setShowPaymentMethodSelector] = useState(false);
   const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<string | undefined>();
+  const [pendingSubscriptionChange, setPendingSubscriptionChange] = useState<{
+    plan: BillingProduct;
+    priceId: string;
+  } | null>(null);
   const { toast } = useToast();
 
   // Fetch current subscription
@@ -367,6 +371,12 @@ export default function SecureSubscription() {
       } else {
         // Enhanced success messaging based on subscription change type
         showSubscriptionSuccessMessage(data, variables);
+        
+        // Clear subscription change state
+        setPendingSubscriptionChange(null);
+        setShowPaymentMethodSelector(false);
+        setSelectedPaymentMethodId(undefined);
+        
         // Force immediate refresh of subscription data
         queryClient.invalidateQueries({
           queryKey: ["/api/billing/subscriptions/current"],
@@ -466,11 +476,35 @@ export default function SecureSubscription() {
   const handleSubscribe = (plan: BillingProduct) => {
     const priceId = plan.pricing?.stripePriceId;
     if (priceId) {
-      console.log("🔄 Subscribing to plan:", { planName: plan.name, priceId });
-      updateSubscription.mutate({ stripePriceId: priceId });
+      const currentPriceId = currentSubscription?.subscription?.priceId;
+      const isCurrentPlan = currentPriceId === priceId;
+      
+      if (isCurrentPlan) {
+        return; // Don't proceed if already on this plan
+      }
+
+      // Set pending subscription change and show payment method selector
+      setPendingSubscriptionChange({ plan, priceId });
+      setShowPaymentMethodSelector(true);
     } else {
       console.error("❌ No price ID found for plan:", plan);
     }
+  };
+
+  const confirmSubscriptionChange = () => {
+    if (pendingSubscriptionChange) {
+      console.log("🔄 Confirming subscription change:", { 
+        planName: pendingSubscriptionChange.plan.name, 
+        priceId: pendingSubscriptionChange.priceId 
+      });
+      updateSubscription.mutate({ stripePriceId: pendingSubscriptionChange.priceId });
+    }
+  };
+
+  const cancelSubscriptionChange = () => {
+    setPendingSubscriptionChange(null);
+    setShowPaymentMethodSelector(false);
+    setSelectedPaymentMethodId(undefined);
   };
 
   if (subscriptionLoading || plansLoading) {
@@ -652,15 +686,55 @@ export default function SecureSubscription() {
         ))}
       </div>
 
-      {/* Payment Method Selection */}
-      {currentSubscription?.hasSubscription && (
-        <PaymentMethodSelector
-          onPaymentMethodSelected={(paymentMethodId) => {
-            setSelectedPaymentMethodId(paymentMethodId);
-          }}
-          selectedPaymentMethodId={selectedPaymentMethodId}
-          showAddNewOption={true}
-        />
+      {/* Payment Method Selection - Only shown during subscription changes */}
+      {showPaymentMethodSelector && pendingSubscriptionChange && (
+        <Card className="border-primary bg-primary/5">
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between text-white">
+              <div className="flex items-center space-x-2">
+                <Info className="h-5 w-5" />
+                <span>Confirm Subscription Change</span>
+              </div>
+            </CardTitle>
+            <CardDescription className="text-gray-300">
+              You're about to change to <strong>{pendingSubscriptionChange.plan.name}</strong>. 
+              Please confirm your payment method below.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <PaymentMethodSelector
+              onPaymentMethodSelected={(paymentMethodId) => {
+                setSelectedPaymentMethodId(paymentMethodId);
+              }}
+              selectedPaymentMethodId={selectedPaymentMethodId}
+              showAddNewOption={true}
+            />
+            
+            <div className="flex space-x-3 pt-4">
+              <Button
+                onClick={confirmSubscriptionChange}
+                disabled={updateSubscription.isPending}
+                className="flex-1"
+              >
+                {updateSubscription.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  `Confirm Change to ${pendingSubscriptionChange.plan.name}`
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={cancelSubscriptionChange}
+                disabled={updateSubscription.isPending}
+              >
+                Cancel
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Payment Setup Form */}
