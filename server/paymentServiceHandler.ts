@@ -584,55 +584,25 @@ export async function updateUserSubscriptionToPlan(
       throw new Error(`Customer ${stripeCustomerId} not found or deleted`);
     }
 
-    // Step 2: Enhanced payment method validation with retry logic
-    let paymentMethods;
-    let hasValidPaymentMethod = false;
-    const maxRetries = 5;
-    const baseDelay = 500; // Start with 500ms
+    // Step 2: Check payment methods directly
+    const paymentMethods = await stripe.paymentMethods.list({
+      customer: stripeCustomerId,
+      type: "card",
+    });
 
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        paymentMethods = await stripe.paymentMethods.list({
-          customer: stripeCustomerId,
-          type: "card",
-        });
+    console.log(`💳 Payment method status:`, {
+      customerId: stripeCustomerId,
+      methodCount: paymentMethods.data.length,
+      defaultMethod: customer.invoice_settings?.default_payment_method,
+    });
 
-        console.log(`💳 Payment method check attempt ${attempt}/${maxRetries}:`, {
-          customerId: stripeCustomerId,
-          methodCount: paymentMethods.data.length,
-          defaultMethod: customer.invoice_settings?.default_payment_method,
-        });
-
-        if (paymentMethods.data.length > 0) {
-          hasValidPaymentMethod = true;
-          break;
-        }
-
-        // If this is the first few attempts, wait longer for payment method attachment
-        if (attempt < maxRetries) {
-          const delay = baseDelay * Math.pow(2, attempt - 1); // Exponential backoff
-          console.log(`⏳ Waiting ${delay}ms before retry ${attempt + 1}...`);
-          await new Promise(resolve => setTimeout(resolve, delay));
-        }
-      } catch (error: any) {
-        console.error(`❌ Error checking payment methods (attempt ${attempt}):`, error);
-        if (attempt === maxRetries) {
-          throw error;
-        }
-        await new Promise(resolve => setTimeout(resolve, baseDelay * attempt));
-      }
-    }
-
-    // Step 3: Handle no payment methods found after all retries
-    if (!hasValidPaymentMethod) {
-      console.log("❌ No payment methods found after retries - creating setup intent");
+    // Step 3: If no payment methods, immediately create setup intent
+    if (paymentMethods.data.length === 0) {
+      console.log("❌ No payment methods found - creating setup intent");
       const setupIntent = await stripe.setupIntents.create({
         customer: stripeCustomerId,
         usage: "off_session",
-        automatic_payment_methods: {
-          enabled: true,
-          allow_redirects: "always",
-        },
+        automatic_payment_methods: { enabled: true },
       });
 
       return {
