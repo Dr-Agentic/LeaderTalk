@@ -6,13 +6,15 @@ import {
   ensureUserHasStripeCustomer,
   getCustomerPaymentMethods,
   setDefaultPaymentMethod,
-  createPaymentMethodSetupIntent
+  createPaymentMethodSetupIntent,
+  getSubscriptionChangeImpact
 } from "../paymentServiceHandler";
 import { 
   getBillingProducts,
   getCurrentSubscriptionFormatted,
   updateUserSubscription,
-  cancelSubscription
+  cancelSubscription,
+  getCurrentSubscriptionData
 } from "../subscriptionController";
 import Stripe from "stripe";
 import { config } from "../config/environment";
@@ -242,6 +244,48 @@ export function registerBillingRoutes(app: Express) {
     } catch (error: any) {
       console.error("Error setting default payment method:", error);
       res.status(500).json({ error: "Failed to set default payment method" });
+    }
+  });
+
+  // POST /api/billing/subscriptions/change-impact - Get subscription change impact
+  app.post('/api/billing/subscriptions/change-impact', requireAuth, async (req, res) => {
+    try {
+      const userId = req.session!.userId!;
+      const { stripePriceId } = req.body;
+      
+      if (!stripePriceId) {
+        return res.status(400).json({ error: "Price ID is required" });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user || !user.stripeCustomerId) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Get current subscription data
+      const response = await fetch(`http://localhost:5000/api/billing/subscriptions/current`, {
+        headers: { 'Cookie': req.headers.cookie || '' }
+      });
+      
+      if (!response.ok) {
+        return res.status(404).json({ error: "No active subscription found" });
+      }
+      
+      const subscriptionData = await response.json();
+      if (!subscriptionData.subscription?.id) {
+        return res.status(404).json({ error: "No active subscription found" });
+      }
+
+      const impact = await getSubscriptionChangeImpact(
+        subscriptionData.subscription.id,
+        stripePriceId
+      );
+      
+      res.json(impact);
+      
+    } catch (error: any) {
+      console.error("Error calculating subscription change impact:", error);
+      res.status(500).json({ error: "Failed to calculate subscription change impact" });
     }
   });
 

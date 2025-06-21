@@ -886,6 +886,92 @@ export async function createPaymentMethodSetupIntent(
 }
 
 /**
+ * Calculate prorated credit for subscription changes
+ */
+export async function calculateProratedCredit(
+  stripeSubscriptionId: string,
+): Promise<{
+  currentAmount: number;
+  proratedCredit: number;
+  remainingDays: number;
+  totalDays: number;
+  currency: string;
+}> {
+  const subscription = await stripe.subscriptions.retrieve(stripeSubscriptionId);
+  
+  const currentPeriodStart = subscription.current_period_start * 1000;
+  const currentPeriodEnd = subscription.current_period_end * 1000;
+  const now = Date.now();
+  
+  const totalDays = Math.ceil((currentPeriodEnd - currentPeriodStart) / (1000 * 60 * 60 * 24));
+  const remainingDays = Math.ceil((currentPeriodEnd - now) / (1000 * 60 * 60 * 24));
+  
+  const item = subscription.items.data[0];
+  const currentAmount = item.price.unit_amount || 0;
+  const proratedCredit = Math.round((currentAmount * remainingDays) / totalDays);
+  
+  return {
+    currentAmount: currentAmount / 100, // Convert from cents
+    proratedCredit: proratedCredit / 100, // Convert from cents
+    remainingDays: Math.max(0, remainingDays),
+    totalDays,
+    currency: item.price.currency || 'usd',
+  };
+}
+
+/**
+ * Get subscription change impact details
+ */
+export async function getSubscriptionChangeImpact(
+  stripeSubscriptionId: string,
+  newPriceId: string,
+): Promise<{
+  changeType: 'upgrade' | 'downgrade' | 'same';
+  currentPlan: string;
+  newPlan: string;
+  proratedCredit: number;
+  immediateCharge: number;
+  nextBillingAmount: number;
+  currency: string;
+  warningMessage?: string;
+}> {
+  const subscription = await stripe.subscriptions.retrieve(stripeSubscriptionId);
+  const currentPrice = subscription.items.data[0].price;
+  const newPrice = await stripe.prices.retrieve(newPriceId);
+  
+  const currentAmount = currentPrice.unit_amount || 0;
+  const newAmount = newPrice.unit_amount || 0;
+  
+  const changeType = newAmount > currentAmount ? 'upgrade' : 
+                    newAmount < currentAmount ? 'downgrade' : 'same';
+  
+  const creditInfo = await calculateProratedCredit(stripeSubscriptionId);
+  
+  let immediateCharge = 0;
+  let warningMessage: string | undefined;
+  
+  if (changeType === 'upgrade') {
+    // For upgrades, charge the prorated difference immediately
+    const proratedNewAmount = Math.round((newAmount * creditInfo.remainingDays) / creditInfo.totalDays);
+    immediateCharge = (proratedNewAmount - (creditInfo.proratedCredit * 100)) / 100;
+  } else if (changeType === 'downgrade') {
+    // For downgrades, warn about lost value
+    warningMessage = `You'll lose $${creditInfo.proratedCredit.toFixed(2)} from your current subscription. This change will take effect at your next billing cycle.`;
+  }
+  
+  return {
+    changeType,
+    currentPlan: currentPrice.nickname || 'Current Plan',
+    newPlan: newPrice.nickname || 'New Plan',
+    proratedCredit: creditInfo.proratedCredit,
+    immediateCharge: Math.max(0, immediateCharge),
+    nextBillingAmount: newAmount / 100,
+    currency: creditInfo.currency,
+    warningMessage,
+  };
+}
+
+/**
  * Cancel a user's subscription at period end
  */
 export async function cancelUserSubscription(

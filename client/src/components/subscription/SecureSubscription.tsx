@@ -320,6 +320,8 @@ export default function SecureSubscription() {
   const [pendingSubscriptionChange, setPendingSubscriptionChange] = useState<{
     plan: BillingProduct;
     priceId: string;
+    changeType: 'upgrade' | 'downgrade' | 'same';
+    warningMessage?: string;
   } | null>(null);
   const { toast } = useToast();
 

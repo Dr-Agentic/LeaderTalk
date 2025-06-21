@@ -265,12 +265,12 @@ export default function PaymentMethodSelector({
     return <CreditCard className="h-4 w-4" />;
   };
 
-  const handlePaymentMethodChange = (paymentMethodId: string) => {
-    if (paymentMethodId === "add_new") {
-      setupPaymentMethod.mutate();
-      return;
-    }
+  const handlePaymentMethodSelect = (paymentMethodId: string) => {
     onPaymentMethodSelected(paymentMethodId);
+  };
+
+  const handleAddNewPaymentMethod = () => {
+    setupPaymentMethod.mutate();
   };
 
   const handleSetAsDefault = (paymentMethodId: string) => {
@@ -349,43 +349,12 @@ export default function PaymentMethodSelector({
           </div>
         ) : (
           <>
-            <Select
-              value={selectedPaymentMethodId || defaultPaymentMethod?.id || ""}
-              onValueChange={handlePaymentMethodChange}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select payment method" />
-              </SelectTrigger>
-              <SelectContent>
-                {paymentMethods.map((pm) => (
-                  <SelectItem key={pm.id} value={pm.id}>
-                    <div className="flex items-center space-x-2">
-                      {getPaymentMethodIcon(pm)}
-                      <span>{formatPaymentMethod(pm)}</span>
-                      {pm.isDefault && (
-                        <Badge variant="secondary" className="ml-2">
-                          Default
-                        </Badge>
-                      )}
-                    </div>
-                  </SelectItem>
-                ))}
-                {showAddNewOption && (
-                  <SelectItem value="add_new">
-                    <div className="flex items-center space-x-2">
-                      <Plus className="h-4 w-4" />
-                      <span>Add New Payment Method</span>
-                    </div>
-                  </SelectItem>
-                )}
-              </SelectContent>
-            </Select>
-
-            {/* Payment Method Details */}
+            {/* Payment Method Cards */}
             {paymentMethods.map((pm) => (
               <div
                 key={pm.id}
-                className={`p-3 rounded-lg border ${
+                onClick={() => handlePaymentMethodSelect(pm.id)}
+                className={`p-3 rounded-lg border cursor-pointer transition-all hover:border-primary/50 ${
                   (selectedPaymentMethodId || defaultPaymentMethod?.id) === pm.id
                     ? "border-primary bg-primary/10"
                     : "border-gray-600 bg-gray-700/30"
@@ -402,6 +371,9 @@ export default function PaymentMethodSelector({
                         Added {new Date(pm.created * 1000).toLocaleDateString()}
                       </p>
                     </div>
+                    {(selectedPaymentMethodId || defaultPaymentMethod?.id) === pm.id && (
+                      <Check className="h-5 w-5 text-primary ml-2" />
+                    )}
                   </div>
                   <div className="flex items-center space-x-2">
                     {pm.isDefault ? (
@@ -413,7 +385,10 @@ export default function PaymentMethodSelector({
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleSetAsDefault(pm.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSetAsDefault(pm.id);
+                        }}
                         disabled={setDefaultPaymentMethod.isPending}
                       >
                         Set as Default
@@ -423,6 +398,19 @@ export default function PaymentMethodSelector({
                 </div>
               </div>
             ))}
+
+            {/* Add New Payment Method Card */}
+            {showAddNewOption && (
+              <div
+                onClick={handleAddNewPaymentMethod}
+                className="p-3 rounded-lg border border-dashed border-gray-500 bg-gray-700/20 cursor-pointer transition-all hover:border-primary/50 hover:bg-primary/5"
+              >
+                <div className="flex items-center justify-center space-x-2 text-gray-400 hover:text-primary">
+                  <Plus className="h-5 w-5" />
+                  <span className="font-medium">Add New Payment Method</span>
+                </div>
+              </div>
+            )}
           </>
         )}
       </CardContent>
