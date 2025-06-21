@@ -329,7 +329,31 @@ export function registerBillingRoutes(app: Express) {
     }
   });
 
-  // DELETE /api/billing/subscription/scheduled/:id - Cancel scheduled change
+  // POST /api/billing/subscription/scheduled/cancel - Cancel scheduled change
+  app.post('/api/billing/subscription/scheduled/cancel', requireAuth, async (req, res) => {
+    try {
+      const { scheduleId } = req.body;
+      
+      if (!scheduleId) {
+        return res.status(400).json({ 
+          success: false,
+          error: "Schedule ID is required" 
+        });
+      }
+
+      const result = await cancelScheduledChange(scheduleId);
+      res.json(result);
+      
+    } catch (error: any) {
+      console.error("Error cancelling scheduled change:", error);
+      res.status(500).json({ 
+        success: false,
+        error: "Failed to cancel scheduled change" 
+      });
+    }
+  });
+
+  // DELETE /api/billing/subscription/scheduled/:id - Cancel scheduled change (alternative endpoint)
   app.delete('/api/billing/subscription/scheduled/:id', requireAuth, async (req, res) => {
     try {
       const { id } = req.params;

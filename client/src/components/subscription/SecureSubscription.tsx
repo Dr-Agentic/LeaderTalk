@@ -18,6 +18,7 @@ import {
   CreditCard,
   AlertTriangle,
   Info,
+  Clock,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -438,6 +439,41 @@ export default function SecureSubscription() {
     },
   });
 
+  // Handle canceling scheduled subscription changes
+  const handleCancelScheduledChange = async (scheduleId: string) => {
+    try {
+      const response = await fetch("/api/billing/subscription/scheduled/cancel", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ scheduleId }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast({
+          title: "Scheduled Change Cancelled",
+          description: "Your scheduled subscription change has been cancelled successfully.",
+        });
+        
+        // Refetch subscription and scheduled changes
+        await refetchSubscription();
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: result.error || "Failed to cancel scheduled change",
+        });
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive", 
+        title: "Error",
+        description: "Failed to cancel scheduled change",
+      });
+    }
+  };
+
   // Enhanced success messaging based on subscription change type
   const showSubscriptionSuccessMessage = (data: any, variables: any) => {
     const currentPlan = currentSubscription?.subscription?.plan || "";
@@ -678,7 +714,7 @@ export default function SecureSubscription() {
         )}
 
         {/* Scheduled Subscription Changes */}
-        {scheduledChanges && scheduledChanges.scheduled && scheduledChanges.scheduled.length > 0 && (
+        {scheduledChanges && (scheduledChanges as any).scheduled && (scheduledChanges as any).scheduled.length > 0 && (
           <Card className="bg-gray-800/50 border-yellow-500/30">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-yellow-400">
@@ -690,7 +726,7 @@ export default function SecureSubscription() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {scheduledChanges.scheduled.map((change: any, index: number) => (
+              {(scheduledChanges as any).scheduled.map((change: any, index: number) => (
                 <div key={index} className="space-y-3">
                   <div className="flex items-center justify-between">
                     <div>
