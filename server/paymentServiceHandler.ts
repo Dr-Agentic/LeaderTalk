@@ -533,26 +533,51 @@ export async function updateUserSubscriptionToPlan(
       stripeCustomerId,
     );
 
-    const paymentMethods = await stripeInstance.paymentMethods.list({
-      customer: stripeCustomerId,
-      type: "card",
-    });
-
-    console.log("💳 Customer payment methods found:", {
-      customerId: stripeCustomerId,
-      methodCount: paymentMethods.data.length,
-      methods: paymentMethods.data.map((pm) => ({
-        id: pm.id,
-        type: pm.type,
-        created: pm.created,
-        card: pm.card
-          ? {
-              brand: pm.card.brand,
-              last4: pm.card.last4,
-            }
-          : null,
-      })),
-    });
+    // Add retry logic for payment method detection with exponential backoff
+    let paymentMethods;
+    let retryCount = 0;
+    const maxRetries = 3;
+    
+    while (retryCount <= maxRetries) {
+      paymentMethods = await stripeInstance.paymentMethods.list({
+        customer: stripeCustomerId,
+        type: "card",
+      });
+      
+      console.log(`💳 Payment method check attempt ${retryCount + 1}/${maxRetries + 1}:`, {
+        customerId: stripeCustomerId,
+        methodCount: paymentMethods.data.length,
+        methods: paymentMethods.data.map((pm) => ({
+          id: pm.id,
+          type: pm.type,
+          created: pm.created,
+          card: pm.card
+            ? {
+                brand: pm.card.brand,
+                last4: pm.card.last4,
+              }
+            : null,
+        })),
+      });
+      
+      // If we found payment methods, break out of retry loop
+      if (paymentMethods.data.length > 0) {
+        console.log("✅ Payment methods found, proceeding with subscription update");
+        break;
+      }
+      
+      // If this was the last retry, proceed with setup intent creation
+      if (retryCount === maxRetries) {
+        console.log("❌ No payment methods found after all retries");
+        break;
+      }
+      
+      // Wait before retrying (1s, 2s, 3s)
+      const delayMs = (retryCount + 1) * 1000;
+      console.log(`⏳ Waiting ${delayMs}ms before retry...`);
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+      retryCount++;
+    }
 
     // If no payment methods exist, create setup intent immediately
     if (paymentMethods.data.length === 0) {
