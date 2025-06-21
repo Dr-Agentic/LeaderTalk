@@ -1147,27 +1147,9 @@ export async function getScheduledSubscriptions(
       }
     }
 
-    // Also check for subscriptions marked to cancel at period end
-    const subscriptions = await stripe.subscriptions.list({
-      customer: stripeCustomerId,
-      status: 'active',
-      limit: 10,
-    });
-
-    for (const sub of subscriptions.data) {
-      if (sub.cancel_at_period_end && sub.current_period_end) {
-        const currentPrice = await stripe.prices.retrieve(sub.items.data[0].price.id, { expand: ['product'] });
-        const currentPlanName = currentPrice.nickname || (typeof currentPrice.product === 'object' ? currentPrice.product.name : currentPrice.product) || 'Current Plan';
-
-        scheduled.push({
-          id: sub.id,
-          currentPlan: currentPlanName,
-          scheduledPlan: 'Cancelled',
-          scheduledDate: new Date(sub.current_period_end * 1000).toISOString(),
-          status: 'cancelling',
-        });
-      }
-    }
+    // Note: Cancelled subscriptions (cancel_at_period_end: true) are NOT included here
+    // They are handled in the subscription status display, not as "scheduled changes"
+    // Only actual plan changes (upgrade/downgrade schedules) should appear here
 
     console.log('🔍 Filtered active scheduled changes:', scheduled);
     return scheduled;
