@@ -368,9 +368,12 @@ export default function SecureSubscription() {
   };
 
   const handleSubscribe = (plan: BillingProduct) => {
-    const priceId = plan.pricing[billingInterval]?.stripePriceId;
+    const priceId = plan.pricing?.stripePriceId;
     if (priceId) {
+      console.log("🔄 Subscribing to plan:", { planName: plan.name, priceId });
       updateSubscription.mutate({ stripePriceId: priceId });
+    } else {
+      console.error("❌ No price ID found for plan:", plan);
     }
   };
 
