@@ -14,6 +14,7 @@ export default function RecordScreen() {
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
   const [permissionResponse, requestPermission] = Audio.usePermissions();
 
   useEffect(() => {
@@ -89,20 +90,45 @@ export default function RecordScreen() {
       setRecording(null);
       
       if (uri) {
-        // In a real app, you would upload the recording to your server here
         console.log('Recording saved at', uri);
         Alert.alert(
           'Recording Complete',
-          'Your recording has been saved. Would you like to analyze it?',
+          'Your recording has been saved. Would you like to upload and analyze it?',
           [
             { text: 'Cancel', style: 'cancel' },
-            { text: 'Analyze', onPress: () => console.log('Analyze recording') }
+            { text: 'Upload & Analyze', onPress: () => handleUploadRecording(uri) }
           ]
         );
       }
     } catch (err) {
       console.error('Failed to stop recording', err);
       Alert.alert('Error', 'Failed to stop recording');
+    }
+  };
+
+  const handleUploadRecording = async (uri: string) => {
+    try {
+      setIsUploading(true);
+      
+      const result = await uploadRecording(uri, `Recording ${new Date().toLocaleString()}`);
+      
+      Alert.alert(
+        'Upload Successful',
+        'Your recording has been uploaded and is being analyzed. You can view it in your recordings.',
+        [
+          { text: 'View Recordings', onPress: () => router.push('/recordings') },
+          { text: 'Record Another', style: 'cancel' }
+        ]
+      );
+    } catch (error) {
+      console.error('Upload failed:', error);
+      Alert.alert(
+        'Upload Failed',
+        'Failed to upload your recording. Please try again.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setIsUploading(false);
     }
   };
 

@@ -1,17 +1,92 @@
-import React, { useState } from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { ScrollView, StyleSheet, TouchableOpacity, View, RefreshControl, Alert } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { FontAwesome } from '@expo/vector-icons';
 import { useColorScheme } from '@/src/hooks/useColorScheme';
+import { getRecordings, deleteRecording } from '@/src/services/recordingService';
+import { router } from 'expo-router';
+
+interface Recording {
+  id: string;
+  title: string;
+  recordedAt: string;
+  duration: number;
+  analysisResult?: {
+    overview: { rating: string; score: number };
+  };
+}
 
 export default function RecordingsScreen() {
   const colorScheme = useColorScheme();
   const textColor = colorScheme === 'dark' ? '#ffffff' : '#000000';
-  const [recordings, setRecordings] = useState([]);
+  const [recordings, setRecordings] = useState<Recording[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    fetchRecordings();
+  }, []);
+
+  const fetchRecordings = async () => {
+    try {
+      setIsLoading(true);
+      const data = await getRecordings();
+      setRecordings(data);
+    } catch (error) {
+      console.error('Failed to fetch recordings:', error);
+      Alert.alert('Error', 'Failed to load recordings. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchRecordings();
+    setRefreshing(false);
+  };
+
+  const handleDeleteRecording = async (id: string) => {
+    Alert.alert(
+      'Delete Recording',
+      'Are you sure you want to delete this recording?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteRecording(id);
+              setRecordings(prev => prev.filter(r => r.id !== id));
+            } catch (error) {
+              Alert.alert('Error', 'Failed to delete recording');
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const formatDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
   
   return (
-    <ScrollView style={styles.scrollView}>
+    <ScrollView 
+      style={styles.scrollView}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
+    >
       <ThemedView style={styles.container}>
         <View style={styles.header}>
           <ThemedText type="title">Your Recordings</ThemedText>
@@ -30,10 +105,45 @@ export default function RecordingsScreen() {
           </View>
           
           {recordings.length > 0 ? (
-            recordings.map((recording, index) => (
-              <ThemedView key={index} style={styles.recordingItem}>
-                <ThemedText>Recording Item</ThemedText>
-              </ThemedView>
+            recordings.map((recording) => (
+              <TouchableOpacity
+                key={recording.id}
+                style={styles.recordingItem}
+                onPress={() => router.push(`/recording/${recording.id}`)}
+              >
+                <View style={styles.recordingHeader}>
+                  <ThemedText style={styles.recordingTitle}>{recording.title}</ThemedText>
+                  <TouchableOpacity
+                    onPress={() => handleDeleteRecording(recording.id)}
+                    style={styles.deleteButton}
+                  >
+                    <FontAwesome name="trash" size={16} color="#f44336" />
+                  </TouchableOpacity>
+                </View>
+                
+                <View style={styles.recordingMeta}>
+                  <ThemedText style={styles.metaText}>
+                    <FontAwesome name="clock-o" size={12} color={textColor} /> {formatDuration(recording.duration)}
+                  </ThemedText>
+                  <ThemedText style={styles.metaText}>
+                    <FontAwesome name="calendar" size={12} color={textColor} /> {formatDate(recording.recordedAt)}
+                  </ThemedText>
+                </View>
+                
+                {recording.analysisResult?.overview && (
+                  <View style={styles.scoreContainer}>
+                    <ThemedText style={styles.scoreLabel}>Score:</ThemedText>
+                    <ThemedText style={[
+                      styles.scoreValue,
+                      { color: recording.analysisResult.overview.score >= 80 ? '#4CAF50' : 
+                               recording.analysisResult.overview.score >= 60 ? '#FF9800' : '#f44336' }
+                    ]}>
+                      {recording.analysisResult.overview.score}/100
+                    </ThemedText>
+                    <ThemedText style={styles.ratingText}>({recording.analysisResult.overview.rating})</ThemedText>
+                  </View>
+                )}
+              </TouchableOpacity>
             ))
           ) : (
             <ThemedView style={styles.emptyState}>
@@ -48,7 +158,10 @@ export default function RecordingsScreen() {
               <ThemedText style={styles.emptySubtext}>
                 Start recording your conversations to get feedback and improve your communication skills
               </ThemedText>
-              <TouchableOpacity style={styles.recordButton}>
+              <TouchableOpacity 
+                style={styles.recordButton}
+                onPress={() => router.push('/record')}
+              >
                 <FontAwesome name="microphone" size={16} color="#fff" />
                 <ThemedText style={styles.recordButtonText}>
                   Start Recording
@@ -129,5 +242,45 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontWeight: '600',
     marginLeft: 8,
+  },
+  recordingHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  recordingTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    flex: 1,
+  },
+  deleteButton: {
+    padding: 8,
+  },
+  recordingMeta: {
+    flexDirection: 'row',
+    marginBottom: 8,
+  },
+  metaText: {
+    fontSize: 12,
+    opacity: 0.7,
+    marginRight: 16,
+  },
+  scoreContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  scoreLabel: {
+    fontSize: 12,
+    marginRight: 8,
+  },
+  scoreValue: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginRight: 8,
+  },
+  ratingText: {
+    fontSize: 12,
+    opacity: 0.7,
   },
 });
