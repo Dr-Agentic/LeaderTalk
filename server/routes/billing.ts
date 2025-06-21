@@ -321,7 +321,7 @@ export function registerBillingRoutes(app: Express) {
       }
 
       const scheduled = await getScheduledSubscriptions(user.stripeCustomerId);
-      res.json({ scheduled });
+      res.json(scheduled);
       
     } catch (error: any) {
       console.error("Error getting scheduled subscriptions:", error);

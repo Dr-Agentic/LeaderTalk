@@ -714,7 +714,7 @@ export default function SecureSubscription() {
         )}
 
         {/* Scheduled Subscription Changes */}
-        {scheduledChanges && (scheduledChanges as any).scheduled && (scheduledChanges as any).scheduled.length > 0 && (
+        {scheduledChanges && Array.isArray(scheduledChanges) && scheduledChanges.length > 0 && (
           <Card className="bg-gray-800/50 border-yellow-500/30">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-yellow-400">
@@ -726,15 +726,15 @@ export default function SecureSubscription() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {(scheduledChanges as any).scheduled.map((change: any, index: number) => (
+              {scheduledChanges.map((change: any, index: number) => (
                 <div key={index} className="space-y-3">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-medium text-white">
-                        Changing to: <span className="text-blue-400">{change.newPlan?.nickname || change.items?.[0]?.price?.nickname || 'New Plan'}</span>
+                        Changing to: <span className="text-blue-400">{change.scheduledPlan || 'New Plan'}</span>
                       </p>
                       <p className="text-sm text-gray-400">
-                        Effective: {new Date(change.effective_date * 1000).toLocaleDateString()}
+                        Effective: {new Date(change.scheduledDate).toLocaleDateString()}
                       </p>
                     </div>
                     <Button
@@ -753,9 +753,9 @@ export default function SecureSubscription() {
                   
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                     <div>
-                      <p className="text-gray-400">New Price</p>
+                      <p className="text-gray-400">Current Plan</p>
                       <p className="text-white font-medium">
-                        ${((change.items?.[0]?.price?.unit_amount || 0) / 100).toFixed(2)} / {change.items?.[0]?.price?.recurring?.interval || 'month'}
+                        {change.currentPlan || 'Current Plan'}
                       </p>
                     </div>
                     <div>
