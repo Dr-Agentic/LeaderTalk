@@ -1011,7 +1011,7 @@ export async function scheduleSubscriptionDowngrade(
     });
 
     // Create new subscription scheduled to start at period end
-    const periodEndDate = currentSubscription.current_period_end;
+    const periodEndDate = (currentSubscription as any).current_period_end;
     const newSubscription = await stripe.subscriptions.create({
       customer: stripeCustomerId,
       items: [{ price: newPriceId }],

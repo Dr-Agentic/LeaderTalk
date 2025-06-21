@@ -17,8 +17,7 @@ import {
   getBillingProducts,
   getCurrentSubscriptionFormatted,
   updateUserSubscription,
-  cancelSubscription,
-  getCurrentSubscriptionData
+  cancelSubscription
 } from "../subscriptionController";
 import Stripe from "stripe";
 import { config } from "../config/environment";

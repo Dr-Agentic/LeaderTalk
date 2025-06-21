@@ -475,59 +475,119 @@ export default function SecureSubscription() {
     }
   };
 
-  const calculateSubscriptionImpact = (currentPlan: any, newPlan: BillingProduct) => {
-    const currentAmount = currentPlan?.subscription?.formattedAmount ? 
-      parseFloat(currentPlan.subscription.formattedAmount.replace('$', '')) : 0;
-    const newAmount = newPlan.pricing?.amount || 0;
-    
-    const changeType = newAmount > currentAmount ? 'upgrade' : 
-                      newAmount < currentAmount ? 'downgrade' : 'same';
-    
-    let warningMessage: string | undefined;
-    
-    if (changeType === 'downgrade' && currentAmount > 0) {
-      const currentPeriodEnd = new Date(currentPlan?.subscription?.currentPeriodEnd || Date.now());
-      const now = new Date();
-      const remainingDays = Math.ceil((currentPeriodEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-      const totalDays = 30; // Approximate monthly cycle
-      
-      if (remainingDays > 0) {
-        const proratedLoss = ((currentAmount - newAmount) * remainingDays) / totalDays;
-        warningMessage = `Warning: You'll lose approximately $${proratedLoss.toFixed(2)} from your current subscription. This change will take effect at your next billing cycle on ${currentPeriodEnd.toLocaleDateString()}.`;
-      }
-    }
-    
-    return { changeType, warningMessage };
-  };
-
-  const handleSubscribe = (plan: BillingProduct) => {
-    const priceId = plan.pricing?.stripePriceId;
-    if (priceId) {
-      const currentPriceId = currentSubscription?.subscription?.priceId;
-      const isCurrentPlan = currentPriceId === priceId;
-      
-      if (isCurrentPlan) {
-        return; // Don't proceed if already on this plan
-      }
-
-      // Calculate subscription impact
-      const { changeType, warningMessage } = calculateSubscriptionImpact(currentSubscription, plan);
-
-      // Set pending subscription change and show payment method selector
-      setPendingSubscriptionChange({ plan, priceId, changeType, warningMessage });
-      setShowPaymentMethodSelector(true);
-    } else {
-      console.error("❌ No price ID found for plan:", plan);
-    }
-  };
-
-  const confirmSubscriptionChange = () => {
-    if (pendingSubscriptionChange) {
-      console.log("🔄 Confirming subscription change:", { 
-        planName: pendingSubscriptionChange.plan.name, 
-        priceId: pendingSubscriptionChange.priceId 
+  const getSubscriptionChangePreview = async (plan: BillingProduct) => {
+    try {
+      const response = await fetch('/api/billing/subscription/preview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stripePriceId: plan.pricing.stripePriceId }),
       });
-      updateSubscription.mutate({ stripePriceId: pendingSubscriptionChange.priceId });
+      
+      if (!response.ok) {
+        throw new Error('Failed to get subscription preview');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error getting subscription preview:', error);
+      throw error;
+    }
+  };
+
+  const handleSubscribe = async (plan: BillingProduct) => {
+    const priceId = plan.pricing?.stripePriceId;
+    if (!priceId) {
+      console.error("❌ No price ID found for plan:", plan);
+      return;
+    }
+
+    const currentPriceId = currentSubscription?.subscription?.priceId;
+    const isCurrentPlan = currentPriceId === priceId;
+    
+    if (isCurrentPlan) {
+      return; // Don't proceed if already on this plan
+    }
+
+    try {
+      // Get subscription change preview from API
+      const preview = await getSubscriptionChangePreview(plan);
+      
+      // Set pending subscription change with preview data
+      setPendingSubscriptionChange({ 
+        plan, 
+        priceId, 
+        changeType: preview.changeType,
+        warningMessage: preview.description 
+      });
+      
+      setShowPaymentMethodSelector(true);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to get subscription preview. Please try again.",
+      });
+    }
+  };
+
+  const confirmSubscriptionChange = async () => {
+    if (!pendingSubscriptionChange) return;
+
+    const { plan, priceId, changeType } = pendingSubscriptionChange;
+    
+    try {
+      const response = await fetch('/api/billing/subscription/change', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          stripePriceId: priceId,
+          changeType,
+          paymentMethodId: selectedPaymentMethodId,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update subscription');
+      }
+
+      const result = await response.json();
+
+      if (result.success) {
+        await subscriptionQuery.refetch();
+        
+        // Show appropriate success message based on change type
+        if (changeType === 'upgrade') {
+          toast({
+            title: "Upgrade Complete!",
+            description: "Your subscription has been upgraded and new features are now available.",
+            duration: 5000,
+          });
+        } else if (changeType === 'downgrade') {
+          toast({
+            title: "Downgrade Scheduled",
+            description: result.message || "Your downgrade has been scheduled for the end of your billing period.",
+            duration: 5000,
+          });
+        } else {
+          toast({
+            title: "Subscription Updated",
+            description: "Your subscription has been updated successfully.",
+            duration: 5000,
+          });
+        }
+        
+        // Clear pending state
+        setPendingSubscriptionChange(null);
+        setShowPaymentMethodSelector(false);
+        setSelectedPaymentMethodId(undefined);
+      }
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Subscription Update Failed",
+        description: error.message || "Failed to update subscription. Please try again.",
+        duration: 5000,
+      });
     }
   };
 
@@ -727,7 +787,12 @@ export default function SecureSubscription() {
               </div>
             </CardTitle>
             <CardDescription className="text-gray-300">
-              You're about to change to <strong>{pendingSubscriptionChange.plan.name}</strong>. 
+              You're about to change to <strong>{pendingSubscriptionChange.plan.name}</strong>.
+              {pendingSubscriptionChange.warningMessage && (
+                <div className="mt-2 p-3 bg-blue-900/30 border border-blue-500/30 rounded text-blue-200 text-sm">
+                  {pendingSubscriptionChange.warningMessage}
+                </div>
+              )}
               Please confirm your payment method below.
             </CardDescription>
           </CardHeader>
