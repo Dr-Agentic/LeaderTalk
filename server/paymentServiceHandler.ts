@@ -596,11 +596,29 @@ async function _updateSubscriptionPrice(stripeCustomerId: string, stripePriceId:
   const subscriptions = await stripe.subscriptions.list({
     customer: stripeCustomerId,
     status: "active",
-    limit: 1,
+    limit: 10, // Get more to handle multiple subscriptions properly
   });
 
   if (subscriptions.data.length === 0) {
     throw new Error("No active subscription found");
+  }
+
+  // If multiple subscriptions exist, cancel all but the most recent one
+  if (subscriptions.data.length > 1) {
+    console.log(`⚠️ Found ${subscriptions.data.length} active subscriptions, consolidating...`);
+    
+    // Sort by creation date (most recent first)
+    subscriptions.data.sort((a, b) => b.created - a.created);
+    const keepSubscription = subscriptions.data[0];
+    
+    // Cancel older subscriptions
+    for (let i = 1; i < subscriptions.data.length; i++) {
+      const oldSub = subscriptions.data[i];
+      console.log(`🗑️ Canceling duplicate subscription: ${oldSub.id}`);
+      await stripe.subscriptions.cancel(oldSub.id);
+    }
+    
+    console.log(`✅ Keeping subscription: ${keepSubscription.id}`);
   }
 
   const subscription = subscriptions.data[0];
