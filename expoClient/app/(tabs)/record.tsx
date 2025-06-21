@@ -6,6 +6,8 @@ import { FontAwesome } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
 import * as Haptics from 'expo-haptics';
 import { useColorScheme } from '@/src/hooks/useColorScheme';
+import { uploadRecording } from '@/src/services/recordingService';
+import { router } from 'expo-router';
 
 export default function RecordScreen() {
   const colorScheme = useColorScheme();
