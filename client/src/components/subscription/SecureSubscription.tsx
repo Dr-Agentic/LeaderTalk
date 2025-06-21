@@ -475,6 +475,31 @@ export default function SecureSubscription() {
     }
   };
 
+  const calculateSubscriptionImpact = (currentPlan: any, newPlan: BillingProduct) => {
+    const currentAmount = currentPlan?.subscription?.formattedAmount ? 
+      parseFloat(currentPlan.subscription.formattedAmount.replace('$', '')) : 0;
+    const newAmount = newPlan.pricing?.amount || 0;
+    
+    const changeType = newAmount > currentAmount ? 'upgrade' : 
+                      newAmount < currentAmount ? 'downgrade' : 'same';
+    
+    let warningMessage: string | undefined;
+    
+    if (changeType === 'downgrade' && currentAmount > 0) {
+      const currentPeriodEnd = new Date(currentPlan?.subscription?.currentPeriodEnd || Date.now());
+      const now = new Date();
+      const remainingDays = Math.ceil((currentPeriodEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      const totalDays = 30; // Approximate monthly cycle
+      
+      if (remainingDays > 0) {
+        const proratedLoss = ((currentAmount - newAmount) * remainingDays) / totalDays;
+        warningMessage = `Warning: You'll lose approximately $${proratedLoss.toFixed(2)} from your current subscription. This change will take effect at your next billing cycle on ${currentPeriodEnd.toLocaleDateString()}.`;
+      }
+    }
+    
+    return { changeType, warningMessage };
+  };
+
   const handleSubscribe = (plan: BillingProduct) => {
     const priceId = plan.pricing?.stripePriceId;
     if (priceId) {
@@ -485,8 +510,11 @@ export default function SecureSubscription() {
         return; // Don't proceed if already on this plan
       }
 
+      // Calculate subscription impact
+      const { changeType, warningMessage } = calculateSubscriptionImpact(currentSubscription, plan);
+
       // Set pending subscription change and show payment method selector
-      setPendingSubscriptionChange({ plan, priceId });
+      setPendingSubscriptionChange({ plan, priceId, changeType, warningMessage });
       setShowPaymentMethodSelector(true);
     } else {
       console.error("❌ No price ID found for plan:", plan);
