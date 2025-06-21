@@ -933,6 +933,9 @@ export default function SecureSubscription() {
               }}
               selectedPaymentMethodId={selectedPaymentMethodId}
               showAddNewOption={true}
+              immediateCharge={pendingSubscriptionChange?.warningMessage?.includes('$') ? 
+                parseFloat(pendingSubscriptionChange.warningMessage.match(/\$(\d+(?:\.\d{2})?)/)?.[1] || '0') : 0}
+              warningMessage={pendingSubscriptionChange?.warningMessage}
             />
             
             <div className="flex space-x-3 pt-4">

@@ -55,6 +55,8 @@ interface PaymentMethodSelectorProps {
   onPaymentMethodSelected: (paymentMethodId?: string) => void;
   showAddNewOption?: boolean;
   selectedPaymentMethodId?: string;
+  immediateCharge?: number;
+  warningMessage?: string;
 }
 
 function AddPaymentMethodForm({
@@ -187,6 +189,8 @@ export default function PaymentMethodSelector({
   onPaymentMethodSelected,
   showAddNewOption = true,
   selectedPaymentMethodId,
+  immediateCharge = 0,
+  warningMessage,
 }: PaymentMethodSelectorProps) {
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [setupClientSecret, setSetupClientSecret] = useState<string | null>(null);
@@ -292,6 +296,13 @@ export default function PaymentMethodSelector({
   const handleSetAsDefault = (paymentMethodId: string) => {
     setDefaultPaymentMethod.mutate(paymentMethodId);
   };
+
+  // Hide payment panel if no immediate charge is required
+  if (immediateCharge === 0) {
+    // Automatically select no payment method for free transactions
+    onPaymentMethodSelected(undefined);
+    return null;
+  }
 
   if (isLoading) {
     return (
