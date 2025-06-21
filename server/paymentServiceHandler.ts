@@ -554,9 +554,66 @@ export async function createDefaultSubscription(
   };
 }
 
+// Helper functions for subscription updates
+async function _validateCustomerAndPaymentMethods(stripeCustomerId: string) {
+  const customer = await stripe.customers.retrieve(stripeCustomerId);
+  if (typeof customer === "string" || customer.deleted) {
+    throw new Error(`Customer ${stripeCustomerId} not found or deleted`);
+  }
+
+  const paymentMethods = await stripe.paymentMethods.list({
+    customer: stripeCustomerId,
+    type: "card",
+  });
+
+  console.log(`💳 Payment methods found: ${paymentMethods.data.length}`);
+
+  if (paymentMethods.data.length === 0) {
+    const setupIntent = await stripe.setupIntents.create({
+      customer: stripeCustomerId,
+      usage: "off_session",
+      automatic_payment_methods: { enabled: true },
+    });
+
+    return {
+      needsPaymentMethod: true,
+      clientSecret: setupIntent.client_secret,
+    };
+  }
+
+  // Set default payment method if not set
+  if (!customer.invoice_settings?.default_payment_method) {
+    await stripe.customers.update(stripeCustomerId, {
+      invoice_settings: { default_payment_method: paymentMethods.data[0].id },
+    });
+  }
+
+  return { needsPaymentMethod: false };
+}
+
+async function _updateSubscriptionPrice(stripeCustomerId: string, stripePriceId: string) {
+  const subscriptions = await stripe.subscriptions.list({
+    customer: stripeCustomerId,
+    status: "active",
+    limit: 1,
+  });
+
+  if (subscriptions.data.length === 0) {
+    throw new Error("No active subscription found");
+  }
+
+  const subscription = subscriptions.data[0];
+  
+  return await stripe.subscriptions.update(subscription.id, {
+    items: [{ id: subscription.items.data[0].id, price: stripePriceId }],
+    payment_behavior: "allow_incomplete",
+    proration_behavior: "create_prorations",
+    expand: ["latest_invoice.payment_intent"],
+  });
+}
+
 /**
  * Update a user's subscription to a new price
- * This is the only function that should handle Stripe subscription updates
  */
 export async function updateUserSubscriptionToPlan(
   stripeCustomerId: string,
@@ -567,254 +624,47 @@ export async function updateUserSubscriptionToPlan(
   clientSecret?: string;
   message?: string;
   error?: string;
-  amount?: number;
-  interval?: string;
-  nextRenewal?: string;
 }> {
   try {
-    if (!process.env.STRIPE_SECRET_KEY) {
-      throw new Error("Missing required Stripe secret: STRIPE_SECRET_KEY");
-    }
+    console.log("🔄 Updating subscription for customer:", stripeCustomerId);
 
-    console.log("🔍 Validating customer and payment setup:", stripeCustomerId);
-
-    // Step 1: Validate customer and ensure default payment method
-    const customer = await stripe.customers.retrieve(stripeCustomerId);
-    if (typeof customer === "string" || customer.deleted) {
-      throw new Error(`Customer ${stripeCustomerId} not found or deleted`);
-    }
-
-    // Step 2: Check payment methods directly
-    const paymentMethods = await stripe.paymentMethods.list({
-      customer: stripeCustomerId,
-      type: "card",
-    });
-
-    console.log(`💳 Payment method status:`, {
-      customerId: stripeCustomerId,
-      methodCount: paymentMethods.data.length,
-      defaultMethod: customer.invoice_settings?.default_payment_method,
-    });
-
-    // Step 3: If no payment methods, immediately create setup intent
-    if (paymentMethods.data.length === 0) {
-      console.log("❌ No payment methods found - creating setup intent");
-      const setupIntent = await stripe.setupIntents.create({
-        customer: stripeCustomerId,
-        usage: "off_session",
-        automatic_payment_methods: { enabled: true },
-      });
-
+    // Check if customer has payment methods
+    const validation = await _validateCustomerAndPaymentMethods(stripeCustomerId);
+    if (validation.needsPaymentMethod) {
       return {
         success: true,
         requiresPayment: true,
-        clientSecret: setupIntent.client_secret || undefined,
+        clientSecret: validation.clientSecret,
         message: "Please add a payment method to update your subscription",
       };
     }
 
-    // Step 4: Set default payment method if not set
-    if (!customer.invoice_settings?.default_payment_method && paymentMethods && paymentMethods.data.length > 0) {
-      console.log("🔧 Setting default payment method:", paymentMethods.data[0].id);
-      await stripe.customers.update(stripeCustomerId, {
-        invoice_settings: {
-          default_payment_method: paymentMethods.data[0].id,
-        },
-      });
-    }
-
-    // Step 5: Get current subscription
-    const subscriptions = await stripe.subscriptions.list({
-      customer: stripeCustomerId,
-      status: "active",
-      limit: 1,
-    });
-
-    if (subscriptions.data.length === 0) {
-      throw new Error("No active subscription found for customer");
-    }
-
-    const currentSubscription = subscriptions.data[0];
-    
-    // Step 6: Check for billing interval changes
-    const currentPrice = await stripe.prices.retrieve(
-      currentSubscription.items.data[0].price.id,
-    );
-    const newPrice = await stripe.prices.retrieve(stripePriceId);
-
-    let changingIntervals = 
-      currentPrice.recurring?.interval !== newPrice.recurring?.interval;
-
-    console.log("🔍 Subscription update analysis:", {
-      currentInterval: currentPrice.recurring?.interval,
-      newInterval: newPrice.recurring?.interval,
-      changingIntervals,
-      currentPriceId: currentPrice.id,
-      newPriceId: stripePriceId,
-    });
-
-    let updatedSubscription: any = currentSubscription;
-    let isScheduledChange = false;
-
-    if (changingIntervals) {
-      // Handle interval changes with subscription schedules
-      console.log("🔄 Using subscription schedule for interval change");
-      
-      try {
-        // Create a new subscription schedule for interval changes
-        const schedule = await stripe.subscriptionSchedules.create({
-          customer: stripeCustomerId,
-          start_date: (currentSubscription as any).current_period_end,
-          end_behavior: "release",
-          phases: [
-            {
-              items: [
-                {
-                  price: stripePriceId,
-                  quantity: 1,
-                },
-              ],
-              // No end_date means it continues indefinitely
-            },
-          ],
-        });
-
-        console.log("✅ Subscription schedule created:", schedule.id);
-        isScheduledChange = true;
-        // Keep current subscription as the updated one since change is scheduled
-      } catch (scheduleError: any) {
-        console.log("⚠️ Schedule creation failed, falling back to immediate update:", scheduleError.message);
-        // Fall back to immediate update
-        changingIntervals = false;
-      }
-    }
-
-    if (!changingIntervals && !isScheduledChange) {
-      // Step 7: Update subscription with proper payment handling
-      updatedSubscription = await stripe.subscriptions.update(
-        currentSubscription.id,
-        {
-          items: [
-            {
-              id: currentSubscription.items.data[0].id,
-              price: stripePriceId,
-            },
-          ],
-          payment_behavior: "allow_incomplete",
-          proration_behavior: "create_prorations",
-          billing_cycle_anchor: "unchanged",
-          expand: ["latest_invoice.payment_intent"],
-        },
-      );
-
-      console.log("✅ Subscription updated successfully:", updatedSubscription.id);
-    }
-
-    // Step 8: Handle payment requirements
+    // Update the subscription
+    const updatedSubscription = await _updateSubscriptionPrice(stripeCustomerId, stripePriceId);
     const latestInvoice = updatedSubscription.latest_invoice as any;
 
+    // Handle payment requirements
     if (latestInvoice?.payment_intent?.status === "requires_payment_method") {
-      console.log("💳 Payment method required for invoice:", latestInvoice.id);
       return {
         success: true,
         requiresPayment: true,
         clientSecret: latestInvoice.payment_intent.client_secret,
-        message: "Please add a payment method to complete your subscription update",
+        message: "Please complete payment to finalize subscription update",
       };
     }
 
-    if (latestInvoice?.payment_intent?.status === "requires_action") {
-      console.log("🔐 Authentication required for payment:", latestInvoice.payment_intent.id);
-      return {
-        success: true,
-        requiresPayment: true,
-        clientSecret: latestInvoice.payment_intent.client_secret,
-        message: "Please complete the payment authentication to finalize your subscription update",
-      };
-    }
-
-    // Step 9: Get updated subscription details for response
-    const updatedSubscriptionData = await retrievePaymentSubscriptionById(
-      updatedSubscription.id,
-    );
-
-    const message = isScheduledChange 
-      ? `Your plan change has been scheduled! You'll continue with your current plan until ${new Date((currentSubscription as any).current_period_end * 1000).toLocaleDateString()}, then automatically switch to the new plan.`
-      : "Subscription updated successfully";
-
+    console.log("✅ Subscription updated successfully");
     return {
       success: true,
       requiresPayment: false,
-      message,
-      amount: updatedSubscriptionData.amount,
-      interval: updatedSubscriptionData.interval,
-      nextRenewal: new Date(
-        updatedSubscriptionData.nextRenewalTimestamp * 1000,
-      ).toLocaleDateString(),
+      message: "Subscription updated successfully",
     };
 
   } catch (error: any) {
     console.error("❌ Subscription update failed:", error);
-
-    // Enhanced error handling for different Stripe error types
-    if (error.type === "StripeCardError") {
-      const errorMessage = error.decline_code 
-        ? `Card declined: ${error.decline_code}` 
-        : error.message;
-      
-      return {
-        success: false,
-        error: errorMessage,
-      };
-    }
-
-    if (error.code === "resource_missing") {
-      if (error.message.includes("no attached payment source")) {
-        console.log("🔍 Customer has no payment method - creating setup intent");
-        try {
-          const setupIntent = await stripe.setupIntents.create({
-            customer: stripeCustomerId,
-            usage: "off_session",
-            automatic_payment_methods: {
-              enabled: true,
-              allow_redirects: "always",
-            },
-          });
-
-          return {
-            success: true,
-            requiresPayment: true,
-            clientSecret: setupIntent.client_secret || undefined,
-            message: "Please add a payment method to update your subscription",
-          };
-        } catch (setupError: any) {
-          console.error("Setup intent creation error:", setupError);
-          return {
-            success: false,
-            error: "Failed to create payment setup. Please try again.",
-          };
-        }
-      }
-    }
-
-    if (error.code === "subscription_update_failed") {
-      return {
-        success: false,
-        error: "Unable to update subscription. Please check your payment method and try again.",
-      };
-    }
-
-    if (error.code === "invoice_no_customer_line_items") {
-      return {
-        success: false,
-        error: "Subscription configuration error. Please contact support.",
-      };
-    }
-
-    // Generic error fallback
     return {
       success: false,
-      error: error.message || "Failed to update subscription. Please try again.",
+      error: error.message || "Failed to update subscription",
     };
   }
 }
