@@ -884,7 +884,7 @@ export default function SecureSubscription() {
 
                 return (
                   <Button
-                    className="w-full mt-auto"
+                    className="w-full mt-auto h-12"
                     onClick={() => handleSubscribe(plan)}
                     disabled={updateSubscription.isPending || isCurrentPlan}
                     variant={isCurrentPlan ? "secondary" : "default"}
@@ -895,7 +895,7 @@ export default function SecureSubscription() {
                         Processing...
                       </>
                     ) : (
-                      isCurrentPlan ? "Current Plan" : `Choose ${plan.name}`
+                      isCurrentPlan ? "Current Plan" : "Select Plan"
                     )}
                   </Button>
                 );
@@ -924,9 +924,24 @@ export default function SecureSubscription() {
                   <h3 className="text-xl font-semibold text-white mb-2">
                     Confirm Subscription Change
                   </h3>
-                  <p className="text-gray-300 text-sm leading-relaxed">
-                    You're about to change to <span className="font-semibold text-white">{pendingSubscriptionChange.plan.name}</span>
+                  <p className="text-gray-300 text-sm leading-relaxed mb-4">
+                    Review the details below and confirm your subscription change
                   </p>
+                  
+                  {/* Plan Change Summary */}
+                  <div className="relative overflow-hidden rounded-xl border border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5 backdrop-blur-sm p-4 mb-4">
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-50" />
+                    <div className="relative">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-gray-300 text-sm">Changing to:</span>
+                        <span className="font-semibold text-white">{pendingSubscriptionChange.plan.name}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-300 text-sm">Plan type:</span>
+                        <span className="text-primary font-medium">{pendingSubscriptionChange.changeType}</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
                 
                 {pendingSubscriptionChange.warningMessage && (
@@ -973,9 +988,7 @@ export default function SecureSubscription() {
                       <span>Processing...</span>
                     </div>
                   ) : (
-                    <div className="flex items-center justify-center">
-                      <span>Confirm Change to {pendingSubscriptionChange.plan.name}</span>
-                    </div>
+                    <span>Confirm Subscription Change</span>
                   )}
                 </Button>
                 
