@@ -150,25 +150,22 @@ interface BillingProduct {
   description: string;
   productIcon: string | null;
   pricing: {
-    monthly: {
-      amount: number;
-      formattedPrice: string;
-      interval: string;
-    };
-    yearly: {
-      amount: number;
-      formattedPrice: string;
-      formattedSavings?: string;
-      interval: string;
-    };
+    amount: number;
+    formattedPrice: string;
+    formattedSavings?: string;
+    interval: string;
+    stripePriceId: string;
   };
   features: {
     wordLimit: number;
-    formattedWordLimit: string;
-    benefits: string[];
+    maxRecordingLength: number;
+    leaderLibraryAccess: boolean;
+    advancedAnalytics: boolean;
+    prioritySupport: boolean;
   };
   isDefault: boolean;
   isPopular: boolean;
+  billingType: string;
 }
 
 interface CurrentSubscription {
@@ -180,6 +177,7 @@ interface CurrentSubscription {
     status: string;
     plan: string;
     planId: string;
+    priceId: string;
     isFree: boolean;
 
     // Formatted amounts
@@ -232,7 +230,7 @@ export default function SecureSubscription() {
     });
 
   // Fetch available plans
-  const { data: plans, isLoading: plansLoading } = useQuery<SubscriptionPlan[]>(
+  const { data: plans, isLoading: plansLoading } = useQuery<BillingProduct[]>(
     {
       queryKey: ["/api/billing/products"],
       enabled: true,
