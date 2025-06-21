@@ -618,40 +618,32 @@ export default function SecureSubscription() {
               </div>
 
               {/* Button anchored to bottom */}
-              <Button
-                className="w-full mt-auto text-xs py-3 px-2 h-[60px] whitespace-normal break-words flex items-center justify-center"
-                onClick={() => handleSubscribe(plan)}
-                disabled={updateSubscription.isPending}
-                variant="default"
-              >
-                <div className="text-center leading-relaxed">
-                  {updateSubscription.isPending ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    (() => {
-                      const currentPriceId =
-                        currentSubscription?.subscription?.priceId;
-                      // Check if current plan matches this specific plan's price ID
-                      const planPriceId = plan.pricing?.stripePriceId;
-                      const isCurrentPlan = currentPriceId === planPriceId;
+              {(() => {
+                const currentPriceId =
+                  currentSubscription?.subscription?.priceId;
+                const planPriceId = plan.pricing?.stripePriceId;
+                const isCurrentPlan = currentPriceId === planPriceId;
 
-                      console.log("🔍 Price ID comparison:", {
-                        currentPriceId,
-                        planPriceId,
-                        isCurrentPlan,
-                        planName: plan.name,
-                      });
-
-                      return isCurrentPlan
-                        ? "Current Plan"
-                        : `Opt for ${plan.name}`;
-                    })()
-                  )}
-                </div>
-              </Button>
+                return (
+                  <Button
+                    className="w-full mt-auto text-xs py-3 px-2 h-[60px] whitespace-normal break-words flex items-center justify-center"
+                    onClick={() => handleSubscribe(plan)}
+                    disabled={updateSubscription.isPending || isCurrentPlan}
+                    variant={isCurrentPlan ? "secondary" : "default"}
+                  >
+                    <div className="text-center leading-relaxed">
+                      {updateSubscription.isPending ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        isCurrentPlan ? "Current Plan" : `Opt for ${plan.name}`
+                      )}
+                    </div>
+                  </Button>
+                );
+              })()}
             </CardContent>
           </Card>
         ))}
