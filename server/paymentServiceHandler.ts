@@ -563,10 +563,11 @@ async function _validateCustomerAndPaymentMethods(stripeCustomerId: string) {
 
   const paymentMethods = await stripe.paymentMethods.list({
     customer: stripeCustomerId,
-    type: "card",
   });
 
-  console.log(`💳 Payment methods found: ${paymentMethods.data.length}`);
+  console.log(`💳 Payment methods found: ${paymentMethods.data.length}`, {
+    types: paymentMethods.data.map(pm => pm.type),
+  });
 
   if (paymentMethods.data.length === 0) {
     const setupIntent = await stripe.setupIntents.create({
@@ -577,7 +578,7 @@ async function _validateCustomerAndPaymentMethods(stripeCustomerId: string) {
 
     return {
       needsPaymentMethod: true,
-      clientSecret: setupIntent.client_secret,
+      clientSecret: setupIntent.client_secret || undefined,
     };
   }
 
