@@ -1235,9 +1235,8 @@ export async function getScheduledSubscriptions(
           
           // For pending updates, we need to check what the new price will be
           if (subscription.pending_update.subscription_items?.[0]?.price) {
-            const pendingPriceId = typeof subscription.pending_update.subscription_items[0].price === 'string'
-              ? subscription.pending_update.subscription_items[0].price
-              : subscription.pending_update.subscription_items[0].price;
+            // The price in pending_update is typically a string ID
+            const pendingPriceId = subscription.pending_update.subscription_items[0].price as string;
             const pendingPrice = await stripe.prices.retrieve(pendingPriceId, { expand: ['product'] });
             
             const currentPlanName = currentPrice.nickname || 
