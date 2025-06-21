@@ -121,4 +121,6 @@ export function registerBillingRoutes(app: Express) {
       res.status(500).json({ error: "Failed to fetch subscription history" });
     }
   });
+
+
 }
