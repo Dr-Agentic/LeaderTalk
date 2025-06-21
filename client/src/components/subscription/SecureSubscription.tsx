@@ -340,6 +340,12 @@ export default function SecureSubscription() {
     },
   );
 
+  // Fetch scheduled subscription changes
+  const { data: scheduledChanges, isLoading: scheduledLoading } = useQuery({
+    queryKey: ["/api/billing/subscription/scheduled"],
+    enabled: !!currentSubscription?.subscription?.id,
+  });
+
   // Update subscription mutation
   const updateSubscription = useMutation({
     mutationFn: async (planData: { stripePriceId: string }) => {
@@ -667,6 +673,70 @@ export default function SecureSubscription() {
                   </p>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Scheduled Subscription Changes */}
+        {scheduledChanges && scheduledChanges.scheduled && scheduledChanges.scheduled.length > 0 && (
+          <Card className="bg-gray-800/50 border-yellow-500/30">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-yellow-400">
+                <Clock className="h-5 w-5" />
+                <span>Scheduled Subscription Change</span>
+              </CardTitle>
+              <CardDescription className="text-gray-300">
+                Your subscription will automatically change at the end of your current billing period.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {scheduledChanges.scheduled.map((change: any, index: number) => (
+                <div key={index} className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium text-white">
+                        Changing to: <span className="text-blue-400">{change.newPlan?.nickname || change.items?.[0]?.price?.nickname || 'New Plan'}</span>
+                      </p>
+                      <p className="text-sm text-gray-400">
+                        Effective: {new Date(change.effective_date * 1000).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleCancelScheduledChange(change.id)}
+                      className="border-red-500/30 text-red-400 hover:bg-red-900/20"
+                    >
+                      Cancel Change
+                    </Button>
+                  </div>
+                  
+                  <div className="p-3 bg-yellow-900/20 border border-yellow-500/30 rounded text-yellow-200 text-sm">
+                    This change will take effect at the end of your current billing period. You'll keep all current features until then.
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div>
+                      <p className="text-gray-400">New Price</p>
+                      <p className="text-white font-medium">
+                        ${((change.items?.[0]?.price?.unit_amount || 0) / 100).toFixed(2)} / {change.items?.[0]?.price?.recurring?.interval || 'month'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-gray-400">Status</p>
+                      <p className="text-white font-medium capitalize">
+                        {change.status || 'Scheduled'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-gray-400">Schedule ID</p>
+                      <p className="text-white font-medium font-mono text-xs">
+                        {change.id}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </CardContent>
           </Card>
         )}

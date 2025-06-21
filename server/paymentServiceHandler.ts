@@ -945,7 +945,7 @@ export async function getSubscriptionChangePreview(
     const priceDifference = newAmount - currentAmount;
     immediateCharge = Math.round((priceDifference * remainingDays) / totalPeriodDays);
 
-    description = `Upgrade to ${newPrice.nickname}. You'll be charged $${(immediateCharge / 100).toFixed(2)} immediately for the prorated difference and gain access to new features right away.`;
+    description = `Upgrade to ${newPrice.nickname || newPrice.product || 'new plan'}. You'll be charged $${(immediateCharge / 100).toFixed(2)} immediately for the prorated difference and gain access to new features right away.`;
     
   } else if (changeType === 'downgrade') {
     // Downgrades: Scheduled for end of period
@@ -953,17 +953,17 @@ export async function getSubscriptionChangePreview(
     const periodEnd = new Date((currentSubscription as any).current_period_end * 1000);
     scheduledDate = periodEnd.toISOString();
     
-    description = `Downgrade to ${newPrice.nickname} will take effect at the end of your current billing period (${periodEnd.toLocaleDateString()}). You'll keep all current features until then.`;
+    description = `Downgrade to ${newPrice.nickname || newPrice.product || 'new plan'} will take effect at the end of your current billing period (${periodEnd.toLocaleDateString()}). You'll keep all current features until then.`;
     
   } else {
     // Same price: Immediate change, no billing impact
-    description = `Switch to ${newPrice.nickname}. No billing changes, just feature/limit adjustments.`;
+    description = `Switch to ${newPrice.nickname || newPrice.product || 'new plan'}. No billing changes, just feature/limit adjustments.`;
   }
 
   return {
     changeType,
-    currentPlan: currentPrice.nickname || 'Current Plan',
-    newPlan: newPrice.nickname || 'New Plan',
+    currentPlan: currentPrice.nickname || (currentPrice as any).product?.name || 'Current Plan',
+    newPlan: newPrice.nickname || (newPrice as any).product?.name || 'New Plan',
     immediateCharge: immediateCharge / 100,
     proratedCredit: proratedCredit / 100,
     nextBillingAmount: newAmount / 100,
@@ -987,6 +987,27 @@ export async function executeUpgradeWithProration(
   message?: string;
   error?: string;
 }> {
+  // Check if the new price is free (0 amount)
+  const newPrice = await stripe.prices.retrieve(newPriceId);
+  const isFreePrice = (newPrice.unit_amount || 0) === 0;
+  
+  if (isFreePrice) {
+    // For free plans, skip payment validation and update directly
+    try {
+      const updatedSubscription = await _updateSubscriptionPrice(stripeCustomerId, newPriceId);
+      return {
+        success: true,
+        requiresPayment: false,
+        message: "Subscription updated successfully to free plan",
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        error: error.message || "Failed to update subscription",
+      };
+    }
+  }
+  
   return await updateUserSubscriptionToPlan(stripeCustomerId, newPriceId);
 }
 
