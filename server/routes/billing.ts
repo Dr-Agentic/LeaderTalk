@@ -1,7 +1,7 @@
 import { Express, Request, Response } from "express";
 import { storage } from "../storage";
 import { 
-  retrieveExistingSubscriptionById_duplicate,
+  retrievePaymentSubscriptionById,
   createDefaultSubscription,
   ensureUserHasStripeCustomer
 } from "../paymentServiceHandler";

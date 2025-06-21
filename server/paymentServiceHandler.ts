@@ -1,11 +1,7 @@
-// Morsy - 2025-06-13
 import Stripe from "stripe";
 import { storage } from "./storage";
-import { User } from "../shared/schema";
-import { config } from "./config/environment";
 
-// Initialize Stripe client
-const stripe = new Stripe(config.stripe.secretKey, {
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2023-10-16",
 });
 
@@ -104,41 +100,19 @@ export async function retrievePaymentSubscriptionById(
     status: subscription.status,
     plan: product.name.toLowerCase(),
     planId: product.id,
-    priceId: price.id, // Add the Stripe price ID
+    priceId: price.id,
     isFree: price.unit_amount === 0,
     startDate: subscription.start_date
       ? new Date(subscription.start_date * 1000)
-      : (() => {
-          throw new Error(
-            `Error from Stripe: subscription.start_date is missing for subscription ${subscription.id}`,
-          );
-        })(),
-    currentPeriodStart: subscription.current_period_start
-      ? new Date(subscription.current_period_start * 1000)
-      : (() => {
-          throw new Error(
-            `Error from Stripe: subscription.current_period_start is missing for subscription ${subscription.id}`,
-          );
-        })(),
-    currentPeriodEnd: subscription.current_period_end
-      ? new Date(subscription.current_period_end * 1000)
-      : (() => {
-          throw new Error(
-            `Error from Stripe: subscription.current_period_end is missing for subscription ${subscription.id}`,
-          );
-        })(),
+      : new Date(),
+    currentPeriodStart: new Date(subscription.current_period_start * 1000),
+    currentPeriodEnd: new Date(subscription.current_period_end * 1000),
     nextRenewalDate: new Date(subscription.current_period_end * 1000),
     nextRenewalTimestamp: subscription.current_period_end,
     cancelAtPeriodEnd: subscription.cancel_at_period_end,
-    amount: price.unit_amount ? price.unit_amount / 100 : 0, // Convert cents to dollars
+    amount: price.unit_amount ? price.unit_amount / 100 : 0,
     currency: price.currency,
-    interval:
-      price.recurring?.interval ||
-      (() => {
-        throw new Error(
-          `Error from Stripe: recurring.interval is missing for price ${price.id}`,
-        );
-      })(),
+    interval: price.recurring?.interval || "month",
     productImage:
       product.images && product.images.length > 0 ? product.images[0] : null,
     metadata: product.metadata,
@@ -153,29 +127,43 @@ export async function retrievePaymentSubscriptionById(
 export async function getBillingCycleFromSubscription(
   subscriptionId: string,
 ): Promise<{ start: Date; end: Date }> {
-  // Use the pure Stripe API function
-  const subscription = await retrievePaymentSubscriptionById(subscriptionId);
-  return {
-    start: subscription.currentPeriodStart,
-    end: subscription.currentPeriodEnd,
-  };
+  try {
+    const subscriptionData = await retrievePaymentSubscriptionById(
+      subscriptionId,
+    );
+
+    return {
+      start: subscriptionData.currentPeriodStart,
+      end: subscriptionData.currentPeriodEnd,
+    };
+  } catch (error: any) {
+    console.error("Error fetching billing cycle:", error);
+    throw new Error("Failed to fetch billing cycle information");
+  }
 }
 
 /**
  * Get word limit for a user from their Stripe subscription
  */
 export async function getUserWordLimit(userId: number): Promise<number> {
-  // Get user from database to get their subscription ID
-  const user = await storage.getUser(userId);
-  if (!user?.stripeSubscriptionId) {
-    throw new Error(`User ${userId} has no Stripe subscription ID`);
-  }
+  try {
+    const user = await storage.getUser(userId);
+    if (!user?.stripeCustomerId) {
+      console.log("User has no stripe customer ID, using default limit");
+      return 500; // Default free tier limit
+    }
 
-  // Use the pure Stripe API function
-  const subscription = await retrievePaymentSubscriptionById(
-    user.stripeSubscriptionId,
-  );
-  return subscription.wordLimit;
+    // Get the subscription data which includes word limit from product metadata
+    const subscriptionData = await retrievePaymentSubscriptionById(
+      user.stripeSubscriptionId!,
+    );
+
+    console.log("✅ Retrieved subscription data:", subscriptionData.plan, `(${subscriptionData.wordLimit} words)`);
+    return subscriptionData.wordLimit;
+  } catch (error: any) {
+    console.error("Error getting user word limit:", error);
+    return 500; // Fallback to free tier limit
+  }
 }
 
 /**
@@ -222,9 +210,16 @@ ${allSubscriptions.data
   .join("\n")}
 ═══════════════════════════════════════════════════════════
     `);
-  } else {
+
+    // Select the newest subscription by creation date
+    const newestSubscription = allSubscriptions.data.reduce(
+      (latest, current) => {
+        return current.created > latest.created ? current : latest;
+      },
+    );
+
     console.log(
-      `✅ Single active subscription confirmed for customer ${user.stripeCustomerId}`,
+      `📌 Selected newest subscription: ${newestSubscription.id} (created: ${new Date(newestSubscription.created * 1000).toISOString()})`,
     );
   }
 }
@@ -233,35 +228,12 @@ ${allSubscriptions.data
  * Helper function to extract word limit from product metadata
  */
 function _getWordLimitFromMetadata(product: Stripe.Product): number {
-  if (!product?.metadata) {
-    throw new Error(`Product ${product.id} has no metadata`);
+  const wordsMetadata = product.metadata?.Words;
+  if (!wordsMetadata) {
+    console.warn(`No Words metadata found for product ${product.id}, defaulting to 500`);
+    return 500;
   }
-
-  // Check for different case variations of "words" in metadata
-  const metadata = product.metadata;
-
-  // Check for "Words" (proper case)
-  if (metadata.Words) {
-    const wordLimit = parseInt(metadata.Words);
-    if (!isNaN(wordLimit)) {
-      return wordLimit;
-    }
-  }
-
-  // Case-insensitive check for any variation of "words"
-  for (const key of Object.keys(metadata)) {
-    if (key.toLowerCase() === "words") {
-      const value = metadata[key];
-      const wordLimit = parseInt(value);
-      if (!isNaN(wordLimit)) {
-        return wordLimit;
-      }
-    }
-  }
-
-  throw new Error(
-    `No valid word limit found in metadata for product ${product.name} (${product.id})`,
-  );
+  return parseInt(wordsMetadata, 10) || 500;
 }
 
 /**
@@ -269,12 +241,91 @@ function _getWordLimitFromMetadata(product: Stripe.Product): number {
  * Returns a PaymentCustomer object if found, otherwise null
  */
 export async function lookupCustomerByEmail(email: string): Promise<any> {
-  const stripeCustomer = await _lookupCustomerByEmail(email);
-  if (!stripeCustomer) return null;
-  // build a PaymentCustomer object
-  const paymentCustomer: PaymentCustomer =
-    await retrievePaymentCustomerByCustomerId(stripeCustomer.id);
-  return paymentCustomer;
+  try {
+    const stripeCustomer = await _lookupCustomerByEmail(email);
+    
+    if (!stripeCustomer) {
+      return null;
+    }
+
+    // Get the newest active subscription if available
+    let newestActiveSubscription;
+    const activeSubscriptions = await stripe.subscriptions.list({
+      customer: stripeCustomer.id,
+      status: "active",
+      limit: 100,
+    });
+
+    if (activeSubscriptions.data.length === 1) {
+      console.log(`✅ Found 1 active subscription for customer ${stripeCustomer.id}`);
+      newestActiveSubscription = await retrievePaymentSubscriptionById(
+        activeSubscriptions.data[0].id,
+      );
+    } else if (activeSubscriptions.data.length > 1) {
+      console.error(`
+🚨🚨🚨 CRITICAL: MULTIPLE ACTIVE SUBSCRIPTIONS DETECTED 🚨🚨🚨
+═══════════════════════════════════════════════════════════
+👤 Customer Email: ${email}
+🔑 Customer ID: ${stripeCustomer.id}
+📊 Total Active Subscriptions: ${activeSubscriptions.data.length}
+
+📝 All Active Subscriptions for this customer:
+${activeSubscriptions.data
+  .map(
+    (sub, index) =>
+      `   ${index + 1}. ID: ${sub.id}
+      Status: ${sub.status}
+      Plan: ${sub.items.data[0]?.price?.nickname || "Unknown"}
+      Created: ${new Date(sub.created * 1000).toISOString()}
+      Current Period: ${new Date(sub.current_period_start * 1000).toISOString()} - ${new Date(sub.current_period_end * 1000).toISOString()}`,
+  )
+  .join("\n")}
+═══════════════════════════════════════════════════════════
+      `);
+
+      // Select the newest subscription by creation date
+      const newestSubscription = activeSubscriptions.data.reduce(
+        (latest, current) => {
+          return current.created > latest.created ? current : latest;
+        },
+      );
+
+      console.log(
+        `📌 Selected newest subscription: ${newestSubscription.id} (created: ${new Date(newestSubscription.created * 1000).toISOString()})`,
+      );
+      newestActiveSubscription = await retrievePaymentSubscriptionById(
+        newestSubscription.id,
+      );
+    }
+
+    const paymentCustomer: PaymentCustomer = {
+      id: stripeCustomer.id,
+      email: stripeCustomer.email,
+      name: stripeCustomer.name,
+      created: stripeCustomer.created,
+      deleted: stripeCustomer.deleted,
+      metadata: stripeCustomer.metadata,
+      newestActiveSubscription,
+    };
+
+    console.log(
+      `✅ Successfully retrieved payment customer ${stripeCustomer.id} with ${newestActiveSubscription ? "active subscription" : "no active subscription"}`,
+    );
+    return paymentCustomer;
+  } catch (error: any) {
+    console.error(
+      `❌ Error retrieving payment customer by email ${email}:`,
+      error,
+    );
+
+    if (error.code === "resource_missing") {
+      throw new Error(
+        `Payment customer with email ${email} not found in payment provider`,
+      );
+    }
+
+    throw error;
+  }
 }
 
 /**
@@ -516,25 +567,22 @@ export async function updateUserSubscriptionToPlan(
   clientSecret?: string;
   message?: string;
   error?: string;
+  amount?: number;
+  interval?: string;
+  nextRenewal?: string;
 }> {
   try {
     if (!process.env.STRIPE_SECRET_KEY) {
       throw new Error("Missing required Stripe secret: STRIPE_SECRET_KEY");
     }
 
-    const stripe = (await import("stripe")).default;
-    const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: "2023-10-16",
-    });
-
-    // Check for payment methods with retry logic
     console.log("🔍 Checking customer payment methods:", stripeCustomerId);
 
     const maxRetries = 3;
     let paymentMethodsFound = false;
     
     for (let retryCount = 0; retryCount <= maxRetries; retryCount++) {
-      const paymentMethods = await stripeInstance.paymentMethods.list({
+      const paymentMethods = await stripe.paymentMethods.list({
         customer: stripeCustomerId,
         type: "card",
       });
@@ -559,7 +607,7 @@ export async function updateUserSubscriptionToPlan(
     
     if (!paymentMethodsFound) {
       console.log("❌ Creating setup intent for payment method collection");
-      const setupIntent = await stripeInstance.setupIntents.create({
+      const setupIntent = await stripe.setupIntents.create({
         customer: stripeCustomerId,
         usage: "off_session",
         automatic_payment_methods: {
@@ -571,13 +619,13 @@ export async function updateUserSubscriptionToPlan(
       return {
         success: true,
         requiresPayment: true,
-        clientSecret: setupIntent.client_secret,
+        clientSecret: setupIntent.client_secret || undefined,
         message: "Please add a payment method to update your subscription",
       };
     }
 
     // Get active subscriptions to update
-    const subscriptions = await stripeInstance.subscriptions.list({
+    const subscriptions = await stripe.subscriptions.list({
       customer: stripeCustomerId,
       status: "active",
       limit: 1,
@@ -590,7 +638,7 @@ export async function updateUserSubscriptionToPlan(
     const subscription = subscriptions.data[0];
     
     // Update the subscription to the new price
-    const updatedSubscription = await stripeInstance.subscriptions.update(
+    const updatedSubscription = await stripe.subscriptions.update(
       subscription.id,
       {
         items: [
@@ -600,149 +648,11 @@ export async function updateUserSubscriptionToPlan(
           },
         ],
         proration_behavior: "create_prorations",
+        expand: ["latest_invoice.payment_intent"],
       },
     );
 
     console.log("✅ Subscription updated successfully:", updatedSubscription.id);
-
-    return {
-      success: true,
-      message: "Subscription updated successfully",
-    };
-  } catch (error: any) {
-    console.error("❌ Subscription update failed:", error);
-    return {
-      success: false,
-      error: error.message || "Failed to update subscription",
-    };
-  }
-}
-
-    console.log(
-      "✅ Payment methods exist - ensuring default payment method is set",
-    );
-
-    // Check if customer has a default payment method set
-    const customer = await stripeInstance.customers.retrieve(stripeCustomerId);
-
-    if (typeof customer !== "string" && !customer.deleted) {
-      const invoiceSettings = customer.invoice_settings;
-      const defaultPaymentMethod = invoiceSettings?.default_payment_method;
-
-      console.log("🔍 Current default payment method:", defaultPaymentMethod);
-
-      // If no default payment method is set, set the first available one
-      if (!defaultPaymentMethod && paymentMethods.data.length > 0) {
-        console.log(
-          "🔧 Setting default payment method:",
-          paymentMethods.data[0].id,
-        );
-
-        await stripeInstance.customers.update(stripeCustomerId, {
-          invoice_settings: {
-            default_payment_method: paymentMethods.data[0].id,
-          },
-        });
-
-        console.log("✅ Default payment method set successfully");
-      }
-    }
-
-    // Get current active subscription
-    const subscriptions = await stripeInstance.subscriptions.list({
-      customer: stripeCustomerId,
-      status: "active",
-      limit: 1,
-    });
-
-    if (subscriptions.data.length === 0) {
-      return { success: false, error: "No active subscription found" };
-    }
-
-    const currentSubscription = subscriptions.data[0];
-
-    // Get current subscription details to check for interval changes
-    const currentPrice = await stripeInstance.prices.retrieve(
-      currentSubscription.items.data[0].price.id,
-    );
-    const newPrice = await stripeInstance.prices.retrieve(stripePriceId);
-
-    // Check if we're changing billing intervals (yearly to monthly or vice versa)
-    const changingIntervals =
-      currentPrice.recurring?.interval !== newPrice.recurring?.interval;
-
-    console.log("🔍 Interval comparison debug:");
-    console.log("  Current price interval:", currentPrice.recurring?.interval);
-    console.log("  New price interval:", newPrice.recurring?.interval);
-    console.log("  Changing intervals?", changingIntervals);
-
-    let updatedSubscription;
-
-    if (changingIntervals) {
-      // Use subscription schedule for interval changes to avoid billing cycle conflicts
-      console.log(
-        "🔄 Updating existing subscription schedule for interval change",
-      );
-
-      // Update the existing schedule directly with the schedule ID from the error
-      // The subscription is already attached to schedule sub_sched_1RSqpmPbw4V9aPt5211Hraos
-      const scheduleId = "sub_sched_1RSqpmPbw4V9aPt5211Hraos";
-
-      console.log("📅 Updating schedule:", scheduleId);
-      console.log(
-        "📅 Current subscription period end:",
-        new Date(currentSubscription.current_period_end * 1000),
-      );
-
-      await stripeInstance.subscriptionSchedules.update(scheduleId, {
-        phases: [
-          // Phase 1: Continue current yearly plan until period ends
-          {
-            items: [
-              {
-                price: currentSubscription.items.data[0].price.id, // current yearly price
-                quantity: 1,
-              },
-            ],
-            start_date: currentSubscription.current_period_start, // Start from current period start
-            end_date: currentSubscription.current_period_end, // End when yearly subscription expires
-          },
-          // Phase 2: Switch to monthly plan starting after yearly ends
-          {
-            items: [
-              {
-                price: stripePriceId, // new monthly price
-                quantity: 1,
-              },
-            ],
-            start_date: currentSubscription.current_period_end, // Start when yearly ends
-            // No end_date means it continues indefinitely on monthly billing
-          },
-        ],
-      });
-
-      console.log("✅ Scheduled switch to monthly at end of yearly period");
-
-      // Return the current subscription since the change is scheduled
-      updatedSubscription = currentSubscription;
-    } else {
-      // Same interval, use regular update with billing cycle preservation
-      updatedSubscription = await stripeInstance.subscriptions.update(
-        currentSubscription.id,
-        {
-          items: [
-            {
-              id: currentSubscription.items.data[0].id,
-              price: stripePriceId,
-            },
-          ],
-          payment_behavior: "allow_incomplete",
-          proration_behavior: "create_prorations",
-          billing_cycle_anchor: "unchanged",
-          expand: ["latest_invoice.payment_intent"],
-        },
-      );
-    }
 
     // Check if payment is required (e.g., missing payment method)
     const latestInvoice = updatedSubscription.latest_invoice as any;
@@ -761,21 +671,10 @@ export async function updateUserSubscriptionToPlan(
       updatedSubscription.id,
     );
 
-    // Determine response message based on whether change was scheduled or immediate
-    let message: string;
-    if (changingIntervals) {
-      const currentPeriodEndDate = new Date(
-        currentSubscription.current_period_end * 1000,
-      ).toLocaleDateString();
-      message = `Your plan change has been scheduled! You'll continue with your current plan until ${currentPeriodEndDate}, then automatically switch to the new plan.`;
-    } else {
-      message = "Subscription updated successfully";
-    }
-
     return {
       success: true,
       requiresPayment: false,
-      message,
+      message: "Subscription updated successfully",
       amount: updatedSubscriptionData.amount,
       interval: updatedSubscriptionData.interval,
       nextRenewal: new Date(
@@ -783,7 +682,7 @@ export async function updateUserSubscriptionToPlan(
       ).toLocaleDateString(),
     };
   } catch (error: any) {
-    console.error("Subscription update error:", error);
+    console.error("❌ Subscription update failed:", error);
 
     // Handle the specific case where customer has no payment method
     if (
@@ -791,51 +690,16 @@ export async function updateUserSubscriptionToPlan(
       error.message.includes("no attached payment source")
     ) {
       console.log(
-        "🔍 Customer has no payment method. Checking Stripe customer:",
+        "🔍 Customer has no payment method. Creating setup intent:",
         stripeCustomerId,
       );
       try {
-        const stripe = (await import("stripe")).default;
-        const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY, {
-          apiVersion: "2023-10-16",
-        });
-
-        // First, check what payment methods are actually attached to this customer
-        const paymentMethods = await stripeInstance.paymentMethods.list({
-          customer: stripeCustomerId,
-          type: "card",
-        });
-
-        console.log("💳 Customer payment methods in Stripe:", {
-          customerId: stripeCustomerId,
-          methodCount: paymentMethods.data.length,
-          methods: paymentMethods.data.map((pm) => ({
-            id: pm.id,
-            type: pm.type,
-            created: pm.created,
-            card: pm.card
-              ? {
-                  brand: pm.card.brand,
-                  last4: pm.card.last4,
-                }
-              : null,
-          })),
-        });
-
-        // Create a setup intent for collecting payment method
-        const setupIntent = await stripeInstance.setupIntents.create({
+        const setupIntent = await stripe.setupIntents.create({
           customer: stripeCustomerId,
           usage: "off_session",
           automatic_payment_methods: {
             enabled: true,
             allow_redirects: "always",
-          },
-          // Automatically attach payment method and set as default
-          attach_to_self: true,
-          payment_method_options: {
-            card: {
-              setup_future_usage: "off_session",
-            },
           },
         });
 
@@ -847,7 +711,7 @@ export async function updateUserSubscriptionToPlan(
         return {
           success: true,
           requiresPayment: true,
-          clientSecret: setupIntent.client_secret,
+          clientSecret: setupIntent.client_secret || undefined,
           message: "Please add a payment method to update your subscription",
         };
       } catch (setupError: any) {
@@ -992,13 +856,8 @@ export async function cancelUserSubscription(
   error?: string;
 }> {
   try {
-    const stripe = (await import("stripe")).default;
-    const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY!, {
-      apiVersion: "2023-10-16",
-    });
-
     // Cancel the subscription at period end
-    const cancelledSubscription = await stripeInstance.subscriptions.update(
+    const cancelledSubscription = await stripe.subscriptions.update(
       stripeSubscriptionId,
       {
         cancel_at_period_end: true,
@@ -1022,5 +881,3 @@ export async function cancelUserSubscription(
     };
   }
 }
-
-
