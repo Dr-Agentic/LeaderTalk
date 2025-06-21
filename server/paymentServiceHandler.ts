@@ -37,6 +37,22 @@ export interface PaymentCustomer {
   newestActiveSubscription?: SubscriptionData;
 }
 
+export interface PaymentMethodData {
+  id: string;
+  type: string;
+  isDefault: boolean;
+  card?: {
+    brand: string;
+    last4: string;
+    expMonth: number;
+    expYear: number;
+  };
+  link?: {
+    email: string;
+  };
+  created: number;
+}
+
 /**
  * Initialize payment setup for a new user
  * Creates Stripe customer and default subscription, returns PaymentCustomer object
@@ -801,6 +817,72 @@ ${activeSubscriptions
 
     throw error;
   }
+}
+
+/**
+ * Retrieve all payment methods for a customer
+ */
+export async function getCustomerPaymentMethods(
+  stripeCustomerId: string,
+): Promise<PaymentMethodData[]> {
+  const customer = await stripe.customers.retrieve(stripeCustomerId);
+  if (typeof customer === "string" || customer.deleted) {
+    throw new Error(`Customer ${stripeCustomerId} not found or deleted`);
+  }
+
+  const paymentMethods = await stripe.paymentMethods.list({
+    customer: stripeCustomerId,
+    limit: 100,
+  });
+
+  const defaultPaymentMethodId = customer.invoice_settings?.default_payment_method;
+
+  return paymentMethods.data.map((pm) => ({
+    id: pm.id,
+    type: pm.type,
+    isDefault: pm.id === defaultPaymentMethodId,
+    card: pm.card ? {
+      brand: pm.card.brand,
+      last4: pm.card.last4,
+      expMonth: pm.card.exp_month,
+      expYear: pm.card.exp_year,
+    } : undefined,
+    link: pm.link ? {
+      email: pm.link.email || '',
+    } : undefined,
+    created: pm.created,
+  }));
+}
+
+/**
+ * Set a payment method as the default for a customer
+ */
+export async function setDefaultPaymentMethod(
+  stripeCustomerId: string,
+  paymentMethodId: string,
+): Promise<void> {
+  await stripe.customers.update(stripeCustomerId, {
+    invoice_settings: { default_payment_method: paymentMethodId },
+  });
+}
+
+/**
+ * Create a setup intent for adding new payment methods
+ */
+export async function createPaymentMethodSetupIntent(
+  stripeCustomerId: string,
+): Promise<{ clientSecret: string }> {
+  const setupIntent = await stripe.setupIntents.create({
+    customer: stripeCustomerId,
+    usage: "off_session",
+    automatic_payment_methods: { enabled: true },
+  });
+
+  if (!setupIntent.client_secret) {
+    throw new Error("Failed to create setup intent");
+  }
+
+  return { clientSecret: setupIntent.client_secret };
 }
 
 /**

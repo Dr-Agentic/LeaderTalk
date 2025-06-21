@@ -3,7 +3,10 @@ import { storage } from "../storage";
 import { 
   retrievePaymentSubscriptionById,
   createDefaultSubscription,
-  ensureUserHasStripeCustomer
+  ensureUserHasStripeCustomer,
+  getCustomerPaymentMethods,
+  setDefaultPaymentMethod,
+  createPaymentMethodSetupIntent
 } from "../paymentServiceHandler";
 import { 
   getBillingProducts,
@@ -175,6 +178,70 @@ export function registerBillingRoutes(app: Express) {
     } catch (error) {
       console.error("Error fetching subscription history:", error);
       res.status(500).json({ error: "Failed to fetch subscription history" });
+    }
+  });
+
+  // GET /api/billing/payment-methods - Get user's payment methods
+  app.get('/api/billing/payment-methods', requireAuth, async (req, res) => {
+    try {
+      const userId = req.session!.userId!;
+      const user = await storage.getUser(userId);
+      
+      if (!user || !user.stripeCustomerId) {
+        return res.json({ paymentMethods: [] });
+      }
+
+      const paymentMethods = await getCustomerPaymentMethods(user.stripeCustomerId);
+      res.json({ paymentMethods });
+      
+    } catch (error: any) {
+      console.error("Error fetching payment methods:", error);
+      res.status(500).json({ error: "Failed to fetch payment methods" });
+    }
+  });
+
+  // POST /api/billing/payment-methods/setup - Create setup intent for new payment method
+  app.post('/api/billing/payment-methods/setup', requireAuth, async (req, res) => {
+    try {
+      const userId = req.session!.userId!;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      const stripeCustomerId = await ensureUserHasStripeCustomer(user);
+      const { clientSecret } = await createPaymentMethodSetupIntent(stripeCustomerId);
+      
+      res.json({ clientSecret });
+      
+    } catch (error: any) {
+      console.error("Error creating payment method setup:", error);
+      res.status(500).json({ error: "Failed to create payment method setup" });
+    }
+  });
+
+  // POST /api/billing/payment-methods/set-default - Set default payment method
+  app.post('/api/billing/payment-methods/set-default', requireAuth, async (req, res) => {
+    try {
+      const userId = req.session!.userId!;
+      const { paymentMethodId } = req.body;
+      
+      if (!paymentMethodId) {
+        return res.status(400).json({ error: "Payment method ID is required" });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user || !user.stripeCustomerId) {
+        return res.status(404).json({ error: "User payment profile not found" });
+      }
+
+      await setDefaultPaymentMethod(user.stripeCustomerId, paymentMethodId);
+      res.json({ success: true });
+      
+    } catch (error: any) {
+      console.error("Error setting default payment method:", error);
+      res.status(500).json({ error: "Failed to set default payment method" });
     }
   });
 
