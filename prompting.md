@@ -8,7 +8,7 @@ Handlers may only interact with entities within their responsibility. (e.g., Pay
 
 Each function must be modular, reusable, and well-commented.
 
-Functions must fit within one smartphone screen (roughly 30 lines). If longer, refactor into smaller, reusable units.
+Functions implementation must fit within one smartphone screen (roughly 30 lines). If longer, refactor into smaller, reusable units.
 
 Private (non-exported) functions must be prefixed with _, e.g., _retrieveUserFromDatabase().
 
@@ -19,6 +19,8 @@ Place all exported functions at the top, and all private ones at the bottom of t
 Always reuse existing functions and modules where applicable. Avoid duplicating logic.
 
 Avoid hacks and quick fixes. Always implement clean, idiomatic, production-grade code unless otherwise instructed.
+
+Prefer to implement logic in the backend, avoiding complex code in the client side. Before adding any new api, examine all available existing apis to see if they can deliver the functionality you are looking for.
 
 Export all functions via a default object.
 

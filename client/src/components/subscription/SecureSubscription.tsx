@@ -45,9 +45,11 @@ const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY!);
 function PaymentSetupForm({
   clientSecret,
   onSuccess,
+  originalRequest,
 }: {
   clientSecret: string;
   onSuccess: () => void;
+  originalRequest?: { stripePriceId: string };
 }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -85,10 +87,44 @@ function PaymentSetupForm({
         });
       } else if (setupIntent && setupIntent.status === "succeeded") {
         console.log("✅ Payment method successfully added to Stripe!");
-        toast({
-          title: "Payment Method Added",
-          description: "Your payment method has been successfully added!",
-        });
+        
+        // If we have an original request, retry the subscription update
+        if (originalRequest) {
+          console.log("🔄 Retrying original subscription update...");
+          
+          try {
+            const retryResponse = await fetch("/api/billing/subscriptions/update", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              credentials: "include",
+              body: JSON.stringify(originalRequest),
+            });
+
+            if (retryResponse.ok) {
+              const retryData = await retryResponse.json();
+              console.log("✅ Subscription update completed successfully!");
+              toast({
+                title: "Subscription Updated!",
+                description: "Your subscription has been successfully updated with the new payment method.",
+              });
+            } else {
+              throw new Error("Subscription update failed after payment setup");
+            }
+          } catch (retryError) {
+            console.error("❌ Failed to complete subscription update:", retryError);
+            toast({
+              title: "Payment Method Added",
+              description: "Payment method added successfully, but please try updating your subscription again.",
+              variant: "destructive",
+            });
+          }
+        } else {
+          toast({
+            title: "Payment Method Added",
+            description: "Your payment method has been successfully added!",
+          });
+        }
+        
         onSuccess();
       } else {
         console.log("⚠️ Setup intent status:", setupIntent?.status);
@@ -218,6 +254,7 @@ export default function SecureSubscription() {
   const [paymentSetup, setPaymentSetup] = useState<{
     clientSecret: string;
     planId: string;
+    originalRequest?: { stripePriceId: string };
   } | null>(null);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const { toast } = useToast();
@@ -256,10 +293,11 @@ export default function SecureSubscription() {
     },
     onSuccess: (data, variables) => {
       if (data.requiresPayment && data.clientSecret) {
-        // Show payment setup form
+        // Store original request to retry after payment method is added
         setPaymentSetup({
           clientSecret: data.clientSecret,
           planId: data.planId || "unknown",
+          originalRequest: variables, // Store the original subscription request
         });
         toast({
           title: "Payment Method Required",
@@ -570,15 +608,11 @@ export default function SecureSubscription() {
         >
           <PaymentSetupForm
             clientSecret={paymentSetup.clientSecret}
+            originalRequest={paymentSetup.originalRequest}
             onSuccess={() => {
               setPaymentSetup(null);
               queryClient.invalidateQueries({
                 queryKey: ["/api/billing/subscriptions/current"],
-              });
-              toast({
-                title: "Payment Method Added",
-                description:
-                  "Your payment method has been added successfully! Please try updating your subscription again.",
               });
             }}
           />
