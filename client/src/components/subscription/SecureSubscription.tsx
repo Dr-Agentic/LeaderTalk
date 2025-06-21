@@ -685,56 +685,57 @@ export default function SecureSubscription() {
       {/* Current Subscription Status */}
       {currentSubscription?.hasSubscription &&
         currentSubscription.subscription && (
-          <Card className="border-gray-600 bg-gray-800/30">
-            <CardHeader>
-              <div className="flex items-center justify-between">
+          <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 via-transparent to-white/5 backdrop-blur-xl shadow-2xl">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/10 opacity-60" />
+            
+            <div className="relative p-6">
+              <div className="flex items-center justify-between mb-6">
                 <div>
-                  <CardTitle className="text-white">
+                  <h3 className="text-xl font-semibold text-white mb-2">
                     Current Subscription
-                  </CardTitle>
-                  <CardDescription className="text-gray-300">
+                  </h3>
+                  <p className="text-gray-300 text-sm">
                     You're subscribed to {currentSubscription.subscription.plan}
-                  </CardDescription>
+                  </p>
                 </div>
                 <Badge
                   variant="secondary"
-                  className="bg-primary/20 text-primary border-primary/30"
+                  className="bg-primary/20 text-primary border-primary/30 px-3 py-1"
                 >
                   {currentSubscription.subscription.formattedStatus}
                 </Badge>
               </div>
-            </CardHeader>
-            <CardContent className="text-gray-300">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div>
-                  <p className="font-medium text-gray-300">Word Usage</p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="text-center">
+                  <p className="font-medium text-gray-300 mb-2">Word Usage</p>
                   <p className="text-2xl font-bold text-white">
                     {currentSubscription.subscription.formattedUsage}
                   </p>
                 </div>
-                <div>
-                  <p className="font-medium text-gray-300">Amount</p>
+                <div className="text-center">
+                  <p className="font-medium text-gray-300 mb-2">Amount</p>
                   <p className="text-2xl font-bold text-white">
                     {currentSubscription.subscription.formattedAmount}
                     {currentSubscription.subscription.formattedInterval}
                   </p>
                 </div>
-                <div>
-                  <p className="font-medium text-gray-300">Next Billing</p>
+                <div className="text-center">
+                  <p className="font-medium text-gray-300 mb-2">Next Billing</p>
                   <p className="text-sm text-gray-300">
                     {currentSubscription.subscription.formattedNextRenewal}
                   </p>
                 </div>
-                <div>
-                  <p className="font-medium text-gray-300">Subscription Created</p>
+                <div className="text-center">
+                  <p className="font-medium text-gray-300 mb-2">Subscription Created</p>
                   <p className="text-sm text-gray-300">
                     You first subscribed on{" "}
                     {currentSubscription.subscription.formattedStartDate}
                   </p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
 
         {/* Scheduled Subscription Changes */}
@@ -854,19 +855,19 @@ export default function SecureSubscription() {
                   {plan.features.advancedAnalytics && (
                     <div className="flex items-center text-sm">
                       <Check className="h-4 w-4 text-green-500 mr-2" />
-                      <span>Advanced analytics</span>
+                      <span className="text-gray-300">Advanced analytics</span>
                     </div>
                   )}
                   {plan.features.prioritySupport && (
                     <div className="flex items-center text-sm">
                       <Check className="h-4 w-4 text-green-500 mr-2" />
-                      <span>Priority support</span>
+                      <span className="text-gray-300">Priority support</span>
                     </div>
                   )}
                   {plan.billingType === "yearly" && (
                     <div className="flex items-center text-sm">
                       <Check className="h-4 w-4 text-blue-500 mr-2" />
-                      <span className="text-blue-600 font-medium">
+                      <span className="text-blue-400 font-medium">
                         Best value option
                       </span>
                     </div>
@@ -883,21 +884,19 @@ export default function SecureSubscription() {
 
                 return (
                   <Button
-                    className="w-full mt-auto text-xs py-3 px-2 h-[60px] whitespace-normal break-words flex items-center justify-center"
+                    className="w-full mt-auto"
                     onClick={() => handleSubscribe(plan)}
                     disabled={updateSubscription.isPending || isCurrentPlan}
                     variant={isCurrentPlan ? "secondary" : "default"}
                   >
-                    <div className="text-center leading-relaxed">
-                      {updateSubscription.isPending ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Processing...
-                        </>
-                      ) : (
-                        isCurrentPlan ? "Current Plan" : `Opt for ${plan.name}`
-                      )}
-                    </div>
+                    {updateSubscription.isPending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      isCurrentPlan ? "Current Plan" : `Choose ${plan.name}`
+                    )}
                   </Button>
                 );
               })()}
@@ -908,61 +907,91 @@ export default function SecureSubscription() {
 
       {/* Payment Method Selection - Only shown during subscription changes */}
       {showPaymentMethodSelector && pendingSubscriptionChange && (
-        <Card className="border-primary bg-primary/5">
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between text-white">
-              <div className="flex items-center space-x-2">
-                <Info className="h-5 w-5" />
-                <span>Confirm Subscription Change</span>
-              </div>
-            </CardTitle>
-            <CardDescription className="text-gray-300">
-              You're about to change to <strong>{pendingSubscriptionChange.plan.name}</strong>.
-              {pendingSubscriptionChange.warningMessage && (
-                <div className="mt-2 p-3 bg-blue-900/30 border border-blue-500/30 rounded text-blue-200 text-sm">
-                  {pendingSubscriptionChange.warningMessage}
-                </div>
-              )}
-              Please confirm your payment method below.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <PaymentMethodSelector
-              onPaymentMethodSelected={(paymentMethodId) => {
-                setSelectedPaymentMethodId(paymentMethodId);
-              }}
-              selectedPaymentMethodId={selectedPaymentMethodId}
-              showAddNewOption={true}
-              immediateCharge={pendingSubscriptionChange?.warningMessage?.includes('$') ? 
-                parseFloat(pendingSubscriptionChange.warningMessage.match(/\$(\d+(?:\.\d{2})?)/)?.[1] || '0') : 0}
-              warningMessage={pendingSubscriptionChange?.warningMessage}
-            />
+        <div className="space-y-6">
+          {/* Subscription Change Header with Glass Effect */}
+          <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 via-transparent to-white/5 backdrop-blur-xl shadow-2xl">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/10 opacity-60" />
             
-            <div className="flex space-x-3 pt-4">
-              <Button
-                onClick={confirmSubscriptionChange}
-                disabled={updateSubscription.isPending}
-                className="flex-1"
-              >
-                {updateSubscription.isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  `Confirm Change to ${pendingSubscriptionChange.plan.name}`
+            <div className="relative p-6">
+              <div className="text-center space-y-4">
+                <div className="flex justify-center">
+                  <div className="p-4 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 backdrop-blur-sm shadow-lg shadow-primary/20">
+                    <Info className="h-6 w-6 text-primary" />
+                  </div>
+                </div>
+                
+                <div>
+                  <h3 className="text-xl font-semibold text-white mb-2">
+                    Confirm Subscription Change
+                  </h3>
+                  <p className="text-gray-300 text-sm leading-relaxed">
+                    You're about to change to <span className="font-semibold text-white">{pendingSubscriptionChange.plan.name}</span>
+                  </p>
+                </div>
+                
+                {pendingSubscriptionChange.warningMessage && (
+                  <div className="relative overflow-hidden rounded-xl border border-blue-400/30 bg-gradient-to-br from-blue-500/10 to-blue-600/5 backdrop-blur-sm p-4">
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-50" />
+                    <div className="relative">
+                      <p className="text-blue-200 text-sm leading-relaxed">
+                        {pendingSubscriptionChange.warningMessage}
+                      </p>
+                    </div>
+                  </div>
                 )}
-              </Button>
-              <Button
-                variant="outline"
-                onClick={cancelSubscriptionChange}
-                disabled={updateSubscription.isPending}
-              >
-                Cancel
-              </Button>
+              </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+
+          {/* Payment Method Selector */}
+          <PaymentMethodSelector
+            onPaymentMethodSelected={(paymentMethodId) => {
+              setSelectedPaymentMethodId(paymentMethodId);
+            }}
+            selectedPaymentMethodId={selectedPaymentMethodId}
+            showAddNewOption={true}
+            immediateCharge={pendingSubscriptionChange?.warningMessage?.includes('$') ? 
+              parseFloat(pendingSubscriptionChange.warningMessage.match(/\$(\d+(?:\.\d{2})?)/)?.[1] || '0') : 0}
+            warningMessage={pendingSubscriptionChange?.warningMessage}
+          />
+          
+          {/* Action Buttons with Glass Effect */}
+          <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 via-transparent to-white/5 backdrop-blur-xl shadow-2xl">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/10 opacity-60" />
+            
+            <div className="relative p-6">
+              <div className="space-y-4">
+                <Button
+                  onClick={confirmSubscriptionChange}
+                  disabled={updateSubscription.isPending}
+                  className="w-full h-14 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 text-white font-semibold text-base shadow-lg shadow-primary/25 backdrop-blur-sm border border-white/10 transition-all duration-200"
+                  size="lg"
+                >
+                  {updateSubscription.isPending ? (
+                    <div className="flex items-center justify-center">
+                      <Loader2 className="mr-3 h-5 w-5 animate-spin" />
+                      <span>Processing...</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center">
+                      <span>Confirm Change to {pendingSubscriptionChange.plan.name}</span>
+                    </div>
+                  )}
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  onClick={cancelSubscriptionChange}
+                  disabled={updateSubscription.isPending}
+                  className="w-full h-12 border border-white/20 bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white backdrop-blur-sm font-medium transition-all duration-200"
+                  size="lg"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Payment Setup Form */}
