@@ -98,8 +98,9 @@ export async function signInWithGoogle() {
         redirectTo,
         skipBrowserRedirect: true,
         queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
           theme: 'dark',
-          hl: 'en',
         },
         // PKCE is enabled by default in Supabase v2
       },

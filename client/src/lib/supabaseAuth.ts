@@ -36,7 +36,6 @@ export async function signInWithGoogle(): Promise<AuthUser | null> {
           access_type: "offline",
           prompt: "consent",
           theme: "dark",
-          hl: "en",
         },
       },
     });
