@@ -115,4 +115,14 @@ export default {
     },
   },
   plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
+  corePlugins: {
+    // Disable color utilities to prevent conflicts with custom theme system
+    backgroundColor: false,
+    textColor: false,
+    borderColor: false,
+    placeholderColor: false,
+    ringColor: false,
+    divideColor: false,
+    gradientColorStops: false,
+  },
 } satisfies Config;
