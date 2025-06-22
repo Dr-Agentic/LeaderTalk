@@ -374,7 +374,7 @@ export default function TranscriptView() {
               analysis={recording.analysis}
             />
           ) : (
-            <p className="text-muted-foreground italic">
+            <p className="card-description italic">
               No transcript available for this recording.
             </p>
           )}
@@ -461,7 +461,7 @@ function TranscriptWithHighlighting({
       !negativeInstances.length &&
       !passiveInstances.length)
   ) {
-    return <p className="whitespace-pre-line text-foreground">{transcription}</p>;
+    return <p className="whitespace-pre-line card-description">{transcription}</p>;
   }
   
   // Function to highlight text using case-insensitive search with lowercase comparison
@@ -636,7 +636,7 @@ function TranscriptWithHighlighting({
   const highlightedTranscript = getColoredTranscript();
 
   return (
-    <div className="prose prose-sm max-w-none whitespace-pre-line text-foreground">
+    <div className="prose prose-sm max-w-none whitespace-pre-line card-description">
       <div dangerouslySetInnerHTML={{ __html: highlightedTranscript }} />
     </div>
   );
