@@ -319,8 +319,8 @@ export default function TranscriptView() {
       <Card className="card-layout glass-card">
         <CardHeader className="header-layout">
           <div>
-            <CardTitle className="text-white font-bold">{recording.title}</CardTitle>
-            <p className="text-white/70">
+            <CardTitle className="card-title">{recording.title}</CardTitle>
+            <p className="card-description">
               Recorded {new Date(recording.recordedAt).toLocaleDateString()} 
               {recording.analysis?.overview?.rating && ` • Overall: ${recording.analysis.overview.rating}`}
             </p>
@@ -345,7 +345,7 @@ export default function TranscriptView() {
 
       <Card className="card-layout glass-card">
         <CardHeader>
-          <CardTitle className="text-white">Transcript Analysis</CardTitle>
+          <CardTitle className="card-title">Transcript Analysis</CardTitle>
           <div className="flex flex-wrap gap-2 mt-2">
             <Badge
               variant="outline"
