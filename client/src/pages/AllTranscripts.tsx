@@ -136,28 +136,30 @@ export default function AllTranscripts() {
         </TabsContent>
         
         <TabsContent value="needs-improvement" className="glass-card">
-          {isLoading ? (
-            <TranscriptsSkeleton />
-          ) : filteredAndSortedRecordings.filter(r => 
-              r.analysisResult?.overview?.rating === "Poor" || 
-              r.analysisResult?.overview?.rating === "Needs improvement" ||
-              (r.analysisResult?.overview?.score !== undefined && r.analysisResult?.overview?.score < 50)
-            ).length > 0 ? (
-            filteredAndSortedRecordings
-              .filter(r => 
+          <div className="flex-column">
+            {isLoading ? (
+              <TranscriptsSkeleton />
+            ) : filteredAndSortedRecordings.filter(r => 
                 r.analysisResult?.overview?.rating === "Poor" || 
                 r.analysisResult?.overview?.rating === "Needs improvement" ||
                 (r.analysisResult?.overview?.score !== undefined && r.analysisResult?.overview?.score < 50)
-              )
-              .map(recording => (
-                <TranscriptCard 
-                  key={recording.id} 
-                  recording={recording} 
-                />
-              ))
-          ) : (
-            <EmptyState filter="needs improvement" query={searchQuery} />
-          )}
+              ).length > 0 ? (
+              filteredAndSortedRecordings
+                .filter(r => 
+                  r.analysisResult?.overview?.rating === "Poor" || 
+                  r.analysisResult?.overview?.rating === "Needs improvement" ||
+                  (r.analysisResult?.overview?.score !== undefined && r.analysisResult?.overview?.score < 50)
+                )
+                .map(recording => (
+                  <TranscriptCard 
+                    key={recording.id} 
+                    recording={recording} 
+                  />
+                ))
+            ) : (
+              <EmptyState filter="needs improvement" query={searchQuery} />
+            )}
+          </div>
         </TabsContent>
       </Tabs>
     </AppLayout>
