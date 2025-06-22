@@ -1,10 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
-/* Import new style system */
-@import './styles/tokens.css';
-@import './styles/base.css';
-@import './styles/themes.css';
-@import './styles/layout.css';
+/* Import new style system - Order matters for CSS precedence */
+@import './styles/tokens.css';      /* 1. CSS variables first */
+@import './styles/base.css';        /* 2. Base element styles */
+@import './styles/themes.css';      /* 3. Theme variants */
+@import './styles/layout.css';      /* 4. Layout utilities */
 
 @tailwind base;
 @tailwind components;
