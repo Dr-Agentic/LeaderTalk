@@ -227,6 +227,17 @@ function TranscriptCard({ recording }: { recording: Recording }) {
   const negativeCount = recording.analysisResult?.negativeInstances?.length || 0;
   
   console.log("🟣 TranscriptCard rendering with recording:", recording.id);
+  
+  // Test if this is even the right component
+  if (recording.id === 47) {
+    return (
+      <div style={{ background: 'red', border: '10px solid yellow', padding: '20px', margin: '10px' }}>
+        <h1 style={{ color: 'white', fontSize: '24px' }}>TEST CARD {recording.id}</h1>
+        <p style={{ color: 'white' }}>If you see this, the component is working</p>
+      </div>
+    );
+  }
+  
   return (
     <Card 
       className="glass-card" 
