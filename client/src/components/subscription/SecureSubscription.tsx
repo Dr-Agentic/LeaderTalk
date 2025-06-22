@@ -737,68 +737,68 @@ export default function SecureSubscription() {
       )}
 
       {/* Scheduled Subscription Changes */}
-        {scheduledChanges && Array.isArray(scheduledChanges) && scheduledChanges.length > 0 && (
-          <Card className="bg-card border-yellow-500/30 backdrop-blur-xl">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-yellow-500">
-                <Clock className="h-5 w-5" />
-                <span>Scheduled Subscription Change</span>
-              </CardTitle>
-              <CardDescription className="text-muted-foreground">
-                Your subscription will automatically change at the end of your current billing period.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {scheduledChanges.map((change: any, index: number) => (
-                <div key={index} className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-foreground">
-                        Changing to: <span className="text-primary">{change.scheduledPlan || 'New Plan'}</span>
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Effective: {new Date(change.scheduledDate).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleCancelScheduledChange(change.id)}
-                      className="border-destructive/30 text-destructive hover:bg-destructive/10"
-                    >
-                      Cancel Change
-                    </Button>
+      {scheduledChanges && Array.isArray(scheduledChanges) && scheduledChanges.length > 0 && (
+        <Card className="bg-card border-yellow-500/30 backdrop-blur-xl">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-yellow-500">
+              <Clock className="h-5 w-5" />
+              <span>Scheduled Subscription Change</span>
+            </CardTitle>
+            <CardDescription className="text-muted-foreground">
+              Your subscription will automatically change at the end of your current billing period.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {scheduledChanges.map((change: any, index: number) => (
+              <div key={index} className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-foreground">
+                      Changing to: <span className="text-primary">{change.scheduledPlan || 'New Plan'}</span>
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Effective: {new Date(change.scheduledDate).toLocaleDateString()}
+                    </p>
                   </div>
-                  
-                  <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded text-yellow-700 dark:text-yellow-300 text-sm">
-                    This change will take effect at the end of your current billing period. You'll keep all current features until then.
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleCancelScheduledChange(change.id)}
+                    className="border-destructive/30 text-destructive hover:bg-destructive/10"
+                  >
+                    Cancel Change
+                  </Button>
+                </div>
+                
+                <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded text-yellow-700 dark:text-yellow-300 text-sm">
+                  This change will take effect at the end of your current billing period. You'll keep all current features until then.
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                  <div>
+                    <p className="text-muted-foreground">Current Plan</p>
+                    <p className="text-foreground font-medium">
+                      {change.currentPlan || 'Current Plan'}
+                    </p>
                   </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                    <div>
-                      <p className="text-muted-foreground">Current Plan</p>
-                      <p className="text-foreground font-medium">
-                        {change.currentPlan || 'Current Plan'}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Status</p>
-                      <p className="text-foreground font-medium capitalize">
-                        {change.status || 'Scheduled'}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Schedule ID</p>
-                      <p className="text-foreground font-medium font-mono text-xs">
-                        {change.id}
-                      </p>
-                    </div>
+                  <div>
+                    <p className="text-muted-foreground">Status</p>
+                    <p className="text-foreground font-medium capitalize">
+                      {change.status || 'Scheduled'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Schedule ID</p>
+                    <p className="text-foreground font-medium font-mono text-xs">
+                      {change.id}
+                    </p>
                   </div>
                 </div>
-              ))}
-            </CardContent>
-          </Card>
-        )}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Available Plans */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
