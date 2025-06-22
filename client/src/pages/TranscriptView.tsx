@@ -18,6 +18,8 @@ import { useAuth } from "../hooks/useAuth";
 import { useToast } from "../hooks/use-toast";
 import { getQueryFn, checkSession } from "../lib/queryClient";
 import AppLayout from "@/components/AppLayout";
+import { cssDebugger } from "@/utils/cssDebugger";
+import CSSValidator from "@/components/CSSValidator";
 
 // Type for query data from API
 interface RecordingWithAnalysis extends Omit<Recording, "analysisResult"> {
@@ -384,7 +386,7 @@ export default function TranscriptView() {
       <div className="responsive-grid">
         <Card className="card-layout glass-card">
           <CardHeader>
-            <CardTitle className="text-green-400">Positive Moments</CardTitle>
+            <CardTitle className="card-title text-green-400">Positive Moments</CardTitle>
           </CardHeader>
           <CardContent className="content-spacing">
             <AnalysisInstancesList
@@ -397,7 +399,7 @@ export default function TranscriptView() {
 
         <Card className="card-layout glass-card">
           <CardHeader>
-            <CardTitle className="text-red-400">Negative Moments</CardTitle>
+            <CardTitle className="card-title text-red-400">Negative Moments</CardTitle>
           </CardHeader>
           <CardContent className="content-spacing">
             <AnalysisInstancesList
@@ -412,7 +414,7 @@ export default function TranscriptView() {
 
       <Card className="card-layout glass-card">
         <CardHeader>
-          <CardTitle className="text-yellow-400">Areas for Improvement</CardTitle>
+          <CardTitle className="card-title text-yellow-400">Areas for Improvement</CardTitle>
         </CardHeader>
         <CardContent className="content-spacing">
           <AnalysisInstancesList
@@ -422,6 +424,8 @@ export default function TranscriptView() {
           />
         </CardContent>
       </Card>
+      
+      <CSSValidator pageSelector="main" />
     </AppLayout>
   );
 }
