@@ -28,6 +28,9 @@
   --gradient-primary-hover: linear-gradient(135deg, #7B1FA2, #E53E3E);
   --gradient-hero: linear-gradient(135deg, rgba(138, 43, 226, 0.1), rgba(255, 107, 107, 0.1));
   --gradient-accent: linear-gradient(135deg, #FF6B6B, #4ECDC4);
+  --gradient-coral-teal: linear-gradient(135deg, #FF6B6B, #4ECDC4);
+  --gradient-teal-emerald: linear-gradient(135deg, #4ECDC4, #44A08D);
+  --gradient-purple-indigo: linear-gradient(135deg, #667eea, #764ba2);
   
   /* Shadows - Enhanced Purple Glow */
   --shadow-purple-soft: 0 8px 25px rgba(138, 43, 226, 0.3);

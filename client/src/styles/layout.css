@@ -36,6 +36,23 @@
   box-shadow: var(--shadow-purple-soft);
 }
 
+/* Gradient Background Utilities */
+.gradient-primary {
+  background: var(--gradient-primary);
+}
+
+.gradient-coral-teal {
+  background: var(--gradient-coral-teal);
+}
+
+.gradient-teal-emerald {
+  background: var(--gradient-teal-emerald);
+}
+
+.gradient-purple-indigo {
+  background: var(--gradient-purple-indigo);
+}
+
 /* Header Layouts */
 .header-layout {
   display: flex;

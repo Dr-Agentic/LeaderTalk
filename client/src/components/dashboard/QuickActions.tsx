@@ -9,7 +9,7 @@ export default function QuickActions({ recordingsCount, weeklyImprovement }: { r
       {/* Record New Conversation */}
       <Card className="glass-card p-6">
         <div className="flex items-center">
-          <div className="flex-shrink-0 p-3 rounded-md" style={{background: 'linear-gradient(135deg, #8A2BE2, #FF6B6B)'}}>
+          <div className="flex-shrink-0 p-3 rounded-md gradient-primary">
             <Mic className="h-5 w-5 card-title" />
           </div>
           <div className="ml-5 w-0 flex-1">
