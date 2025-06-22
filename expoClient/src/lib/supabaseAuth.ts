@@ -91,12 +91,16 @@ export async function signInWithGoogle() {
       // We don't need to handle the URL here as Expo Router will do it
     });
     
-    // Create the sign-in URL with PKCE
+    // Create the sign-in URL with PKCE and dark theme
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo,
         skipBrowserRedirect: true,
+        queryParams: {
+          theme: 'dark',
+          hl: 'en',
+        },
         // PKCE is enabled by default in Supabase v2
       },
     });

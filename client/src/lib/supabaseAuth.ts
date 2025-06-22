@@ -35,6 +35,8 @@ export async function signInWithGoogle(): Promise<AuthUser | null> {
         queryParams: {
           access_type: "offline",
           prompt: "consent",
+          theme: "dark",
+          hl: "en",
         },
       },
     });
