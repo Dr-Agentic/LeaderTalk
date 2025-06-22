@@ -31,7 +31,7 @@ export default function QuickActions({ recordingsCount, weeklyImprovement }: { r
       {/* Recent Analyses */}
       <Card className="glass-card p-6">
         <div className="flex items-center">
-          <div className="flex-shrink-0 p-3 rounded-md" style={{background: 'linear-gradient(135deg, #FF6B6B, #4ECDC4)'}}>
+          <div className="flex-shrink-0 p-3 rounded-md gradient-coral-teal">
             <BarChart className="h-5 w-5 card-title" />
           </div>
           <div className="ml-5 w-0 flex-1">
@@ -55,7 +55,7 @@ export default function QuickActions({ recordingsCount, weeklyImprovement }: { r
       {/* Weekly Improvement */}
       <Card className="glass-card p-6">
         <div className="flex items-center">
-          <div className="flex-shrink-0 p-3 rounded-md" style={{background: 'linear-gradient(135deg, #4ECDC4, #44A08D)'}}>
+          <div className="flex-shrink-0 p-3 rounded-md gradient-teal-emerald">
             <TrendingUp className="h-5 w-5 card-title" />
           </div>
           <div className="ml-5 w-0 flex-1">
@@ -90,7 +90,7 @@ export default function QuickActions({ recordingsCount, weeklyImprovement }: { r
       {/* Training Module */}
       <Card className="glass-card p-6">
         <div className="flex items-center">
-          <div className="flex-shrink-0 p-3 rounded-md" style={{background: 'linear-gradient(135deg, #667eea, #764ba2)'}}>
+          <div className="flex-shrink-0 p-3 rounded-md gradient-purple-indigo">
             <GraduationCap className="h-5 w-5 card-title" />
           </div>
           <div className="ml-5 w-0 flex-1">

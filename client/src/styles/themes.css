@@ -1,9 +1,7 @@
 /* Theme Styles - Glass morphism and visual effects */
 
-/* Primary Button with Gradient - High specificity to override CVA */
-html body button.inline-flex.items-center.justify-center.bg-primary,
-html body button.inline-flex.items-center.justify-center[class*="bg-primary"],
-html body button.inline-flex[class*="bg-primary"],
+/* Primary Button with Gradient - Clean semantic selectors */
+html body .btn-primary,
 html body .bg-primary {
   background: var(--gradient-primary);
   background-color: transparent;
@@ -13,10 +11,8 @@ html body .bg-primary {
   transition: all 0.3s ease;
 }
 
-html body .bg-primary:hover,
-html body button.bg-primary:hover:not(:disabled),
-html body button[class*="bg-primary"]:hover:not(:disabled),
-html body [class*="bg-primary"]:hover:not(:disabled) {
+html body .btn-primary:hover,
+html body .bg-primary:hover {
   background: var(--gradient-primary-hover);
   transform: translateY(-1px);
   box-shadow: var(--shadow-purple-strong);
@@ -86,8 +82,7 @@ html body [class*="bg-primary"]:active:not(:disabled) {
 }
 
 html body .text-muted-foreground,
-html body .card-description,
-html body [class*="text-muted-foreground"] {
+html body .card-description {
   color: var(--color-text-secondary);
 }
 
