@@ -327,12 +327,3 @@
   background: var(--gradient-background);
   min-height: 100vh;
 }
-
-/* Scroll Container - For transcript lists and similar content */
-.scroll-container {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-lg);
-  background: transparent;
-  min-height: 200px;
-}
