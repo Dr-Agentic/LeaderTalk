@@ -226,6 +226,7 @@ function TranscriptCard({ recording }: { recording: Recording }) {
   const positiveCount = recording.analysisResult?.positiveInstances?.length || 0;
   const negativeCount = recording.analysisResult?.negativeInstances?.length || 0;
   
+  console.log("🟣 TranscriptCard rendering with recording:", recording.id);
   return (
     <Card className="glass-card" style={{ background: 'linear-gradient(135deg, #8A2BE2, #FF6B6B)' }}>
       <CardHeader>
