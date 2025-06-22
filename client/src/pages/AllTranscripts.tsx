@@ -234,71 +234,71 @@ function TranscriptCard({ recording }: { recording: Recording }) {
     return (
       <Card className="glass-card-opaque">
         <CardHeader>
-        <div className="flex flex-col md:flex-row md:justify-between md:items-start">
-          <div>
-            <CardTitle>{recording.title}</CardTitle>
-            <CardDescription className="flex items-center mt-1">
-              <CalendarDays className="h-4 w-4 mr-1" /> 
-              {formattedDate}
-              <span className="mx-2">•</span>
-              <Clock className="h-4 w-4 mr-1" /> 
-              {formattedDuration}
-            </CardDescription>
+          <div className="flex flex-col md:flex-row md:justify-between md:items-start">
+            <div>
+              <CardTitle>{recording.title}</CardTitle>
+              <CardDescription className="flex items-center mt-1">
+                <CalendarDays className="h-4 w-4 mr-1" /> 
+                {formattedDate}
+                <span className="mx-2">•</span>
+                <Clock className="h-4 w-4 mr-1" /> 
+                {formattedDuration}
+              </CardDescription>
+            </div>
+            
+            <Badge 
+              variant="outline" 
+              className={`mt-2 md:mt-0 ${ratingColor}`}
+            >
+              {rating} {score > 0 && (
+                <span className="ml-1">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <span key={i} className={i < starRating ? "text-yellow-400" : "text-gray-600"}>★</span>
+                  ))}
+                </span>
+              )}
+            </Badge>
           </div>
-          
-          <Badge 
-            variant="outline" 
-            className={`mt-2 md:mt-0 ${ratingColor}`}
-          >
-            {rating} {score > 0 && (
-              <span className="ml-1">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <span key={i} className={i < starRating ? "text-yellow-400" : "text-gray-600"}>★</span>
-                ))}
-              </span>
-            )}
-          </Badge>
-        </div>
-      </CardHeader>
-      
-      <CardContent>
-        <div className="flex items-center space-x-6">
-          <div className="flex items-center">
-            <ThumbsUp className="h-4 w-4 text-green-400 mr-1" />
-            <span className="text-sm text-foreground">
-              {positiveCount} positive moment{positiveCount !== 1 ? 's' : ''}
-            </span>
-          </div>
-          
-          <div className="flex items-center">
-            <ThumbsDown className="h-4 w-4 text-red-400 mr-1" />
-            <span className="text-sm text-foreground">
-              {negativeCount} negative moment{negativeCount !== 1 ? 's' : ''}
-            </span>
-          </div>
-        </div>
+        </CardHeader>
         
-        {recording.transcription && (
-          <div className="mt-4">
-            <p className="text-sm card-description line-clamp-2">
-              {recording.transcription.substring(0, 150)}
-              {recording.transcription.length > 150 ? '...' : ''}
-            </p>
+        <CardContent>
+          <div className="flex items-center space-x-6">
+            <div className="flex items-center">
+              <ThumbsUp className="h-4 w-4 text-green-400 mr-1" />
+              <span className="text-sm text-foreground">
+                {positiveCount} positive moment{positiveCount !== 1 ? 's' : ''}
+              </span>
+            </div>
+            
+            <div className="flex items-center">
+              <ThumbsDown className="h-4 w-4 text-red-400 mr-1" />
+              <span className="text-sm text-foreground">
+                {negativeCount} negative moment{negativeCount !== 1 ? 's' : ''}
+              </span>
+            </div>
           </div>
-        )}
-      </CardContent>
-      
-      <CardFooter className="bg-transparent flex justify-between">
-        <Link href={`/transcript/${recording.id}`}>
-          <Button 
-            variant="link"
-            className="text-sm font-medium card-title hover:text-purple-300 flex items-center p-0"
-          >
-            View transcript
-            <ChevronRight className="h-4 w-4 ml-1" />
-          </Button>
-        </Link>
-      </CardFooter>
+          
+          {recording.transcription && (
+            <div className="mt-4">
+              <p className="text-sm card-description line-clamp-2">
+                {recording.transcription.substring(0, 150)}
+                {recording.transcription.length > 150 ? '...' : ''}
+              </p>
+            </div>
+          )}
+        </CardContent>
+        
+        <CardFooter className="bg-transparent flex justify-between">
+          <Link href={`/transcript/${recording.id}`}>
+            <Button 
+              variant="link"
+              className="text-sm font-medium card-title hover:text-purple-300 flex items-center p-0"
+            >
+              View transcript
+              <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
+          </Link>
+        </CardFooter>
       </Card>
     );
   } catch (error) {
