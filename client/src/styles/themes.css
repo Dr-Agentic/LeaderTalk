@@ -70,6 +70,17 @@ button[class*="bg-primary"]:active:not(:disabled),
   border-radius: var(--radius);
 }
 
+/* Glass Card Opaque Variant - More visible against gradient background */
+.glass-card-opaque {
+  background: rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
 /* Component Background Overrides */
 .bg-card {
   background: rgba(255, 255, 255, 0.05) !important;
