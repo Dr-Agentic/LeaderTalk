@@ -227,7 +227,7 @@ function TranscriptCard({ recording }: { recording: Recording }) {
   const negativeCount = recording.analysisResult?.negativeInstances?.length || 0;
   
   return (
-    <Card className="glass-card">
+    <Card className="glass-card" style={{ background: 'linear-gradient(135deg, #8A2BE2, #FF6B6B)' }}>
       <CardHeader>
         <div className="flex flex-col md:flex-row md:justify-between md:items-start">
           <div>
