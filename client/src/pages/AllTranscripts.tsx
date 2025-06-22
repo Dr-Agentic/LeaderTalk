@@ -218,16 +218,16 @@ function TranscriptCard({ recording }: { recording: Recording }) {
   const starRating = Math.max(1, Math.min(5, Math.round(normalizedScore)));
   
   const ratingColor = 
-    rating === "Good" || score > 65 ? "bg-green-100 text-green-800 border-green-200" :
-    rating === "Average" || (score >= 50 && score <= 65) ? "bg-yellow-100 text-yellow-800 border-yellow-200" :
-    "bg-red-100 text-red-800 border-red-200";
+    rating === "Good" || score > 65 ? "bg-green-500/20 text-green-300 border-green-500/30" :
+    rating === "Average" || (score >= 50 && score <= 65) ? "bg-yellow-500/20 text-yellow-300 border-yellow-500/30" :
+    "bg-red-500/20 text-red-300 border-red-500/30";
   
   // Count positive and negative instances
   const positiveCount = recording.analysisResult?.positiveInstances?.length || 0;
   const negativeCount = recording.analysisResult?.negativeInstances?.length || 0;
   
   return (
-    <Card>
+    <Card className="glass-card">
       <CardHeader>
         <div className="flex flex-col md:flex-row md:justify-between md:items-start">
           <div>
@@ -248,7 +248,7 @@ function TranscriptCard({ recording }: { recording: Recording }) {
             {rating} {score > 0 && (
               <span className="ml-1">
                 {Array.from({ length: 5 }).map((_, i) => (
-                  <span key={i} className={i < starRating ? "text-yellow-500" : "text-gray-300"}>★</span>
+                  <span key={i} className={i < starRating ? "text-yellow-400" : "text-gray-600"}>★</span>
                 ))}
               </span>
             )}
@@ -259,15 +259,15 @@ function TranscriptCard({ recording }: { recording: Recording }) {
       <CardContent>
         <div className="flex items-center space-x-6">
           <div className="flex items-center">
-            <ThumbsUp className="h-4 w-4 text-green-600 mr-1" />
-            <span className="text-sm">
+            <ThumbsUp className="h-4 w-4 text-green-400 mr-1" />
+            <span className="text-sm text-foreground">
               {positiveCount} positive moment{positiveCount !== 1 ? 's' : ''}
             </span>
           </div>
           
           <div className="flex items-center">
-            <ThumbsDown className="h-4 w-4 text-red-600 mr-1" />
-            <span className="text-sm">
+            <ThumbsDown className="h-4 w-4 text-red-400 mr-1" />
+            <span className="text-sm text-foreground">
               {negativeCount} negative moment{negativeCount !== 1 ? 's' : ''}
             </span>
           </div>
@@ -303,25 +303,25 @@ function TranscriptsSkeleton() {
   return (
     <>
       {[1, 2, 3].map(i => (
-        <Card key={i} className="overflow-hidden">
+        <Card key={i} className="glass-card overflow-hidden">
           <CardHeader>
             <div className="flex justify-between items-start">
               <div>
-                <Skeleton className="h-4 w-48 mb-2" />
-                <Skeleton className="h-3 w-32" />
+                <Skeleton className="h-4 w-48 mb-2 bg-white/10" />
+                <Skeleton className="h-3 w-32 bg-white/10" />
               </div>
-              <Skeleton className="h-6 w-16 rounded-full" />
+              <Skeleton className="h-6 w-16 rounded-full bg-white/10" />
             </div>
           </CardHeader>
           <CardContent>
             <div className="flex items-center space-x-6 mb-4">
-              <Skeleton className="h-4 w-24" />
-              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-4 w-24 bg-white/10" />
+              <Skeleton className="h-4 w-24 bg-white/10" />
             </div>
-            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full bg-white/10" />
           </CardContent>
-          <div className="p-4 bg-muted/50">
-            <Skeleton className="h-4 w-28" />
+          <div className="p-4 bg-white/5">
+            <Skeleton className="h-4 w-28 bg-white/10" />
           </div>
         </Card>
       ))}
@@ -336,7 +336,7 @@ function EmptyState({ filter, query }: { filter?: string, query?: string }) {
       <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-muted mb-4">
         <Filter className="h-6 w-6 text-muted-foreground" />
       </div>
-      <h3 className="text-lg font-medium">No recordings found</h3>
+      <h3 className="text-lg font-medium text-foreground">No recordings found</h3>
       <p className="text-muted-foreground mt-1">
         {query ? (
           <>No results match your search for "{query}"</>
