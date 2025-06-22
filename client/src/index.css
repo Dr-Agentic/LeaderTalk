@@ -515,10 +515,10 @@
   }
 
   /* Fix any remaining white text on white background issues - but preserve login page styling */
-  .text-gray-900:not(.login-page *),
-  .text-gray-800:not(.login-page *),
-  .text-gray-700:not(.login-page *),
-  .text-black:not(.login-page *) {
-    color: white !important;
+  html body .text-gray-900:not(.login-page *),
+  html body .text-gray-800:not(.login-page *),
+  html body .text-gray-700:not(.login-page *),
+  html body .text-black:not(.login-page *) {
+    color: var(--color-text-primary);
   }
 }
