@@ -102,12 +102,16 @@ button[class*="bg-primary"]:active:not(:disabled),
   backdrop-filter: blur(20px);
 }
 
-/* Text Colors - Template Authentic */
-.text-foreground {
+/* Text Colors - High Specificity Overrides */
+.text-foreground,
+.card-title,
+[class*="text-foreground"] {
   color: var(--color-text-primary) !important;
 }
 
-.text-muted-foreground {
+.text-muted-foreground,
+.card-description,
+[class*="text-muted-foreground"] {
   color: var(--color-text-secondary) !important;
 }
 
@@ -150,6 +154,65 @@ button[class*="bg-primary"]:active:not(:disabled),
 .status-negative {
   background: rgba(239, 68, 68, 0.2);
   color: rgb(252, 165, 165);
+}
+
+/* Card Component Overrides - Ultra High Specificity */
+[data-radix-collection-item],
+[data-state="active"],
+.card-layout .text-foreground,
+.card-layout .card-title,
+.card-layout .card-description,
+.glass-card .text-foreground,
+.glass-card .card-title,
+.glass-card .card-description {
+  color: var(--color-text-primary) !important;
+}
+
+/* Card Headers and Content */
+.card-layout [class*="CardHeader"],
+.card-layout [class*="CardContent"],
+.glass-card [class*="CardHeader"],
+.glass-card [class*="CardContent"] {
+  color: var(--color-text-primary) !important;
+}
+
+/* Badge Color Overrides */
+.card-layout [class*="Badge"],
+.glass-card [class*="Badge"] {
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Radix UI Component Overrides */
+[data-sonner-toaster] [data-sonner-toast],
+[data-state],
+[data-orientation],
+[role="tabpanel"],
+[role="tab"],
+.card-layout *,
+.glass-card * {
+  color: inherit !important;
+}
+
+/* Specific TranscriptView Overrides */
+.card-layout h1,
+.card-layout h2, 
+.card-layout h3,
+.card-layout h4,
+.card-layout h5,
+.card-layout h6,
+.card-layout p,
+.card-layout span,
+.card-layout div,
+.glass-card h1,
+.glass-card h2,
+.glass-card h3,
+.glass-card h4,
+.glass-card h5,
+.glass-card h6,
+.glass-card p,
+.glass-card span,
+.glass-card div {
+  color: var(--color-text-primary) !important;
 }
 
 /* Border Colors */
