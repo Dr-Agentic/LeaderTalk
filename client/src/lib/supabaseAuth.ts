@@ -28,6 +28,42 @@ export async function signInWithGoogle(): Promise<AuthUser | null> {
   try {
     console.log("Starting Supabase Google authentication");
 
+    // Add visual loading overlay to smooth transition
+    const overlay = document.createElement('div');
+    overlay.id = 'oauth-transition-overlay';
+    overlay.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, rgb(15, 23, 42) 0%, rgb(30, 41, 59) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      color: white;
+      font-family: system-ui, -apple-system, sans-serif;
+      font-size: 18px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    `;
+    overlay.innerHTML = `
+      <div style="text-align: center;">
+        <div style="width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.3); border-top: 3px solid white; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 16px;"></div>
+        <div>Connecting to Google...</div>
+      </div>
+      <style>
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+      </style>
+    `;
+    document.body.appendChild(overlay);
+    
+    // Fade in overlay
+    requestAnimationFrame(() => {
+      overlay.style.opacity = '1';
+    });
+
     const { data, error } = await getSupabase().auth.signInWithOAuth({
       provider: "google",
       options: {
@@ -35,12 +71,13 @@ export async function signInWithGoogle(): Promise<AuthUser | null> {
         queryParams: {
           access_type: "offline",
           prompt: "consent",
-          theme: "dark",
         },
       },
     });
 
     if (error) {
+      // Remove overlay on error
+      document.body.removeChild(overlay);
       console.error("Supabase Google authentication failed", error);
       throw new Error(`Authentication failed: ${error.message}`);
     }
