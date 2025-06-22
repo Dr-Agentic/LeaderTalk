@@ -72,9 +72,9 @@ export default function Dashboard() {
     
   return (
     <AppLayout>
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+      <div className="header-layout content-spacing">
         <H1 className="text-white">Dashboard</H1>
-        <Link href="/transcripts" className="mt-2 sm:mt-0 inline-flex items-center text-sm font-medium text-white hover:text-purple-300">
+        <Link href="/transcripts" className="inline-flex items-center text-sm font-medium text-white hover:text-purple-300">
           View all transcripts
           <ChevronRight className="ml-1 h-4 w-4" />
         </Link>
@@ -129,14 +129,14 @@ export default function Dashboard() {
 
 function DashboardSkeleton() {
   return (
-    <div className="mt-6 space-y-8">
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="content-spacing space-y-xl">
+      <div className="responsive-grid">
         {[1, 2, 3].map((i) => (
           <Skeleton key={i} className="h-48 rounded-lg bg-white/5" />
         ))}
       </div>
       
-      <div className="space-y-6">
+      <div className="space-y-lg">
         <Skeleton className="h-8 w-48 bg-white/5" />
         <Skeleton className="h-32 rounded-lg bg-white/5" />
       </div>

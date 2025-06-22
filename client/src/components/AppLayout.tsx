@@ -71,7 +71,7 @@ export default function AppLayout({
   };
 
   return (
-    <div className="flex h-screen overflow-hidden" style={{background: 'linear-gradient(135deg, #0a0a0a 0%, #1a0033 50%, #0a0a0a 100%)'}}>
+    <div className="flex full-height overflow-hidden hero-section">
       {/* Template-style background overlay */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-purple-600/10 to-pink-500/10 rounded-full blur-3xl animate-pulse" />

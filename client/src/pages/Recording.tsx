@@ -24,15 +24,15 @@ export default function Recording() {
       backLabel="Back to Dashboard"
       pageTitle="Record a Conversation"
     >
-      <div className="container mx-auto py-6">
+      <div className="page-container content-spacing">
         <H1>Record a Conversation</H1>
         <p className="text-muted-foreground mt-2 mb-6">
           Record your conversations to get AI-powered insights on your communication style.
         </p>
         
-        <div className="grid grid-cols-1 gap-8">
-          <Card>
-            <CardContent className="pt-6">
+        <div className="space-y-xl">
+          <Card className="glass-card">
+            <CardContent className="content-padding">
               <RecordingSection onRecordingComplete={handleRecordingComplete} />
             </CardContent>
           </Card>

@@ -71,14 +71,14 @@ export default function Settings() {
   return (
     <AppLayout showBackButton backTo="/dashboard" backLabel="Back to Dashboard" pageTitle="Account Settings">
       
-      <div className="space-y-6">
-        <Card>
+      <div className="space-y-lg">
+        <Card className="glass-card">
           <CardHeader>
             <CardTitle className="text-white">Account Information</CardTitle>
             <CardDescription className="text-gray-300">Manage your account details and preferences</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="space-y-md">
               <div>
                 <h3 className="text-sm font-medium text-gray-400">NAME</h3>
                 <p className="mt-1 text-sm text-white">{userData?.username || 'Not set'}</p>
@@ -89,7 +89,7 @@ export default function Settings() {
                 <p className="mt-1 text-sm text-white break-all">{userData?.email || 'Not set'}</p>
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
+              <div className="responsive-grid-2">
                 <div>
                   <h3 className="text-sm font-medium text-gray-400">DATE OF BIRTH</h3>
                   <p className="mt-1 text-sm text-white">{userData?.dateOfBirth || 'Not set'}</p>
