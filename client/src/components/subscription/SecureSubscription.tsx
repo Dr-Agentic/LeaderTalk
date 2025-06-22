@@ -673,16 +673,17 @@ export default function SecureSubscription() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-8">
-      <div className="text-center space-y-4">
-        <h1 className="text-3xl font-bold text-white">Choose Your Plan</h1>
-        <p className="text-lg text-gray-300">
-          Upgrade your leadership training with premium features and increased
-          word limits
-        </p>
-      </div>
+    <div className="page-layout">
+      <div className="page-content">
+        <div className="text-center space-y-md">
+          <h1 className="text-foreground">Choose Your Plan</h1>
+          <p className="text-muted-foreground">
+            Upgrade your leadership training with premium features and increased
+            word limits
+          </p>
+        </div>
 
-      {/* Current Subscription Status */}
+        {/* Current Subscription Status */}
       {currentSubscription?.hasSubscription && currentSubscription.subscription && (
         <Card className="bg-card border-border backdrop-blur-xl">
           <CardHeader>
@@ -800,12 +801,12 @@ export default function SecureSubscription() {
         </Card>
       )}
 
-      {/* Available Plans */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Available Plans */}
+        <div className="responsive-grid">
         {plans?.map((plan) => (
           <Card
             key={plan.id}
-            className={`relative flex flex-col h-full bg-card border-border backdrop-blur-xl hover:bg-accent/50 transition-all ${
+            className={`card-layout glass-card ${
               selectedPlan?.id === plan.id ? "ring-2 ring-primary" : ""
             }`}
           >
@@ -826,8 +827,8 @@ export default function SecureSubscription() {
               <CardDescription className="text-muted-foreground">{plan.description}</CardDescription>
             </CardHeader>
 
-            <CardContent className="flex-1 flex flex-col justify-between space-y-4">
-              <div className="space-y-4">
+            <CardContent className="card-content">
+              <div className="space-y-md">
                 {/* Pricing */}
                 <div className="text-center">
                   <div className="text-3xl font-bold text-foreground">
@@ -1079,6 +1080,7 @@ export default function SecureSubscription() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      </div>
     </div>
   );
 }
