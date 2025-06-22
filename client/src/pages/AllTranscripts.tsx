@@ -107,8 +107,8 @@ export default function AllTranscripts() {
           <TabsTrigger value="needs-improvement">Needs Improvement</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="all" className="mt-6">
-          <div className="flex-column-transparent">
+        <TabsContent value="all" className="mt-6 flex-column-transparent">
+          <div className="flex-column">
             {isLoading ? (
               <TranscriptsSkeleton />
             ) : filteredAndSortedRecordings.length > 0 ? (
@@ -121,8 +121,8 @@ export default function AllTranscripts() {
           </div>
         </TabsContent>
 
-        <TabsContent value="positive" className="mt-6">
-          <div className="flex-column-transparent">
+        <TabsContent value="positive" className="mt-6 flex-column-transparent">
+          <div className="flex-column">
             {isLoading ? (
               <TranscriptsSkeleton />
             ) : filteredAndSortedRecordings.filter(
@@ -147,8 +147,8 @@ export default function AllTranscripts() {
           </div>
         </TabsContent>
 
-        <TabsContent value="needs-improvement" className="mt-6">
-          <div className="flex-column-transparent">
+        <TabsContent value="needs-improvement" className="mt-6 flex-column-transparent">
+          <div className="flex-column">
             {isLoading ? (
               <TranscriptsSkeleton />
             ) : filteredAndSortedRecordings.filter(
