@@ -14,7 +14,7 @@
 
 body {
   font-family: 'Inter', sans-serif;
-  background: #0a0a0a; /* Fallback background */
+  background: #0f0f23; /* Fallback background */
   min-height: 100vh;
   color: white;
   margin: 0;
@@ -24,7 +24,7 @@ body {
 }
 
 html {
-  background: #0a0a0a; /* Fallback background */
+  background: #0f0f23; /* Fallback background */
   min-height: 100vh;
 }
 

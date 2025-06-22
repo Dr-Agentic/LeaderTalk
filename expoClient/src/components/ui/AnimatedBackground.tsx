@@ -155,7 +155,7 @@ export function AnimatedBackground() {
     <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
       {/* Base gradient background */}
       <LinearGradient
-        colors={['#0a0a0a', '#1a0033', '#0a0a0a']}
+        colors={['#0f0f23', '#1a0033', '#0f0f23']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={{ flex: 1 }}
