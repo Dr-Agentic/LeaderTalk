@@ -86,52 +86,56 @@ export default function AllTranscripts() {
         </Select>
       </div>
       
-      <Tabs defaultValue="all" className="w-full">
+      <Tabs defaultValue="all" className="w-full bg-transparent">
         <TabsList className="grid w-full max-w-md grid-cols-3 mb-6">
           <TabsTrigger value="all">All</TabsTrigger>
           <TabsTrigger value="positive">Positive</TabsTrigger>
           <TabsTrigger value="needs-improvement">Needs Improvement</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="all" className="flex-column">
-          {isLoading ? (
-            <TranscriptsSkeleton />
-          ) : filteredAndSortedRecordings.length > 0 ? (
-            filteredAndSortedRecordings.map(recording => (
-              <TranscriptCard 
-                key={recording.id} 
-                recording={recording} 
-              />
-            ))
-          ) : (
-            <EmptyState query={searchQuery} />
-          )}
-        </TabsContent>
-        
-        <TabsContent value="positive" className="flex-column">
-          {isLoading ? (
-            <TranscriptsSkeleton />
-          ) : filteredAndSortedRecordings.filter(r => 
-              r.analysisResult?.overview?.rating === "Good" || 
-              (r.analysisResult?.overview?.score && r.analysisResult?.overview?.score > 65)
-            ).length > 0 ? (
-            filteredAndSortedRecordings
-              .filter(r => 
-                r.analysisResult?.overview?.rating === "Good" || 
-                (r.analysisResult?.overview?.score && r.analysisResult?.overview?.score > 65)
-              )
-              .map(recording => (
+        <TabsContent value="all" className="glass-card">
+          <div className="flex-column">
+            {isLoading ? (
+              <TranscriptsSkeleton />
+            ) : filteredAndSortedRecordings.length > 0 ? (
+              filteredAndSortedRecordings.map(recording => (
                 <TranscriptCard 
                   key={recording.id} 
                   recording={recording} 
                 />
               ))
-          ) : (
-            <EmptyState filter="positive" query={searchQuery} />
-          )}
+            ) : (
+              <EmptyState query={searchQuery} />
+            )}
+          </div>
         </TabsContent>
         
-        <TabsContent value="needs-improvement" className="flex-column">
+        <TabsContent value="positive" className="glass-card">
+          <div className="flex-column">
+            {isLoading ? (
+              <TranscriptsSkeleton />
+            ) : filteredAndSortedRecordings.filter(r => 
+                r.analysisResult?.overview?.rating === "Good" || 
+                (r.analysisResult?.overview?.score && r.analysisResult?.overview?.score > 65)
+              ).length > 0 ? (
+              filteredAndSortedRecordings
+                .filter(r => 
+                  r.analysisResult?.overview?.rating === "Good" || 
+                  (r.analysisResult?.overview?.score && r.analysisResult?.overview?.score > 65)
+                )
+                .map(recording => (
+                  <TranscriptCard 
+                    key={recording.id} 
+                    recording={recording} 
+                  />
+                ))
+            ) : (
+              <EmptyState filter="positive" query={searchQuery} />
+            )}
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="needs-improvement" className="glass-card">
           {isLoading ? (
             <TranscriptsSkeleton />
           ) : filteredAndSortedRecordings.filter(r => 
