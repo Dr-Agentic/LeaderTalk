@@ -1,7 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, log } from "./vite";
-import { serveStatic } from "./production";
+import dph from "./handlers/DeploymentHandler";
 import { config } from "./config/environment";
 
 const app = express();
@@ -73,7 +73,7 @@ app.use((req, res, next) => {
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {
-    serveStatic(app);
+    dph.configureStaticServing(app);
   }
 
   // ALWAYS serve the app on port 5000
