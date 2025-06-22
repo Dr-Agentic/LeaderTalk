@@ -71,7 +71,7 @@ export default function AppLayout({
   };
 
   return (
-    <div className="flex full-height overflow-hidden" style={{background: 'var(--gradient-background)'}}>
+    <div className="flex full-height overflow-hidden app-layout-container">
       {/* Floating elements background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="floating-circle floating-circle-1"></div>

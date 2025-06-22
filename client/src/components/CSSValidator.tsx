@@ -22,14 +22,24 @@ export function CSSValidator({ pageSelector = "main" }: { pageSelector?: string 
       const issues: string[] = [];
       const recommendations: string[] = [];
 
-      // Check background gradient
-      const computedStyle = window.getComputedStyle(pageElement);
-      const background = computedStyle.background || computedStyle.backgroundColor;
-      const backgroundValid = background.includes('gradient') || background.includes('linear-gradient');
+      // Check background gradient - look at the AppLayout container
+      const appLayoutElement = document.querySelector('[style*="gradient-background"]') || 
+                              document.querySelector('.flex.full-height.overflow-hidden');
+      
+      let backgroundValid = false;
+      let actualBackground = 'unknown';
+      
+      if (appLayoutElement) {
+        const computedStyle = window.getComputedStyle(appLayoutElement);
+        actualBackground = computedStyle.background || computedStyle.backgroundColor;
+        backgroundValid = actualBackground.includes('gradient') || 
+                         actualBackground.includes('linear-gradient') ||
+                         actualBackground.includes('#1a0033');
+      }
       
       if (!backgroundValid) {
-        issues.push('Page background not using gradient');
-        recommendations.push('Ensure AppLayout applies --gradient-background CSS variable');
+        issues.push(`Background not using gradient. Found: ${actualBackground}`);
+        recommendations.push('Check if --gradient-background CSS variable is defined and accessible');
       }
 
       // Check for problematic text colors
@@ -128,11 +138,16 @@ export function CSSValidator({ pageSelector = "main" }: { pageSelector?: string 
       {validation.issues.length > 0 && (
         <div style={{ marginBottom: '8px' }}>
           <div style={{ fontWeight: 'bold' }}>Issues:</div>
-          {validation.issues.slice(0, 3).map((issue, i) => (
+          {validation.issues.slice(0, 2).map((issue, i) => (
             <div key={i} style={{ fontSize: '10px' }}>• {issue}</div>
           ))}
         </div>
       )}
+
+      <div style={{ fontSize: '9px', marginBottom: '4px' }}>
+        CSS Variable Status:<br/>
+        --gradient-background: {getComputedStyle(document.documentElement).getPropertyValue('--gradient-background') || 'undefined'}
+      </div>
 
       {validation.recommendations.length > 0 && (
         <div>
