@@ -333,41 +333,41 @@
 
   /* TabsList specific override */
   [role="tablist"] {
-    background: rgba(255, 255, 255, 0.05) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
   }
 
   /* TabsTrigger specific override */
   [role="tab"] {
-    background: transparent !important;
-    color: rgba(255, 255, 255, 0.7) !important;
+    background: transparent;
+    color: var(--color-text-secondary);
   }
 
   [role="tab"][data-state="active"] {
-    background: rgba(255, 255, 255, 0.1) !important;
+    background: var(--glass-hover);
     color: white !important;
   }
 
   /* More specific overrides for TabsList and TabsTrigger */
   .inline-flex.h-10.items-center.justify-center[role="tablist"],
   .grid.w-full.max-w-md.grid-cols-3[role="tablist"] {
-    background: rgba(255, 255, 255, 0.05) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
   }
 
   /* Target TabsTrigger with multiple classes */
   .inline-flex.items-center.justify-center[role="tab"],
   .whitespace-nowrap.rounded-sm[role="tab"],
   button[role="tab"] {
-    background: transparent !important;
-    color: rgba(255, 255, 255, 0.7) !important;
-    border: none !important;
+    background: transparent;
+    color: var(--color-text-secondary);
+    border: none;
   }
 
   .inline-flex.items-center.justify-center[role="tab"][data-state="active"],
   .whitespace-nowrap.rounded-sm[role="tab"][data-state="active"],
   button[role="tab"][data-state="active"] {
-    background: rgba(255, 255, 255, 0.15) !important;
+    background: var(--glass-hover);
     color: white !important;
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
   }
@@ -378,9 +378,9 @@
   .bg-card,
   .bg-secondary,
   .bg-border {
-    background: rgba(255, 255, 255, 0.05) !important;
+    background: var(--glass-bg);
     backdrop-filter: blur(20px);
-    border-color: rgba(255, 255, 255, 0.1) !important;
+    border-color: var(--glass-border);
   }
 
   /* Progress and Separator component overrides */
@@ -388,7 +388,7 @@
   .shrink-0.bg-border,
   [class*="bg-secondary"]:not(.login-page *),
   [class*="bg-border"]:not(.login-page *) {
-    background: rgba(255, 255, 255, 0.1) !important;
+    background: var(--glass-hover);
   }
 
   /* Card component specific overrides */
@@ -396,29 +396,29 @@
   .rounded-lg.border.shadow-sm,
   [class*="rounded-lg"][class*="border"][class*="bg-"],
   [class*="rounded"][class*="border"][class*="shadow"] {
-    background: rgba(255, 255, 255, 0.05) !important;
+    background: var(--glass-bg);
     backdrop-filter: blur(20px);
-    border-color: rgba(255, 255, 255, 0.1) !important;
+    border-color: var(--glass-border);
   }
 
   /* Force all card-like components to use dark backgrounds */
   div[class*="rounded"][class*="border"]:not(.login-page *),
   div[class*="card"]:not(.login-page *) {
-    background: rgba(255, 255, 255, 0.05) !important;
+    background: var(--glass-bg);
     backdrop-filter: blur(20px);
-    border-color: rgba(255, 255, 255, 0.1) !important;
+    border-color: var(--glass-border);
   }
 
   /* Ultra-specific overrides for stubborn white backgrounds */
   [data-radix-tabs-list],
   [data-radix-tabs-trigger] {
-    background: rgba(255, 255, 255, 0.05) !important;
-    color: rgba(255, 255, 255, 0.7) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    background: var(--glass-bg);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--glass-border);
   }
 
   [data-radix-tabs-trigger][data-state="active"] {
-    background: rgba(255, 255, 255, 0.15) !important;
+    background: var(--glass-hover);
     color: white !important;
   }
 
@@ -430,18 +430,18 @@
   body .bg-background,
   body [role="tablist"],
   body [role="tab"] {
-    background: rgba(255, 255, 255, 0.05) !important;
-    color: rgba(255, 255, 255, 0.7) !important;
+    background: var(--glass-bg);
+    color: var(--color-text-secondary);
   }
 
   body [role="tab"][data-state="active"] {
-    background: rgba(255, 255, 255, 0.15) !important;
+    background: var(--glass-hover);
     color: white !important;
   }
 
   /* Nuclear option: override ALL possible white backgrounds */
   * {
-    --tw-bg-opacity: 1 !important;
+    --tw-bg-opacity: 1;
   }
 
   *[style*="background-color: white"],
@@ -450,8 +450,8 @@
   *[style*="background: white"],
   *[style*="background: #fff"],
   *[style*="background: #ffffff"] {
-    background: rgba(255, 255, 255, 0.05) !important;
-    color: rgba(255, 255, 255, 0.9) !important;
+    background: var(--glass-bg);
+    color: var(--color-text-primary);
   }
 
   /* Removed conflicting button overrides - now handled in themes.css */
@@ -468,8 +468,8 @@
   .bg-neutral-100:not(.login-page *),
   .bg-stone-50:not(.login-page *),
   .bg-stone-100:not(.login-page *) {
-    background: rgba(255, 255, 255, 0.05) !important;
-    color: rgba(255, 255, 255, 0.9) !important;
+    background: var(--glass-bg);
+    color: var(--color-text-primary);
   }
 
   /* Nuclear option for any remaining white containers */
@@ -479,9 +479,9 @@
   *:not(.login-page *)[style*="background-color: #fff"],
   *:not(.login-page *)[style*="background: #ffffff"],
   *:not(.login-page *)[style*="background: #fff"] {
-    background: rgba(255, 255, 255, 0.05) !important;
-    backdrop-filter: blur(20px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
   }
 
   /* Final universal override for prose content only (not page background) */
@@ -489,7 +489,7 @@
   .space-y-4 > *:not(.login-page *):not(div):not(main):not(body),
   .grid-cols-1 > *:not(.login-page *):not(div):not(main):not(body),
   .md\\:grid-cols-2 > *:not(.login-page *):not(div):not(main):not(body) {
-    background-color: rgba(255, 255, 255, 0.05) !important;
+    background-color: var(--glass-bg);
   }
 
   /* Override any stubborn white backgrounds with higher specificity */
@@ -497,20 +497,20 @@
   body:not(.login-page) *[class*="bg-gray-50"],
   body:not(.login-page) *[class*="bg-slate-50"],
   body:not(.login-page) div[class*="rounded"][class*="border"]:not([class*="bg-blue"]):not([class*="bg-green"]):not([class*="bg-red"]):not([class*="bg-yellow"]):not([class*="bg-purple"]) {
-    background: rgba(255, 255, 255, 0.05) !important;
-    backdrop-filter: blur(20px) !important;
-    border-color: rgba(255, 255, 255, 0.1) !important;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border-color: var(--glass-border);
   }
 
   /* Ensure tabs specifically use dark backgrounds */
   [data-radix-tabs-list],
   [data-radix-tabs-trigger]:not([data-state="active"]) {
-    background: rgba(255, 255, 255, 0.03) !important;
-    color: rgba(255, 255, 255, 0.7) !important;
+    background: var(--glass-bg);
+    color: var(--color-text-secondary);
   }
 
   [data-radix-tabs-trigger][data-state="active"] {
-    background: rgba(255, 255, 255, 0.12) !important;
+    background: var(--glass-hover);
     color: white !important;
   }
 
