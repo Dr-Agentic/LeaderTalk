@@ -235,8 +235,8 @@ export default function TranscriptView() {
         backLabel="Back to All Transcripts"
       >
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4 text-foreground">Recording Not Found</h1>
-          <p className="mb-6 text-muted-foreground">The requested recording could not be found.</p>
+          <h1 className="text-2xl font-bold mb-4 card-title">Recording Not Found</h1>
+          <p className="mb-6 card-description">The requested recording could not be found.</p>
         </div>
       </AppLayout>
     );
@@ -252,7 +252,7 @@ export default function TranscriptView() {
       >
         <Card className="max-w-2xl mx-auto my-8 text-center glass-card">
           <CardHeader>
-            <CardTitle className="text-foreground">Analysis in Progress</CardTitle>
+            <CardTitle className="card-title">Analysis in Progress</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col items-center space-y-6">
@@ -260,7 +260,7 @@ export default function TranscriptView() {
 
               <div className="w-full max-w-md">
                 <Progress value={progress} className="mb-2" />
-                <p className="text-muted-foreground text-sm">
+                <p className="card-description text-sm">
                   Your recording is being analyzed by our AI. This usually takes
                   less than a minute.
                 </p>
@@ -438,7 +438,7 @@ function TranscriptWithHighlighting({
   console.log("TranscriptWithHighlighting props:", { transcription, analysis });
   // If no analysis, return plain text
   if (!analysis) {
-    return <p className="whitespace-pre-line">{transcription}</p>;
+    return <p className="whitespace-pre-line card-description">{transcription}</p>;
   }
 
   // Extract the instances from the analysis
@@ -738,7 +738,7 @@ function AnalysisInstancesList({
   };
 
   if (!instances.length) {
-    return <p className="text-muted-foreground italic">{emptyMessage}</p>;
+    return <p className="card-description italic">{emptyMessage}</p>;
   }
 
   return (
@@ -757,11 +757,11 @@ function AnalysisInstancesList({
             >
               "{instance.text}"
             </span>
-            <span className="text-xs text-muted-foreground ml-2">
+            <span className="text-xs card-description ml-2">
               {formatTimestamp(instance.timestamp)}
             </span>
           </p>
-          <p className="text-sm text-foreground ml-2">{instance.analysis}</p>
+          <p className="text-sm card-description ml-2">{instance.analysis}</p>
           {instance.improvement && (
             <p className="text-sm text-blue-400 ml-2 mt-1">
               <strong>Suggestion:</strong> {instance.improvement}
@@ -773,7 +773,7 @@ function AnalysisInstancesList({
             selectedLeaders &&
             selectedLeaders.length > 0 && (
               <div className="mt-3 ml-2">
-                <p className="text-xs text-muted-foreground mb-2">
+                <p className="text-xs card-description mb-2">
                   How would your selected leaders express this?
                 </p>
                 <div className="flex flex-wrap gap-2">
