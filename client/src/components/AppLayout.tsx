@@ -71,11 +71,12 @@ export default function AppLayout({
   };
 
   return (
-    <div className="flex full-height overflow-hidden hero-section">
-      {/* Template-style background overlay */}
+    <div className="flex full-height overflow-hidden" style={{background: 'var(--gradient-background)'}}>
+      {/* Floating elements background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-purple-600/10 to-pink-500/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gradient-to-r from-pink-500/10 to-blue-500/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '3s'}} />
+        <div className="floating-circle floating-circle-1"></div>
+        <div className="floating-circle floating-circle-2"></div>
+        <div className="floating-circle floating-circle-3"></div>
       </div>
       <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} user={user} />
       
