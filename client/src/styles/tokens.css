@@ -1,0 +1,60 @@
+/* Design Tokens - Semantic design system variables */
+:root {
+  /* Colors - Template-compliant design tokens */
+  --background: 248 71% 10%;        /* #0f0f23 - dark purple-blue */
+  --foreground: 0 0% 100%;          /* white text */
+  --card: 0 0% 100% / 0.05;         /* rgba(255,255,255,0.05) - glass card */
+  --card-foreground: 0 0% 100%;
+  --popover: 248 71% 10%;           /* #0f0f23 */
+  --popover-foreground: 0 0% 100%;
+  --primary: 271 81% 56%;           /* #8A2BE2 purple */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 0 0% 100% / 0.08;    /* slightly more opaque glass */
+  --secondary-foreground: 0 0% 100%;
+  --muted: 0 0% 100% / 0.05;        /* glass effect */
+  --muted-foreground: 0 0% 70%;     /* rgba(255,255,255,0.7) */
+  --accent: 0 0% 100% / 0.1;        /* more visible glass */
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 62.8% 50%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 0 0% 100% / 0.1;        /* rgba(255,255,255,0.1) */
+  --input: 0 0% 100% / 0.05;        /* glass input fields */
+  --ring: 271 81% 56%;              /* purple focus ring */
+  --chart-1: 220 70% 50%;
+  --chart-2: 160 60% 45%;
+  --chart-3: 30 80% 55%;
+  --chart-4: 280 65% 60%;
+  --chart-5: 340 75% 55%;
+  --radius: 1.25rem;                /* 20px border-radius */
+
+  /* Spacing System */
+  --spacing-xs: 0.25rem;    /* 4px */
+  --spacing-sm: 0.5rem;     /* 8px */
+  --spacing-md: 1rem;       /* 16px */
+  --spacing-lg: 1.5rem;     /* 24px */
+  --spacing-xl: 2rem;       /* 32px */
+  --spacing-2xl: 3rem;      /* 48px */
+  --spacing-3xl: 4rem;      /* 64px */
+
+  /* Content Spacing */
+  --content-spacing: var(--spacing-lg);
+  --section-spacing: var(--spacing-2xl);
+  --card-padding: var(--spacing-lg);
+
+  /* Typography Scale */
+  --text-xs: 0.75rem;       /* 12px */
+  --text-sm: 0.875rem;      /* 14px */
+  --text-base: 1rem;        /* 16px */
+  --text-lg: 1.125rem;      /* 18px */
+  --text-xl: 1.25rem;       /* 20px */
+  --text-2xl: 1.5rem;       /* 24px */
+  --text-3xl: 1.875rem;     /* 30px */
+  --text-4xl: 2.25rem;      /* 36px */
+  --text-5xl: 3rem;         /* 48px */
+
+  /* Layout Breakpoints */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+}
