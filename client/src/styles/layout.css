@@ -1,5 +1,41 @@
 /* Layout System - Semantic layout classes to replace Tailwind utilities */
 
+/* Glass Morphism Utility Classes */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+}
+
+.glass-hover {
+  background: var(--glass-hover);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border-hover);
+}
+
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-button {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border-hover);
+  color: var(--color-text-primary);
+  transition: all 0.3s ease;
+}
+
+.glass-button:hover {
+  background: var(--glass-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-purple-soft);
+}
+
 /* Header Layouts */
 .header-layout {
   display: flex;

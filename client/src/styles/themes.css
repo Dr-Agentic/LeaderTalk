@@ -81,7 +81,7 @@ html body [class*="bg-primary"]:active:not(:disabled) {
 }
 
 .bg-secondary {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--glass-bg-hover);
   backdrop-filter: blur(20px);
 }
 
@@ -108,7 +108,7 @@ html body .text-muted {
   line-height: 1.25;
   font-weight: 600;
   border-radius: 9999px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--glass-border-hover);
 }
 
 @media (min-width: 640px) {

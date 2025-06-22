@@ -73,7 +73,7 @@
     font-size: 16px;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 8px 25px rgba(138, 43, 226, 0.3);
+    box-shadow: var(--shadow-purple-soft);
     outline: none;
     min-height: 48px; /* Accessibility: minimum touch target */
     position: relative;
@@ -82,11 +82,11 @@
   
   .cta-button:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 12px 35px rgba(138, 43, 226, 0.4);
+    box-shadow: var(--shadow-purple-strong);
   }
   
   .cta-button:focus-visible {
-    outline: 2px solid rgba(255, 255, 255, 0.8);
+    outline: 2px solid var(--color-text-primary);
     outline-offset: 2px;
   }
   
@@ -99,7 +99,7 @@
     opacity: 0.6;
     cursor: not-allowed;
     transform: none;
-    box-shadow: 0 4px 15px rgba(138, 43, 226, 0.2);
+    box-shadow: var(--shadow-purple-soft);
   }
   
   /* High contrast mode support */
@@ -159,14 +159,14 @@
 
   body {
     @apply font-sans antialiased text-foreground;
-    background: linear-gradient(135deg, #0f0f23 0%, #1a0033 50%, #0f0f23 100%);
+    background: var(--gradient-background);
     min-height: 100vh;
-    color: white;
+    color: var(--color-text-primary);
     font-family: 'Inter', sans-serif;
   }
   
   html {
-    background: linear-gradient(135deg, #0f0f23 0%, #1a0033 50%, #0f0f23 100%);
+    background: var(--gradient-background);
     min-height: 100vh;
   }
   
