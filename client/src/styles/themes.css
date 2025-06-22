@@ -140,16 +140,16 @@ html body .glass-card .card-description {
 }
 
 /* Card Headers and Content */
-html body .card-layout [class*="CardHeader"],
-html body .card-layout [class*="CardContent"],
-html body .glass-card [class*="CardHeader"],
-html body .glass-card [class*="CardContent"] {
+html body .card-layout .card-header,
+html body .card-layout .card-content,
+html body .glass-card .card-header,
+html body .glass-card .card-content {
   color: var(--color-text-primary);
 }
 
 /* Badge Color Overrides */
-html body .card-layout [class*="Badge"],
-html body .glass-card [class*="Badge"] {
+html body .card-layout .badge,
+html body .glass-card .badge {
   border-color: rgba(255, 255, 255, 0.2);
 }
 

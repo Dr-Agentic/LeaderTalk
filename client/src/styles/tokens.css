@@ -3,7 +3,7 @@
   /* Updated Color Palette with Navy Blue */
   --color-bg-primary: #0f0f23;
   --color-bg-secondary: #1a0033;
-  --color-bg-tertiary: #0f0f23;
+  /* Removed redundant --color-bg-tertiary, using --color-bg-primary instead */
   
   /* Brand Colors - Exact Template Values */
   --color-purple: #8A2BE2;

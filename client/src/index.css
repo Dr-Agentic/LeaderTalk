@@ -313,20 +313,13 @@
   html body .inline-flex.items-center.gap-1,
   html body button.inline-flex.items-center,
   html body .border.border-input.bg-background,
-  html body button[class*="border"][class*="bg-background"],
-  html body .inline-flex[class*="border"][class*="bg-background"] {
+  html body .btn-outline {
     background: var(--glass-bg);
     color: var(--color-text-primary);
     border-color: var(--glass-border-hover);
   }
 
-  html body .inline-flex.items-center.justify-center[data-variant="outline"]:hover,
-  html body button[data-variant="outline"]:hover,
-  html body .inline-flex.items-center.gap-1:hover,
-  html body button.inline-flex.items-center:hover,
-  html body .border.border-input.bg-background:hover,
-  html body button[class*="border"][class*="bg-background"]:hover,
-  html body .inline-flex[class*="border"][class*="bg-background"]:hover {
+  html body .btn-outline:hover {
     background: var(--glass-hover);
     color: var(--color-text-primary);
   }
@@ -394,16 +387,7 @@
   /* Card component specific overrides */
   .rounded-lg.border.bg-card,
   .rounded-lg.border.shadow-sm,
-  [class*="rounded-lg"][class*="border"][class*="bg-"],
-  [class*="rounded"][class*="border"][class*="shadow"] {
-    background: var(--glass-bg);
-    backdrop-filter: blur(20px);
-    border-color: var(--glass-border);
-  }
-
-  /* Force all card-like components to use dark backgrounds */
-  div[class*="rounded"][class*="border"]:not(.login-page *),
-  div[class*="card"]:not(.login-page *) {
+  .card-style {
     background: var(--glass-bg);
     backdrop-filter: blur(20px);
     border-color: var(--glass-border);
