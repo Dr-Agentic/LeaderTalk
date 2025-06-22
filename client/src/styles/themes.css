@@ -92,17 +92,21 @@ button[class*="bg-primary"]:active:not(:disabled),
   backdrop-filter: blur(20px);
 }
 
-/* Text Colors */
+/* Text Colors - Template Authentic */
 .text-foreground {
-  color: white !important;
+  color: var(--color-text-primary) !important;
 }
 
 .text-muted-foreground {
-  color: rgba(255, 255, 255, 0.6) !important;
+  color: var(--color-text-secondary) !important;
 }
 
 .text-primary {
-  color: #8A2BE2 !important;
+  color: var(--color-purple) !important;
+}
+
+.text-muted {
+  color: var(--color-text-muted) !important;
 }
 
 /* Border Colors */
@@ -252,6 +256,10 @@ button[class*="bg-primary"]:active:not(:disabled),
 
 .rotate {
   animation: rotate 6s linear infinite;
+}
+
+.pulse-effect {
+  animation: pulse-glow 2s ease-in-out infinite;
 }
 
 /* High contrast mode support */

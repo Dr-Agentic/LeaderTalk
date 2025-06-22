@@ -29,14 +29,13 @@ export default function Login() {
   };
 
   return (
-    <div className="login-page min-height-screen flex-center hero-section relative overflow-hidden">
-      {/* Animated background elements */}
+    <div className="login-page min-height-screen flex-center relative overflow-hidden" 
+         style={{background: 'var(--gradient-background)'}}>
+      {/* Floating elements background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl animate-pulse" />
-        <div
-          className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl animate-pulse"
-          style={{ animationDelay: "2s" }}
-        />
+        <div className="floating-circle floating-circle-1"></div>
+        <div className="floating-circle floating-circle-2"></div>
+        <div className="floating-circle floating-circle-3"></div>
       </div>
 
       <Card className="container-sm glass-card relative z-10">
