@@ -109,6 +109,39 @@ button[class*="bg-primary"]:active:not(:disabled),
   color: var(--color-text-muted) !important;
 }
 
+/* Status Badges */
+.status-badge {
+  padding: 4px 8px;
+  margin-top: 8px;
+  display: inline-flex;
+  font-size: 12px;
+  line-height: 1.25;
+  font-weight: 600;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+@media (min-width: 640px) {
+  .status-badge {
+    margin-top: 0;
+  }
+}
+
+.status-positive {
+  background: rgba(34, 197, 94, 0.2);
+  color: rgb(134, 239, 172);
+}
+
+.status-warning {
+  background: rgba(234, 179, 8, 0.2);
+  color: rgb(253, 224, 71);
+}
+
+.status-negative {
+  background: rgba(239, 68, 68, 0.2);
+  color: rgb(252, 165, 165);
+}
+
 /* Border Colors */
 .border-border {
   border-color: rgba(255, 255, 255, 0.1) !important;

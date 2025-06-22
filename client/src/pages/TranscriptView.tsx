@@ -316,34 +316,34 @@ export default function TranscriptView() {
       pageTitle={`${recording.title} - Transcript`}
     >
       {/* Communication Analysis Chart Section */}
-      <Card className="mb-8 glass-card">
+      <Card className="card-layout glass-card">
         <CardHeader className="header-layout">
           <div>
-            <CardTitle className="text-lg leading-6 font-medium text-foreground">{recording.title}</CardTitle>
-            <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+            <CardTitle className="card-title">{recording.title}</CardTitle>
+            <p className="card-description">
               Recorded {new Date(recording.recordedAt).toLocaleDateString()} 
               {recording.analysis?.overview?.rating && ` • Overall: ${recording.analysis.overview.rating}`}
             </p>
           </div>
           {recording.analysis?.overview?.rating && (
             <Badge variant="outline" className={`
-              px-2 mt-2 sm:mt-0 inline-flex text-xs leading-5 font-semibold rounded-full border-white/20
-              ${recording.analysis.overview.rating === "Good" ? "bg-green-500/20 text-green-300" : 
-                recording.analysis.overview.rating === "Average" ? "bg-yellow-500/20 text-yellow-300" : 
-                "bg-red-500/20 text-red-300"}
+              status-badge
+              ${recording.analysis.overview.rating === "Good" ? "status-positive" : 
+                recording.analysis.overview.rating === "Average" ? "status-warning" : 
+                "status-negative"}
             `}>
               {recording.analysis.overview.rating} overall
             </Badge>
           )}
         </CardHeader>
         
-        <CardContent className="px-4 py-5 sm:p-6">
+        <CardContent className="content-spacing">
           {/* Communication Analysis Chart */}
           <CommunicationChart data={recording.analysis?.timeline || []} loading={false} />
         </CardContent>
       </Card>
 
-      <Card className="mb-8 glass-card">
+      <Card className="card-layout glass-card">
         <CardHeader>
           <CardTitle>Transcript Analysis</CardTitle>
           <div className="flex flex-wrap gap-2 mt-2">
@@ -367,7 +367,7 @@ export default function TranscriptView() {
             </Badge>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="content-spacing">
           {recording.transcription ? (
             <TranscriptWithHighlighting
               transcription={recording.transcription}
@@ -381,12 +381,12 @@ export default function TranscriptView() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="glass-card">
+      <div className="responsive-grid">
+        <Card className="card-layout glass-card">
           <CardHeader>
             <CardTitle className="text-green-400">Positive Moments</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="content-spacing">
             <AnalysisInstancesList
               instances={recording.analysis?.positiveInstances || []}
               emptyMessage="No positive communication moments identified."
@@ -395,11 +395,11 @@ export default function TranscriptView() {
           </CardContent>
         </Card>
 
-        <Card className="glass-card">
+        <Card className="card-layout glass-card">
           <CardHeader>
             <CardTitle className="text-red-400">Negative Moments</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="content-spacing">
             <AnalysisInstancesList
               instances={recording.analysis?.negativeInstances || []}
               emptyMessage="No negative communication moments identified."
@@ -410,11 +410,11 @@ export default function TranscriptView() {
         </Card>
       </div>
 
-      <Card className="mt-6 glass-card">
+      <Card className="card-layout glass-card">
         <CardHeader>
           <CardTitle className="text-yellow-400">Areas for Improvement</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="content-spacing">
           <AnalysisInstancesList
             instances={recording.analysis?.passiveInstances || []}
             emptyMessage="No passive communication moments identified."
