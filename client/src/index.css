@@ -1,7 +1,554 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
-/* Complete Semantic CSS System - No Tailwind */
+/* Import new style system */
 @import './styles/tokens.css';
 @import './styles/base.css';
 @import './styles/themes.css';
 @import './styles/layout.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+
+@layer utilities {
+  .bg-gradient-radial {
+    background: radial-gradient(circle, var(--tw-gradient-stops));
+  }
+  
+  .animate-float {
+    animation: float 8s ease-in-out infinite;
+  }
+
+  /* Template-authentic gradient for recording button */
+  .bg-template-gradient {
+    background: linear-gradient(135deg, #8A2BE2, #FF6B6B);
+  }
+  
+  .bg-template-gradient-hover {
+    background: linear-gradient(135deg, #7B1FA2, #E53E3E);
+  }
+  
+  .glass-card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+  
+  .glass-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.5s ease;
+  }
+  
+  .glass-card:hover::before {
+    left: 100%;
+  }
+  
+  .glass-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(138, 43, 226, 0.3);
+    box-shadow: 0 8px 25px rgba(138, 43, 226, 0.2);
+  }
+  
+  .hero-section {
+    background: linear-gradient(135deg, rgba(138, 43, 226, 0.1), rgba(255, 107, 107, 0.1));
+    border-radius: 24px;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(138, 43, 226, 0.2);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .hero-section::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: conic-gradient(transparent, rgba(138, 43, 226, 0.1), transparent);
+    animation: rotate 6s linear infinite;
+  }
+  
+  .rotate {
+    animation: rotate 6s linear infinite;
+  }
+  
+  .gradient-text {
+    background: linear-gradient(135deg, #8A2BE2, #FF6B6B, #4ECDC4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .cta-button {
+    background: linear-gradient(135deg, #8A2BE2, #FF6B6B);
+    border: none;
+    padding: 16px 32px;
+    border-radius: 16px;
+    color: white;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 25px rgba(138, 43, 226, 0.3);
+    outline: none;
+    min-height: 48px; /* Accessibility: minimum touch target */
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .cta-button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 35px rgba(138, 43, 226, 0.4);
+  }
+  
+  .cta-button:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.8);
+    outline-offset: 2px;
+  }
+  
+  .cta-button:active:not(:disabled) {
+    transform: translateY(0px);
+    transition: all 0.1s ease;
+  }
+  
+  .cta-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: 0 4px 15px rgba(138, 43, 226, 0.2);
+  }
+  
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    .cta-button {
+      border: 2px solid white;
+    }
+  }
+  
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    .cta-button {
+      transition: none;
+    }
+    
+    .cta-button:hover:not(:disabled) {
+      transform: none;
+    }
+  }
+}
+
+@keyframes float {
+  0%, 100% { 
+    transform: translateY(0px) rotate(0deg); 
+  }
+  50% { 
+    transform: translateY(-20px) rotate(180deg); 
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { 
+    opacity: 0.7; 
+  }
+  50% { 
+    opacity: 1; 
+  }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+@keyframes ripple {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased text-foreground;
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a0033 50%, #0a0a0a 100%);
+    min-height: 100vh;
+    color: white;
+    font-family: 'Inter', sans-serif;
+  }
+  
+  html {
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a0033 50%, #0a0a0a 100%);
+    min-height: 100vh;
+  }
+  
+  /* Dark theme defaults for common elements */
+  .bg-background {
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .bg-card {
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .bg-muted {
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(20px);
+  }
+  
+  .text-muted-foreground {
+    color: rgba(255, 255, 255, 0.6) !important;
+  }
+  
+  .text-foreground {
+    color: white !important;
+  }
+  
+  /* Override any white backgrounds */
+  .bg-white {
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  /* Card components with glass effect */
+  [data-radix-popper-content-wrapper],
+  .bg-popover {
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  /* Button overrides */
+  .bg-primary {
+    background: linear-gradient(135deg, #8A2BE2, #FF6B6B) !important;
+  }
+  
+  /* Input and form elements */
+  .bg-input {
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    color: white !important;
+  }
+  
+  h1 {
+    font-family: 'Libre Franklin', system-ui, sans-serif !important;
+  }
+  
+  h2 {
+    font-family: 'Ancizar Sans', 'Source Sans Pro', system-ui, sans-serif !important;
+  }
+  
+  /* Target specific light background classes only */
+  .bg-gray-50,
+  .bg-gray-100,
+  .bg-gray-200,
+  .bg-blue-50,
+  .bg-blue-100,
+  .bg-indigo-50,
+  .bg-indigo-100,
+  .bg-rose-50,
+  .bg-rose-100,
+  .bg-amber-50,
+  .bg-amber-100,
+  .bg-yellow-50,
+  .bg-yellow-100,
+  .bg-green-50,
+  .bg-green-100,
+  .bg-red-50,
+  .bg-red-100,
+  .bg-purple-50,
+  .bg-purple-100,
+  .bg-pink-50,
+  .bg-pink-100,
+  .bg-white,
+  .hover\\:bg-gray-50:hover,
+  .hover\\:bg-gray-100:hover,
+  .hover\\:bg-blue-50:hover,
+  .hover\\:bg-rose-50:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  /* Text color overrides */
+  .text-gray-600,
+  .text-gray-500,
+  .text-gray-400 {
+    color: rgba(255, 255, 255, 0.7) !important;
+  }
+  
+  .text-primary {
+    color: #8A2BE2 !important;
+  }
+  
+  /* Border overrides */
+  .border-gray-200,
+  .border-gray-300 {
+    border-color: rgba(255, 255, 255, 0.1) !important;
+  }
+  
+  /* ShadCN component overrides */
+  [data-radix-collection-item] {
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: white !important;
+  }
+  
+  [data-radix-collection-item]:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  /* Tabs component overrides */
+  [data-state="active"][data-orientation="horizontal"] {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+  }
+
+  [data-state="inactive"][data-orientation="horizontal"] {
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+  }
+
+  /* Button variant overrides for outline buttons */
+  .inline-flex.items-center.justify-center[data-variant="outline"],
+  button[data-variant="outline"],
+  .inline-flex.items-center.gap-1,
+  button.inline-flex.items-center,
+  .border.border-input.bg-background,
+  button[class*="border"][class*="bg-background"],
+  .inline-flex[class*="border"][class*="bg-background"] {
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: white !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+  }
+
+  .inline-flex.items-center.justify-center[data-variant="outline"]:hover,
+  button[data-variant="outline"]:hover,
+  .inline-flex.items-center.gap-1:hover,
+  button.inline-flex.items-center:hover,
+  .border.border-input.bg-background:hover,
+  button[class*="border"][class*="bg-background"]:hover,
+  .inline-flex[class*="border"][class*="bg-background"]:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+  }
+
+  /* TabsList specific override */
+  [role="tablist"] {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  }
+
+  /* TabsTrigger specific override */
+  [role="tab"] {
+    background: transparent !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+  }
+
+  [role="tab"][data-state="active"] {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+  }
+
+  /* More specific overrides for TabsList and TabsTrigger */
+  .inline-flex.h-10.items-center.justify-center[role="tablist"],
+  .grid.w-full.max-w-md.grid-cols-3[role="tablist"] {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  }
+
+  /* Target TabsTrigger with multiple classes */
+  .inline-flex.items-center.justify-center[role="tab"],
+  .whitespace-nowrap.rounded-sm[role="tab"],
+  button[role="tab"] {
+    background: transparent !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+    border: none !important;
+  }
+
+  .inline-flex.items-center.justify-center[role="tab"][data-state="active"],
+  .whitespace-nowrap.rounded-sm[role="tab"][data-state="active"],
+  button[role="tab"][data-state="active"] {
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: white !important;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
+  }
+
+  /* Override any white background that might be applied by Tailwind */
+  .bg-background,
+  .bg-muted,
+  .bg-card,
+  .bg-secondary,
+  .bg-border {
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(20px);
+    border-color: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  /* Progress and Separator component overrides */
+  .relative.h-4.w-full.overflow-hidden.rounded-full.bg-secondary,
+  .shrink-0.bg-border,
+  [class*="bg-secondary"]:not(.login-page *),
+  [class*="bg-border"]:not(.login-page *) {
+    background: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  /* Card component specific overrides */
+  .rounded-lg.border.bg-card,
+  .rounded-lg.border.shadow-sm,
+  [class*="rounded-lg"][class*="border"][class*="bg-"],
+  [class*="rounded"][class*="border"][class*="shadow"] {
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(20px);
+    border-color: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  /* Force all card-like components to use dark backgrounds */
+  div[class*="rounded"][class*="border"]:not(.login-page *),
+  div[class*="card"]:not(.login-page *) {
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(20px);
+    border-color: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  /* Ultra-specific overrides for stubborn white backgrounds */
+  [data-radix-tabs-list],
+  [data-radix-tabs-trigger] {
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  }
+
+  [data-radix-tabs-trigger][data-state="active"] {
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: white !important;
+  }
+
+  /* Force override any white/light backgrounds with highest specificity */
+  body .bg-white,
+  body .bg-gray-50,
+  body .bg-gray-100,
+  body .bg-muted,
+  body .bg-background,
+  body [role="tablist"],
+  body [role="tab"] {
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+  }
+
+  body [role="tab"][data-state="active"] {
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: white !important;
+  }
+
+  /* Nuclear option: override ALL possible white backgrounds */
+  * {
+    --tw-bg-opacity: 1 !important;
+  }
+
+  *[style*="background-color: white"],
+  *[style*="background-color: #fff"],
+  *[style*="background-color: #ffffff"],
+  *[style*="background: white"],
+  *[style*="background: #fff"],
+  *[style*="background: #ffffff"] {
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+  }
+
+  /* Removed conflicting button overrides - now handled in themes.css */
+
+  /* Final catch-all for any white backgrounds that slip through */
+  .bg-white:not(.login-page *),
+  .bg-gray-50:not(.login-page *),
+  .bg-gray-100:not(.login-page *),
+  .bg-slate-50:not(.login-page *),
+  .bg-slate-100:not(.login-page *),
+  .bg-zinc-50:not(.login-page *),
+  .bg-zinc-100:not(.login-page *),
+  .bg-neutral-50:not(.login-page *),
+  .bg-neutral-100:not(.login-page *),
+  .bg-stone-50:not(.login-page *),
+  .bg-stone-100:not(.login-page *) {
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+  }
+
+  /* Nuclear option for any remaining white containers */
+  *:not(.login-page *)[style*="background-color: white"],
+  *:not(.login-page *)[style*="background: white"],
+  *:not(.login-page *)[style*="background-color: #ffffff"],
+  *:not(.login-page *)[style*="background-color: #fff"],
+  *:not(.login-page *)[style*="background: #ffffff"],
+  *:not(.login-page *)[style*="background: #fff"] {
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(20px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  }
+
+  /* Final universal override for transcript view specifically */
+  [class*="transcript"] *:not(.login-page *),
+  .prose *:not(.login-page *),
+  .space-y-4 *:not(.login-page *),
+  .grid-cols-1 *:not(.login-page *),
+  .md\\:grid-cols-2 *:not(.login-page *) {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+  }
+
+  /* Override any stubborn white backgrounds with higher specificity */
+  body:not(.login-page) *[class*="bg-white"],
+  body:not(.login-page) *[class*="bg-gray-50"],
+  body:not(.login-page) *[class*="bg-slate-50"],
+  body:not(.login-page) div[class*="rounded"][class*="border"]:not([class*="bg-blue"]):not([class*="bg-green"]):not([class*="bg-red"]):not([class*="bg-yellow"]):not([class*="bg-purple"]) {
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(20px) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  /* Ensure tabs specifically use dark backgrounds */
+  [data-radix-tabs-list],
+  [data-radix-tabs-trigger]:not([data-state="active"]) {
+    background: rgba(255, 255, 255, 0.03) !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+  }
+
+  [data-radix-tabs-trigger][data-state="active"] {
+    background: rgba(255, 255, 255, 0.12) !important;
+    color: white !important;
+  }
+
+  /* Fix any remaining white text on white background issues - but preserve login page styling */
+  .text-gray-900:not(.login-page *),
+  .text-gray-800:not(.login-page *),
+  .text-gray-700:not(.login-page *),
+  .text-black:not(.login-page *) {
+    color: white !important;
+  }
+}
