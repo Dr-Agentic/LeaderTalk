@@ -683,69 +683,68 @@ export default function SecureSubscription() {
       </div>
 
       {/* Current Subscription Status */}
-      {currentSubscription?.hasSubscription &&
-        currentSubscription.subscription && (
-          <Card className="bg-card border-border backdrop-blur-xl">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-foreground">
-                    Current Subscription
-                  </CardTitle>
-                  <CardDescription className="text-muted-foreground">
-                    You're subscribed to {currentSubscription.subscription.plan}
-                  </CardDescription>
-                </div>
-                <Badge
-                  variant="secondary"
-                  className="bg-primary/20 text-primary border-primary/30"
-                >
-                  {currentSubscription.subscription.formattedStatus}
-                </Badge>
+      {currentSubscription?.hasSubscription && currentSubscription.subscription && (
+        <Card className="bg-card border-border backdrop-blur-xl">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-foreground">
+                  Current Subscription
+                </CardTitle>
+                <CardDescription className="text-muted-foreground">
+                  You're subscribed to {currentSubscription.subscription.plan}
+                </CardDescription>
               </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="text-center">
-                  <p className="font-medium text-muted-foreground mb-2">Word Usage</p>
-                  <p className="text-2xl font-bold text-foreground">
-                    {currentSubscription.subscription.formattedUsage}
-                  </p>
-                </div>
-                <div className="text-center">
-                  <p className="font-medium text-muted-foreground mb-2">Amount</p>
-                  <p className="text-2xl font-bold text-foreground">
-                    {currentSubscription.subscription.formattedAmount}
-                    {currentSubscription.subscription.formattedInterval}
-                  </p>
-                </div>
-                <div className="text-center">
-                  <p className="font-medium text-muted-foreground mb-2">Next Billing</p>
-                  <p className="text-sm text-muted-foreground">
-                    {currentSubscription.subscription.formattedNextRenewal}
-                  </p>
-                </div>
-                <div className="text-center">
-                  <p className="font-medium text-muted-foreground mb-2">Subscription Created</p>
-                  <p className="text-sm text-muted-foreground">
-                    You first subscribed on{" "}
-                    {currentSubscription.subscription.formattedStartDate}
-                  </p>
-                </div>
+              <Badge
+                variant="secondary"
+                className="bg-primary/20 text-primary border-primary/30"
+              >
+                {currentSubscription.subscription.formattedStatus}
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="text-center">
+                <p className="font-medium text-muted-foreground mb-2">Word Usage</p>
+                <p className="text-2xl font-bold text-foreground">
+                  {currentSubscription.subscription.formattedUsage}
+                </p>
               </div>
-            </CardContent>
-          </Card>
-        )}
+              <div className="text-center">
+                <p className="font-medium text-muted-foreground mb-2">Amount</p>
+                <p className="text-2xl font-bold text-foreground">
+                  {currentSubscription.subscription.formattedAmount}
+                  {currentSubscription.subscription.formattedInterval}
+                </p>
+              </div>
+              <div className="text-center">
+                <p className="font-medium text-muted-foreground mb-2">Next Billing</p>
+                <p className="text-sm text-muted-foreground">
+                  {currentSubscription.subscription.formattedNextRenewal}
+                </p>
+              </div>
+              <div className="text-center">
+                <p className="font-medium text-muted-foreground mb-2">Subscription Created</p>
+                <p className="text-sm text-muted-foreground">
+                  You first subscribed on{" "}
+                  {currentSubscription.subscription.formattedStartDate}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-        {/* Scheduled Subscription Changes */}
+      {/* Scheduled Subscription Changes */}
         {scheduledChanges && Array.isArray(scheduledChanges) && scheduledChanges.length > 0 && (
-          <Card className="bg-gray-800/50 border-yellow-500/30">
+          <Card className="bg-card border-yellow-500/30 backdrop-blur-xl">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-yellow-400">
+              <CardTitle className="flex items-center gap-2 text-yellow-500">
                 <Clock className="h-5 w-5" />
                 <span>Scheduled Subscription Change</span>
               </CardTitle>
-              <CardDescription className="text-gray-300">
+              <CardDescription className="text-muted-foreground">
                 Your subscription will automatically change at the end of your current billing period.
               </CardDescription>
             </CardHeader>
@@ -754,10 +753,10 @@ export default function SecureSubscription() {
                 <div key={index} className="space-y-3">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium text-white">
-                        Changing to: <span className="text-blue-400">{change.scheduledPlan || 'New Plan'}</span>
+                      <p className="font-medium text-foreground">
+                        Changing to: <span className="text-primary">{change.scheduledPlan || 'New Plan'}</span>
                       </p>
-                      <p className="text-sm text-gray-400">
+                      <p className="text-sm text-muted-foreground">
                         Effective: {new Date(change.scheduledDate).toLocaleDateString()}
                       </p>
                     </div>
@@ -765,32 +764,32 @@ export default function SecureSubscription() {
                       variant="outline"
                       size="sm"
                       onClick={() => handleCancelScheduledChange(change.id)}
-                      className="border-red-500/30 text-red-400 hover:bg-red-900/20"
+                      className="border-destructive/30 text-destructive hover:bg-destructive/10"
                     >
                       Cancel Change
                     </Button>
                   </div>
                   
-                  <div className="p-3 bg-yellow-900/20 border border-yellow-500/30 rounded text-yellow-200 text-sm">
+                  <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded text-yellow-700 dark:text-yellow-300 text-sm">
                     This change will take effect at the end of your current billing period. You'll keep all current features until then.
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                     <div>
-                      <p className="text-gray-400">Current Plan</p>
-                      <p className="text-white font-medium">
+                      <p className="text-muted-foreground">Current Plan</p>
+                      <p className="text-foreground font-medium">
                         {change.currentPlan || 'Current Plan'}
                       </p>
                     </div>
                     <div>
-                      <p className="text-gray-400">Status</p>
-                      <p className="text-white font-medium capitalize">
+                      <p className="text-muted-foreground">Status</p>
+                      <p className="text-foreground font-medium capitalize">
                         {change.status || 'Scheduled'}
                       </p>
                     </div>
                     <div>
-                      <p className="text-gray-400">Schedule ID</p>
-                      <p className="text-white font-medium font-mono text-xs">
+                      <p className="text-muted-foreground">Schedule ID</p>
+                      <p className="text-foreground font-medium font-mono text-xs">
                         {change.id}
                       </p>
                     </div>
