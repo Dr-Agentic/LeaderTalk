@@ -513,12 +513,11 @@
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
   }
 
-  /* Final universal override for transcript view specifically */
-  [class*="transcript"] *:not(.login-page *),
-  .prose *:not(.login-page *),
-  .space-y-4 *:not(.login-page *),
-  .grid-cols-1 *:not(.login-page *),
-  .md\\:grid-cols-2 *:not(.login-page *) {
+  /* Final universal override for prose content only (not page background) */
+  .prose *:not(.login-page *):not(div):not(main):not(body),
+  .space-y-4 > *:not(.login-page *):not(div):not(main):not(body),
+  .grid-cols-1 > *:not(.login-page *):not(div):not(main):not(body),
+  .md\\:grid-cols-2 > *:not(.login-page *):not(div):not(main):not(body) {
     background-color: rgba(255, 255, 255, 0.05) !important;
   }
 
