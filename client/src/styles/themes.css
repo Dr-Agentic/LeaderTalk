@@ -77,6 +77,16 @@ button[class*="bg-primary"]:active:not(:disabled),
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+/* Glass Card - High Specificity */
+.glass-card,
+.card-layout.glass-card,
+[class*="glass-card"] {
+  background: rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: var(--color-text-primary) !important;
+}
+
 .bg-muted {
   background: rgba(255, 255, 255, 0.05) !important;
   backdrop-filter: blur(20px);
