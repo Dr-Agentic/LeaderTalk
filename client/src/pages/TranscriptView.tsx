@@ -235,8 +235,8 @@ export default function TranscriptView() {
         backLabel="Back to All Transcripts"
       >
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Recording Not Found</h1>
-          <p className="mb-6">The requested recording could not be found.</p>
+          <h1 className="text-2xl font-bold mb-4 text-foreground">Recording Not Found</h1>
+          <p className="mb-6 text-muted-foreground">The requested recording could not be found.</p>
         </div>
       </AppLayout>
     );
@@ -250,9 +250,9 @@ export default function TranscriptView() {
         backTo="/dashboard"
         backLabel="Back to Dashboard"
       >
-        <Card className="max-w-2xl mx-auto my-8 text-center">
+        <Card className="max-w-2xl mx-auto my-8 text-center glass-card">
           <CardHeader>
-            <CardTitle>Analysis in Progress</CardTitle>
+            <CardTitle className="text-foreground">Analysis in Progress</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col items-center space-y-6">
@@ -319,8 +319,8 @@ export default function TranscriptView() {
       <Card className="mb-8 glass-card">
         <CardHeader className="px-4 py-5 sm:px-6 flex flex-col sm:flex-row sm:justify-between sm:items-center">
           <div>
-            <CardTitle className="text-lg leading-6 font-medium text-white">{recording.title}</CardTitle>
-            <p className="mt-1 max-w-2xl text-sm text-white/70">
+            <CardTitle className="text-lg leading-6 font-medium text-foreground">{recording.title}</CardTitle>
+            <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
               Recorded {new Date(recording.recordedAt).toLocaleDateString()} 
               {recording.analysis?.overview?.rating && ` • Overall: ${recording.analysis.overview.rating}`}
             </p>
@@ -374,7 +374,7 @@ export default function TranscriptView() {
               analysis={recording.analysis}
             />
           ) : (
-            <p className="text-white/50 italic">
+            <p className="text-muted-foreground italic">
               No transcript available for this recording.
             </p>
           )}
@@ -461,7 +461,7 @@ function TranscriptWithHighlighting({
       !negativeInstances.length &&
       !passiveInstances.length)
   ) {
-    return <p className="whitespace-pre-line text-white/90">{transcription}</p>;
+    return <p className="whitespace-pre-line text-foreground">{transcription}</p>;
   }
   
   // Function to highlight text using case-insensitive search with lowercase comparison
@@ -636,7 +636,7 @@ function TranscriptWithHighlighting({
   const highlightedTranscript = getColoredTranscript();
 
   return (
-    <div className="prose prose-sm max-w-none whitespace-pre-line text-white/90">
+    <div className="prose prose-sm max-w-none whitespace-pre-line text-foreground">
       <div dangerouslySetInnerHTML={{ __html: highlightedTranscript }} />
     </div>
   );
@@ -738,7 +738,7 @@ function AnalysisInstancesList({
   };
 
   if (!instances.length) {
-    return <p className="text-white/50 italic">{emptyMessage}</p>;
+    return <p className="text-muted-foreground italic">{emptyMessage}</p>;
   }
 
   return (
