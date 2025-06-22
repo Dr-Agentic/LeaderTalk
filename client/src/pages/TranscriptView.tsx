@@ -757,11 +757,11 @@ function AnalysisInstancesList({
             >
               "{instance.text}"
             </span>
-            <span className="text-xs text-white/50 ml-2">
+            <span className="text-xs text-muted-foreground ml-2">
               {formatTimestamp(instance.timestamp)}
             </span>
           </p>
-          <p className="text-sm text-white/80 ml-2">{instance.analysis}</p>
+          <p className="text-sm text-foreground ml-2">{instance.analysis}</p>
           {instance.improvement && (
             <p className="text-sm text-blue-400 ml-2 mt-1">
               <strong>Suggestion:</strong> {instance.improvement}
@@ -773,7 +773,7 @@ function AnalysisInstancesList({
             selectedLeaders &&
             selectedLeaders.length > 0 && (
               <div className="mt-3 ml-2">
-                <p className="text-xs text-white/50 mb-2">
+                <p className="text-xs text-muted-foreground mb-2">
                   How would your selected leaders express this?
                 </p>
                 <div className="flex flex-wrap gap-2">
