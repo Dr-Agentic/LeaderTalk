@@ -116,61 +116,49 @@ function AddPaymentMethodForm({
   };
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 via-transparent to-white/5 backdrop-blur-xl shadow-2xl">
-      {/* Glass effect overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/10 opacity-60" />
-      
-      <div className="relative p-6 space-y-6">
-        {/* Header */}
-        <div className="text-center space-y-3">
-          <div className="flex justify-center">
-            <div className="p-4 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 backdrop-blur-sm shadow-lg shadow-primary/20">
-              <CreditCard className="h-6 w-6 text-primary" />
-            </div>
-          </div>
-          <div>
-            <h3 className="text-xl font-semibold text-white mb-2">Add Payment Method</h3>
-            <p className="text-gray-300 text-sm leading-relaxed">
-              Secure bank-level encryption
-            </p>
+    <Card className="bg-card border-border backdrop-blur-xl">
+      <CardHeader className="text-center">
+        <div className="flex justify-center mb-4">
+          <div className="p-3 rounded-full bg-primary/20">
+            <CreditCard className="h-6 w-6 text-primary" />
           </div>
         </div>
-
+        <CardTitle className="text-foreground">Add Payment Method</CardTitle>
+        <CardDescription className="text-muted-foreground">
+          Secure bank-level encryption
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
         {/* Payment Element */}
-        <div className="relative overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-transparent backdrop-blur-sm">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-30" />
-          <div className="relative p-5">
-            <PaymentElement 
-              options={{
-                layout: 'tabs',
-                paymentMethodOrder: ['card', 'link'],
-              }}
-            />
-          </div>
+        <div className="bg-accent border border-border rounded-lg p-4">
+          <PaymentElement 
+            options={{
+              layout: 'tabs',
+              paymentMethodOrder: ['card', 'link'],
+            }}
+          />
         </div>
         
-        {/* Action Buttons - Vertical Layout */}
-        <div className="space-y-4 pt-2">
+        {/* Action Buttons */}
+        <div className="space-y-4">
           <Button
             type="submit"
             disabled={!stripe || isProcessing}
             onClick={handleSubmit}
-            className="w-full h-14 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 text-white font-semibold text-base shadow-lg shadow-primary/25 backdrop-blur-sm border border-white/10 transition-all duration-200"
+            className="w-full"
             size="lg"
           >
-            <div className="flex items-center justify-center">
-              {isProcessing ? (
-                <>
-                  <Loader2 className="mr-3 h-5 w-5 animate-spin" />
-                  <span>Adding...</span>
-                </>
-              ) : (
-                <>
-                  <Plus className="mr-3 h-5 w-5" />
-                  <span>Add Payment Method</span>
-                </>
-              )}
-            </div>
+            {isProcessing ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Adding...
+              </>
+            ) : (
+              <>
+                <Plus className="mr-2 h-4 w-4" />
+                Add Payment Method
+              </>
+            )}
           </Button>
           
           <Button
@@ -178,14 +166,14 @@ function AddPaymentMethodForm({
             variant="outline"
             onClick={onCancel}
             disabled={isProcessing}
-            className="w-full h-12 border border-white/20 bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white backdrop-blur-sm font-medium transition-all duration-200"
+            className="w-full"
             size="lg"
           >
             Cancel
           </Button>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -312,22 +300,19 @@ export default function PaymentMethodSelector({
 
   if (isLoading) {
     return (
-      <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 via-transparent to-white/5 backdrop-blur-xl shadow-2xl">
-        <div className="relative p-8">
+      <Card className="bg-card border-border backdrop-blur-xl">
+        <CardContent className="p-8">
           <div className="flex flex-col items-center justify-center space-y-4">
-            <div className="relative">
-              <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
-                <Loader2 className="h-6 w-6 animate-spin text-primary" />
-              </div>
-              <div className="absolute inset-0 rounded-full border-2 border-primary/20 animate-pulse"></div>
+            <div className="p-3 rounded-full bg-primary/20">
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
             </div>
             <div className="text-center">
-              <p className="text-white font-medium">Loading payment methods</p>
-              <p className="text-gray-400 text-sm mt-1">Please wait a moment...</p>
+              <p className="text-foreground font-medium">Loading payment methods</p>
+              <p className="text-muted-foreground text-sm mt-1">Please wait a moment...</p>
             </div>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     );
   }
 
