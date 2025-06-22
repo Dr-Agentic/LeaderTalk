@@ -640,7 +640,7 @@ function TranscriptWithHighlighting({
   const highlightedTranscript = getColoredTranscript();
 
   return (
-    <div className="prose prose-sm max-w-none whitespace-pre-line card-description">
+    <div className="max-w-none whitespace-pre-line card-description">
       <div dangerouslySetInnerHTML={{ __html: highlightedTranscript }} />
     </div>
   );

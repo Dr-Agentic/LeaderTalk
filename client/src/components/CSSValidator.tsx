@@ -145,8 +145,13 @@ export function CSSValidator({ pageSelector = "main" }: { pageSelector?: string 
       )}
 
       <div style={{ fontSize: '9px', marginBottom: '4px' }}>
-        CSS Variable Status:<br/>
-        --gradient-background: {getComputedStyle(document.documentElement).getPropertyValue('--gradient-background') || 'undefined'}
+        Debug Info:<br/>
+        Route: {window.location.pathname}<br/>
+        App Container BG: {(() => {
+          const container = document.querySelector('.app-layout-container');
+          return container ? window.getComputedStyle(container).background.substring(0, 50) + '...' : 'not found';
+        })()}<br/>
+        Body BG: {window.getComputedStyle(document.body).background.substring(0, 30) + '...'}
       </div>
 
       {validation.recommendations.length > 0 && (
