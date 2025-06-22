@@ -93,7 +93,7 @@ export default function AllTranscripts() {
           <TabsTrigger value="needs-improvement">Needs Improvement</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="all" className="space-y-4">
+        <TabsContent value="all" className="scroll-container">
           {isLoading ? (
             <TranscriptsSkeleton />
           ) : filteredAndSortedRecordings.length > 0 ? (
@@ -108,7 +108,7 @@ export default function AllTranscripts() {
           )}
         </TabsContent>
         
-        <TabsContent value="positive" className="space-y-4">
+        <TabsContent value="positive" className="scroll-container">
           {isLoading ? (
             <TranscriptsSkeleton />
           ) : filteredAndSortedRecordings.filter(r => 
@@ -131,7 +131,7 @@ export default function AllTranscripts() {
           )}
         </TabsContent>
         
-        <TabsContent value="needs-improvement" className="space-y-4">
+        <TabsContent value="needs-improvement" className="scroll-container">
           {isLoading ? (
             <TranscriptsSkeleton />
           ) : filteredAndSortedRecordings.filter(r => 
