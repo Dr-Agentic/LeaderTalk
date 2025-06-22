@@ -1,12 +1,12 @@
 /* Theme Styles - Glass morphism and visual effects */
 
-/* Primary Button with Gradient - Maximum specificity approach */
-.bg-primary,
-button.bg-primary,
-button[class*="bg-primary"],
-[class*="bg-primary"],
-.button-variant-default {
+/* Primary Button with Gradient - Ultra high specificity to override CVA */
+button.inline-flex.items-center.justify-center.bg-primary,
+button.inline-flex.items-center.justify-center[class*="bg-primary"],
+button.inline-flex[class*="bg-primary"],
+.bg-primary {
   background: linear-gradient(135deg, #8A2BE2, #FF6B6B) !important;
+  background-color: transparent !important;
   color: white !important;
   border: none !important;
   box-shadow: 0 2px 8px rgba(138, 43, 226, 0.25) !important;
