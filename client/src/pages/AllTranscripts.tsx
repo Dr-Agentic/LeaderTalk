@@ -238,7 +238,7 @@ function TranscriptCard({ recording }: { recording: Recording }) {
     console.log("About to render JSX for recording:", recording.id);
     
     return (
-      <Card className="glass-card-opaque">
+      <Card className="glass-card">
         <CardHeader>
           <div className="flex flex-col md:flex-row md:justify-between md:items-start">
             <div>
