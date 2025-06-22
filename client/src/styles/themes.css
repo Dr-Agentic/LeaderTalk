@@ -163,9 +163,6 @@ html body .glass-card .badge {
 
 /* Radix UI Component Overrides */
 html body [data-sonner-toaster] [data-sonner-toast],
-html body [data-state],
-html body [data-orientation],
-html body [role="tabpanel"],
 html body [role="tab"],
 html body .card-layout *,
 html body .glass-card * {

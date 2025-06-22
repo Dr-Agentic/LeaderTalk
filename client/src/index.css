@@ -295,14 +295,14 @@
     background: var(--glass-hover);
   }
 
-  /* Tabs component overrides */
-  html body [data-state="active"][data-orientation="horizontal"] {
+  /* Tabs component overrides - only target tab triggers, not content panels */
+  html body [role="tab"][data-state="active"][data-orientation="horizontal"] {
     background: var(--glass-hover);
     color: var(--color-text-primary);
     border-color: var(--glass-border-hover);
   }
 
-  html body [data-state="inactive"][data-orientation="horizontal"] {
+  html body [role="tab"][data-state="inactive"][data-orientation="horizontal"] {
     background: var(--glass-bg);
     color: var(--color-text-secondary);
   }
