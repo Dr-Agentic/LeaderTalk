@@ -172,19 +172,19 @@
   
   /* Dark theme defaults for common elements */
   .bg-background {
-    background: rgba(255, 255, 255, 0.05) !important;
+    background: var(--glass-bg);
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--glass-border);
   }
   
   .bg-card {
-    background: rgba(255, 255, 255, 0.05) !important;
+    background: var(--glass-bg);
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--glass-border);
   }
   
   .bg-muted {
-    background: rgba(255, 255, 255, 0.05) !important;
+    background: var(--glass-bg);
     backdrop-filter: blur(20px);
   }
   
@@ -198,29 +198,29 @@
   
   /* Override any white backgrounds */
   .bg-white {
-    background: rgba(255, 255, 255, 0.05) !important;
+    background: var(--glass-bg);
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--glass-border);
   }
   
   /* Card components with glass effect */
   [data-radix-popper-content-wrapper],
   .bg-popover {
-    background: rgba(255, 255, 255, 0.05) !important;
+    background: var(--glass-bg);
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--glass-border);
   }
   
   /* Button overrides */
   .bg-primary {
-    background: linear-gradient(135deg, #8A2BE2, #FF6B6B) !important;
+    background: var(--gradient-primary);
   }
   
   /* Input and form elements */
   .bg-input {
-    background: rgba(255, 255, 255, 0.05) !important;
+    background: var(--glass-bg);
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--glass-border);
     color: white;
   }
   
@@ -263,9 +263,9 @@
   .hover\\:bg-gray-100:hover,
   .hover\\:bg-blue-50:hover,
   .hover\\:bg-rose-50:hover {
-    background: rgba(255, 255, 255, 0.05) !important;
+    background: var(--glass-bg);
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--glass-border);
   }
   
   /* Text color overrides */
@@ -287,23 +287,23 @@
   
   /* ShadCN component overrides */
   [data-radix-collection-item] {
-    background: rgba(255, 255, 255, 0.05) !important;
+    background: var(--glass-bg);
     color: white !important;
   }
   
   [data-radix-collection-item]:hover {
-    background: rgba(255, 255, 255, 0.1) !important;
+    background: var(--glass-hover);
   }
 
   /* Tabs component overrides */
   [data-state="active"][data-orientation="horizontal"] {
-    background: rgba(255, 255, 255, 0.1) !important;
+    background: var(--glass-hover);
     color: white !important;
     border-color: rgba(255, 255, 255, 0.2) !important;
   }
 
   [data-state="inactive"][data-orientation="horizontal"] {
-    background: rgba(255, 255, 255, 0.05) !important;
+    background: var(--glass-bg);
     color: rgba(255, 255, 255, 0.7) !important;
   }
 
@@ -315,7 +315,7 @@
   .border.border-input.bg-background,
   button[class*="border"][class*="bg-background"],
   .inline-flex[class*="border"][class*="bg-background"] {
-    background: rgba(255, 255, 255, 0.05) !important;
+    background: var(--glass-bg);
     color: white !important;
     border-color: rgba(255, 255, 255, 0.2) !important;
   }
@@ -327,7 +327,7 @@
   .border.border-input.bg-background:hover,
   button[class*="border"][class*="bg-background"]:hover,
   .inline-flex[class*="border"][class*="bg-background"]:hover {
-    background: rgba(255, 255, 255, 0.1) !important;
+    background: var(--glass-hover);
     color: white !important;
   }
 

@@ -17,6 +17,7 @@
   
   /* Glass Morphism - Clean System */
   --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-hover: rgba(255, 255, 255, 0.1);
   --glass-bg-hover: rgba(255, 255, 255, 0.08);
   --glass-border: rgba(255, 255, 255, 0.1);
   --glass-border-hover: rgba(255, 255, 255, 0.2);
