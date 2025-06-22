@@ -11,6 +11,37 @@
 @tailwind utilities;
 
 @layer utilities {
+  /* High priority gradient overrides */
+  .bg-primary,
+  button.bg-primary,
+  button[class*="bg-primary"],
+  [class*="bg-primary"] {
+    background: linear-gradient(135deg, #8A2BE2, #FF6B6B) !important;
+    color: white !important;
+    border: none !important;
+    box-shadow: 0 2px 8px rgba(138, 43, 226, 0.25);
+    transition: all 0.3s ease;
+  }
+
+  .bg-primary:hover,
+  button.bg-primary:hover:not(:disabled),
+  button[class*="bg-primary"]:hover:not(:disabled),
+  [class*="bg-primary"]:hover:not(:disabled) {
+    background: linear-gradient(135deg, #7B1FA2, #E53E3E) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(138, 43, 226, 0.4);
+  }
+
+  .bg-primary:active,
+  button.bg-primary:active:not(:disabled),
+  button[class*="bg-primary"]:active:not(:disabled),
+  [class*="bg-primary"]:active:not(:disabled) {
+    transform: translateY(0px);
+    transition: all 0.1s ease;
+  }
+}
+
+@layer utilities {
   .bg-gradient-radial {
     background: radial-gradient(circle, var(--tw-gradient-stops));
   }
