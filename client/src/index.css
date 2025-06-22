@@ -188,12 +188,12 @@
     backdrop-filter: blur(20px);
   }
   
-  .text-muted-foreground {
-    color: rgba(255, 255, 255, 0.6) !important;
+  html body .text-muted-foreground {
+    color: var(--color-text-muted);
   }
   
-  .text-foreground {
-    color: white !important;
+  html body .text-foreground {
+    color: var(--color-text-primary);
   }
   
   /* Override any white backgrounds */
@@ -224,16 +224,16 @@
     color: white;
   }
   
-  h1, h2, h3, h4, h5, h6 {
-    color: white !important;
+  html body h1, html body h2, html body h3, html body h4, html body h5, html body h6 {
+    color: var(--color-text-primary);
   }
   
-  h1 {
-    font-family: 'Libre Franklin', system-ui, sans-serif !important;
+  html body h1 {
+    font-family: 'Libre Franklin', system-ui, sans-serif;
   }
   
-  h2 {
-    font-family: 'Ancizar Sans', 'Source Sans Pro', system-ui, sans-serif !important;
+  html body h2 {
+    font-family: 'Ancizar Sans', 'Source Sans Pro', system-ui, sans-serif;
   }
   
   /* Target specific light background classes only */
@@ -269,20 +269,20 @@
   }
   
   /* Text color overrides */
-  .text-gray-600,
-  .text-gray-500,
-  .text-gray-400 {
-    color: rgba(255, 255, 255, 0.7) !important;
+  html body .text-gray-600,
+  html body .text-gray-500,
+  html body .text-gray-400 {
+    color: var(--color-text-secondary);
   }
   
-  .text-primary {
-    color: #8A2BE2 !important;
+  html body .text-primary {
+    color: var(--color-purple);
   }
   
   /* Border overrides */
-  .border-gray-200,
-  .border-gray-300 {
-    border-color: rgba(255, 255, 255, 0.1) !important;
+  html body .border-gray-200,
+  html body .border-gray-300 {
+    border-color: var(--glass-border);
   }
   
   /* ShadCN component overrides */

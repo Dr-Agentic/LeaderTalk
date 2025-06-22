@@ -1,33 +1,33 @@
 /* Theme Styles - Glass morphism and visual effects */
 
-/* Primary Button with Gradient - Ultra high specificity to override CVA */
-button.inline-flex.items-center.justify-center.bg-primary,
-button.inline-flex.items-center.justify-center[class*="bg-primary"],
-button.inline-flex[class*="bg-primary"],
-.bg-primary {
-  background: linear-gradient(135deg, #8A2BE2, #FF6B6B) !important;
-  background-color: transparent !important;
-  color: white !important;
-  border: none !important;
-  box-shadow: 0 2px 8px rgba(138, 43, 226, 0.25) !important;
-  transition: all 0.3s ease !important;
+/* Primary Button with Gradient - High specificity to override CVA */
+html body button.inline-flex.items-center.justify-center.bg-primary,
+html body button.inline-flex.items-center.justify-center[class*="bg-primary"],
+html body button.inline-flex[class*="bg-primary"],
+html body .bg-primary {
+  background: var(--gradient-primary);
+  background-color: transparent;
+  color: var(--color-text-primary);
+  border: none;
+  box-shadow: var(--shadow-purple-soft);
+  transition: all 0.3s ease;
 }
 
-.bg-primary:hover,
-button.bg-primary:hover:not(:disabled),
-button[class*="bg-primary"]:hover:not(:disabled),
-[class*="bg-primary"]:hover:not(:disabled) {
-  background: linear-gradient(135deg, #7B1FA2, #E53E3E) !important;
-  transform: translateY(-1px) !important;
-  box-shadow: 0 4px 12px rgba(138, 43, 226, 0.4) !important;
+html body .bg-primary:hover,
+html body button.bg-primary:hover:not(:disabled),
+html body button[class*="bg-primary"]:hover:not(:disabled),
+html body [class*="bg-primary"]:hover:not(:disabled) {
+  background: var(--gradient-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-purple-strong);
 }
 
-.bg-primary:active,
-button.bg-primary:active:not(:disabled),
-button[class*="bg-primary"]:active:not(:disabled),
-[class*="bg-primary"]:active:not(:disabled) {
-  transform: translateY(0px) !important;
-  transition: all 0.1s ease !important;
+html body .bg-primary:active,
+html body button.bg-primary:active:not(:disabled),
+html body button[class*="bg-primary"]:active:not(:disabled),
+html body [class*="bg-primary"]:active:not(:disabled) {
+  transform: translateY(0px);
+  transition: all 0.1s ease;
 }
 
 /* Glass Morphism Cards - Clean System Using CSS Variables */
@@ -85,18 +85,18 @@ button[class*="bg-primary"]:active:not(:disabled),
   backdrop-filter: blur(20px);
 }
 
-.text-muted-foreground,
-.card-description,
-[class*="text-muted-foreground"] {
-  color: var(--color-text-secondary) !important;
+html body .text-muted-foreground,
+html body .card-description,
+html body [class*="text-muted-foreground"] {
+  color: var(--color-text-secondary);
 }
 
-.text-primary {
-  color: var(--color-purple) !important;
+html body .text-primary {
+  color: var(--color-purple);
 }
 
-.text-muted {
-  color: var(--color-text-muted) !important;
+html body .text-muted {
+  color: var(--color-text-muted);
 }
 
 /* Status Badges */
@@ -137,36 +137,36 @@ button[class*="bg-primary"]:active:not(:disabled),
 [data-state="active"],
 .card-layout .text-foreground,
 .card-layout .card-title,
-.card-layout .card-description,
-.glass-card .text-foreground,
-.glass-card .card-title,
-.glass-card .card-description {
-  color: var(--color-text-primary) !important;
+html body .card-layout .card-description,
+html body .glass-card .text-foreground,
+html body .glass-card .card-title,
+html body .glass-card .card-description {
+  color: var(--color-text-primary);
 }
 
 /* Card Headers and Content */
-.card-layout [class*="CardHeader"],
-.card-layout [class*="CardContent"],
-.glass-card [class*="CardHeader"],
-.glass-card [class*="CardContent"] {
-  color: var(--color-text-primary) !important;
+html body .card-layout [class*="CardHeader"],
+html body .card-layout [class*="CardContent"],
+html body .glass-card [class*="CardHeader"],
+html body .glass-card [class*="CardContent"] {
+  color: var(--color-text-primary);
 }
 
 /* Badge Color Overrides */
-.card-layout [class*="Badge"],
-.glass-card [class*="Badge"] {
-  border-color: rgba(255, 255, 255, 0.2) !important;
+html body .card-layout [class*="Badge"],
+html body .glass-card [class*="Badge"] {
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 /* Radix UI Component Overrides */
-[data-sonner-toaster] [data-sonner-toast],
-[data-state],
-[data-orientation],
-[role="tabpanel"],
-[role="tab"],
-.card-layout *,
-.glass-card * {
-  color: inherit !important;
+html body [data-sonner-toaster] [data-sonner-toast],
+html body [data-state],
+html body [data-orientation],
+html body [role="tabpanel"],
+html body [role="tab"],
+html body .card-layout *,
+html body .glass-card * {
+  color: inherit;
 }
 
 /* Specific TranscriptView Overrides */
@@ -177,23 +177,23 @@ button[class*="bg-primary"]:active:not(:disabled),
 .card-layout h5,
 .card-layout h6,
 .card-layout p,
-.card-layout span,
-.card-layout div,
-.glass-card h1,
-.glass-card h2,
-.glass-card h3,
-.glass-card h4,
-.glass-card h5,
-.glass-card h6,
-.glass-card p,
-.glass-card span,
-.glass-card div {
-  color: var(--color-text-primary) !important;
+html body .card-layout span,
+html body .card-layout div,
+html body .glass-card h1,
+html body .glass-card h2,
+html body .glass-card h3,
+html body .glass-card h4,
+html body .glass-card h5,
+html body .glass-card h6,
+html body .glass-card p,
+html body .glass-card span,
+html body .glass-card div {
+  color: var(--color-text-primary);
 }
 
 /* Border Colors */
-.border-border {
-  border-color: rgba(255, 255, 255, 0.1) !important;
+html body .border-border {
+  border-color: var(--glass-border);
 }
 
 /* Hero Section - Template Authentic */
