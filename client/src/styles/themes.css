@@ -58,12 +58,14 @@ html body [class*="bg-primary"]:active:not(:disabled) {
   box-shadow: var(--shadow-card-hover);
 }
 
-/* Transparent flex column for lists */
-.flex-column-transparent {
+/* Transparent flex column for lists - override global glass effects */
+html body .flex-column-transparent {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
-  background: transparent;
+  background: transparent !important;
+  backdrop-filter: none !important;
+  border-color: transparent !important;
 }
 
 /* Clean background overrides for glass cards */
