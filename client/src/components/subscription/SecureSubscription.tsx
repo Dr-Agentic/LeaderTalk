@@ -685,7 +685,7 @@ export default function SecureSubscription() {
 
         {/* Current Subscription Status */}
       {currentSubscription?.hasSubscription && currentSubscription.subscription && (
-        <Card className="bg-card border-border backdrop-blur-xl">
+        <Card className="glass-card">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>

@@ -439,49 +439,12 @@
     color: var(--color-text-primary);
   }
 
-  /* Nuclear option: override ALL possible white backgrounds */
-  * {
-    --tw-bg-opacity: 1;
-  }
-
-  *[style*="background-color: white"],
-  *[style*="background-color: #fff"],
-  *[style*="background-color: #ffffff"],
-  *[style*="background: white"],
-  *[style*="background: #fff"],
-  *[style*="background: #ffffff"] {
-    background: var(--glass-bg);
-    color: var(--color-text-primary);
-  }
-
-  /* Removed conflicting button overrides - now handled in themes.css */
-
-  /* Final catch-all for any white backgrounds that slip through */
+  /* Semantic override for common Tailwind background classes */
   .bg-white:not(.login-page *),
   .bg-gray-50:not(.login-page *),
-  .bg-gray-100:not(.login-page *),
-  .bg-slate-50:not(.login-page *),
-  .bg-slate-100:not(.login-page *),
-  .bg-zinc-50:not(.login-page *),
-  .bg-zinc-100:not(.login-page *),
-  .bg-neutral-50:not(.login-page *),
-  .bg-neutral-100:not(.login-page *),
-  .bg-stone-50:not(.login-page *),
-  .bg-stone-100:not(.login-page *) {
+  .bg-card:not(.login-page *) {
     background: var(--glass-bg);
     color: var(--color-text-primary);
-  }
-
-  /* Nuclear option for any remaining white containers */
-  *:not(.login-page *)[style*="background-color: white"],
-  *:not(.login-page *)[style*="background: white"],
-  *:not(.login-page *)[style*="background-color: #ffffff"],
-  *:not(.login-page *)[style*="background-color: #fff"],
-  *:not(.login-page *)[style*="background: #ffffff"],
-  *:not(.login-page *)[style*="background: #fff"] {
-    background: var(--glass-bg);
-    backdrop-filter: blur(20px);
-    border: 1px solid var(--glass-border);
   }
 
   /* Final universal override for prose content only (not page background) */
