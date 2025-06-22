@@ -286,49 +286,49 @@
   }
   
   /* ShadCN component overrides */
-  [data-radix-collection-item] {
+  html body [data-radix-collection-item] {
     background: var(--glass-bg);
-    color: white !important;
+    color: var(--color-text-primary);
   }
   
-  [data-radix-collection-item]:hover {
+  html body [data-radix-collection-item]:hover {
     background: var(--glass-hover);
   }
 
   /* Tabs component overrides */
-  [data-state="active"][data-orientation="horizontal"] {
+  html body [data-state="active"][data-orientation="horizontal"] {
     background: var(--glass-hover);
-    color: white !important;
-    border-color: rgba(255, 255, 255, 0.2) !important;
+    color: var(--color-text-primary);
+    border-color: var(--glass-border-hover);
   }
 
-  [data-state="inactive"][data-orientation="horizontal"] {
+  html body [data-state="inactive"][data-orientation="horizontal"] {
     background: var(--glass-bg);
-    color: rgba(255, 255, 255, 0.7) !important;
+    color: var(--color-text-secondary);
   }
 
   /* Button variant overrides for outline buttons */
-  .inline-flex.items-center.justify-center[data-variant="outline"],
-  button[data-variant="outline"],
-  .inline-flex.items-center.gap-1,
-  button.inline-flex.items-center,
-  .border.border-input.bg-background,
-  button[class*="border"][class*="bg-background"],
-  .inline-flex[class*="border"][class*="bg-background"] {
+  html body .inline-flex.items-center.justify-center[data-variant="outline"],
+  html body button[data-variant="outline"],
+  html body .inline-flex.items-center.gap-1,
+  html body button.inline-flex.items-center,
+  html body .border.border-input.bg-background,
+  html body button[class*="border"][class*="bg-background"],
+  html body .inline-flex[class*="border"][class*="bg-background"] {
     background: var(--glass-bg);
-    color: white !important;
-    border-color: rgba(255, 255, 255, 0.2) !important;
+    color: var(--color-text-primary);
+    border-color: var(--glass-border-hover);
   }
 
-  .inline-flex.items-center.justify-center[data-variant="outline"]:hover,
-  button[data-variant="outline"]:hover,
-  .inline-flex.items-center.gap-1:hover,
-  button.inline-flex.items-center:hover,
-  .border.border-input.bg-background:hover,
-  button[class*="border"][class*="bg-background"]:hover,
-  .inline-flex[class*="border"][class*="bg-background"]:hover {
+  html body .inline-flex.items-center.justify-center[data-variant="outline"]:hover,
+  html body button[data-variant="outline"]:hover,
+  html body .inline-flex.items-center.gap-1:hover,
+  html body button.inline-flex.items-center:hover,
+  html body .border.border-input.bg-background:hover,
+  html body button[class*="border"][class*="bg-background"]:hover,
+  html body .inline-flex[class*="border"][class*="bg-background"]:hover {
     background: var(--glass-hover);
-    color: white !important;
+    color: var(--color-text-primary);
   }
 
   /* TabsList specific override */
@@ -343,9 +343,9 @@
     color: var(--color-text-secondary);
   }
 
-  [role="tab"][data-state="active"] {
+  html body [role="tab"][data-state="active"] {
     background: var(--glass-hover);
-    color: white !important;
+    color: var(--color-text-primary);
   }
 
   /* More specific overrides for TabsList and TabsTrigger */
@@ -364,12 +364,12 @@
     border: none;
   }
 
-  .inline-flex.items-center.justify-center[role="tab"][data-state="active"],
-  .whitespace-nowrap.rounded-sm[role="tab"][data-state="active"],
-  button[role="tab"][data-state="active"] {
+  html body .inline-flex.items-center.justify-center[role="tab"][data-state="active"],
+  html body .whitespace-nowrap.rounded-sm[role="tab"][data-state="active"],
+  html body button[role="tab"][data-state="active"] {
     background: var(--glass-hover);
-    color: white !important;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
+    color: var(--color-text-primary);
+    box-shadow: var(--shadow-purple-soft);
   }
 
   /* Override any white background that might be applied by Tailwind */
@@ -410,16 +410,16 @@
   }
 
   /* Ultra-specific overrides for stubborn white backgrounds */
-  [data-radix-tabs-list],
-  [data-radix-tabs-trigger] {
+  html body [data-radix-tabs-list],
+  html body [data-radix-tabs-trigger] {
     background: var(--glass-bg);
     color: var(--color-text-secondary);
     border: 1px solid var(--glass-border);
   }
 
-  [data-radix-tabs-trigger][data-state="active"] {
+  html body [data-radix-tabs-trigger][data-state="active"] {
     background: var(--glass-hover);
-    color: white !important;
+    color: var(--color-text-primary);
   }
 
   /* Force override any white/light backgrounds with highest specificity */
@@ -434,9 +434,9 @@
     color: var(--color-text-secondary);
   }
 
-  body [role="tab"][data-state="active"] {
+  html body [role="tab"][data-state="active"] {
     background: var(--glass-hover);
-    color: white !important;
+    color: var(--color-text-primary);
   }
 
   /* Nuclear option: override ALL possible white backgrounds */
@@ -503,15 +503,15 @@
   }
 
   /* Ensure tabs specifically use dark backgrounds */
-  [data-radix-tabs-list],
-  [data-radix-tabs-trigger]:not([data-state="active"]) {
+  html body [data-radix-tabs-list],
+  html body [data-radix-tabs-trigger]:not([data-state="active"]) {
     background: var(--glass-bg);
     color: var(--color-text-secondary);
   }
 
-  [data-radix-tabs-trigger][data-state="active"] {
+  html body [data-radix-tabs-trigger][data-state="active"] {
     background: var(--glass-hover);
-    color: white !important;
+    color: var(--color-text-primary);
   }
 
   /* Fix any remaining white text on white background issues - but preserve login page styling */
