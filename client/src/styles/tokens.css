@@ -23,7 +23,7 @@
   --glass-border-hover: rgba(255, 255, 255, 0.2);
   
   /* Gradients - Updated with Navy Blue */
-  --gradient-background: linear-gradient(135deg, #0f0f23 0%, #1a0033 50%, #0f0f23 100%);
+  --gradient-background: linear-gradient(135deg, var(--color-bg-primary) 0%, var(--color-bg-secondary) 50%, var(--color-bg-primary) 100%);
   --gradient-primary: linear-gradient(135deg, #8A2BE2, #FF6B6B);
   --gradient-primary-hover: linear-gradient(135deg, #7B1FA2, #E53E3E);
   --gradient-hero: linear-gradient(135deg, rgba(138, 43, 226, 0.1), rgba(255, 107, 107, 0.1));
