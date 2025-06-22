@@ -228,7 +228,10 @@ function TranscriptCard({ recording }: { recording: Recording }) {
   
   console.log("🟣 TranscriptCard rendering with recording:", recording.id);
   return (
-    <Card className="glass-card" style={{ background: 'linear-gradient(135deg, #8A2BE2, #FF6B6B)' }}>
+    <Card 
+      className="glass-card" 
+      style={{ background: 'red !important', border: '5px solid yellow' }}
+    >
       <CardHeader>
         <div className="flex flex-col md:flex-row md:justify-between md:items-start">
           <div>
