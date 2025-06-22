@@ -41,8 +41,8 @@ export function QuoteDisplay() {
     <Card className="mb-6 glass-card">
       <CardContent className="pt-6 pb-4">
         <div className="flex flex-col gap-2">
-          <p className="text-lg font-light italic text-white">&ldquo;{currentQuote.quote}&rdquo;</p>
-          <p className="text-right text-sm font-medium text-white/70">— {currentQuote.author}</p>
+          <p className="text-lg font-light italic card-title">&ldquo;{currentQuote.quote}&rdquo;</p>
+          <p className="text-right text-sm font-medium card-title/70">— {currentQuote.author}</p>
         </div>
       </CardContent>
     </Card>

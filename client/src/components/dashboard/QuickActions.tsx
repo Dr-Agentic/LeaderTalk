@@ -10,18 +10,18 @@ export default function QuickActions({ recordingsCount, weeklyImprovement }: { r
       <Card className="glass-card p-6">
         <div className="flex items-center">
           <div className="flex-shrink-0 p-3 rounded-md" style={{background: 'linear-gradient(135deg, #8A2BE2, #FF6B6B)'}}>
-            <Mic className="h-5 w-5 text-white" />
+            <Mic className="h-5 w-5 card-title" />
           </div>
           <div className="ml-5 w-0 flex-1">
             <dl>
-              <dt><SmallText className="truncate text-white/70">Record Conversation</SmallText></dt>
-              <dd><H4 className="text-white">Start a new recording</H4></dd>
+              <dt><SmallText className="truncate card-title/70">Record Conversation</SmallText></dt>
+              <dd><H4 className="card-title">Start a new recording</H4></dd>
             </dl>
           </div>
         </div>
         <div className="mt-4 pt-4 border-t border-white/10">
           <div>
-            <Link href="/recording" className="font-sans text-sm font-medium text-white hover:text-purple-300 flex items-center">
+            <Link href="/recording" className="font-sans text-sm font-medium card-title hover:text-purple-300 flex items-center">
               Start recording <span className="ml-1">&rarr;</span>
             </Link>
           </div>
@@ -32,12 +32,12 @@ export default function QuickActions({ recordingsCount, weeklyImprovement }: { r
       <Card className="glass-card p-6">
         <div className="flex items-center">
           <div className="flex-shrink-0 p-3 rounded-md" style={{background: 'linear-gradient(135deg, #FF6B6B, #4ECDC4)'}}>
-            <BarChart className="h-5 w-5 text-white" />
+            <BarChart className="h-5 w-5 card-title" />
           </div>
           <div className="ml-5 w-0 flex-1">
             <dl>
-              <dt><SmallText className="truncate text-white/70">Recent Analyses</SmallText></dt>
-              <dd><H4 className="text-white">
+              <dt><SmallText className="truncate card-title/70">Recent Analyses</SmallText></dt>
+              <dd><H4 className="card-title">
                 {recordingsCount} {recordingsCount === 1 ? 'recording' : 'recordings'}
               </H4></dd>
             </dl>
@@ -45,7 +45,7 @@ export default function QuickActions({ recordingsCount, weeklyImprovement }: { r
         </div>
         <div className="mt-4 pt-4 border-t border-white/10">
           <div>
-            <Link href="/transcripts" className="font-sans text-sm font-medium text-white hover:text-purple-300 flex items-center">
+            <Link href="/transcripts" className="font-sans text-sm font-medium card-title hover:text-purple-300 flex items-center">
               View all analyses <span className="ml-1">&rarr;</span>
             </Link>
           </div>
@@ -56,13 +56,13 @@ export default function QuickActions({ recordingsCount, weeklyImprovement }: { r
       <Card className="glass-card p-6">
         <div className="flex items-center">
           <div className="flex-shrink-0 p-3 rounded-md" style={{background: 'linear-gradient(135deg, #4ECDC4, #44A08D)'}}>
-            <TrendingUp className="h-5 w-5 text-white" />
+            <TrendingUp className="h-5 w-5 card-title" />
           </div>
           <div className="ml-5 w-0 flex-1">
             <dl>
-              <dt><SmallText className="truncate text-white/70">Weekly Improvement</SmallText></dt>
+              <dt><SmallText className="truncate card-title/70">Weekly Improvement</SmallText></dt>
               <dd className="flex items-baseline">
-                <H4 className="flex items-center text-white">
+                <H4 className="flex items-center card-title">
                   {weeklyImprovement > 0 ? `+${weeklyImprovement}%` : `${weeklyImprovement}%`}
                 </H4>
                 {weeklyImprovement > 0 && (
@@ -80,7 +80,7 @@ export default function QuickActions({ recordingsCount, weeklyImprovement }: { r
         </div>
         <div className="mt-4 pt-4 border-t border-white/10">
           <div>
-            <Link href="/progress" className="font-sans text-sm font-medium text-white hover:text-purple-300 flex items-center">
+            <Link href="/progress" className="font-sans text-sm font-medium card-title hover:text-purple-300 flex items-center">
               View progress <span className="ml-1">&rarr;</span>
             </Link>
           </div>
@@ -91,12 +91,12 @@ export default function QuickActions({ recordingsCount, weeklyImprovement }: { r
       <Card className="glass-card p-6">
         <div className="flex items-center">
           <div className="flex-shrink-0 p-3 rounded-md" style={{background: 'linear-gradient(135deg, #667eea, #764ba2)'}}>
-            <GraduationCap className="h-5 w-5 text-white" />
+            <GraduationCap className="h-5 w-5 card-title" />
           </div>
           <div className="ml-5 w-0 flex-1">
             <dl>
-              <dt><SmallText className="truncate text-white/70">Training Module</SmallText></dt>
-              <dd><H4 className="text-white">
+              <dt><SmallText className="truncate card-title/70">Training Module</SmallText></dt>
+              <dd><H4 className="card-title">
                 Improve your skills
               </H4></dd>
             </dl>
@@ -104,7 +104,7 @@ export default function QuickActions({ recordingsCount, weeklyImprovement }: { r
         </div>
         <div className="mt-4 pt-4 border-t border-white/10">
           <div>
-            <Link href="/training" className="font-sans text-sm font-medium text-white hover:text-purple-300 flex items-center">
+            <Link href="/training" className="font-sans text-sm font-medium card-title hover:text-purple-300 flex items-center">
               Start training <span className="ml-1">&rarr;</span>
             </Link>
           </div>

@@ -26,7 +26,7 @@ export default function Recording() {
     >
       <div className="page-container content-spacing">
         <H1>Record a Conversation</H1>
-        <p className="text-muted-foreground mt-2 mb-6">
+        <p className="card-description mt-2 mb-6">
           Record your conversations to get AI-powered insights on your communication style.
         </p>
         

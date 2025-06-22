@@ -558,7 +558,7 @@ export default function Progress() {
       backLabel="Back to Dashboard"
       pageTitle="Your Progress"
     >
-      <p className="text-muted-foreground mb-8">
+      <p className="card-description mb-8">
         Track your communication improvement over time
       </p>
 
@@ -675,7 +675,7 @@ export default function Progress() {
                 </ResponsiveContainer>
               </div>
             ) : (
-              <div className="text-center py-12 text-muted-foreground">
+              <div className="text-center py-12 card-description">
                 No recordings available for this time period.
               </div>
             )}
@@ -789,7 +789,7 @@ export default function Progress() {
                 </ResponsiveContainer>
               </div>
             ) : (
-              <div className="text-center py-12 text-muted-foreground">
+              <div className="text-center py-12 card-description">
                 No recordings available yet.
               </div>
             )}
@@ -813,13 +813,13 @@ export default function Progress() {
                 <CardContent>
                   <div className="space-y-2">
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Average score:</span>
+                      <span className="card-description">Average score:</span>
                       <span className="font-medium">
                         {range.averageScore.toFixed(1)}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Improvement:</span>
+                      <span className="card-description">Improvement:</span>
                       <span
                         className={
                           range.improvement > 0

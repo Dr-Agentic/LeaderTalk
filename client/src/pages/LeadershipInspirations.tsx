@@ -148,8 +148,8 @@ export default function LeadershipInspirations() {
         <>
           {/* Current Selections Display */}
           <Card className="p-6 mb-8">
-            <H2 className="text-xl mb-4 text-white">Your Current Inspirations</H2>
-            <p className="text-gray-300 mb-6">
+            <H2 className="text-xl mb-4 card-title">Your Current Inspirations</H2>
+            <p className="card-description mb-6">
               These are the leaders who currently inspire your communication style. You can select up to 3 leaders.
             </p>
             
@@ -202,18 +202,18 @@ export default function LeadershipInspirations() {
                         </div>
                         
                         {/* Leader name */}
-                        <h3 className="font-medium text-center text-sm mt-1 text-white">{selectedLeader.name}</h3>
+                        <h3 className="font-medium text-center text-sm mt-1 card-title">{selectedLeader.name}</h3>
                       </>
                     ) : (
                       <>
                         {/* Empty slot with grayed-out appearance */}
                         <div className="w-14 h-14 rounded-full bg-gray-700 flex items-center justify-center mb-3">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="card-description">
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                             <circle cx="12" cy="7" r="4"></circle>
                           </svg>
                         </div>
-                        <h3 className="font-medium text-gray-500 text-sm">Empty Slot</h3>
+                        <h3 className="font-medium card-description text-sm">Empty Slot</h3>
                       </>
                     )}
                   </div>
@@ -225,16 +225,16 @@ export default function LeadershipInspirations() {
           {/* Leader Selection Grid */}
           <Card className="p-6">
             <div className="flex justify-between items-center mb-4">
-              <H2 className="text-xl text-white">Available Leaders</H2>
+              <H2 className="text-xl card-title">Available Leaders</H2>
               <div className="flex items-center gap-2 bg-gray-700 p-1 rounded-md">
                 <button 
-                  className={`text-xs px-3 py-1.5 rounded ${viewMode === 'detailed' ? 'bg-gray-600 shadow-sm text-white' : 'text-gray-300'}`}
+                  className={`text-xs px-3 py-1.5 rounded ${viewMode === 'detailed' ? 'bg-gray-600 shadow-sm card-title' : 'card-description'}`}
                   onClick={() => setViewMode('detailed')}
                 >
                   Detailed
                 </button>
                 <button 
-                  className={`text-xs px-3 py-1.5 rounded ${viewMode === 'compact' ? 'bg-gray-600 shadow-sm text-white' : 'text-gray-300'}`}
+                  className={`text-xs px-3 py-1.5 rounded ${viewMode === 'compact' ? 'bg-gray-600 shadow-sm card-title' : 'card-description'}`}
                   onClick={() => setViewMode('compact')}
                 >
                   Compact
@@ -242,7 +242,7 @@ export default function LeadershipInspirations() {
               </div>
             </div>
             
-            <p className="text-gray-300 mb-6">
+            <p className="card-description mb-6">
               Select from our curated list of leaders to inspire your communication style.
             </p>
             
@@ -266,7 +266,7 @@ export default function LeadershipInspirations() {
                         {/* Selected badge */}
                         {isSelected && (
                           <div className="absolute top-2 right-2 z-10">
-                            <div className="bg-primary text-white text-xs font-medium py-1 px-2 rounded-full">
+                            <div className="bg-primary card-title text-xs font-medium py-1 px-2 rounded-full">
                               Selected
                             </div>
                           </div>
@@ -281,15 +281,15 @@ export default function LeadershipInspirations() {
                           />
                         ) : (
                           <div className="w-full h-52 bg-gray-700 flex items-center justify-center">
-                            <span className="text-gray-400">No image</span>
+                            <span className="card-description">No image</span>
                           </div>
                         )}
                         
                         <div className="p-4">
-                          <h3 className="font-bold text-white text-lg">{leader.name}</h3>
-                          <p className="text-gray-300 text-sm">{leader.title}</p>
+                          <h3 className="font-bold card-title text-lg">{leader.name}</h3>
+                          <p className="card-description text-sm">{leader.title}</p>
                           
-                          <p className="mt-3 text-gray-300 text-sm line-clamp-3">
+                          <p className="mt-3 card-description text-sm line-clamp-3">
                             {leader.description}
                           </p>
                           
@@ -299,7 +299,7 @@ export default function LeadershipInspirations() {
                               {leader.leadershipStyles.map((style: string, index: number) => (
                                 <div 
                                   key={index} 
-                                  className="text-xs bg-gray-700 border border-gray-600 px-2 py-1 rounded-full text-gray-300"
+                                  className="text-xs bg-gray-700 border border-gray-600 px-2 py-1 rounded-full card-description"
                                 >
                                   {style}
                                 </div>
@@ -345,7 +345,7 @@ export default function LeadershipInspirations() {
                         
                         <div className="flex-grow min-w-0">
                           <div className="flex justify-between">
-                            <h3 className="font-medium text-white">{leader.name}</h3>
+                            <h3 className="font-medium card-title">{leader.name}</h3>
                             
                             {/* Selected indicator */}
                             {isSelected && (
@@ -353,7 +353,7 @@ export default function LeadershipInspirations() {
                             )}
                           </div>
                           
-                          <p className="text-gray-300 text-sm">{leader.title}</p>
+                          <p className="card-description text-sm">{leader.title}</p>
                           
                           {/* Leadership styles in a single line */}
                           {leader.leadershipStyles && leader.leadershipStyles.length > 0 && (
@@ -361,7 +361,7 @@ export default function LeadershipInspirations() {
                               {leader.leadershipStyles.map((style: string, index: number) => (
                                 <span 
                                   key={index} 
-                                  className="text-xs text-gray-300 bg-gray-700 px-1.5 py-0.5 rounded"
+                                  className="text-xs card-description bg-gray-700 px-1.5 py-0.5 rounded"
                                 >
                                   {style}
                                 </span>

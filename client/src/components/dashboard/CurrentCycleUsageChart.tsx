@@ -189,11 +189,11 @@ function CustomTooltip({ active, payload, label }) {
     return (
       <div className="bg-background border rounded-md shadow-md p-3 text-sm">
         <p className="font-semibold text-primary">{recordingTitle}</p>
-        <p className="text-xs text-muted-foreground mb-1">{entry.fullDate}</p>
+        <p className="text-xs card-description mb-1">{entry.fullDate}</p>
         <p className="text-sm">
           Words recorded: {entry.words.toLocaleString()}
         </p>
-        <p className="text-muted-foreground text-sm">
+        <p className="card-description text-sm">
           Total this cycle:{" "}
           {entry.runningTotal?.toLocaleString() || entry.words.toLocaleString()}{" "}
           words
@@ -381,7 +381,7 @@ export default function CurrentCycleUsageChart() {
             Billing Cycle Recordings
           </CardTitle>
           {chartData.length > 0 && (
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm card-description">
               {totalWords.toLocaleString()} words recorded in your billing cycle
             </p>
           )}
@@ -461,7 +461,7 @@ export default function CurrentCycleUsageChart() {
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
-            <div className="mt-2 mb-4 flex items-center justify-center text-sm text-muted-foreground">
+            <div className="mt-2 mb-4 flex items-center justify-center text-sm card-description">
               <Info className="h-4 w-4 mr-2 flex-shrink-0" />
               <span className="text-center">
                 {chartData.length > 0
@@ -471,7 +471,7 @@ export default function CurrentCycleUsageChart() {
             </div>
           </div>
         ) : (
-          <div className="h-64 flex flex-col items-center justify-center text-muted-foreground">
+          <div className="h-64 flex flex-col items-center justify-center card-description">
             <p>No usage data available for {monthYear}</p>
             <p className="text-sm mt-2">
               {isCurrentMonth

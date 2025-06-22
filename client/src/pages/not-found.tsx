@@ -86,13 +86,13 @@ export default function NotFound() {
                   <AlertCircle className="h-8 w-8 text-red-400" />
                 </div>
               </div>
-              <h1 className="text-3xl font-bold text-white mb-2">
+              <h1 className="text-3xl font-bold card-title mb-2">
                 Even Leaders make mistakes...
               </h1>
-              <h2 className="text-xl font-semibold text-gray-300 mb-2">
+              <h2 className="text-xl font-semibold card-description mb-2">
                 It's how they learn, grow, and become even stronger.
               </h2>
-              <p className="text-gray-400 max-w-sm mx-auto">
+              <p className="card-description max-w-sm mx-auto">
                 Be The Leader That you Inspire To Be.
               </p>
             </motion.div>
@@ -104,7 +104,7 @@ export default function NotFound() {
               transition={{ delay: 0.4, duration: 0.5 }}
               className="mb-6"
             >
-              <p className="text-sm text-gray-400 mb-3">
+              <p className="text-sm card-description mb-3">
                 Redirecting to home in {countdown} seconds...
               </p>
 
@@ -125,7 +125,7 @@ export default function NotFound() {
             >
               <Button
                 onClick={handleGoHome}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0 shadow-lg"
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 card-title border-0 shadow-lg"
                 size="lg"
               >
                 <Home className="h-4 w-4 mr-2" />
@@ -135,7 +135,7 @@ export default function NotFound() {
               <Button
                 onClick={handleGoBack}
                 variant="outline"
-                className="border-gray-600 bg-gray-700/50 text-gray-300 hover:bg-gray-600/50 hover:text-white"
+                className="border-gray-600 bg-gray-700/50 card-description hover:bg-gray-600/50 hover:card-title"
                 size="lg"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />

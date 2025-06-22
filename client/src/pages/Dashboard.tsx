@@ -73,8 +73,8 @@ export default function Dashboard() {
   return (
     <AppLayout>
       <div className="header-layout content-spacing">
-        <H1 className="text-white">Dashboard</H1>
-        <Link href="/transcripts" className="inline-flex items-center text-sm font-medium text-white hover:text-purple-300">
+        <H1 className="card-title">Dashboard</H1>
+        <Link href="/transcripts" className="inline-flex items-center text-sm font-medium card-title hover:text-purple-300">
           View all transcripts
           <ChevronRight className="ml-1 h-4 w-4" />
         </Link>
@@ -105,8 +105,8 @@ export default function Dashboard() {
           
           <Card className="mt-8 glass-card">
             <CardContent className="pt-6">
-              <H2 className="text-white">Record a Conversation</H2>
-              <Paragraph className="mt-2 mb-4 text-white/70">
+              <H2 className="card-title">Record a Conversation</H2>
+              <Paragraph className="mt-2 mb-4 card-title/70">
                 Record your conversations to get AI-powered insights on your communication style.
               </Paragraph>
               

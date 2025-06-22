@@ -50,7 +50,7 @@ export default function AllTranscripts() {
     >
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
         <div>
-          <p className="text-muted-foreground">
+          <p className="card-description">
             {recordings?.length || 0} recording{recordings?.length !== 1 ? 's' : ''}
           </p>
         </div>
@@ -58,7 +58,7 @@ export default function AllTranscripts() {
       
       <div className="grid gap-4 mb-6 md:grid-cols-[1fr_200px]">
         <div className="relative">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 card-description" />
           <Input
             placeholder="Search by title or content..."
             className="pl-8"
@@ -275,7 +275,7 @@ function TranscriptCard({ recording }: { recording: Recording }) {
         
         {recording.transcription && (
           <div className="mt-4">
-            <p className="text-sm text-muted-foreground line-clamp-2">
+            <p className="text-sm card-description line-clamp-2">
               {recording.transcription.substring(0, 150)}
               {recording.transcription.length > 150 ? '...' : ''}
             </p>
@@ -287,7 +287,7 @@ function TranscriptCard({ recording }: { recording: Recording }) {
         <Link href={`/transcript/${recording.id}`}>
           <Button 
             variant="link"
-            className="text-sm font-medium text-white hover:text-purple-300 flex items-center p-0"
+            className="text-sm font-medium card-title hover:text-purple-300 flex items-center p-0"
           >
             View transcript
             <ChevronRight className="h-4 w-4 ml-1" />
@@ -334,10 +334,10 @@ function EmptyState({ filter, query }: { filter?: string, query?: string }) {
   return (
     <div className="py-12 text-center">
       <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-muted mb-4">
-        <Filter className="h-6 w-6 text-muted-foreground" />
+        <Filter className="h-6 w-6 card-description" />
       </div>
       <h3 className="text-lg font-medium text-foreground">No recordings found</h3>
-      <p className="text-muted-foreground mt-1">
+      <p className="card-description mt-1">
         {query ? (
           <>No results match your search for "{query}"</>
         ) : filter ? (

@@ -5,8 +5,8 @@
  * Systematically identifies and reports all CSS conflicts in the codebase
  */
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
 // Define problematic patterns and their semantic replacements
 const CSS_MIGRATIONS = {

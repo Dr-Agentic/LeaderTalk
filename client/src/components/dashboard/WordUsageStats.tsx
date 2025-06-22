@@ -60,10 +60,10 @@ export default function WordUsageStats() {
       return (
         <div className="bg-gray-800 border border-gray-600 rounded-md shadow-md p-3 text-sm">
           <p className="font-semibold text-primary">{data.fullTitle}</p>
-          <p className="text-xs text-gray-300 mb-2">
+          <p className="text-xs card-description mb-2">
             {data.date}
           </p>
-          <p className="text-sm text-white">
+          <p className="text-sm card-title">
             Words used:{" "}
             <span className="font-medium">{data.words.toLocaleString()}</span>
           </p>
@@ -76,20 +76,20 @@ export default function WordUsageStats() {
   return (
     <Card className="mb-6">
       <CardHeader>
-        <CardTitle className="w-full text-white">Word Usage</CardTitle>
+        <CardTitle className="w-full card-title">Word Usage</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center">
               <PackageOpen className="h-4 w-4 mr-2 text-primary" />
-              <span className="font-medium text-white">Current Plan</span>
+              <span className="font-medium card-title">Current Plan</span>
             </div>
             <div className="text-right">
-              <span className="font-medium text-white">
+              <span className="font-medium card-title">
                 {currentBillingCycleUsage.toLocaleString()}
               </span>
-              <span className="text-gray-300">
+              <span className="card-description">
                 {" "}
                 / {wordLimit ? wordLimit.toLocaleString() : "N/A"} words
               </span>
@@ -103,7 +103,7 @@ export default function WordUsageStats() {
               // Change color based on usage percentage
               color={usagePercentage > 90 ? "destructive" : undefined}
             />
-            <p className="mt-2 text-sm text-gray-300">
+            <p className="mt-2 text-sm card-description">
               {usagePercentage}% of your monthly word allocation used
             </p>
           </div>
@@ -115,7 +115,7 @@ export default function WordUsageStats() {
             <div className="h-48 mt-6">
               <div className="flex items-center gap-2 mb-3">
                 <TrendingUp className="h-4 w-4 text-primary" />
-                <p className="text-sm font-medium text-white">
+                <p className="text-sm font-medium card-title">
                   Current Billing Cycle Recordings
                 </p>
               </div>
@@ -154,7 +154,7 @@ export default function WordUsageStats() {
             </div>
           ) : (
             !isRecordingsLoading && (
-              <div className="h-24 mt-6 flex items-center justify-center text-gray-400">
+              <div className="h-24 mt-6 flex items-center justify-center card-description">
                 <p className="text-sm">
                   No recordings in current billing cycle
                 </p>

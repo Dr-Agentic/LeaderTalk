@@ -55,7 +55,7 @@ export default function OnboardingWelcome({ onComplete, googleProfile }: Onboard
             </div>
           )}
           
-          <h2 className="text-xl font-semibold text-white">
+          <h2 className="text-xl font-semibold card-title">
             {googleProfile?.displayName ? `Hi, ${googleProfile.firstName}!` : 'Welcome!'}
           </h2>
           
@@ -76,7 +76,7 @@ export default function OnboardingWelcome({ onComplete, googleProfile }: Onboard
               </svg>
             </div>
             <div>
-              <h3 className="font-medium text-white">Create Your Profile</h3>
+              <h3 className="font-medium card-title">Create Your Profile</h3>
               <p className="text-gray-300 text-sm">Personalize your experience with your communication goals</p>
             </div>
           </div>
@@ -91,7 +91,7 @@ export default function OnboardingWelcome({ onComplete, googleProfile }: Onboard
               </svg>
             </div>
             <div>
-              <h3 className="font-medium text-white">Select Leadership Inspirations</h3>
+              <h3 className="font-medium card-title">Select Leadership Inspirations</h3>
               <p className="text-gray-300 text-sm">Choose leaders whose communication style you admire</p>
             </div>
           </div>
@@ -104,7 +104,7 @@ export default function OnboardingWelcome({ onComplete, googleProfile }: Onboard
               </svg>
             </div>
             <div>
-              <h3 className="font-medium text-white">Improve Your Communication</h3>
+              <h3 className="font-medium card-title">Improve Your Communication</h3>
               <p className="text-gray-300 text-sm">Record conversations and get personalized feedback</p>
             </div>
           </div>

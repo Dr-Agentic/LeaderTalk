@@ -11,7 +11,7 @@ export default function OnboardingFeatures({ onComplete }: OnboardingFeaturesPro
     <div className="max-w-4xl mx-auto my-8 px-4">
       <Card className="bg-gray-800 p-8 rounded-lg shadow-md border border-gray-700">
         <div className="text-center mb-8">
-          <h2 className="text-2xl font-bold text-white">You're all set!</h2>
+          <h2 className="text-2xl font-bold card-title">You're all set!</h2>
           <p className="text-gray-300 mt-2">Here's what you can do with LeaderTalk</p>
         </div>
 
@@ -25,7 +25,7 @@ export default function OnboardingFeatures({ onComplete }: OnboardingFeaturesPro
                   <path d="M19 10v1a7 7 0 0 1-14 0v-1M12 18.4v3.3M8 22h8"/>
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-white">Record Conversations</h3>
+              <h3 className="text-lg font-semibold card-title">Record Conversations</h3>
             </div>
             <div className="rounded-lg overflow-hidden bg-gray-700/50 shadow-sm mb-4">
               <div className="w-full h-24 flex items-center justify-center text-blue-400">
@@ -59,7 +59,7 @@ export default function OnboardingFeatures({ onComplete }: OnboardingFeaturesPro
                   <path d="M17 14v6m-3-3h6M10 3v6m-3-3h6M3 10v6m-3-3h6"/>
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-white">Leadership Alternatives</h3>
+              <h3 className="text-lg font-semibold card-title">Leadership Alternatives</h3>
             </div>
             <div className="rounded-lg overflow-hidden bg-gray-700/50 shadow-sm mb-4">
               <div className="w-full h-24 flex items-center justify-center text-purple-400">
@@ -97,7 +97,7 @@ export default function OnboardingFeatures({ onComplete }: OnboardingFeaturesPro
                   <path d="M12 3c7.2 0 9 1.8 9 9s-1.8 9-9 9-9-1.8-9-9 1.8-9 9-9"/>
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-white">Interactive Training</h3>
+              <h3 className="text-lg font-semibold card-title">Interactive Training</h3>
             </div>
             <div className="rounded-lg overflow-hidden bg-gray-700/50 shadow-sm mb-4">
               <div className="w-full h-24 flex items-center justify-center text-amber-400">
@@ -134,7 +134,7 @@ export default function OnboardingFeatures({ onComplete }: OnboardingFeaturesPro
                   <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-white">Progress Tracking</h3>
+              <h3 className="text-lg font-semibold card-title">Progress Tracking</h3>
             </div>
             <div className="rounded-lg overflow-hidden bg-gray-700/50 shadow-sm mb-4">
               <div className="w-full h-24 flex items-center justify-center text-green-400">

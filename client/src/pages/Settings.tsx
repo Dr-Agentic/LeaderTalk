@@ -74,35 +74,35 @@ export default function Settings() {
       <div className="space-y-lg">
         <Card className="glass-card">
           <CardHeader>
-            <CardTitle className="text-white">Account Information</CardTitle>
-            <CardDescription className="text-gray-300">Manage your account details and preferences</CardDescription>
+            <CardTitle className="card-title">Account Information</CardTitle>
+            <CardDescription className="card-description">Manage your account details and preferences</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-md">
               <div>
-                <h3 className="text-sm font-medium text-gray-400">NAME</h3>
-                <p className="mt-1 text-sm text-white">{userData?.username || 'Not set'}</p>
+                <h3 className="text-sm font-medium card-description">NAME</h3>
+                <p className="mt-1 text-sm card-title">{userData?.username || 'Not set'}</p>
               </div>
               
               <div>
-                <h3 className="text-sm font-medium text-gray-400">EMAIL</h3>
-                <p className="mt-1 text-sm text-white break-all">{userData?.email || 'Not set'}</p>
+                <h3 className="text-sm font-medium card-description">EMAIL</h3>
+                <p className="mt-1 text-sm card-title break-all">{userData?.email || 'Not set'}</p>
               </div>
               
               <div className="responsive-grid-2">
                 <div>
-                  <h3 className="text-sm font-medium text-gray-400">DATE OF BIRTH</h3>
-                  <p className="mt-1 text-sm text-white">{userData?.dateOfBirth || 'Not set'}</p>
+                  <h3 className="text-sm font-medium card-description">DATE OF BIRTH</h3>
+                  <p className="mt-1 text-sm card-title">{userData?.dateOfBirth || 'Not set'}</p>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-gray-400">PROFESSION</h3>
-                  <p className="mt-1 text-sm text-white">{userData?.profession || 'Not set'}</p>
+                  <h3 className="text-sm font-medium card-description">PROFESSION</h3>
+                  <p className="mt-1 text-sm card-title">{userData?.profession || 'Not set'}</p>
                 </div>
               </div>
               
               <div>
-                <h3 className="text-sm font-medium text-gray-400">GOALS</h3>
-                <p className="mt-1 text-sm text-white">{userData?.goals || 'Not set'}</p>
+                <h3 className="text-sm font-medium card-description">GOALS</h3>
+                <p className="mt-1 text-sm card-title">{userData?.goals || 'Not set'}</p>
               </div>
             </div>
           </CardContent>
@@ -120,11 +120,11 @@ export default function Settings() {
         {/* Subscription Management */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-white">Subscription Management</CardTitle>
-            <CardDescription className="text-gray-300">View and manage your subscription plan</CardDescription>
+            <CardTitle className="card-title">Subscription Management</CardTitle>
+            <CardDescription className="card-description">View and manage your subscription plan</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
-            <p className="text-sm text-gray-300">
+            <p className="text-sm card-description">
               Manage your subscription plan, view billing information, and update payment methods.
             </p>
             <div className="flex flex-col sm:flex-row gap-3">
@@ -142,14 +142,14 @@ export default function Settings() {
         {/* Account deletion */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-white">Delete Account</CardTitle>
-            <CardDescription className="text-gray-300">Permanently remove your account and data</CardDescription>
+            <CardTitle className="card-title">Delete Account</CardTitle>
+            <CardDescription className="card-description">Permanently remove your account and data</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
               <div>
                 <h3 className="text-sm font-medium text-red-400 mb-2">DELETE YOUR ACCOUNT</h3>
-                <p className="text-sm text-gray-300 mb-4">
+                <p className="text-sm card-description mb-4">
                   This will permanently delete your entire account, including all your personal data,
                   recordings, progress, and settings. This action cannot be undone.
                 </p>

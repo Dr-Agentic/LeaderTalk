@@ -32,19 +32,19 @@ function CustomTooltip({ active, payload, label }: any) {
     return (
       <div className="bg-gray-800 border border-gray-600 rounded-md shadow-md p-3 text-sm">
         <p className="font-semibold text-primary">{data.cycleLabel}</p>
-        <p className="text-xs text-gray-300 mb-2">
+        <p className="text-xs card-description mb-2">
           {new Date(data.cycleStart).toLocaleDateString()} -{" "}
           {new Date(data.cycleEnd).toLocaleDateString()}
         </p>
-        <p className="text-sm text-white">
+        <p className="text-sm card-title">
           Words used:{" "}
           <span className="font-medium">{data.wordsUsed.toLocaleString()}</span>
         </p>
-        <p className="text-sm text-white">
+        <p className="text-sm card-title">
           Word limit:{" "}
           <span className="font-medium">{data.wordLimit.toLocaleString()}</span>
         </p>
-        <p className="text-sm text-white">
+        <p className="text-sm card-title">
           Usage: <span className="font-medium">{data.usagePercentage}%</span>
         </p>
         {data.isCurrent && (
@@ -82,7 +82,7 @@ export default function BillingCycleHistory() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-64 flex flex-col items-center justify-center text-muted-foreground">
+          <div className="h-64 flex flex-col items-center justify-center card-description">
             <CalendarDays className="h-12 w-12 mb-4 opacity-50" />
             <p>No subscription data available</p>
             <p className="text-sm mt-2">
@@ -122,16 +122,16 @@ export default function BillingCycleHistory() {
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-2xl font-bold flex items-center gap-2 text-white">
+            <CardTitle className="text-2xl font-bold flex items-center gap-2 card-title">
               <TrendingUp className="h-6 w-6" />
               Billing Cycle History
             </CardTitle>
-            <p className="text-sm text-gray-300 mt-1">
+            <p className="text-sm card-description mt-1">
               Word usage across your last 6 monthly cycles
             </p>
           </div>
           <div className="text-right">
-            <div className="flex items-center gap-2 text-sm text-gray-300">
+            <div className="flex items-center gap-2 text-sm card-description">
               <Target className="h-4 w-4" />
               <span>Limit: {avgLimit.toLocaleString()} words/cycle</span>
             </div>
