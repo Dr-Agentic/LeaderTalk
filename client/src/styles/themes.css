@@ -30,9 +30,9 @@ button[class*="bg-primary"]:active:not(:disabled),
   transition: all 0.1s ease !important;
 }
 
-/* Glass Morphism Cards - Template Authentic */
+/* Glass Morphism Cards - Clean System Using CSS Variables */
 .glass-card {
-  background: var(--glass-bg) !important;
+  background: var(--glass-bg);
   backdrop-filter: blur(20px);
   border: 1px solid var(--glass-border);
   border-radius: 20px;
@@ -62,97 +62,27 @@ button[class*="bg-primary"]:active:not(:disabled),
   box-shadow: var(--shadow-card-hover);
 }
 
-/* Glass Card Subtle Variant */
-.glass-card-subtle {
-  background: rgba(255, 255, 255, 0.03) !important;
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: var(--radius);
-}
-
-/* Glass Card Opaque Variant - More visible against gradient background */
-.glass-card-opaque {
-  background: rgba(255, 20, 147, 0.3) !important;
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 20, 147, 0.4);
-  border-radius: 20px;
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s ease;
-}
-
-/* Component Background Overrides */
-.bg-card {
-  background: rgba(255, 255, 255, 0.05) !important;
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-/* Glass Card - High Specificity */
-.glass-card,
-.card-layout.glass-card,
-[class*="glass-card"] {
-  background: rgba(255, 255, 255, 0.05) !important;
-  backdrop-filter: blur(20px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  color: var(--color-text-primary) !important;
-}
-
-/* Force consistent glass card backgrounds for all content */
-.glass-card *,
-.glass-card > *,
-.glass-card [class*="CardContent"],
-.glass-card [class*="CardHeader"],
-.glass-card [class*="content-spacing"],
-.glass-card .content-spacing,
+/* Clean background overrides for glass cards */
 .glass-card [data-component-name="CardContent"],
 .glass-card [data-component-name="CardHeader"] {
-  background: transparent !important;
-  background-color: transparent !important;
+  background: transparent;
+  background-color: transparent;
 }
 
-/* Ensure proper text inheritance in glass cards */
-.glass-card,
-.glass-card *:not([class*="bg-"]):not([class*="text-green"]):not([class*="text-red"]):not([class*="text-yellow"]) {
-  color: var(--color-text-primary) !important;
-}
-
-/* TranscriptView specific fixes */
-.glass-card .max-w-none,
-.glass-card .whitespace-pre-line,
-.glass-card [dangerouslySetInnerHTML] {
-  background: transparent !important;
-  color: var(--color-text-primary) !important;
-}
-
-/* Override any remaining background conflicts in transcript content */
-.glass-card .card-description,
-.glass-card .card-description *,
-.glass-card .card-description div {
-  background: transparent !important;
-  background-color: transparent !important;
-}
-
+/* Background variants using CSS variables */
 .bg-muted {
-  background: rgba(255, 255, 255, 0.05) !important;
+  background: var(--glass-bg);
   backdrop-filter: blur(20px);
 }
 
 .bg-accent {
-  background: rgba(255, 255, 255, 0.1) !important;
+  background: var(--glass-bg-hover);
   backdrop-filter: blur(20px);
 }
 
 .bg-secondary {
-  background: rgba(255, 255, 255, 0.08) !important;
+  background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(20px);
-}
-
-/* Text Colors - High Specificity Overrides */
-.text-foreground,
-.card-title,
-[class*="text-foreground"] {
-  color: var(--color-text-primary) !important;
 }
 
 .text-muted-foreground,
