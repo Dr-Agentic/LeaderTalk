@@ -511,18 +511,18 @@
   }
 
   /* Catch any remaining stubborn elements */
-  div[class*="bg-"], 
-  button[class*="bg-"], 
-  span[class*="bg-"] {
+  div[class*="bg-"]:not([class*="bg-primary"]), 
+  button[class*="bg-"]:not([class*="bg-primary"]), 
+  span[class*="bg-"]:not([class*="bg-primary"]) {
     background-color: rgba(255, 255, 255, 0.05) !important;
   }
 
-  div[class*="bg-"][class*="active"], 
-  button[class*="bg-"][class*="active"], 
-  span[class*="bg-"][class*="active"],
-  div[data-state="active"], 
-  button[data-state="active"], 
-  span[data-state="active"] {
+  div[class*="bg-"][class*="active"]:not([class*="bg-primary"]), 
+  button[class*="bg-"][class*="active"]:not([class*="bg-primary"]), 
+  span[class*="bg-"][class*="active"]:not([class*="bg-primary"]),
+  div[data-state="active"]:not([class*="bg-primary"]), 
+  button[data-state="active"]:not([class*="bg-primary"]), 
+  span[data-state="active"]:not([class*="bg-primary"]) {
     background-color: rgba(255, 255, 255, 0.15) !important;
     color: white !important;
   }
