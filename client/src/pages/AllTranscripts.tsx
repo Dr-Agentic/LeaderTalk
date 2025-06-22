@@ -200,35 +200,40 @@ function getFilteredAndSortedRecordings(
 
 // Card component for each transcript
 function TranscriptCard({ recording }: { recording: Recording }) {
-  // Format recording date
-  const formattedDate = formatDistanceToNow(new Date(recording.recordedAt), { addSuffix: true });
-  
-  // Format duration
-  const minutes = Math.floor(recording.duration / 60);
-  const seconds = recording.duration % 60;
-  const formattedDuration = `${minutes}m${seconds > 0 ? ` ${seconds}s` : ''}`;
-  
-  // Determine rating badge color and text
-  const rating = recording.analysisResult?.overview?.rating || "N/A";
-  const score = recording.analysisResult?.overview?.score || 0;
-  
-  // Calculate star rating (1-5 scale)
-  // Score from server is 0-100, convert to 1-5 stars
-  const normalizedScore = score / 20; // Convert 0-100 to 0-5
-  const starRating = Math.max(1, Math.min(5, Math.round(normalizedScore)));
-  
-  const ratingColor = 
-    rating === "Good" || score > 65 ? "bg-green-500/20 text-green-300 border-green-500/30" :
-    rating === "Average" || (score >= 50 && score <= 65) ? "bg-yellow-500/20 text-yellow-300 border-yellow-500/30" :
-    "bg-red-500/20 text-red-300 border-red-500/30";
-  
-  // Count positive and negative instances
-  const positiveCount = recording.analysisResult?.positiveInstances?.length || 0;
-  const negativeCount = recording.analysisResult?.negativeInstances?.length || 0;
-  
-  return (
-    <Card className="glass-card-opaque">
-      <CardHeader>
+  try {
+    console.log("TranscriptCard start for recording:", recording.id);
+    
+    // Format recording date
+    const formattedDate = formatDistanceToNow(new Date(recording.recordedAt), { addSuffix: true });
+    
+    // Format duration
+    const minutes = Math.floor(recording.duration / 60);
+    const seconds = recording.duration % 60;
+    const formattedDuration = `${minutes}m${seconds > 0 ? ` ${seconds}s` : ''}`;
+    
+    // Determine rating badge color and text
+    const rating = recording.analysisResult?.overview?.rating || "N/A";
+    const score = recording.analysisResult?.overview?.score || 0;
+    
+    // Calculate star rating (1-5 scale)
+    // Score from server is 0-100, convert to 1-5 stars
+    const normalizedScore = score / 20; // Convert 0-100 to 0-5
+    const starRating = Math.max(1, Math.min(5, Math.round(normalizedScore)));
+    
+    const ratingColor = 
+      rating === "Good" || score > 65 ? "bg-green-500/20 text-green-300 border-green-500/30" :
+      rating === "Average" || (score >= 50 && score <= 65) ? "bg-yellow-500/20 text-yellow-300 border-yellow-500/30" :
+      "bg-red-500/20 text-red-300 border-red-500/30";
+    
+    // Count positive and negative instances
+    const positiveCount = recording.analysisResult?.positiveInstances?.length || 0;
+    const negativeCount = recording.analysisResult?.negativeInstances?.length || 0;
+    
+    console.log("About to render JSX for recording:", recording.id);
+    
+    return (
+      <Card className="glass-card-opaque">
+        <CardHeader>
         <div className="flex flex-col md:flex-row md:justify-between md:items-start">
           <div>
             <CardTitle>{recording.title}</CardTitle>
@@ -294,8 +299,12 @@ function TranscriptCard({ recording }: { recording: Recording }) {
           </Button>
         </Link>
       </CardFooter>
-    </Card>
-  );
+      </Card>
+    );
+  } catch (error) {
+    console.error("TranscriptCard error:", error);
+    return <div>Error rendering card</div>;
+  }
 }
 
 // Skeleton loader
