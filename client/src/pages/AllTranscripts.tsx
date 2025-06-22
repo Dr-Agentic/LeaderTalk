@@ -94,7 +94,7 @@ export default function AllTranscripts() {
         </TabsList>
         
         <TabsContent value="all" className="mt-6">
-          <div className="flex-column glass-card">
+          <div className="flex-column">
             {isLoading ? (
               <TranscriptsSkeleton />
             ) : filteredAndSortedRecordings.length > 0 ? (
@@ -111,7 +111,7 @@ export default function AllTranscripts() {
         </TabsContent>
         
         <TabsContent value="positive" className="mt-6">
-          <div className="flex-column glass-card">
+          <div className="flex-column">
             {isLoading ? (
               <TranscriptsSkeleton />
             ) : filteredAndSortedRecordings.filter(r => 
@@ -136,7 +136,7 @@ export default function AllTranscripts() {
         </TabsContent>
         
         <TabsContent value="needs-improvement" className="mt-6">
-          <div className="flex-column glass-card">
+          <div className="flex-column">
             {isLoading ? (
               <TranscriptsSkeleton />
             ) : filteredAndSortedRecordings.filter(r => 
