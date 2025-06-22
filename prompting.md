@@ -32,3 +32,5 @@ Use strong typing throughout. Avoid any unless absolutely necessary, and prefer 
 
 Do not implement or change code without being 95% sure of the change. If there is doubt, ask questions.
 Do not start changing code with a clear instruction of what to do. 
+
+Always be extra brief in your chats. Avoid repetition. Mention only the main facts.
