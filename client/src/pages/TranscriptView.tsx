@@ -317,7 +317,7 @@ export default function TranscriptView() {
     >
       {/* Communication Analysis Chart Section */}
       <Card className="mb-8 glass-card">
-        <CardHeader className="px-4 py-5 sm:px-6 flex flex-col sm:flex-row sm:justify-between sm:items-center">
+        <CardHeader className="header-layout">
           <div>
             <CardTitle className="text-lg leading-6 font-medium text-foreground">{recording.title}</CardTitle>
             <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
