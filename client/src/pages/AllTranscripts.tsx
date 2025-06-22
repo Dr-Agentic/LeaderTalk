@@ -93,7 +93,7 @@ export default function AllTranscripts() {
           <TabsTrigger value="needs-improvement">Needs Improvement</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="all" className="mt-6">
+        <TabsContent value="all" className="glass-card mt-6">
           <div className="flex-column">
             {isLoading ? (
               <TranscriptsSkeleton />
@@ -110,7 +110,7 @@ export default function AllTranscripts() {
           </div>
         </TabsContent>
         
-        <TabsContent value="positive" className="mt-6">
+        <TabsContent value="positive" className="glass-card mt-6">
           <div className="flex-column">
             {isLoading ? (
               <TranscriptsSkeleton />
@@ -135,7 +135,7 @@ export default function AllTranscripts() {
           </div>
         </TabsContent>
         
-        <TabsContent value="needs-improvement" className="mt-6">
+        <TabsContent value="needs-improvement" className="glass-card mt-6">
           <div className="flex-column">
             {isLoading ? (
               <TranscriptsSkeleton />
