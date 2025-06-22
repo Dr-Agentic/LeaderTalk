@@ -258,7 +258,7 @@ button[class*="bg-primary"]:active:not(:disabled),
   animation-delay: 4s;
 }
 
-/* Animation Keyframes */
+/* Template-Authentic Animations */
 @keyframes rotate {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
@@ -282,6 +282,19 @@ button[class*="bg-primary"]:active:not(:disabled),
   }
 }
 
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+@keyframes ripple {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
 /* Animation Utilities */
 .animate-float {
   animation: float 8s ease-in-out infinite;
@@ -293,6 +306,68 @@ button[class*="bg-primary"]:active:not(:disabled),
 
 .pulse-effect {
   animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Essential Legacy Styles for Component Compatibility */
+
+/* Hero Section */
+.hero-section {
+  background: linear-gradient(135deg, rgba(138, 43, 226, 0.1), rgba(255, 107, 107, 0.1));
+  border-radius: 24px;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(138, 43, 226, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-section::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: conic-gradient(transparent, rgba(138, 43, 226, 0.1), transparent);
+  animation: rotate 6s linear infinite;
+}
+
+/* Gradient Utilities */
+.bg-gradient-radial {
+  background: radial-gradient(circle, var(--gradient-primary));
+}
+
+.bg-template-gradient {
+  background: var(--gradient-primary);
+}
+
+.bg-template-gradient-hover {
+  background: linear-gradient(135deg, #7B1FA2, #E53E3E);
+}
+
+/* Override Tailwind Classes for Compatibility */
+.bg-background,
+.bg-card,
+.bg-muted,
+.bg-white,
+.bg-gray-50,
+.bg-gray-100 {
+  background: var(--color-surface) !important;
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--color-border) !important;
+}
+
+.text-foreground {
+  color: var(--color-text-primary) !important;
+}
+
+.text-muted-foreground {
+  color: var(--color-text-secondary) !important;
+}
+
+.border-border,
+.border-gray-200,
+.border-gray-300 {
+  border-color: var(--color-border) !important;
 }
 
 /* High contrast mode support */
