@@ -26,7 +26,8 @@ html body [class*="bg-primary"]:active:not(:disabled) {
   transition: all 0.1s ease;
 }
 
-/* Delete Account Button - Danger Styling */
+/* Delete Account Button - Danger Styling - Higher specificity to override other button styles */
+html body button[data-variant="danger"].inline-flex,
 html body button[data-variant="danger"],
 html body [data-variant="danger"] {
   background: var(--gradient-danger);
@@ -37,6 +38,7 @@ html body [data-variant="danger"] {
   transition: all 0.3s ease;
 }
 
+html body button[data-variant="danger"].inline-flex:hover:not(:disabled),
 html body button[data-variant="danger"]:hover:not(:disabled),
 html body [data-variant="danger"]:hover:not(:disabled) {
   background: var(--gradient-danger-hover);
@@ -44,6 +46,7 @@ html body [data-variant="danger"]:hover:not(:disabled) {
   box-shadow: var(--shadow-danger-strong);
 }
 
+html body button[data-variant="danger"].inline-flex:active:not(:disabled),
 html body button[data-variant="danger"]:active:not(:disabled),
 html body [data-variant="danger"]:active:not(:disabled) {
   transform: translateY(0px);
