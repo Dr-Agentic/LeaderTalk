@@ -123,6 +123,15 @@
   color: var(--color-text-muted);
 }
 
+/* Shadcn compatibility classes */
+.text-foreground {
+  color: var(--color-text-primary);
+}
+
+.text-muted-foreground {
+  color: var(--color-text-secondary);
+}
+
 /* Legacy support for existing classes */
 html body .text-muted-foreground,
 html body .card-description {
