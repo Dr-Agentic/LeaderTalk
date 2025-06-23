@@ -18,8 +18,7 @@ import { useAuth } from "../hooks/useAuth";
 import { useToast } from "../hooks/use-toast";
 import { getQueryFn, checkSession } from "../lib/queryClient";
 import AppLayout from "@/components/AppLayout";
-import { cssDebugger } from "@/utils/cssDebugger";
-import CSSValidator from "@/components/CSSValidator";
+
 
 // Type for query data from API
 interface RecordingWithAnalysis extends Omit<Recording, "analysisResult"> {
@@ -425,7 +424,7 @@ export default function TranscriptView() {
         </CardContent>
       </Card>
       
-      <CSSValidator pageSelector="main" />
+
     </AppLayout>
   );
 }
