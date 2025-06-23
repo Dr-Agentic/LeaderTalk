@@ -27,7 +27,8 @@ html body [class*="bg-primary"]:active:not(:disabled) {
 }
 
 /* Delete Account Button - Danger Styling */
-[data-variant="danger"] {
+html body button[data-variant="danger"],
+html body [data-variant="danger"] {
   background: var(--gradient-danger);
   background-color: transparent;
   color: var(--color-text-primary);
@@ -36,13 +37,15 @@ html body [class*="bg-primary"]:active:not(:disabled) {
   transition: all 0.3s ease;
 }
 
-[data-variant="danger"]:hover:not(:disabled) {
+html body button[data-variant="danger"]:hover:not(:disabled),
+html body [data-variant="danger"]:hover:not(:disabled) {
   background: var(--gradient-danger-hover);
   transform: translateY(-1px);
   box-shadow: var(--shadow-danger-strong);
 }
 
-[data-variant="danger"]:active:not(:disabled) {
+html body button[data-variant="danger"]:active:not(:disabled),
+html body [data-variant="danger"]:active:not(:disabled) {
   transform: translateY(0px);
   transition: all 0.1s ease;
 }
