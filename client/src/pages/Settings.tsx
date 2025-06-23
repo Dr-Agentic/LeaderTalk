@@ -190,7 +190,6 @@ export default function Settings() {
                         onClick={() => deleteUserMutation.mutate()}
                         disabled={deleteUserMutation.isPending}
                         className="gap-2"
-                        data-variant="danger"
                       >
                         {deleteUserMutation.isPending ? (
                           <>
