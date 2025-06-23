@@ -189,7 +189,7 @@ export default function Settings() {
                       <AlertDialogAction
                         onClick={() => deleteUserMutation.mutate()}
                         disabled={deleteUserMutation.isPending}
-                        className="gap-2 bg-gradient-to-br from-red-500 to-red-600 text-white shadow-[0_8px_25px_rgba(239,68,68,0.3)] hover:from-red-600 hover:to-red-700 hover:shadow-[0_12px_35px_rgba(239,68,68,0.4)]"
+                        className="delete-account-button gap-2"
                       >
                         {deleteUserMutation.isPending ? (
                           <>

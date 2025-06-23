@@ -12,7 +12,7 @@ const buttonVariants = cva(
         default: "bg-primary text-primary-foreground",
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-        danger: "bg-gradient-to-br from-red-500 to-red-600 text-white shadow-[0_8px_25px_rgba(239,68,68,0.3)] hover:from-red-600 hover:to-red-700 hover:shadow-[0_12px_35px_rgba(239,68,68,0.4)] hover:-translate-y-0.5 active:translate-y-0 active:transition-all active:duration-100",
+        danger: "delete-account-button",
         outline:
           "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
         secondary:
