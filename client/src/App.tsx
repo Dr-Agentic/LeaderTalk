@@ -36,15 +36,6 @@ function Router() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // Development mode: bypass authentication
-        if (import.meta.env.DEV) {
-          console.log("Development mode: bypassing authentication");
-          setIsAuthenticated(true);
-          setOnboardingComplete(true);
-          setLoading(false);
-          return;
-        }
-
         // Initialize Supabase with server-provided configuration
         await initializeSupabase();
 

@@ -48,6 +48,30 @@ export default function Login() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Development Login Button */}
+          {import.meta.env.DEV && (
+            <Button 
+              onClick={async () => {
+                try {
+                  setLoading(true);
+                  const response = await fetch('/api/auth/force-login');
+                  if (response.ok) {
+                    window.location.href = "/dashboard";
+                  } else {
+                    console.error('Dev login failed');
+                  }
+                } catch (error) {
+                  console.error('Dev login error:', error);
+                } finally {
+                  setLoading(false);
+                }
+              }}
+              disabled={loading}
+              className="w-full bg-yellow-600 hover:bg-yellow-700 text-white"
+            >
+              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "🚀"} Dev Login (Skip Auth)
+            </Button>
+          )}
           <button
             onClick={handleGoogleSignIn}
             disabled={loading}
