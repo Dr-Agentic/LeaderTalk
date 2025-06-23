@@ -307,19 +307,14 @@
     color: var(--color-text-secondary);
   }
 
-  /* Button variant overrides for outline buttons */
-  html body .inline-flex.items-center.justify-center[data-variant="outline"],
-  html body button[data-variant="outline"],
-  html body .inline-flex.items-center.gap-1,
-  html body button.inline-flex.items-center,
-  html body .border.border-input.bg-background,
-  html body .btn-outline {
+  /* Clean outline button styling without aggressive selectors */
+  .btn-outline {
     background: var(--glass-bg);
     color: var(--color-text-primary);
     border-color: var(--glass-border-hover);
   }
 
-  html body .btn-outline:hover {
+  .btn-outline:hover {
     background: var(--glass-hover);
     color: var(--color-text-primary);
   }
