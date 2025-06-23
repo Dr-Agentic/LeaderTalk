@@ -189,7 +189,8 @@ export default function Settings() {
                       <AlertDialogAction
                         onClick={() => deleteUserMutation.mutate()}
                         disabled={deleteUserMutation.isPending}
-                        className="delete-account-button gap-2"
+                        className="gap-2"
+                        data-variant="danger"
                       >
                         {deleteUserMutation.isPending ? (
                           <>

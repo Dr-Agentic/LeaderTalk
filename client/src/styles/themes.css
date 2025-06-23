@@ -27,24 +27,22 @@ html body [class*="bg-primary"]:active:not(:disabled) {
 }
 
 /* Delete Account Button - Danger Styling */
-html body .delete-account-button,
-html body button.delete-account-button {
+[data-variant="danger"] {
   background: var(--gradient-danger);
+  background-color: transparent;
   color: var(--color-text-primary);
   border: none;
   box-shadow: var(--shadow-danger-soft);
   transition: all 0.3s ease;
 }
 
-html body .delete-account-button:hover:not(:disabled),
-html body button.delete-account-button:hover:not(:disabled) {
+[data-variant="danger"]:hover:not(:disabled) {
   background: var(--gradient-danger-hover);
   transform: translateY(-1px);
   box-shadow: var(--shadow-danger-strong);
 }
 
-html body .delete-account-button:active:not(:disabled),
-html body button.delete-account-button:active:not(:disabled) {
+[data-variant="danger"]:active:not(:disabled) {
   transform: translateY(0px);
   transition: all 0.1s ease;
 }
