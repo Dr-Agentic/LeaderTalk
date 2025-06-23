@@ -9,6 +9,8 @@
   --color-purple: #8A2BE2;
   --color-coral: #FF6B6B;
   --color-turquoise: #4ECDC4;
+  --color-danger: #EF4444;
+  --color-danger-dark: #DC2626;
   
   /* Text Colors - Template Hierarchy */
   --color-text-primary: #ffffff;
@@ -31,11 +33,15 @@
   --gradient-coral-teal: linear-gradient(135deg, #FF6B6B, #4ECDC4);
   --gradient-teal-emerald: linear-gradient(135deg, #4ECDC4, #44A08D);
   --gradient-purple-indigo: linear-gradient(135deg, #667eea, #764ba2);
+  --gradient-danger: linear-gradient(135deg, var(--color-danger), var(--color-danger-dark));
+  --gradient-danger-hover: linear-gradient(135deg, var(--color-danger-dark), #B91C1C);
   
   /* Shadows - Enhanced Purple Glow */
   --shadow-purple-soft: 0 8px 25px rgba(138, 43, 226, 0.3);
   --shadow-purple-strong: 0 12px 35px rgba(138, 43, 226, 0.4);
   --shadow-card-hover: 0 15px 40px rgba(138, 43, 226, 0.2);
+  --shadow-danger-soft: 0 8px 25px rgba(239, 68, 68, 0.3);
+  --shadow-danger-strong: 0 12px 35px rgba(239, 68, 68, 0.4);
   
   /* HSL Color Variables for Shadcn Compatibility */
   --background: 248 71% 10%;        /* #0f0f23 - deep space background */
