@@ -66,7 +66,7 @@ export default function SubscriptionTimeline({ data: propData, className = "" }:
           <CardTitle>Subscription Timeline</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-sm text-muted-foreground">
+          <div className="text-sm text-secondary">
             Unable to load subscription details. Please try again later.
           </div>
         </CardContent>
@@ -155,7 +155,7 @@ export default function SubscriptionTimeline({ data: propData, className = "" }:
             </div>
             <div>
               <h4 className="text-sm font-medium">Subscription Created</h4>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-secondary">
                 You first subscribed on <span className="font-medium">{formatDate(subscriptionStartDate)}</span>
               </p>
             </div>
@@ -168,7 +168,7 @@ export default function SubscriptionTimeline({ data: propData, className = "" }:
             </div>
             <div>
               <h4 className="text-sm font-medium">Current Billing Cycle</h4>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-secondary">
                 From <span className="font-medium">{formatDate(currentPeriodStart)}</span> to <span className="font-medium">{formatDate(currentPeriodEnd)}</span>
               </p>
               {daysRemaining > 0 && (
@@ -186,13 +186,13 @@ export default function SubscriptionTimeline({ data: propData, className = "" }:
             </div>
             <div>
               <h4 className="text-sm font-medium">Plan Information</h4>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-secondary">
                 <span className="font-medium capitalize">{planCode || 'Starter'}</span> Plan
                 {amount > 0 && (
                   <> - ${amount}/{interval}</>
                 )}
               </p>
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-sm text-secondary mt-1">
                 <span className="font-medium">{wordLimit ? wordLimit.toLocaleString() : "N/A"}</span> words per month
               </p>
               {cancelAtPeriodEnd && (

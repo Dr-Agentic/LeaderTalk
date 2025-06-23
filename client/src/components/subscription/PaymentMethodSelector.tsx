@@ -123,8 +123,8 @@ function AddPaymentMethodForm({
             <CreditCard className="h-6 w-6 text-primary" />
           </div>
         </div>
-        <CardTitle className="text-foreground">Add Payment Method</CardTitle>
-        <CardDescription className="text-muted-foreground">
+        <CardTitle className="text-primary">Add Payment Method</CardTitle>
+        <CardDescription className="text-secondary">
           Secure bank-level encryption
         </CardDescription>
       </CardHeader>
@@ -307,8 +307,8 @@ export default function PaymentMethodSelector({
               <Loader2 className="h-6 w-6 animate-spin text-primary" />
             </div>
             <div className="text-center">
-              <p className="text-foreground font-medium">Loading payment methods</p>
-              <p className="text-muted-foreground text-sm mt-1">Please wait a moment...</p>
+              <p className="text-primary font-medium">Loading payment methods</p>
+              <p className="text-secondary text-sm mt-1">Please wait a moment...</p>
             </div>
           </div>
         </CardContent>
@@ -348,8 +348,8 @@ export default function PaymentMethodSelector({
             <CreditCard className="h-6 w-6 text-primary" />
           </div>
         </div>
-        <CardTitle className="text-foreground">Select Payment Method</CardTitle>
-        <CardDescription className="text-muted-foreground">
+        <CardTitle className="text-primary">Select Payment Method</CardTitle>
+        <CardDescription className="text-secondary">
           Choose your preferred payment method
         </CardDescription>
       </CardHeader>
@@ -358,12 +358,12 @@ export default function PaymentMethodSelector({
           <div className="text-center py-8 space-y-6">
             <div className="flex justify-center">
               <div className="p-6 rounded-full bg-muted">
-                <CreditCard className="h-10 w-10 text-muted-foreground" />
+                <CreditCard className="h-10 w-10 text-secondary" />
               </div>
             </div>
             <div>
-              <h3 className="text-foreground font-semibold mb-2">No Payment Methods</h3>
-              <p className="text-muted-foreground text-sm mb-6">Add a payment method to continue</p>
+              <h3 className="text-primary font-semibold mb-2">No Payment Methods</h3>
+              <p className="text-secondary text-sm mb-6">Add a payment method to continue</p>
               <Button
                 onClick={() => setupPaymentMethod.mutate()}
                 disabled={setupPaymentMethod.isPending}
@@ -402,16 +402,16 @@ export default function PaymentMethodSelector({
                     <div className={`p-3 rounded-lg transition-all ${
                       (selectedPaymentMethodId || defaultPaymentMethod?.id) === pm.id
                         ? "bg-primary/20 text-primary"
-                        : "bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary"
+                        : "bg-muted text-secondary group-hover:bg-primary/10 group-hover:text-primary"
                     }`}>
                       {getPaymentMethodIcon(pm)}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-foreground font-semibold text-base truncate">
+                      <p className="text-primary font-semibold text-base truncate">
                         {formatPaymentMethod(pm)}
                       </p>
                       <div className="flex items-center space-x-2 mt-1">
-                        <p className="text-muted-foreground text-sm">
+                        <p className="text-secondary text-sm">
                           Added {new Date(pm.created * 1000).toLocaleDateString()}
                         </p>
                         {pm.isDefault && (
@@ -445,13 +445,13 @@ export default function PaymentMethodSelector({
               >
                 <div className="flex items-center justify-center space-x-4">
                   <div className="p-3 rounded-lg bg-muted group-hover:bg-primary/20 transition-all">
-                    <Plus className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                    <Plus className="h-5 w-5 text-secondary group-hover:text-primary transition-colors" />
                   </div>
                   <div className="text-center">
-                    <p className="font-semibold text-muted-foreground group-hover:text-primary transition-colors">
+                    <p className="font-semibold text-secondary group-hover:text-primary transition-colors">
                       Add New Method
                     </p>
-                    <p className="text-muted-foreground text-sm mt-1">
+                    <p className="text-secondary text-sm mt-1">
                       Tap to add payment option
                     </p>
                   </div>
@@ -459,7 +459,7 @@ export default function PaymentMethodSelector({
                 
                 {setupPaymentMethod.isPending && (
                   <div className="absolute inset-0 bg-background/80 rounded-lg flex items-center justify-center backdrop-blur-sm">
-                    <div className="flex items-center space-x-3 text-foreground">
+                    <div className="flex items-center space-x-3 text-primary">
                       <Loader2 className="h-5 w-5 animate-spin text-primary" />
                       <span className="font-medium">Setting up...</span>
                     </div>

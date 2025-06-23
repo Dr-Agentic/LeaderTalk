@@ -48,7 +48,7 @@ export default function AppHeader({
             <Button
               variant="ghost"
               size="sm"
-              className="flex items-center gap-1 text-muted-foreground hover:text-foreground"
+              className="flex items-center gap-1 text-secondary hover:text-primary"
               onClick={handleBack}
             >
               <ChevronLeft className="h-4 w-4" />

@@ -189,7 +189,7 @@ export default function NextSituation() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="bg-muted p-4 rounded-md">
-                <div className="flex items-center text-sm text-muted-foreground mb-2">
+                <div className="flex items-center text-sm text-secondary mb-2">
                   <span>{nextSituation.chapter.title}</span>
                   <ArrowRight className="h-3 w-3 mx-2" />
                   <span>{nextSituation.module.title}</span>

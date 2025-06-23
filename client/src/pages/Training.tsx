@@ -69,7 +69,7 @@ export default function Training() {
             <Award className="h-12 w-12 text-primary mr-3" />
             <h1 className="text-3xl font-bold">Leadership Training</h1>
           </div>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-lg text-secondary max-w-2xl mx-auto">
             Master essential leadership skills through interactive scenarios and
             personalized feedback.
           </p>
@@ -94,7 +94,7 @@ export default function Training() {
               </span>
             </div>
             <Progress value={progressPercentage} className="h-2" />
-            <div className="text-center text-sm text-muted-foreground">
+            <div className="text-center text-sm text-secondary">
               {Math.round(progressPercentage)}% Complete
             </div>
           </CardContent>
@@ -166,7 +166,7 @@ export default function Training() {
                       </CardDescription>
                     </div>
                     <div className="text-right">
-                      <div className="text-sm text-muted-foreground">
+                      <div className="text-sm text-secondary">
                         {chapterProgress} of {chapterTotal} completed
                       </div>
                       <Progress
@@ -198,13 +198,13 @@ export default function Training() {
                             <h4 className="font-medium">
                               {module.module_title}
                             </h4>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-sm text-secondary">
                               {module.leadership_trait} • {moduleTotal}{" "}
                               exercises
                             </p>
                           </div>
                           <div className="flex items-center space-x-3">
-                            <div className="text-sm text-muted-foreground">
+                            <div className="text-sm text-secondary">
                               {moduleCompleted}/{moduleTotal}
                             </div>
                             {isModuleComplete ? (

@@ -676,8 +676,8 @@ export default function SecureSubscription() {
     <div className="page-layout">
       <div className="page-content">
         <div className="text-center space-y-md">
-          <h1 className="text-foreground">Choose Your Plan</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-primary">Choose Your Plan</h1>
+          <p className="text-secondary">
             Upgrade your leadership training with premium features and increased
             word limits
           </p>
@@ -689,10 +689,10 @@ export default function SecureSubscription() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-foreground">
+                <CardTitle className="text-primary">
                   Current Subscription
                 </CardTitle>
-                <CardDescription className="text-muted-foreground">
+                <CardDescription className="text-secondary">
                   You're subscribed to {currentSubscription.subscription.plan}
                 </CardDescription>
               </div>
@@ -707,27 +707,27 @@ export default function SecureSubscription() {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="text-center">
-                <p className="font-medium text-muted-foreground mb-2">Word Usage</p>
-                <p className="text-2xl font-bold text-foreground">
+                <p className="font-medium text-secondary mb-2">Word Usage</p>
+                <p className="text-2xl font-bold text-primary">
                   {currentSubscription.subscription.formattedUsage}
                 </p>
               </div>
               <div className="text-center">
-                <p className="font-medium text-muted-foreground mb-2">Amount</p>
-                <p className="text-2xl font-bold text-foreground">
+                <p className="font-medium text-secondary mb-2">Amount</p>
+                <p className="text-2xl font-bold text-primary">
                   {currentSubscription.subscription.formattedAmount}
                   {currentSubscription.subscription.formattedInterval}
                 </p>
               </div>
               <div className="text-center">
-                <p className="font-medium text-muted-foreground mb-2">Next Billing</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="font-medium text-secondary mb-2">Next Billing</p>
+                <p className="text-sm text-secondary">
                   {currentSubscription.subscription.formattedNextRenewal}
                 </p>
               </div>
               <div className="text-center">
-                <p className="font-medium text-muted-foreground mb-2">Subscription Created</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="font-medium text-secondary mb-2">Subscription Created</p>
+                <p className="text-sm text-secondary">
                   You first subscribed on{" "}
                   {currentSubscription.subscription.formattedStartDate}
                 </p>
@@ -745,7 +745,7 @@ export default function SecureSubscription() {
               <Clock className="h-5 w-5" />
               <span>Scheduled Subscription Change</span>
             </CardTitle>
-            <CardDescription className="text-muted-foreground">
+            <CardDescription className="text-secondary">
               Your subscription will automatically change at the end of your current billing period.
             </CardDescription>
           </CardHeader>
@@ -754,10 +754,10 @@ export default function SecureSubscription() {
               <div key={index} className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-medium text-foreground">
+                    <p className="font-medium text-primary">
                       Changing to: <span className="text-primary">{change.scheduledPlan || 'New Plan'}</span>
                     </p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-secondary">
                       Effective: {new Date(change.scheduledDate).toLocaleDateString()}
                     </p>
                   </div>
@@ -777,20 +777,20 @@ export default function SecureSubscription() {
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                   <div>
-                    <p className="text-muted-foreground">Current Plan</p>
-                    <p className="text-foreground font-medium">
+                    <p className="text-secondary">Current Plan</p>
+                    <p className="text-primary font-medium">
                       {change.currentPlan || 'Current Plan'}
                     </p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground">Status</p>
-                    <p className="text-foreground font-medium capitalize">
+                    <p className="text-secondary">Status</p>
+                    <p className="text-primary font-medium capitalize">
                       {change.status || 'Scheduled'}
                     </p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground">Schedule ID</p>
-                    <p className="text-foreground font-medium font-mono text-xs">
+                    <p className="text-secondary">Schedule ID</p>
+                    <p className="text-primary font-medium font-mono text-xs">
                       {change.id}
                     </p>
                   </div>
@@ -820,18 +820,18 @@ export default function SecureSubscription() {
                       className="w-8 h-8 rounded-md object-cover"
                     />
                   )}
-                  <CardTitle className="text-xl text-foreground">{plan.name}</CardTitle>
+                  <CardTitle className="text-xl text-primary">{plan.name}</CardTitle>
                 </div>
                 {plan.isPopular && <Badge variant="default">Popular</Badge>}
               </div>
-              <CardDescription className="text-muted-foreground">{plan.description}</CardDescription>
+              <CardDescription className="text-secondary">{plan.description}</CardDescription>
             </CardHeader>
 
             <CardContent className="card-content">
               <div className="space-y-md">
                 {/* Pricing */}
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-foreground">
+                  <div className="text-3xl font-bold text-primary">
                     {plan.pricing.formattedPrice}
                   </div>
                   {plan.pricing.formattedSavings && (
@@ -847,20 +847,20 @@ export default function SecureSubscription() {
                 <div className="space-y-2">
                   <div className="flex items-center text-sm">
                     <Check className="h-4 w-4 text-green-400 mr-2" />
-                    <span className="text-muted-foreground">
+                    <span className="text-secondary">
                       {plan.features.wordLimit.toLocaleString()} words/month
                     </span>
                   </div>
                   {plan.features.advancedAnalytics && (
                     <div className="flex items-center text-sm">
                       <Check className="h-4 w-4 text-green-500 mr-2" />
-                      <span className="text-muted-foreground">Advanced analytics</span>
+                      <span className="text-secondary">Advanced analytics</span>
                     </div>
                   )}
                   {plan.features.prioritySupport && (
                     <div className="flex items-center text-sm">
                       <Check className="h-4 w-4 text-green-500 mr-2" />
-                      <span className="text-muted-foreground">Priority support</span>
+                      <span className="text-secondary">Priority support</span>
                     </div>
                   )}
                   {plan.billingType === "yearly" && (
@@ -917,10 +917,10 @@ export default function SecureSubscription() {
                 </div>
               </div>
               
-              <CardTitle className="text-foreground">
+              <CardTitle className="text-primary">
                 Confirm Subscription Change
               </CardTitle>
-              <CardDescription className="text-muted-foreground">
+              <CardDescription className="text-secondary">
                 Review the details below and confirm your subscription change
               </CardDescription>
             </CardHeader>
@@ -928,11 +928,11 @@ export default function SecureSubscription() {
               {/* Plan Change Summary */}
               <div className="bg-accent border border-border rounded-lg p-4 mb-4">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-muted-foreground text-sm">Changing to:</span>
-                  <span className="font-semibold text-foreground">{pendingSubscriptionChange.plan.name}</span>
+                  <span className="text-secondary text-sm">Changing to:</span>
+                  <span className="font-semibold text-primary">{pendingSubscriptionChange.plan.name}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground text-sm">Plan type:</span>
+                  <span className="text-secondary text-sm">Plan type:</span>
                   <span className="text-primary font-medium">{pendingSubscriptionChange.changeType}</span>
                 </div>
               </div>

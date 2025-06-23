@@ -144,7 +144,7 @@ export default function ModuleView() {
         <div>
           <h1 className="text-3xl font-bold">{module.title}</h1>
           {module.description && (
-            <p className="text-muted-foreground">{module.description}</p>
+            <p className="text-secondary">{module.description}</p>
           )}
         </div>
         <div className="flex items-center gap-3">

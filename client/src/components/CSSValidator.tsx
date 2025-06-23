@@ -60,7 +60,7 @@ export function CSSValidator({ pageSelector = "main" }: { pageSelector?: string 
         }
 
         // Check for undefined classes
-        if (classList.some(cls => cls.includes('text-foreground') || cls.includes('text-muted-foreground'))) {
+        if (classList.some(cls => cls.includes('text-primary') || cls.includes('text-secondary'))) {
           undefinedClassesFound = true;
           issues.push(`Undefined CSS class: ${classList.find(cls => cls.includes('foreground'))}`);
         }
@@ -76,7 +76,7 @@ export function CSSValidator({ pageSelector = "main" }: { pageSelector?: string 
       }
 
       if (undefinedClassesFound) {
-        recommendations.push('Replace text-foreground and text-muted-foreground with semantic alternatives');
+        recommendations.push('Replace text-primary and text-secondary with semantic alternatives');
       }
 
       if (!semanticClassesUsed) {

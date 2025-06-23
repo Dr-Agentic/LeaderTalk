@@ -226,7 +226,7 @@ export default function SituationView() {
         <div className="max-w-2xl mx-auto text-center">
           <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <h1 className="text-2xl font-bold mb-2">Exercise Not Found</h1>
-          <p className="text-muted-foreground mb-6">
+          <p className="text-secondary mb-6">
             The requested training exercise could not be found.
           </p>
           <Link href="/training">
@@ -316,7 +316,7 @@ export default function SituationView() {
                   className="min-h-[150px]"
                 />
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">
+                  <span className="text-sm text-secondary">
                     {response.length} characters
                   </span>
                   <Button 
@@ -342,12 +342,12 @@ export default function SituationView() {
                 </div>
                 <div className="space-y-3">
                   <h3 className="text-xl font-semibold">Analyzing Your Response</h3>
-                  <p className="text-muted-foreground">
+                  <p className="text-secondary">
                     Our AI is evaluating your leadership approach and providing personalized feedback...
                   </p>
                   <div className="max-w-xs mx-auto">
                     <Progress value={progress} className="h-2" />
-                    <p className="text-sm text-muted-foreground mt-2">
+                    <p className="text-sm text-secondary mt-2">
                       {Math.round(progress)}% complete
                     </p>
                   </div>
@@ -374,25 +374,25 @@ export default function SituationView() {
                     <div className={`text-2xl font-bold ${getScoreColor(evaluation.styleMatchScore)}`}>
                       {evaluation.styleMatchScore}%
                     </div>
-                    <div className="text-sm text-muted-foreground">Style Match</div>
+                    <div className="text-sm text-secondary">Style Match</div>
                   </div>
                   <div className="text-center">
                     <div className={`text-2xl font-bold ${getScoreColor(evaluation.clarity)}`}>
                       {evaluation.clarity}%
                     </div>
-                    <div className="text-sm text-muted-foreground">Clarity</div>
+                    <div className="text-sm text-secondary">Clarity</div>
                   </div>
                   <div className="text-center">
                     <div className={`text-2xl font-bold ${getScoreColor(evaluation.empathy)}`}>
                       {evaluation.empathy}%
                     </div>
-                    <div className="text-sm text-muted-foreground">Empathy</div>
+                    <div className="text-sm text-secondary">Empathy</div>
                   </div>
                   <div className="text-center">
                     <div className={`text-2xl font-bold ${getScoreColor(evaluation.persuasiveness)}`}>
                       {evaluation.persuasiveness}%
                     </div>
-                    <div className="text-sm text-muted-foreground">Persuasiveness</div>
+                    <div className="text-sm text-secondary">Persuasiveness</div>
                   </div>
                 </div>
 
@@ -448,7 +448,7 @@ export default function SituationView() {
                 <CardTitle>Personalized Recommendations</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground leading-relaxed">
+                <p className="text-secondary leading-relaxed">
                   {evaluation.improvement}
                 </p>
               </CardContent>
@@ -480,7 +480,7 @@ export default function SituationView() {
                   <div key={attempt.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-md">
                     <div>
                       <div className="font-medium">Attempt #{situationAttempts.length - index}</div>
-                      <div className="text-sm text-muted-foreground">
+                      <div className="text-sm text-secondary">
                         {new Date(attempt.createdAt).toLocaleDateString()}
                       </div>
                     </div>

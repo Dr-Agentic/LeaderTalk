@@ -302,14 +302,14 @@ function TranscriptCard({ recording }: { recording: Recording }) {
           <div className="flex items-center space-x-6">
             <div className="flex items-center">
               <ThumbsUp className="h-4 w-4 text-green-400 mr-1" />
-              <span className="text-sm text-foreground">
+              <span className="text-sm text-primary">
                 {positiveCount} positive moment{positiveCount !== 1 ? "s" : ""}
               </span>
             </div>
 
             <div className="flex items-center">
               <ThumbsDown className="h-4 w-4 text-red-400 mr-1" />
-              <span className="text-sm text-foreground">
+              <span className="text-sm text-primary">
                 {negativeCount} negative moment{negativeCount !== 1 ? "s" : ""}
               </span>
             </div>
@@ -382,7 +382,7 @@ function EmptyState({ filter, query }: { filter?: string; query?: string }) {
       <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-muted mb-4">
         <Filter className="h-6 w-6 card-description" />
       </div>
-      <h3 className="text-lg font-medium text-foreground">
+      <h3 className="text-lg font-medium text-primary">
         No recordings found
       </h3>
       <p className="card-description mt-1">

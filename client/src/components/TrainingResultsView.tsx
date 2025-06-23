@@ -81,19 +81,19 @@ export default function TrainingResultsView({
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             <div className="text-center p-4 bg-muted rounded-lg">
               <div className={`text-2xl font-bold ${getScoreColor(evaluation.styleMatchScore)}`}>{evaluation.styleMatchScore}%</div>
-              <div className="text-sm text-muted-foreground">Style Match</div>
+              <div className="text-sm text-secondary">Style Match</div>
             </div>
             <div className="text-center p-4 bg-muted rounded-lg">
               <div className={`text-2xl font-bold ${getScoreColor(evaluation.clarity)}`}>{evaluation.clarity}%</div>
-              <div className="text-sm text-muted-foreground">Clarity</div>
+              <div className="text-sm text-secondary">Clarity</div>
             </div>
             <div className="text-center p-4 bg-muted rounded-lg">
               <div className={`text-2xl font-bold ${getScoreColor(evaluation.empathy)}`}>{evaluation.empathy}%</div>
-              <div className="text-sm text-muted-foreground">Empathy</div>
+              <div className="text-sm text-secondary">Empathy</div>
             </div>
             <div className="text-center p-4 bg-muted rounded-lg">
               <div className={`text-2xl font-bold ${getScoreColor(evaluation.persuasiveness)}`}>{evaluation.persuasiveness}%</div>
-              <div className="text-sm text-muted-foreground">Persuasion</div>
+              <div className="text-sm text-secondary">Persuasion</div>
             </div>
           </div>
           

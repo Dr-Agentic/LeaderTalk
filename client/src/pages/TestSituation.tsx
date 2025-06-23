@@ -126,7 +126,7 @@ export default function TestSituation() {
             </CardHeader>
             <CardContent className="space-y-4">
               <Progress value={progress} className="w-full" />
-              <div className="text-center text-sm text-muted-foreground">
+              <div className="text-center text-sm text-secondary">
                 AI is evaluating your leadership response and providing personalized feedback...
               </div>
             </CardContent>
@@ -172,7 +172,7 @@ export default function TestSituation() {
                     <p className="text-xl font-semibold capitalize text-primary">
                       {situation.assignedLeadershipStyle}
                     </p>
-                    <p className="text-sm text-muted-foreground mt-1">
+                    <p className="text-sm text-secondary mt-1">
                       Respond using an {situation.assignedLeadershipStyle} leadership approach.
                     </p>
                   </div>

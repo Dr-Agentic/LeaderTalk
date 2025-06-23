@@ -49,7 +49,7 @@ export default function SplashScreen({
           <h1 className="text-xl md:text-2xl font-semibold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
             LeaderTalk
           </h1>
-          <p className="text-muted-foreground mt-1 text-sm md:text-base">
+          <p className="text-secondary mt-1 text-sm md:text-base">
             Talk Like the Leader You Aspire to Be
           </p>
         </motion.div>
