@@ -26,67 +26,7 @@ html body [class*="bg-primary"]:active:not(:disabled) {
   transition: all 0.1s ease;
 }
 
-/* Danger Zone Styling */
-.danger-zone {
-  background: rgba(239, 68, 68, 0.05);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(239, 68, 68, 0.2);
-  border-radius: 20px;
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s ease;
-}
 
-.danger-zone::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(239, 68, 68, 0.1), transparent);
-  transition: left 0.5s ease;
-}
-
-.danger-zone:hover::before {
-  left: 100%;
-}
-
-.danger-zone-header {
-  color: var(--color-danger);
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-}
-
-html body .danger-zone-button,
-html body button.danger-zone-button,
-html body [class*="danger-zone-button"] {
-  background: var(--gradient-danger) !important;
-  background-color: transparent !important;
-  color: var(--color-text-primary) !important;
-  border: none !important;
-  box-shadow: var(--shadow-danger-soft) !important;
-  transition: all 0.3s ease !important;
-  position: relative;
-  z-index: 1;
-}
-
-html body .danger-zone-button:hover,
-html body button.danger-zone-button:hover,
-html body [class*="danger-zone-button"]:hover {
-  background: var(--gradient-danger-hover) !important;
-  transform: translateY(-1px) !important;
-  box-shadow: var(--shadow-danger-strong) !important;
-}
-
-html body .danger-zone-button:active,
-html body button.danger-zone-button:active,
-html body [class*="danger-zone-button"]:active {
-  transform: translateY(0px) !important;
-  transition: all 0.1s ease !important;
-}
 
 /* Glass Morphism Cards - Clean System Using CSS Variables */
 .glass-card {

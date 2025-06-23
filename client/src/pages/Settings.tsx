@@ -157,7 +157,7 @@ export default function Settings() {
                 {/* Alert dialog for account deletion confirmation */}
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button variant="destructive" className="danger-zone-button gap-2 !bg-transparent">
+                    <Button variant="danger" className="gap-2">
                       <UserX className="h-4 w-4" />
                       Delete Account Permanently
                     </Button>
@@ -189,7 +189,11 @@ export default function Settings() {
                       <AlertDialogAction
                         onClick={() => deleteUserMutation.mutate()}
                         disabled={deleteUserMutation.isPending}
-                        className="danger-zone-button gap-2"
+                        className="gap-2"
+                        style={{ 
+                          background: 'var(--gradient-danger)',
+                          boxShadow: 'var(--shadow-danger-soft)'
+                        }}
                       >
                         {deleteUserMutation.isPending ? (
                           <>
