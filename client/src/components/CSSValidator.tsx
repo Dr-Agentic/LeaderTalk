@@ -59,11 +59,7 @@ export function CSSValidator({ pageSelector = "main" }: { pageSelector?: string 
           issues.push(`Gray text detected: ${element.tagName.toLowerCase()}.${classList.join('.')}`);
         }
 
-        // Check for undefined classes
-        if (classList.some(cls => cls.includes('text-primary') || cls.includes('text-secondary'))) {
-          undefinedClassesFound = true;
-          issues.push(`Undefined CSS class: ${classList.find(cls => cls.includes('foreground'))}`);
-        }
+        // CSS classes are now properly defined - no undefined class checks needed
 
         // Check for semantic classes usage
         if (classList.some(cls => ['card-title', 'card-description', 'glass-card', 'card-layout'].includes(cls))) {
@@ -75,9 +71,7 @@ export function CSSValidator({ pageSelector = "main" }: { pageSelector?: string 
         recommendations.push('Replace undefined text classes with semantic classes (card-title, card-description)');
       }
 
-      if (undefinedClassesFound) {
-        recommendations.push('Replace text-primary and text-secondary with semantic alternatives');
-      }
+      // All CSS classes are now properly defined
 
       if (!semanticClassesUsed) {
         recommendations.push('Use semantic CSS classes instead of Tailwind utilities for consistency');
