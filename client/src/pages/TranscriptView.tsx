@@ -316,114 +316,115 @@ export default function TranscriptView() {
       backLabel="Back to All Transcripts"
       pageTitle={`${recording.title} - Transcript`}
     >
-      {/* Communication Analysis Chart Section */}
-      <Card className="card-layout glass-card">
-        <CardHeader className="header-layout">
-          <div>
-            <CardTitle className="card-title">{recording.title}</CardTitle>
-            <p className="card-description">
-              Recorded {new Date(recording.recordedAt).toLocaleDateString()} 
-              {recording.analysis?.overview?.rating && ` • Overall: ${recording.analysis.overview.rating}`}
-            </p>
-          </div>
-          {recording.analysis?.overview?.rating && (
-            <Badge variant="outline" className={`
-              status-badge
-              ${recording.analysis.overview.rating === "Good" ? "status-positive" : 
-                recording.analysis.overview.rating === "Average" ? "status-warning" : 
-                "status-negative"}
-            `}>
-              {recording.analysis.overview.rating} overall
-            </Badge>
-          )}
-        </CardHeader>
-        
-        <CardContent className="content-spacing">
-          {/* Communication Analysis Chart */}
-          <CommunicationChart data={recording.analysis?.timeline || []} loading={false} />
-        </CardContent>
-      </Card>
-
-      <Card className="card-layout glass-card">
-        <CardHeader>
-          <CardTitle className="card-title">Transcript Analysis</CardTitle>
-          <div className="flex flex-wrap gap-2 mt-2">
-            <Badge
-              variant="outline"
-              className="bg-green-500/20 text-green-300 border-green-500/30"
-            >
-              Positive Communication
-            </Badge>
-            <Badge
-              variant="outline"
-              className="bg-red-500/20 text-red-300 border-red-500/30"
-            >
-              Negative Communication
-            </Badge>
-            <Badge
-              variant="outline"
-              className="bg-yellow-500/20 text-yellow-300 border-yellow-500/30"
-            >
-              Needs Improvement
-            </Badge>
-          </div>
-        </CardHeader>
-        <CardContent className="content-spacing">
-          {recording.transcription ? (
-            <TranscriptWithHighlighting
-              transcription={recording.transcription}
-              analysis={recording.analysis}
-            />
-          ) : (
-            <p className="card-description italic">
-              No transcript available for this recording.
-            </p>
-          )}
-        </CardContent>
-      </Card>
-
-      <div className="responsive-grid">
+      <div className="transcript-card-spacing">
+        {/* Communication Analysis Chart Section */}
         <Card className="card-layout glass-card">
-          <CardHeader>
-            <CardTitle className="card-title text-green-400">Positive Moments</CardTitle>
+          <CardHeader className="header-layout">
+            <div>
+              <CardTitle className="card-title">{recording.title}</CardTitle>
+              <p className="card-description">
+                Recorded {new Date(recording.recordedAt).toLocaleDateString()} 
+                {recording.analysis?.overview?.rating && ` • Overall: ${recording.analysis.overview.rating}`}
+              </p>
+            </div>
+            {recording.analysis?.overview?.rating && (
+              <Badge variant="outline" className={`
+                status-badge
+                ${recording.analysis.overview.rating === "Good" ? "status-positive" : 
+                  recording.analysis.overview.rating === "Average" ? "status-warning" : 
+                  "status-negative"}
+              `}>
+                {recording.analysis.overview.rating} overall
+              </Badge>
+            )}
           </CardHeader>
+          
           <CardContent className="content-spacing">
-            <AnalysisInstancesList
-              instances={recording.analysis?.positiveInstances || []}
-              emptyMessage="No positive communication moments identified."
-              type="positive"
-            />
+            {/* Communication Analysis Chart */}
+            <CommunicationChart data={recording.analysis?.timeline || []} loading={false} />
           </CardContent>
         </Card>
 
         <Card className="card-layout glass-card">
           <CardHeader>
-            <CardTitle className="card-title text-red-400">Negative Moments</CardTitle>
+            <CardTitle className="card-title">Transcript Analysis</CardTitle>
+            <div className="flex flex-wrap gap-2 mt-2">
+              <Badge
+                variant="outline"
+                className="badge-positive"
+              >
+                Positive Communication
+              </Badge>
+              <Badge
+                variant="outline"
+                className="badge-negative"
+              >
+                Negative Communication
+              </Badge>
+              <Badge
+                variant="outline"
+                className="badge-passive"
+              >
+                Needs Improvement
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="content-spacing">
+            {recording.transcription ? (
+              <TranscriptWithHighlighting
+                transcription={recording.transcription}
+                analysis={recording.analysis}
+              />
+            ) : (
+              <p className="card-description italic">
+                No transcript available for this recording.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+
+        <div className="responsive-grid">
+          <Card className="card-layout glass-card">
+            <CardHeader>
+              <CardTitle className="card-title" style={{ color: '#7EFEF7' }}>Positive Moments</CardTitle>
+            </CardHeader>
+            <CardContent className="content-spacing">
+              <AnalysisInstancesList
+                instances={recording.analysis?.positiveInstances || []}
+                emptyMessage="No positive communication moments identified."
+                type="positive"
+              />
+            </CardContent>
+          </Card>
+
+          <Card className="card-layout glass-card">
+            <CardHeader>
+              <CardTitle className="card-title" style={{ color: '#FFB0B0' }}>Negative Moments</CardTitle>
+            </CardHeader>
+            <CardContent className="content-spacing">
+              <AnalysisInstancesList
+                instances={recording.analysis?.negativeInstances || []}
+                emptyMessage="No negative communication moments identified."
+                type="negative"
+                selectedLeaders={selectedLeaders}
+              />
+            </CardContent>
+          </Card>
+        </div>
+
+        <Card className="card-layout glass-card">
+          <CardHeader>
+            <CardTitle className="card-title" style={{ color: '#C8A2EA' }}>Areas for Improvement</CardTitle>
           </CardHeader>
           <CardContent className="content-spacing">
             <AnalysisInstancesList
-              instances={recording.analysis?.negativeInstances || []}
-              emptyMessage="No negative communication moments identified."
-              type="negative"
-              selectedLeaders={selectedLeaders}
+              instances={recording.analysis?.passiveInstances || []}
+              emptyMessage="No passive communication moments identified."
+              type="passive"
             />
           </CardContent>
         </Card>
       </div>
-
-      <Card className="card-layout glass-card">
-        <CardHeader>
-          <CardTitle className="card-title text-yellow-400">Areas for Improvement</CardTitle>
-        </CardHeader>
-        <CardContent className="content-spacing">
-          <AnalysisInstancesList
-            instances={recording.analysis?.passiveInstances || []}
-            emptyMessage="No passive communication moments identified."
-            type="passive"
-          />
-        </CardContent>
-      </Card>
-      
 
     </AppLayout>
   );

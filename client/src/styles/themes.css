@@ -134,30 +134,54 @@
 
 /* Transcript highlighting classes using theme colors */
 .highlight-positive {
-  background: rgba(78, 205, 196, 0.25);
-  color: #5EFDF4;
+  background: rgba(78, 205, 196, 0.2);
+  color: #7EFEF7;
   padding: 2px 4px;
   border-radius: 4px;
-  border: 1px solid rgba(78, 205, 196, 0.5);
+  border: 1px solid rgba(78, 205, 196, 0.4);
   font-weight: 500;
 }
 
 .highlight-negative {
-  background: rgba(255, 107, 107, 0.25);
-  color: #FF8A8A;
+  background: rgba(255, 107, 107, 0.2);
+  color: #FFB0B0;
   padding: 2px 4px;
   border-radius: 4px;
-  border: 1px solid rgba(255, 107, 107, 0.5);
+  border: 1px solid rgba(255, 107, 107, 0.4);
   font-weight: 500;
 }
 
 .highlight-passive {
-  background: rgba(138, 43, 226, 0.25);
-  color: #B47FE8;
+  background: rgba(138, 43, 226, 0.2);
+  color: #C8A2EA;
   padding: 2px 4px;
   border-radius: 4px;
-  border: 1px solid rgba(138, 43, 226, 0.5);
+  border: 1px solid rgba(138, 43, 226, 0.4);
   font-weight: 500;
+}
+
+/* Badge classes using the same theme colors */
+.badge-positive {
+  background: rgba(78, 205, 196, 0.2);
+  color: #7EFEF7;
+  border: 1px solid rgba(78, 205, 196, 0.4);
+}
+
+.badge-negative {
+  background: rgba(255, 107, 107, 0.2);
+  color: #FFB0B0;
+  border: 1px solid rgba(255, 107, 107, 0.4);
+}
+
+.badge-passive {
+  background: rgba(138, 43, 226, 0.2);
+  color: #C8A2EA;
+  border: 1px solid rgba(138, 43, 226, 0.4);
+}
+
+/* Card spacing for transcript view */
+.transcript-card-spacing > * + * {
+  margin-top: var(--spacing-xl);
 }
 
 /* Legacy support for existing classes */
