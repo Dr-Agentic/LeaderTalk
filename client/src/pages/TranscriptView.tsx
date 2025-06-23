@@ -615,11 +615,11 @@ function TranscriptWithHighlighting({
       // Create the highlighted span based on type
       let cssClass = "";
       if (segment.type === "positive") {
-        cssClass = "bg-green-500/20 text-green-300 px-1 rounded border border-green-500/30";
+        cssClass = "highlight-positive";
       } else if (segment.type === "negative") {
-        cssClass = "bg-red-500/20 text-red-300 px-1 rounded border border-red-500/30";
+        cssClass = "highlight-negative";
       } else if (segment.type === "passive") {
-        cssClass = "bg-yellow-500/20 text-yellow-300 px-1 rounded border border-yellow-500/30";
+        cssClass = "highlight-passive";
       }
       
       // Replace the text with the highlighted version

@@ -132,6 +132,31 @@
   color: var(--color-text-secondary);
 }
 
+/* Transcript highlighting classes using theme colors */
+.highlight-positive {
+  background: rgba(78, 205, 196, 0.15);
+  color: var(--color-turquoise);
+  padding: 2px 4px;
+  border-radius: 4px;
+  border: 1px solid rgba(78, 205, 196, 0.3);
+}
+
+.highlight-negative {
+  background: rgba(255, 107, 107, 0.15);
+  color: var(--color-coral);
+  padding: 2px 4px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 107, 107, 0.3);
+}
+
+.highlight-passive {
+  background: rgba(138, 43, 226, 0.15);
+  color: var(--color-purple);
+  padding: 2px 4px;
+  border-radius: 4px;
+  border: 1px solid rgba(138, 43, 226, 0.3);
+}
+
 /* Legacy support for existing classes */
 html body .text-muted-foreground,
 html body .card-description {
