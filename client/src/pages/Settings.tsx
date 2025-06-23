@@ -157,7 +157,7 @@ export default function Settings() {
                 {/* Alert dialog for account deletion confirmation */}
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button className="danger-zone-button gap-2">
+                    <Button variant="destructive" className="danger-zone-button gap-2 !bg-transparent">
                       <UserX className="h-4 w-4" />
                       Delete Account Permanently
                     </Button>
