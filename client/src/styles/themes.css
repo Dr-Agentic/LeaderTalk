@@ -134,27 +134,30 @@
 
 /* Transcript highlighting classes using theme colors */
 .highlight-positive {
-  background: rgba(78, 205, 196, 0.15);
-  color: var(--color-turquoise);
+  background: rgba(78, 205, 196, 0.25);
+  color: #5EFDF4;
   padding: 2px 4px;
   border-radius: 4px;
-  border: 1px solid rgba(78, 205, 196, 0.3);
+  border: 1px solid rgba(78, 205, 196, 0.5);
+  font-weight: 500;
 }
 
 .highlight-negative {
-  background: rgba(255, 107, 107, 0.15);
-  color: var(--color-coral);
+  background: rgba(255, 107, 107, 0.25);
+  color: #FF8A8A;
   padding: 2px 4px;
   border-radius: 4px;
-  border: 1px solid rgba(255, 107, 107, 0.3);
+  border: 1px solid rgba(255, 107, 107, 0.5);
+  font-weight: 500;
 }
 
 .highlight-passive {
-  background: rgba(138, 43, 226, 0.15);
-  color: var(--color-purple);
+  background: rgba(138, 43, 226, 0.25);
+  color: #B47FE8;
   padding: 2px 4px;
   border-radius: 4px;
-  border: 1px solid rgba(138, 43, 226, 0.3);
+  border: 1px solid rgba(138, 43, 226, 0.5);
+  font-weight: 500;
 }
 
 /* Legacy support for existing classes */
