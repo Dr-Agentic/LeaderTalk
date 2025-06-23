@@ -1,8 +1,8 @@
 /* Theme Styles - Glass morphism and visual effects */
 
 /* Primary Button with Gradient - Clean semantic selectors */
-html body .btn-primary,
-html body .bg-primary {
+.btn-primary,
+.bg-primary {
   background: var(--gradient-primary);
   background-color: transparent;
   color: var(--color-text-primary);
@@ -11,17 +11,15 @@ html body .bg-primary {
   transition: all 0.3s ease;
 }
 
-html body .btn-primary:hover,
-html body .bg-primary:hover {
+.btn-primary:hover,
+.bg-primary:hover {
   background: var(--gradient-primary-hover);
   transform: translateY(-1px);
   box-shadow: var(--shadow-purple-strong);
 }
 
-html body .bg-primary:active,
-html body button.bg-primary:active:not(:disabled),
-html body button[class*="bg-primary"]:active:not(:disabled),
-html body [class*="bg-primary"]:active:not(:disabled) {
+/* Clean primary button active state without wildcards */
+.bg-primary:active:not(:disabled) {
   transform: translateY(0px);
   transition: all 0.1s ease;
 }
@@ -96,18 +94,18 @@ html body [class*="bg-primary"]:active:not(:disabled) {
   background-color: transparent;
 }
 
-/* Background variants using CSS variables */
-.bg-muted {
+/* Background variants using CSS variables - scoped to avoid conflicts */
+.glass-muted {
   background: var(--glass-bg);
   backdrop-filter: blur(20px);
 }
 
-.bg-accent {
+.glass-accent {
   background: var(--glass-bg-hover);
   backdrop-filter: blur(20px);
 }
 
-.bg-secondary {
+.glass-secondary {
   background: var(--glass-bg-hover);
   backdrop-filter: blur(20px);
 }
