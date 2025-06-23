@@ -139,19 +139,16 @@ export default function Settings() {
           </CardContent>
         </Card>
         
-        {/* Account deletion - Danger Zone */}
-        <Card className="danger-zone">
+        {/* Account deletion */}
+        <Card>
           <CardHeader>
-            <CardTitle className="danger-zone-header">
-              <UserX className="h-5 w-5" />
-              Danger Zone
-            </CardTitle>
-            <CardDescription className="card-description">Irreversible account actions</CardDescription>
+            <CardTitle className="card-title">Delete Account</CardTitle>
+            <CardDescription className="card-description">Permanently remove your account and data</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
               <div>
-                <h3 className="text-sm font-medium danger-zone-header mb-2">DELETE YOUR ACCOUNT</h3>
+                <h3 className="text-sm font-medium text-red-400 mb-2">DELETE YOUR ACCOUNT</h3>
                 <p className="text-sm card-description mb-4">
                   This will permanently delete your entire account, including all your personal data,
                   recordings, progress, and settings. This action cannot be undone.
