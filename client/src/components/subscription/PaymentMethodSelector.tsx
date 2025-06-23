@@ -320,7 +320,35 @@ export default function PaymentMethodSelector({
     return (
       <Elements
         stripe={stripePromise}
-        options={{ clientSecret: setupClientSecret }}
+        options={{
+          clientSecret: setupClientSecret,
+          appearance: {
+            theme: 'night',
+            variables: {
+              colorPrimary: '#4ECDC4',
+              colorBackground: 'rgba(21, 22, 24, 0.95)',
+              colorText: '#ffffff',
+              colorDanger: '#FF6B6B',
+              fontFamily: 'system-ui, sans-serif',
+              spacingUnit: '4px',
+              borderRadius: '8px',
+            },
+            rules: {
+              '.Input': {
+                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                color: '#ffffff',
+              },
+              '.Input:focus': {
+                border: '1px solid #4ECDC4',
+                boxShadow: '0 0 0 1px #4ECDC4',
+              },
+              '.Label': {
+                color: 'rgba(255, 255, 255, 0.7)',
+              },
+            },
+          },
+        }}
       >
         <AddPaymentMethodForm
           clientSecret={setupClientSecret}
