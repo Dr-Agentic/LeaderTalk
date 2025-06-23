@@ -110,6 +110,20 @@
   backdrop-filter: blur(20px);
 }
 
+/* Semantic text color classes */
+.text-primary {
+  color: var(--color-text-primary);
+}
+
+.text-secondary {
+  color: var(--color-text-secondary);
+}
+
+.text-muted {
+  color: var(--color-text-muted);
+}
+
+/* Legacy support for existing classes */
 html body .text-muted-foreground,
 html body .card-description {
   color: var(--color-text-secondary);
