@@ -1,14 +1,46 @@
 import { API_URL } from './api';
 
 /**
- * Make an authenticated API request
+ * Make an authenticated API request (overloaded function)
  */
+export async function apiRequest(endpoint: string, options?: RequestInit): Promise<any>;
 export async function apiRequest(
   method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH',
   endpoint: string,
   data?: any,
+  options?: RequestInit
+): Promise<Response>;
+export async function apiRequest(
+  endpointOrMethod: string,
+  endpointOrOptions?: string | RequestInit,
+  data?: any,
   options: RequestInit = {}
-): Promise<Response> {
+): Promise<any> {
+  let method: string;
+  let endpoint: string;
+  let requestOptions: RequestInit;
+  let requestData: any;
+
+  // Handle both function signatures
+  if (typeof endpointOrOptions === 'string') {
+    // Old signature: apiRequest(method, endpoint, data, options)
+    method = endpointOrMethod;
+    endpoint = endpointOrOptions;
+    requestData = data;
+    requestOptions = options;
+  } else {
+    // New signature: apiRequest(endpoint, options)
+    method = 'GET';
+    endpoint = endpointOrMethod;
+    requestOptions = endpointOrOptions || {};
+    requestData = requestOptions.body ? JSON.parse(requestOptions.body as string) : undefined;
+    
+    // Extract method from options if provided
+    if (requestOptions.method) {
+      method = requestOptions.method;
+    }
+  }
+
   const url = `${API_URL}${endpoint}`;
   
   const config: RequestInit = {
@@ -16,23 +48,23 @@ export async function apiRequest(
     headers: {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
-      ...options.headers,
+      ...requestOptions.headers,
     },
     credentials: 'include', // Important for cookies
-    ...options,
+    ...requestOptions,
   };
 
   // Add body for non-GET requests
-  if (data && method !== 'GET') {
-    config.body = JSON.stringify(data);
+  if (requestData && method !== 'GET') {
+    config.body = JSON.stringify(requestData);
   }
 
-  console.log(`API Request: ${method} ${url}`, data ? { data } : {});
+  console.log(`API Request: ${endpoint} ${url}`, requestData ? { data: requestData } : {});
 
   try {
     const response = await fetch(url, config);
     
-    console.log(`API Response: ${method} ${url} - Status: ${response.status}`);
+    console.log(`API Response: ${endpoint} ${url} - Status: ${response.status}`);
     
     if (!response.ok) {
       // Try to get error details from response
@@ -48,9 +80,19 @@ export async function apiRequest(
       throw new Error(errorMessage);
     }
 
+    // For the new signature, return parsed JSON
+    if (typeof endpointOrOptions !== 'string') {
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        return await response.json();
+      }
+      return response;
+    }
+
+    // For the old signature, return the response object
     return response;
   } catch (error) {
-    console.error(`API Error: ${method} ${url}`, error);
+    console.error(`API Error: ${endpoint} ${url}`, error);
     throw error;
   }
 }
