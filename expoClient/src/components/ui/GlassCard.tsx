@@ -10,7 +10,6 @@ import Animated, {
   withRepeat,
   interpolate,
   Easing,
-  runOnJS
 } from 'react-native-reanimated';
 import { ThemedText } from '../ThemedText';
 
@@ -123,7 +122,7 @@ export function GlassCard({
     }
   };
 
-  const CardContent = () => (
+  const renderContent = () => (
     <View style={{ position: 'relative', overflow: 'hidden' }}>
       {/* Blur background */}
       <BlurView
@@ -257,7 +256,7 @@ export function GlassCard({
           onPress={onPress}
           style={{ flex: 1 }}
         >
-          <CardContent />
+          {renderContent()}
         </Pressable>
       </Animated.View>
     );
@@ -265,7 +264,7 @@ export function GlassCard({
 
   return (
     <Animated.View style={[getVariantStyles(), style, animatedStyle]}>
-      <CardContent />
+      {renderContent()}
     </Animated.View>
   );
 }

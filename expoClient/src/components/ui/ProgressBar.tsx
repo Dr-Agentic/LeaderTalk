@@ -1,85 +1,59 @@
 import React from 'react';
-import { View, ViewStyle } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-} from 'react-native-reanimated';
+import { View, StyleSheet, ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 interface ProgressBarProps {
-  progress: number; // 0-100
-  style?: ViewStyle;
+  progress: number; // 0 to 1
   height?: number;
+  style?: ViewStyle;
   backgroundColor?: string;
   progressColor?: string;
-  animated?: boolean;
+  useGradient?: boolean;
 }
 
 export function ProgressBar({
   progress,
+  height = 6,
   style,
-  height = 8,
   backgroundColor = 'rgba(255, 255, 255, 0.1)',
-  progressColor,
-  animated = true,
+  progressColor = '#8A2BE2',
+  useGradient = true,
 }: ProgressBarProps) {
-  const progressWidth = useSharedValue(0);
-
-  React.useEffect(() => {
-    const targetWidth = Math.max(0, Math.min(100, progress));
-    if (animated) {
-      progressWidth.value = withSpring(targetWidth, { damping: 15 });
-    } else {
-      progressWidth.value = targetWidth;
-    }
-  }, [progress, animated]);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    width: `${progressWidth.value}%`,
-  }));
+  const clampedProgress = Math.max(0, Math.min(1, progress));
+  const progressWidth = `${clampedProgress * 100}%`;
 
   return (
-    <View
-      style={[
-        {
-          height,
-          backgroundColor,
-          borderRadius: height / 2,
-          overflow: 'hidden',
-        },
-        style,
-      ]}
-    >
-      <Animated.View
-        style={[
-          {
-            height: '100%',
-            borderRadius: height / 2,
-          },
-          animatedStyle,
-        ]}
-      >
-        {progressColor ? (
-          <View
-            style={{
-              flex: 1,
-              backgroundColor: progressColor,
-              borderRadius: height / 2,
-            }}
-          />
-        ) : (
+    <View style={[styles.container, { height, backgroundColor }, style]}>
+      <View style={[styles.progressContainer, { width: progressWidth }]}>
+        {useGradient ? (
           <LinearGradient
             colors={['#8A2BE2', '#FF6B6B']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
-            style={{
-              flex: 1,
-              borderRadius: height / 2,
-            }}
+            style={styles.progressGradient}
           />
+        ) : (
+          <View style={[styles.progressSolid, { backgroundColor: progressColor }]} />
         )}
-      </Animated.View>
+      </View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    borderRadius: 100,
+    overflow: 'hidden',
+  },
+  progressContainer: {
+    height: '100%',
+    borderRadius: 100,
+    overflow: 'hidden',
+  },
+  progressGradient: {
+    flex: 1,
+  },
+  progressSolid: {
+    flex: 1,
+  },
+});
