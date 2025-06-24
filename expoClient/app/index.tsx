@@ -5,37 +5,63 @@ import { getSupabase } from '../src/lib/supabaseAuth';
 import { ThemedText } from '../src/components/ThemedText';
 import { AnimatedBackground } from '../src/components/ui/AnimatedBackground';
 
+// Set this to true to force logout on app start (useful for testing)
+const FORCE_LOGOUT_ON_START = true;
+
 export default function IndexScreen() {
   const [isChecking, setIsChecking] = useState(true);
+  const [debugInfo, setDebugInfo] = useState('Initializing...');
 
   useEffect(() => {
     // Check authentication status and redirect accordingly
     const checkAuthAndRedirect = async () => {
       try {
-        console.log('🔐 Checking authentication status...');
+        setDebugInfo('🔐 Starting authentication check...');
+        console.log('🔐 Starting authentication check...');
         
         // Small delay to ensure Supabase is initialized
         await new Promise(resolve => setTimeout(resolve, 500));
         
         const supabase = getSupabase();
+        
+        // Force logout if flag is set (useful for testing login flow)
+        if (FORCE_LOGOUT_ON_START) {
+          setDebugInfo('🔐 Force logout enabled, clearing session...');
+          console.log('🔐 Force logout enabled, clearing existing session...');
+          await supabase.auth.signOut();
+          await new Promise(resolve => setTimeout(resolve, 200));
+        }
+        
+        // Check current session
+        setDebugInfo('🔐 Checking current session...');
         const { data, error } = await supabase.auth.getSession();
+        
+        console.log('🔐 Session check result:', { 
+          hasSession: !!data.session, 
+          error: error?.message,
+          user: data.session?.user?.email,
+          forceLogout: FORCE_LOGOUT_ON_START
+        });
         
         if (error) {
           console.error('🔐 Auth check error:', error);
+          setDebugInfo('🔐 Auth error, going to login...');
           router.replace('/login');
           return;
         }
         
-        if (data.session) {
-          console.log('🔐 User is authenticated, redirecting to dashboard');
+        if (data.session && !FORCE_LOGOUT_ON_START) {
+          console.log('🔐 Valid session found, going to dashboard');
+          setDebugInfo('🔐 Valid session, going to dashboard...');
           router.replace('/dashboard');
         } else {
-          console.log('🔐 User is not authenticated, redirecting to login');
+          console.log('🔐 No valid session, going to login');
+          setDebugInfo('🔐 No session, going to login...');
           router.replace('/login');
         }
       } catch (error) {
-        console.error('🔐 Error checking auth status:', error);
-        // On error, redirect to login as a fallback
+        console.error('🔐 Error in auth check:', error);
+        setDebugInfo('🔐 Error occurred, going to login...');
         router.replace('/login');
       } finally {
         setIsChecking(false);
@@ -52,8 +78,13 @@ export default function IndexScreen() {
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#8A2BE2" />
         <ThemedText style={styles.loadingText}>
-          {isChecking ? 'Checking authentication...' : 'Redirecting...'}
+          {isChecking ? debugInfo : 'Redirecting...'}
         </ThemedText>
+        {FORCE_LOGOUT_ON_START && (
+          <ThemedText style={styles.debugText}>
+            (Force logout mode enabled)
+          </ThemedText>
+        )}
       </View>
     </View>
   );
@@ -74,5 +105,13 @@ const styles = StyleSheet.create({
     color: '#fff',
     marginTop: 20,
     fontSize: 16,
+    textAlign: 'center',
+    paddingHorizontal: 20,
+  },
+  debugText: {
+    color: 'rgba(255, 255, 255, 0.6)',
+    marginTop: 8,
+    fontSize: 12,
+    textAlign: 'center',
   },
 });

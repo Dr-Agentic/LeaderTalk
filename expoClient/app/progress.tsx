@@ -18,7 +18,6 @@ import {
   VictoryArea,
   VictoryAxis,
   VictoryTooltip,
-  VictoryTheme,
   VictoryContainer,
   VictoryLabel,
 } from 'victory-native';
@@ -32,6 +31,24 @@ import { apiRequest } from '../src/lib/apiClient';
 
 const { width: screenWidth } = Dimensions.get('window');
 const chartWidth = screenWidth - 80; // Account for padding
+
+// Custom theme for Victory charts
+const customTheme = {
+  axis: {
+    style: {
+      axis: { stroke: 'rgba(255, 255, 255, 0.3)', strokeWidth: 1 },
+      tickLabels: { 
+        fill: 'rgba(255, 255, 255, 0.8)', 
+        fontSize: 12,
+        fontFamily: 'Inter'
+      },
+      grid: { stroke: 'rgba(255, 255, 255, 0.1)', strokeWidth: 1 },
+    },
+  },
+  chart: {
+    padding: { left: 60, top: 40, right: 40, bottom: 80 },
+  },
+};
 
 type TimeBasedView = 'week' | 'month' | 'quarter' | 'year' | 'alltime';
 type RecordingsCount = 10 | 20 | 50;
@@ -401,7 +418,6 @@ export default function ProgressScreen() {
           <View style={styles.chartContainer}>
             {timeBasedChartData.length > 0 ? (
               <VictoryChart
-                theme={VictoryTheme.material}
                 width={chartWidth}
                 height={300}
                 padding={{ left: 60, top: 40, right: 40, bottom: 80 }}
@@ -469,7 +485,6 @@ export default function ProgressScreen() {
           <View style={styles.chartContainer}>
             {recordingsChartData.length > 0 ? (
               <VictoryChart
-                theme={VictoryTheme.material}
                 width={chartWidth}
                 height={300}
                 padding={{ left: 60, top: 40, right: 40, bottom: 60 }}
