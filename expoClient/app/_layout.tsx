@@ -1,16 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { Stack, Redirect } from 'expo-router';
+import { Stack } from 'expo-router';
 import { StyleSheet, View, Text } from 'react-native';
 import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Session } from '@supabase/supabase-js';
-import { initializeSupabase, getSupabase } from '../src/lib/supabaseAuth';
-import { LinearGradient } from 'expo-linear-gradient';
+import { initializeSupabase } from '../src/lib/supabaseAuth';
 import { ActivityIndicator } from 'react-native';
 import { API_URL } from '../src/lib/api';
-import * as Linking from 'expo-linking';
 import { AnimatedBackground } from '../src/components/ui/AnimatedBackground';
 
 // Create a client
@@ -24,10 +21,7 @@ const queryClient = new QueryClient({
 });
 
 export default function RootLayout() {
-  const [session, setSession] = useState<Session | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [initError, setInitError] = useState<string | null>(null);
-  const [authChecked, setAuthChecked] = useState(false);
 
   // Load custom fonts
   const [fontsLoaded] = useFonts({
@@ -38,11 +32,8 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    // Log the URL prefix for debugging
-    const prefix = Linking.createURL('/');
-    console.log('App URL prefix:', prefix);
-
-    async function initializeAuth() {
+    // Initialize Supabase
+    const initializeAuth = async () => {
       try {
         console.log('Initializing app with API URL:', API_URL);
         
@@ -59,37 +50,19 @@ export default function RootLayout() {
         
         // Initialize Supabase with parameters from the server
         await initializeSupabase();
+        console.log('Supabase initialized successfully');
         
-        // Get the initialized Supabase client
-        const supabase = getSupabase();
-        
-        // Check for an existing session
-        const { data } = await supabase.auth.getSession();
-        setSession(data.session);
-        
-        // Listen for auth changes
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-          console.log('Auth state changed:', session ? 'User authenticated' : 'No user');
-          setSession(session);
-        });
-        
-        setIsLoading(false);
-        setAuthChecked(true);
-        
-        return () => subscription.unsubscribe();
       } catch (error) {
         console.error('Error initializing auth:', error);
         setInitError((error as Error).message);
-        setIsLoading(false);
-        setAuthChecked(true);
       }
-    }
+    };
 
     initializeAuth();
   }, []);
 
-  // Wait for fonts to load and auth check to complete
-  if (!fontsLoaded || isLoading) {
+  // Wait for fonts to load
+  if (!fontsLoaded) {
     return (
       <View style={styles.container}>
         <AnimatedBackground />
@@ -121,9 +94,6 @@ export default function RootLayout() {
         <StatusBar barStyle="light-content" backgroundColor="#8A2BE2" translucent />
         <AnimatedBackground />
         
-        {/* If auth is checked and there's no session, redirect to login */}
-        {authChecked && !session && <Redirect href="/login" />}
-        
         <Stack
           screenOptions={{
             headerStyle: {
@@ -140,6 +110,7 @@ export default function RootLayout() {
             headerShown: false, // We'll use our custom header
           }}
         >
+          <Stack.Screen name="index" options={{ headerShown: false }} />
           <Stack.Screen name="login" options={{ headerShown: false }} />
           <Stack.Screen name="auth/callback" options={{ headerShown: false }} />
           <Stack.Screen name="dashboard" options={{ 
@@ -150,12 +121,17 @@ export default function RootLayout() {
             title: "Record Conversation",
             headerShown: false 
           }} />
+          <Stack.Screen name="transcripts" options={{ 
+            title: "All Transcripts",
+            headerShown: false 
+          }} />
+          <Stack.Screen name="progress" options={{ 
+            title: "Your Progress",
+            headerShown: false 
+          }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="deep-link-test" options={{ 
             title: "Deep Link Test",
-            headerShown: false 
-          }} />
-          <Stack.Screen name="index" options={{ 
             headerShown: false 
           }} />
         </Stack>

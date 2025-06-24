@@ -13,15 +13,15 @@ import { Feather } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { formatDistanceToNow } from 'date-fns';
 
-import { AppLayout } from '../../src/components/navigation/AppLayout';
-import { GlassCard } from '../../src/components/ui/GlassCard';
-import { Button } from '../../src/components/ui/Button';
-import { SearchInput } from '../../src/components/ui/SearchInput';
-import { Picker } from '../../src/components/ui/Picker';
-import { TabView } from '../../src/components/ui/TabView';
-import { Badge } from '../../src/components/ui/Badge';
-import { ThemedText } from '../../src/components/ThemedText';
-import { apiRequest } from '../../src/lib/apiClient';
+import { AppLayout } from '../src/components/navigation/AppLayout';
+import { GlassCard } from '../src/components/ui/GlassCard';
+import { Button } from '../src/components/ui/Button';
+import { SearchInput } from '../src/components/ui/SearchInput';
+import { Picker } from '../src/components/ui/Picker';
+import { TabView } from '../src/components/ui/TabView';
+import { Badge } from '../src/components/ui/Badge';
+import { ThemedText } from '../src/components/ThemedText';
+import { apiRequest } from '../src/lib/apiClient';
 
 type SortOption = 'date-desc' | 'date-asc' | 'rating-desc' | 'rating-asc';
 
@@ -54,83 +54,23 @@ const tabs = [
   { key: 'needs-improvement', title: 'Needs Improvement' },
 ];
 
-// Mock data for demonstration
-const MOCK_RECORDINGS: Recording[] = [
-  {
-    id: '1',
-    title: 'Team Meeting Discussion',
-    recordedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    duration: 325,
-    transcription: 'Today we discussed the quarterly goals and how we can improve our team collaboration. The main points covered were project timelines, resource allocation, and communication strategies.',
-    analysisResult: {
-      overview: {
-        rating: 'Good',
-        score: 82
-      },
-      positiveInstances: [
-        { timestamp: 45, analysis: "Great use of clear, concise language" },
-        { timestamp: 128, analysis: "Effective acknowledgment of team contributions" },
-        { timestamp: 210, analysis: "Strong, confident delivery of key metrics" }
-      ],
-      negativeInstances: [
-        { timestamp: 75, analysis: "Slight hesitation when addressing budget concerns" }
-      ]
-    }
-  },
-  {
-    id: '2',
-    title: 'Client Presentation',
-    recordedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-    duration: 1200,
-    transcription: 'Presenting our new product features to the client. We covered the technical specifications, implementation timeline, and expected ROI.',
-    analysisResult: {
-      overview: {
-        rating: 'Excellent',
-        score: 91
-      },
-      positiveInstances: [
-        { timestamp: 120, analysis: "Excellent opening and rapport building" },
-        { timestamp: 300, analysis: "Clear articulation of value proposition" },
-        { timestamp: 600, analysis: "Confident handling of client questions" }
-      ],
-      negativeInstances: []
-    }
-  },
-  {
-    id: '3',
-    title: 'Weekly Standup',
-    recordedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-    duration: 180,
-    transcription: 'Quick team standup covering what everyone worked on this week and any blockers they encountered.',
-    analysisResult: {
-      overview: {
-        rating: 'Needs improvement',
-        score: 45
-      },
-      positiveInstances: [
-        { timestamp: 30, analysis: "Good structure and time management" }
-      ],
-      negativeInstances: [
-        { timestamp: 60, analysis: "Could be more engaging with team members" },
-        { timestamp: 120, analysis: "Missed opportunity to address team concerns" }
-      ]
-    }
-  }
-];
-
-export default function TranscriptsScreen() {
+export default function AllTranscriptsScreen() {
   const [sortBy, setSortBy] = useState<SortOption>('date-desc');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
   const [refreshing, setRefreshing] = useState(false);
 
-  // For now, use mock data. In production, this would fetch from API
+  // Fetch all recordings
   const { data: recordings, isLoading, refetch } = useQuery<Recording[]>({
     queryKey: ['/api/recordings'],
     queryFn: async () => {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return MOCK_RECORDINGS;
+      try {
+        const response = await apiRequest('GET', '/api/recordings');
+        return await response.json();
+      } catch (error) {
+        console.error('Error fetching recordings:', error);
+        return [];
+      }
     },
     refetchOnWindowFocus: false,
   });
@@ -154,7 +94,6 @@ export default function TranscriptsScreen() {
         filteredRecordings = filteredAndSortedRecordings.filter(
           (r) =>
             r.analysisResult?.overview?.rating === 'Good' ||
-            r.analysisResult?.overview?.rating === 'Excellent' ||
             (r.analysisResult?.overview?.score &&
               r.analysisResult?.overview?.score > 65)
         );
@@ -191,7 +130,12 @@ export default function TranscriptsScreen() {
   };
 
   return (
-    <AppLayout pageTitle="All Transcripts">
+    <AppLayout
+      showBackButton
+      backTo="/dashboard"
+      backLabel="Back to Dashboard"
+      pageTitle="All Transcripts"
+    >
       <StatusBar style="light" />
       
       <ScrollView
@@ -298,7 +242,7 @@ function TranscriptCard({ recording }: { recording: Recording }) {
   const starRating = Math.max(1, Math.min(5, Math.round(normalizedScore)));
 
   const getBadgeVariant = () => {
-    if (rating === 'Good' || rating === 'Excellent' || score > 65) return 'success';
+    if (rating === 'Good' || score > 65) return 'success';
     if (rating === 'Average' || (score >= 50 && score <= 65)) return 'warning';
     return 'error';
   };
@@ -439,11 +383,10 @@ function EmptyState({ filter, query }: { filter?: string; query?: string }) {
       </ThemedText>
 
       <Button
-        title="Start Recording"
-        onPress={() => router.push('/recording')}
-        variant="cta"
+        title="Back to Dashboard"
+        onPress={() => router.push('/dashboard')}
+        variant="secondary"
         style={styles.emptyButton}
-        icon={<Feather name="mic" size={16} color="#fff" />}
       />
     </View>
   );
