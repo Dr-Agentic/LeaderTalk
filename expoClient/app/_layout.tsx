@@ -4,6 +4,7 @@ import { StyleSheet, View, Text } from 'react-native';
 import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Session } from '@supabase/supabase-js';
 import { initializeSupabase, getSupabase } from '../src/lib/supabaseAuth';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -11,6 +12,16 @@ import { ActivityIndicator } from 'react-native';
 import { API_URL } from '../src/lib/api';
 import * as Linking from 'expo-linking';
 import { AnimatedBackground } from '../src/components/ui/AnimatedBackground';
+
+// Create a client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      retry: 1,
+    },
+  },
+});
 
 export default function RootLayout() {
   const [session, setSession] = useState<Session | null>(null);
@@ -105,43 +116,51 @@ export default function RootLayout() {
   }
 
   return (
-    <GestureHandlerRootView style={styles.container}>
-      <StatusBar style="light" />
-      <AnimatedBackground />
-      
-      {/* If auth is checked and there's no session, redirect to login */}
-      {authChecked && !session && <Redirect href="/login" />}
-      
-      <Stack
-        screenOptions={{
-          headerStyle: {
-            backgroundColor: 'transparent',
-          },
-          headerTintColor: '#fff',
-          headerTitleStyle: {
-            fontWeight: '600',
-          },
-          contentStyle: {
-            backgroundColor: 'transparent',
-          },
-          headerTransparent: true,
-        }}
-      >
-        <Stack.Screen name="login" options={{ headerShown: false }} />
-        <Stack.Screen name="auth/callback" options={{ headerShown: false }} />
-        <Stack.Screen name="dashboard" options={{ 
-          title: "LeaderTalk Dashboard",
-          headerShown: true 
-        }} />
-        <Stack.Screen name="deep-link-test" options={{ 
-          title: "Deep Link Test",
-          headerShown: true 
-        }} />
-        <Stack.Screen name="index" options={{ 
-          headerShown: false 
-        }} />
-      </Stack>
-    </GestureHandlerRootView>
+    <QueryClientProvider client={queryClient}>
+      <GestureHandlerRootView style={styles.container}>
+        <StatusBar barStyle="light-content" backgroundColor="#8A2BE2" translucent />
+        <AnimatedBackground />
+        
+        {/* If auth is checked and there's no session, redirect to login */}
+        {authChecked && !session && <Redirect href="/login" />}
+        
+        <Stack
+          screenOptions={{
+            headerStyle: {
+              backgroundColor: 'transparent',
+            },
+            headerTintColor: '#fff',
+            headerTitleStyle: {
+              fontWeight: '600',
+            },
+            contentStyle: {
+              backgroundColor: 'transparent',
+            },
+            headerTransparent: true,
+            headerShown: false, // We'll use our custom header
+          }}
+        >
+          <Stack.Screen name="login" options={{ headerShown: false }} />
+          <Stack.Screen name="auth/callback" options={{ headerShown: false }} />
+          <Stack.Screen name="dashboard" options={{ 
+            title: "LeaderTalk Dashboard",
+            headerShown: false 
+          }} />
+          <Stack.Screen name="recording" options={{ 
+            title: "Record Conversation",
+            headerShown: false 
+          }} />
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="deep-link-test" options={{ 
+            title: "Deep Link Test",
+            headerShown: false 
+          }} />
+          <Stack.Screen name="index" options={{ 
+            headerShown: false 
+          }} />
+        </Stack>
+      </GestureHandlerRootView>
+    </QueryClientProvider>
   );
 }
 

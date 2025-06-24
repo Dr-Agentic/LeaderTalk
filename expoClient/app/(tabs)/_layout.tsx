@@ -1,31 +1,38 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { FontAwesome } from '@expo/vector-icons';
-import { useColorScheme } from '@/src/hooks/useColorScheme';
+import { Feather } from '@expo/vector-icons';
+import { Platform, StatusBar } from 'react-native';
 
 function TabBarIcon(props: {
-  name: React.ComponentProps<typeof FontAwesome>['name'];
+  name: keyof typeof Feather.glyphMap;
   color: string;
+  size?: number;
 }) {
-  return <FontAwesome size={24} style={{ marginBottom: -3 }} {...props} />;
+  return <Feather size={props.size || 24} style={{ marginBottom: -3 }} {...props} />;
 }
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: colorScheme === 'dark' ? '#0070f3' : '#0070f3',
-        tabBarInactiveTintColor: colorScheme === 'dark' ? '#888' : '#666',
+        tabBarActiveTintColor: '#8A2BE2',
+        tabBarInactiveTintColor: 'rgba(255, 255, 255, 0.6)',
         tabBarStyle: {
-          backgroundColor: colorScheme === 'dark' ? '#121212' : '#ffffff',
-          borderTopColor: colorScheme === 'dark' ? '#333' : '#eee',
+          backgroundColor: 'rgba(15, 15, 35, 0.95)',
+          borderTopColor: 'rgba(138, 43, 226, 0.3)',
+          borderTopWidth: 1,
+          paddingBottom: Platform.OS === 'ios' ? 20 : 10,
+          paddingTop: 10,
+          height: Platform.OS === 'ios' ? 90 : 70,
         },
-        headerStyle: {
-          backgroundColor: colorScheme === 'dark' ? '#121212' : '#ffffff',
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: '600',
         },
-        headerTintColor: colorScheme === 'dark' ? '#ffffff' : '#000000',
+        headerShown: false, // We'll use our custom header
+        tabBarItemStyle: {
+          paddingVertical: 4,
+        },
       }}
     >
       <Tabs.Screen
@@ -36,31 +43,57 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="recordings"
+        name="transcripts"
         options={{
           title: 'Transcripts',
-          tabBarIcon: ({ color }) => <TabBarIcon name="list" color={color} />,
+          tabBarIcon: ({ color }) => <TabBarIcon name="file-text" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="record"
+        name="recording"
         options={{
           title: 'Record',
-          tabBarIcon: ({ color }) => <TabBarIcon name="microphone" color={color} />,
+          tabBarIcon: ({ color }) => <TabBarIcon name="mic" color={color} />,
         }}
       />
       <Tabs.Screen
         name="training"
         options={{
           title: 'Training',
-          tabBarIcon: ({ color }) => <TabBarIcon name="graduation-cap" color={color} />,
+          tabBarIcon: ({ color }) => <TabBarIcon name="book-open" color={color} />,
         }}
       />
       <Tabs.Screen
         name="settings"
         options={{
           title: 'Settings',
-          tabBarIcon: ({ color }) => <TabBarIcon name="cog" color={color} />,
+          tabBarIcon: ({ color }) => <TabBarIcon name="settings" color={color} />,
+        }}
+      />
+      
+      {/* Hide these screens from tab bar but keep them accessible */}
+      <Tabs.Screen
+        name="recordings"
+        options={{
+          href: null, // Hide from tab bar
+        }}
+      />
+      <Tabs.Screen
+        name="record"
+        options={{
+          href: null, // Hide from tab bar
+        }}
+      />
+      <Tabs.Screen
+        name="leadertalk"
+        options={{
+          href: null, // Hide from tab bar
+        }}
+      />
+      <Tabs.Screen
+        name="explore"
+        options={{
+          href: null, // Hide from tab bar
         }}
       />
     </Tabs>

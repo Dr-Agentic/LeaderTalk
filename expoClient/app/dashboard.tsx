@@ -9,10 +9,10 @@ import {
   Alert
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { getSupabase, signOut } from '../src/lib/supabaseAuth';
+import { AppLayout } from '../src/components/navigation/AppLayout';
 import QuickActions from '../src/components/dashboard/QuickActions';
 import { QuoteDisplay } from '../src/components/dashboard/QuoteDisplay';
 import { GlassCard } from '../src/components/ui/GlassCard';
@@ -184,21 +184,9 @@ export default function DashboardScreen() {
   const lastRecording = recordings && recordings.length > 0 ? recordings[0] : null;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <AppLayout>
       <StatusBar style="light" />
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Header */}
-        <View style={styles.header}>
-          <ThemedText style={styles.title}>Dashboard</ThemedText>
-          <TouchableOpacity 
-            style={styles.viewAllLink}
-            onPress={() => router.push('/transcripts')}
-          >
-            <ThemedText style={styles.viewAllText}>View all transcripts</ThemedText>
-            <Feather name="chevron-right" size={16} color="#fff" />
-          </TouchableOpacity>
-        </View>
-
         {/* Quote Display */}
         {showQuote && (
           <QuoteDisplay />
@@ -229,48 +217,14 @@ export default function DashboardScreen() {
           </View>
         </GlassCard>
       </ScrollView>
-    </SafeAreaView>
+    </AppLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: 'transparent',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    color: '#fff',
-    marginTop: 20,
-    fontSize: 16,
-  },
   scrollContent: {
     padding: 20,
     paddingBottom: 40,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#fff',
-  },
-  viewAllLink: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  viewAllText: {
-    fontSize: 14,
-    color: '#fff',
-    marginRight: 4,
   },
   recordCard: {
     marginTop: 32,

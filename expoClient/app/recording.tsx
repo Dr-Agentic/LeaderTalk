@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
+  Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
@@ -9,21 +10,22 @@ import {
   Dimensions,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
 
-import { ThemedText } from '../../src/components/ThemedText';
-import { AppLayout } from '../../src/components/navigation/AppLayout';
-import { GlassCard } from '../../src/components/ui/GlassCard';
-import { Button } from '../../src/components/ui/Button';
-import { Switch } from '../../src/components/ui/Switch';
-import { ProgressBar } from '../../src/components/ui/ProgressBar';
-import { Modal } from '../../src/components/ui/Modal';
-import { TextInput } from '../../src/components/ui/TextInput';
+import { ThemedText } from '../src/components/ThemedText';
+import { GlassCard } from '../src/components/ui/GlassCard';
+import { Button } from '../src/components/ui/Button';
+import { Switch } from '../src/components/ui/Switch';
+import { ProgressBar } from '../src/components/ui/ProgressBar';
+import { Modal } from '../src/components/ui/Modal';
+import { TextInput } from '../src/components/ui/TextInput';
 
-import { useRecording } from '../../src/hooks/useRecording';
-import { useWordLimit } from '../../src/hooks/useWordLimit';
-import { apiRequest, uploadFile } from '../../src/lib/apiClient';
+import { useRecording } from '../src/hooks/useRecording';
+import { useWordLimit } from '../src/hooks/useWordLimit';
+import { apiRequest, uploadFile } from '../src/lib/apiClient';
 
 const { width: screenWidth } = Dimensions.get('window');
 const MAX_RECORDING_TIME = 50 * 60; // 50 minutes in seconds
@@ -217,11 +219,59 @@ export default function RecordingScreen() {
         throw new Error('No recording data available');
       }
 
-      // Upload logic here (simplified for space)
-      const formData = new FormData();
-      const mimeType = recordingBlob.type || 'audio/m4a';
-      const fileExtension = 'm4a';
+      console.log('🎤 Recording blob validated:', {
+        size: recordingBlob.size,
+        type: recordingBlob.type,
+      });
 
+      // Upload the audio file for analysis
+      const formData = new FormData();
+
+      // Validate the audio blob before uploading
+      if (recordingBlob.size === 0) {
+        throw new Error('Recording is empty (0 bytes). Please try again.');
+      }
+
+      if (recordingBlob.size < 1000) {
+        console.warn(
+          `Warning: Very small recording (${recordingBlob.size} bytes), might be corrupted`
+        );
+        Alert.alert(
+          'Warning',
+          'The recording is very small and might be incomplete. Continuing anyway.'
+        );
+      }
+
+      console.log(
+        `Preparing to upload audio: ${recordingBlob.size} bytes, type: ${recordingBlob.type}`
+      );
+
+      // Check for supported formats (OpenAI API requires specific formats)
+      const mimeType = recordingBlob.type || 'audio/m4a'; // Default to m4a for iOS
+
+      // Map MIME types to appropriate file extensions for OpenAI
+      const fileExtensionMap: { [key: string]: string } = {
+        'audio/mp3': 'mp3',
+        'audio/mpeg': 'mp3',
+        'audio/wav': 'wav',
+        'audio/x-wav': 'wav',
+        'audio/webm': 'webm',
+        'audio/ogg': 'ogg',
+        'audio/oga': 'ogg',
+        'audio/m4a': 'm4a',
+        'audio/mp4': 'm4a',
+        'audio/x-m4a': 'm4a',
+        'audio/aac': 'm4a',
+      };
+
+      // Use the mapped extension or default to 'm4a' if unknown (iOS default)
+      const fileExtension = fileExtensionMap[mimeType] || 'm4a';
+
+      console.log(
+        `Uploading audio file with MIME type: ${mimeType} and extension: ${fileExtension}`
+      );
+
+      // Add the file to the form with an appropriate extension
       formData.append(
         'audio',
         recordingBlob as any,
@@ -233,14 +283,94 @@ export default function RecordingScreen() {
       formData.append('detectSpeakers', detectSpeakers.toString());
       formData.append('createTranscript', createTranscript.toString());
 
-      const uploadRes = await uploadFile('/api/recordings/upload', formData);
+      // Capture upload start time for timing
+      const uploadStartTime = Date.now();
+      console.log('🎤 Starting audio upload', {
+        recordingId: recording.id,
+        size: recordingBlob.size,
+        filename: `recording_${Date.now()}.${fileExtension}`,
+        mimeType: mimeType,
+      });
 
-      if (!uploadRes.ok) {
-        throw new Error(`Upload failed: ${uploadRes.status}`);
+      // Upload audio file with timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+
+      try {
+        // Upload audio file
+        const uploadRes = await uploadFile('/api/recordings/upload', formData, {
+          signal: controller.signal,
+        });
+
+        // Clear the timeout
+        clearTimeout(timeoutId);
+
+        // Log timing information
+        const uploadDuration = Date.now() - uploadStartTime;
+        console.log(
+          `Upload completed in ${uploadDuration}ms with status ${uploadRes.status}`
+        );
+
+        // Handle different response statuses
+        if (!uploadRes.ok) {
+          // Try to get detailed error information
+          let errorMessage = `Server error: ${uploadRes.status} ${uploadRes.statusText}`;
+          try {
+            const errorData = await uploadRes.json();
+            console.error('Upload error details:', errorData);
+            errorMessage = errorData.message || errorMessage;
+          } catch (parseError) {
+            console.error('Could not parse error response:', parseError);
+          }
+
+          throw new Error(errorMessage);
+        }
+
+        // Process successful response
+        try {
+          const responseText = await uploadRes.text();
+          if (responseText) {
+            const responseData = JSON.parse(responseText);
+            console.log('Upload response:', responseData);
+          } else {
+            console.log('Empty response with status:', uploadRes.status);
+          }
+        } catch (parseError) {
+          console.warn('Could not parse response:', parseError);
+          console.log('Response status:', uploadRes.status);
+        }
+      } catch (error) {
+        // Clear the timeout if fetch failed
+        clearTimeout(timeoutId);
+
+        const fetchError = error as Error;
+
+        if (fetchError.name === 'AbortError') {
+          console.error('Upload timed out after 60 seconds');
+          throw new Error(
+            'Upload timed out. Please try again with a shorter recording.'
+          );
+        }
+
+        console.error('Fetch error during upload:', fetchError);
+        throw fetchError;
       }
 
       // Show success message
-      Alert.alert('Success', 'Recording saved successfully!');
+      Alert.alert('Success', 'Recording saved successfully!', [
+        {
+          text: 'OK',
+          onPress: () => {
+            // Invalidate the recordings query to refresh the dashboard
+            if (queryClient) {
+              queryClient.invalidateQueries({ queryKey: ['/api/recordings'] });
+            }
+            
+            // Navigate to the transcript view
+            router.push(`/transcript/${recording.id}`);
+          },
+        },
+      ]);
 
       // Reset state
       setRecordingTime(0);
@@ -249,18 +379,79 @@ export default function RecordingScreen() {
       setRecordingTitle('');
     } catch (error) {
       console.error('Recording error:', error);
-      Alert.alert('Error', 'Failed to save recording. Please try again.');
+
+      // Generate more specific error messages based on the error type
+      let errorTitle = 'Error saving recording';
+      let errorMessage = 'There was an issue saving your recording.';
+
+      // Add more detailed error message if available
+      if (error instanceof Error) {
+        errorMessage = error.message || errorMessage;
+
+        // Provide specific error messages for common issues
+        if (
+          errorMessage.includes('timed out') ||
+          errorMessage.includes('timeout')
+        ) {
+          errorTitle = 'Upload timeout';
+          errorMessage =
+            'Your recording is too large or your connection is slow. Try recording a shorter segment or check your internet connection.';
+        } else if (
+          errorMessage.includes('network') ||
+          errorMessage.includes('offline') ||
+          errorMessage.includes('connection')
+        ) {
+          errorTitle = 'Network error';
+          errorMessage =
+            'Unable to connect to the server. Please check your internet connection and try again.';
+        } else if (
+          errorMessage.includes('format') ||
+          errorMessage.includes('corrupted') ||
+          errorMessage.includes('invalid')
+        ) {
+          errorTitle = 'Audio format error';
+          errorMessage =
+            'The recording format is not supported or the file is corrupted. Try using a different device or restart and try again.';
+        } else if (
+          errorMessage.includes('empty') ||
+          errorMessage.includes('0 bytes')
+        ) {
+          errorTitle = 'Empty recording';
+          errorMessage =
+            'No audio data was captured during recording. Check that your microphone is working and not muted, then try again.';
+        } else if (
+          errorMessage.includes('permission') ||
+          errorMessage.includes('denied')
+        ) {
+          errorTitle = 'Microphone access denied';
+          errorMessage =
+            'The app doesn\'t have permission to use your microphone. Please enable microphone access in your device settings.';
+        }
+      }
+
+      Alert.alert(errorTitle, errorMessage);
     } finally {
       setIsProcessing(false);
     }
   };
 
   return (
-    <AppLayout>
+    <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
       
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <Feather name="arrow-left" size={24} color="#fff" />
+        </TouchableOpacity>
         <ThemedText style={styles.title}>Record a Conversation</ThemedText>
+        <View style={styles.placeholder} />
+      </View>
+
+      <ScrollView contentContainerStyle={styles.scrollContent}>
         <ThemedText style={styles.description}>
           Record your conversations to get AI-powered insights on your communication style.
         </ThemedText>
@@ -335,7 +526,7 @@ export default function RecordingScreen() {
                   <ThemedText style={styles.recordingTime}>
                     {isRecording
                       ? `${formatTime(recordingTime)} / 50:00`
-                      : 'Tap to start recording your conversation.\nLeaderTalk will analyze your communication patterns.'}
+                      : 'Click to start recording your conversation.\nLeaderTalk will analyze your communication patterns.'}
                   </ThemedText>
 
                   {/* Recording Controls */}
@@ -436,21 +627,38 @@ export default function RecordingScreen() {
           </View>
         </View>
       </Modal>
-    </AppLayout>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: 'transparent',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+  },
+  backButton: {
+    padding: 8,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#fff',
+    flex: 1,
+    textAlign: 'center',
+  },
+  placeholder: {
+    width: 40,
+  },
   scrollContent: {
     padding: 20,
     paddingBottom: 40,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#fff',
-    textAlign: 'center',
-    marginBottom: 16,
   },
   description: {
     fontSize: 16,
