@@ -3,8 +3,8 @@ module.exports = function(api) {
   return {
     presets: ['babel-preset-expo'],
     plugins: [
-      'expo-router/babel',
       'react-native-reanimated/plugin',
+      // Removed 'expo-router/babel' as it's deprecated in SDK 50
       // Removed 'nativewind/babel' to fix the Babel plugin error
     ],
   };

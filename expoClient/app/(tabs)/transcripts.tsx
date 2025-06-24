@@ -195,6 +195,7 @@ export default function TranscriptsScreen() {
       <StatusBar style="light" />
       
       <ScrollView
+        style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />

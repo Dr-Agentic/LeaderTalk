@@ -15,23 +15,19 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: '#8A2BE2',
-        tabBarInactiveTintColor: 'rgba(255, 255, 255, 0.6)',
-        tabBarStyle: {
-          backgroundColor: 'rgba(15, 15, 35, 0.95)',
-          borderTopColor: 'rgba(138, 43, 226, 0.3)',
-          borderTopWidth: 1,
-          paddingBottom: Platform.OS === 'ios' ? 20 : 10,
-          paddingTop: 10,
-          height: Platform.OS === 'ios' ? 90 : 70,
-        },
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: '600',
-        },
         headerShown: false, // We'll use our custom header
-        tabBarItemStyle: {
-          paddingVertical: 4,
+        // Hide the tab bar completely since we use top-left menu
+        tabBarStyle: {
+          display: 'none',
+        },
+        // Make screen backgrounds transparent - enhanced for React Native Web
+        sceneContainerStyle: {
+          backgroundColor: 'transparent',
+        },
+        // Additional React Native Web overrides
+        tabBarBackground: () => null,
+        cardStyle: {
+          backgroundColor: 'transparent',
         },
       }}
     >

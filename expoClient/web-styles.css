@@ -1,0 +1,39 @@
+/* React Native Web Override Styles */
+/* Force transparent backgrounds for all navigation containers */
+
+/* Override default React Native Web View backgrounds */
+.css-view-g5y9jx {
+  background-color: transparent !important;
+}
+
+/* Specifically target the problematic gray background */
+.css-view-g5y9jx.r-backgroundColor-ma12yy {
+  background-color: transparent !important;
+}
+
+/* Override any flex containers with gray backgrounds */
+.css-view-g5y9jx.r-flex-13awgt0 {
+  background-color: transparent !important;
+}
+
+/* Target positioned containers that might have default backgrounds */
+.css-view-g5y9jx.r-position-u8s1d {
+  background-color: transparent !important;
+}
+
+/* Ensure all navigation containers are transparent */
+.css-view-g5y9jx[style*="background-color: rgb(242, 242, 242)"] {
+  background-color: transparent !important;
+}
+
+/* Root container should maintain dark background */
+#root {
+  background-color: #0f0f23 !important;
+}
+
+/* Body should also be dark */
+body {
+  background-color: #0f0f23 !important;
+  margin: 0;
+  padding: 0;
+}

@@ -8,24 +8,53 @@ import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 import { fetchAuthParameters, sendAuthCallback } from './api';
 
-// Create a custom storage implementation using SecureStore
-const ExpoSecureStoreAdapter = {
-  getItem: (key: string) => {
-    return SecureStore.getItemAsync(key);
-  },
-  setItem: (key: string, value: string) => {
-    return SecureStore.setItemAsync(key, value);
-  },
-  removeItem: (key: string) => {
-    return SecureStore.deleteItemAsync(key);
-  },
+// Create a platform-specific storage implementation
+const createStorageAdapter = () => {
+  if (Platform.OS === 'web') {
+    // Use localStorage for web
+    return {
+      getItem: (key: string) => {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          return Promise.resolve(window.localStorage.getItem(key));
+        }
+        return Promise.resolve(null);
+      },
+      setItem: (key: string, value: string) => {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          window.localStorage.setItem(key, value);
+        }
+        return Promise.resolve();
+      },
+      removeItem: (key: string) => {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          window.localStorage.removeItem(key);
+        }
+        return Promise.resolve();
+      },
+    };
+  } else {
+    // Use SecureStore for native platforms
+    return {
+      getItem: (key: string) => {
+        return SecureStore.getItemAsync(key);
+      },
+      setItem: (key: string, value: string) => {
+        return SecureStore.setItemAsync(key, value);
+      },
+      removeItem: (key: string) => {
+        return SecureStore.deleteItemAsync(key);
+      },
+    };
+  }
 };
+
+const storageAdapter = createStorageAdapter();
 
 // We'll use a placeholder URL and key initially to avoid the "required" error
 // These will be replaced when initializeSupabase is called
 let supabase = createClient('https://placeholder-url.supabase.co', 'placeholder-key', {
   auth: {
-    storage: ExpoSecureStoreAdapter,
+    storage: storageAdapter,
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: false,
@@ -36,8 +65,17 @@ let supabase = createClient('https://placeholder-url.supabase.co', 'placeholder-
 const isDevelopment = Constants.expoConfig?.packagerOpts?.dev === true;
 
 // URL to redirect back to your app after authentication
-// Hardcoded to use localhost instead of IP address to work around Supabase bug with IP-based deep links
-export const redirectTo = 'exp://localhost:8081/--/auth/callback';
+const getRedirectTo = () => {
+  if (Platform.OS === 'web') {
+    if (typeof window !== 'undefined') {
+      return `${window.location.origin}/auth/callback`;
+    }
+    return 'http://localhost:8081/auth/callback'; // fallback for SSR
+  }
+  return 'exp://localhost:8081/--/auth/callback';
+};
+
+export const redirectTo = getRedirectTo();
 
 // Store the code verifier for PKCE
 let codeVerifier: string | null = null;
@@ -57,10 +95,10 @@ export async function initializeSupabase() {
     // Create a new client with the fetched parameters
     supabase = createClient(params.supabaseUrl, params.supabaseAnonKey, {
       auth: {
-        storage: ExpoSecureStoreAdapter,
+        storage: storageAdapter,
         autoRefreshToken: true,
         persistSession: true,
-        detectSessionInUrl: false,
+        detectSessionInUrl: Platform.OS === 'web',
       },
     });
     
@@ -77,6 +115,38 @@ export function getSupabase() {
   return supabase;
 }
 
+// Platform-specific secure storage functions
+const secureStorage = {
+  setItem: async (key: string, value: string) => {
+    if (Platform.OS === 'web') {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.setItem(key, value);
+      }
+    } else {
+      await SecureStore.setItemAsync(key, value);
+    }
+  },
+  getItem: async (key: string) => {
+    if (Platform.OS === 'web') {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        return window.localStorage.getItem(key);
+      }
+      return null;
+    } else {
+      return await SecureStore.getItemAsync(key);
+    }
+  },
+  deleteItem: async (key: string) => {
+    if (Platform.OS === 'web') {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.removeItem(key);
+      }
+    } else {
+      await SecureStore.deleteItemAsync(key);
+    }
+  },
+};
+
 // Sign in with Google
 export async function signInWithGoogle() {
   try {
@@ -85,74 +155,97 @@ export async function signInWithGoogle() {
     // Make sure Supabase is initialized with server parameters
     await initializeSupabase();
     
-    // Register a URL event listener before starting the auth flow
-    const subscription = Linking.addEventListener('url', ({ url }) => {
-      console.log('Deep link received:', url);
-      // We don't need to handle the URL here as Expo Router will do it
-    });
-    
-    // Create the sign-in URL with PKCE and dark theme
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo,
-        skipBrowserRedirect: true,
-        queryParams: {
-          access_type: 'offline',
-          prompt: 'consent',
-          theme: 'dark',
+    if (Platform.OS === 'web') {
+      // For web, use the simpler OAuth flow
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: getRedirectTo(),
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+            theme: 'dark',
+          },
         },
-        // PKCE is enabled by default in Supabase v2
-      },
-    });
+      });
 
-    if (error) {
-      console.error('Error creating sign-in URL:', error);
-      throw error;
-    }
-
-    if (!data?.url) {
-      console.error('No URL returned from signInWithOAuth');
-      throw new Error('No URL returned from signInWithOAuth');
-    }
-
-    // Store the code verifier for later use
-    if (data.verifier) {
-      codeVerifier = data.verifier;
-      console.log('Code verifier generated and stored');
-      
-      // Store in SecureStore for persistence across app restarts
-      await SecureStore.setItemAsync('supabase_code_verifier', data.verifier);
-    } else {
-      console.warn('No code verifier returned from signInWithOAuth');
-    }
-
-    console.log('Opening browser for authentication with URL:', data.url);
-    console.log('Redirect URL is:', redirectTo);
-    
-    // Open the URL in the browser
-    try {
-      const result = await WebBrowser.openAuthSessionAsync(
-        data.url,
-        redirectTo
-      );
-      
-      console.log('Browser auth result:', result);
-
-      // Remove the event listener
-      subscription.remove();
-
-      if (result.type === 'success') {
-        // The auth callback route will handle the code exchange
-        console.log('Auth browser session completed successfully');
-        return { success: true };
-      } else {
-        console.log('Auth was cancelled or failed:', result.type);
-        throw new Error(`Authentication cancelled or failed: ${result.type}`);
+      if (error) {
+        console.error('Error with web OAuth:', error);
+        throw error;
       }
-    } catch (browserError) {
-      console.error('Error opening browser:', browserError);
-      throw new Error(`Failed to open authentication browser: ${browserError}`);
+
+      return { success: true };
+    } else {
+      // Native mobile flow (existing code)
+      // Register a URL event listener before starting the auth flow
+      const subscription = Linking.addEventListener('url', ({ url }) => {
+        console.log('Deep link received:', url);
+        // We don't need to handle the URL here as Expo Router will do it
+      });
+      
+      // Create the sign-in URL with PKCE and dark theme
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: getRedirectTo(),
+          skipBrowserRedirect: true,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+            theme: 'dark',
+          },
+          // PKCE is enabled by default in Supabase v2
+        },
+      });
+
+      if (error) {
+        console.error('Error creating sign-in URL:', error);
+        throw error;
+      }
+
+      if (!data?.url) {
+        console.error('No URL returned from signInWithOAuth');
+        throw new Error('No URL returned from signInWithOAuth');
+      }
+
+      // Store the code verifier for later use
+      if (data.verifier) {
+        codeVerifier = data.verifier;
+        console.log('Code verifier generated and stored');
+        
+        // Store in secure storage for persistence across app restarts
+        await secureStorage.setItem('supabase_code_verifier', data.verifier);
+      } else {
+        console.warn('No code verifier returned from signInWithOAuth');
+      }
+
+      console.log('Opening browser for authentication with URL:', data.url);
+      console.log('Redirect URL is:', getRedirectTo());
+      
+      // Open the URL in the browser
+      try {
+        const result = await WebBrowser.openAuthSessionAsync(
+          data.url,
+          getRedirectTo()
+        );
+        
+        console.log('Browser auth result:', result);
+
+        // Remove the event listener
+        subscription.remove();
+
+        if (result.type === 'success') {
+          // The auth callback route will handle the code exchange
+          console.log('Auth browser session completed successfully');
+          return { success: true };
+        } else {
+          console.log('Auth was cancelled or failed:', result.type);
+          throw new Error(`Authentication cancelled or failed: ${result.type}`);
+        }
+      } catch (browserError) {
+        console.error('Error opening browser:', browserError);
+        throw new Error(`Failed to open authentication browser: ${browserError}`);
+      }
     }
   } catch (error) {
     console.error('Error in signInWithGoogle:', error);
@@ -169,8 +262,8 @@ export async function exchangeCodeForSession(code: string) {
     let verifier = codeVerifier;
     
     if (!verifier) {
-      // Try to get it from SecureStore if not in memory
-      verifier = await SecureStore.getItemAsync('supabase_code_verifier');
+      // Try to get it from secure storage if not in memory
+      verifier = await secureStorage.getItem('supabase_code_verifier');
       console.log('Retrieved code verifier from storage');
     }
     
@@ -195,7 +288,7 @@ export async function exchangeCodeForSession(code: string) {
     
     // Clear the code verifier after use
     codeVerifier = null;
-    await SecureStore.deleteItemAsync('supabase_code_verifier');
+    await secureStorage.deleteItem('supabase_code_verifier');
     
     return data;
   } catch (error) {

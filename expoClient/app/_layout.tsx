@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
-import { StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, View, Text, Platform } from 'react-native';
 import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -9,6 +9,44 @@ import { initializeSupabase } from '../src/lib/supabaseAuth';
 import { ActivityIndicator } from 'react-native';
 import { API_URL } from '../src/lib/api';
 import { AnimatedBackground } from '../src/components/ui/AnimatedBackground';
+
+// Add React Native Web style overrides
+if (Platform.OS === 'web' && typeof document !== 'undefined') {
+  // Inject CSS to override React Native Web default backgrounds
+  const style = document.createElement('style');
+  style.textContent = `
+    /* Override React Native Web default gray backgrounds */
+    .css-view-g5y9jx {
+      background-color: transparent !important;
+    }
+    
+    /* Target specific problematic classes */
+    .css-view-g5y9jx.r-backgroundColor-ma12yy {
+      background-color: transparent !important;
+    }
+    
+    .css-view-g5y9jx.r-flex-13awgt0 {
+      background-color: transparent !important;
+    }
+    
+    .css-view-g5y9jx.r-position-u8s1d {
+      background-color: transparent !important;
+    }
+    
+    /* Override any element with the specific gray background */
+    .css-view-g5y9jx[style*="background-color: rgb(242, 242, 242)"] {
+      background-color: transparent !important;
+    }
+    
+    /* Ensure root elements maintain dark theme */
+    #root, body {
+      background-color: #0f0f23 !important;
+      margin: 0;
+      padding: 0;
+    }
+  `;
+  document.head.appendChild(style);
+}
 
 // Create a client
 const queryClient = new QueryClient({
@@ -108,6 +146,11 @@ export default function RootLayout() {
             },
             headerTransparent: true,
             headerShown: false, // We'll use our custom header
+            // Add explicit styling for React Native Web
+            cardStyle: {
+              backgroundColor: 'transparent',
+            },
+            presentation: 'card',
           }}
         >
           <Stack.Screen name="index" options={{ headerShown: false }} />
