@@ -11,18 +11,17 @@
   background-color: transparent !important;
 }
 
-/* Override any flex containers with gray backgrounds */
-.css-view-g5y9jx.r-flex-13awgt0 {
-  background-color: transparent !important;
-}
-
-/* Target positioned containers that might have default backgrounds */
-.css-view-g5y9jx.r-position-u8s1d {
-  background-color: transparent !important;
-}
-
 /* Ensure all navigation containers are transparent */
 .css-view-g5y9jx[style*="background-color: rgb(242, 242, 242)"] {
+  background-color: transparent !important;
+}
+
+/* Override any View with explicit white/gray backgrounds */
+.css-view-g5y9jx[style*="background-color: rgb(255, 255, 255)"] {
+  background-color: transparent !important;
+}
+
+.css-view-g5y9jx[style*="background-color: white"] {
   background-color: transparent !important;
 }
 

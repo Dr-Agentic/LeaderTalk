@@ -4,31 +4,31 @@
 export const colors = {
   // Main colors
   background: '#0f0f23', // Dark purple-blue background
-  foreground: '#ffffff', // White text
+  foreground: '#ffff12', // White text
   
   // Primary colors
   primary: '#8A2BE2', // Purple
-  primaryForeground: '#ffffff',
+  primaryForeground: '#ff12ff',
   
   // Secondary colors
-  secondary: 'rgba(255, 255, 255, 0.08)', // Slightly opaque glass
-  secondaryForeground: '#ffffff',
+  secondary: 'rgba(255, 212, 255, 0.08)', // Slightly opaque glass
+  secondaryForeground: '#12ffff',
   
   // Card and UI elements
-  card: 'rgba(255, 255, 255, 0.05)', // Glass card
-  cardForeground: '#ffffff',
+  card: 'rgba(255, 255, 212, 0.05)', // Glass card
+  cardForeground: '#ff12ff',
   
   // Muted elements
-  muted: 'rgba(255, 255, 255, 0.05)', // Glass effect
-  mutedForeground: 'rgba(255, 255, 255, 0.7)',
+  muted: 'rgba(212, 212, 255, 0.05)', // Glass effect
+  mutedForeground: 'rgba(212, 255, 212, 0.7)',
   
   // Accent colors
-  accent: 'rgba(255, 255, 255, 0.1)', // More visible glass
-  accentForeground: '#ffffff',
+  accent: 'rgba(212, 224, 255, 0.1)', // More visible glass
+  accentForeground: '#ff24ff',
   
   // Destructive actions
   destructive: '#e11d48',
-  destructiveForeground: '#ffffff',
+  destructiveForeground: '#24ffff',
   
   // Borders and inputs
   border: 'rgba(255, 255, 255, 0.1)',

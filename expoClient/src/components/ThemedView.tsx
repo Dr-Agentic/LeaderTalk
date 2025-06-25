@@ -8,7 +8,7 @@ interface ThemedViewProps extends ViewProps {
 
 export function ThemedView({ style, ...props }: ThemedViewProps) {
   const colorScheme = useColorScheme();
-  const backgroundColor = colorScheme === 'dark' ? '#121212' : '#ffffff';
+  const backgroundColor = colorScheme === 'dark' ? '#121212' : '#ff0f0f';
   
   return (
     <View 

@@ -8,7 +8,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { initializeSupabase } from '../src/lib/supabaseAuth';
 import { ActivityIndicator } from 'react-native';
 import { API_URL } from '../src/lib/api';
-import { AnimatedBackground } from '../src/components/ui/AnimatedBackground';
 
 // Add React Native Web style overrides
 if (Platform.OS === 'web' && typeof document !== 'undefined') {
@@ -38,11 +37,62 @@ if (Platform.OS === 'web' && typeof document !== 'undefined') {
       background-color: transparent !important;
     }
     
+    /* Additional React Native Web classes that might interfere */
+    .css-view-g5y9jx.r-backgroundColor-1p0dtai {
+      background-color: transparent !important;
+    }
+    
+    .css-view-g5y9jx.r-backgroundColor-1awozwy {
+      background-color: transparent !important;
+    }
+    
+    /* Override SafeAreaView backgrounds */
+    .css-view-g5y9jx[data-testid*="safe-area"] {
+      background-color: transparent !important;
+    }
+    
+    /* Override ScrollView backgrounds */
+    .css-view-g5y9jx.r-overflow-1d2f490 {
+      background-color: transparent !important;
+    }
+    
+    /* Override any View with explicit white/gray backgrounds */
+    .css-view-g5y9jx[style*="background-color: rgb(255, 255, 255)"] {
+      background-color: transparent !important;
+    }
+    
+    .css-view-g5y9jx[style*="background-color: white"] {
+      background-color: transparent !important;
+    }
+    
+    .css-view-g5y9jx[style*="background-color: #fff"] {
+      background-color: transparent !important;
+    }
+    
+    .css-view-g5y9jx[style*="background-color: #ffffff"] {
+      background-color: transparent !important;
+    }
+    
     /* Ensure root elements maintain dark theme */
     #root, body {
       background-color: #0f0f23 !important;
       margin: 0;
       padding: 0;
+    }
+    
+    /* Override any container that might have default backgrounds */
+    .css-view-g5y9jx.r-display-6koalj {
+      background-color: transparent !important;
+    }
+    
+    /* Target navigation containers specifically */
+    .css-view-g5y9jx[role="navigation"] {
+      background-color: transparent !important;
+    }
+    
+    /* Override modal and overlay backgrounds that should be transparent */
+    .css-view-g5y9jx.r-zIndex-1d2f490 {
+      background-color: transparent !important;
     }
   `;
   document.head.appendChild(style);
@@ -103,7 +153,6 @@ export default function RootLayout() {
   if (!fontsLoaded) {
     return (
       <View style={styles.container}>
-        <AnimatedBackground />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#8A2BE2" />
           <Text style={styles.loadingText}>Loading LeaderTalk...</Text>
@@ -116,7 +165,6 @@ export default function RootLayout() {
   if (initError) {
     return (
       <View style={styles.container}>
-        <AnimatedBackground />
         <View style={styles.loadingContainer}>
           <Text style={styles.errorText}>Failed to initialize app</Text>
           <Text style={styles.errorDetail}>{initError}</Text>
@@ -130,7 +178,6 @@ export default function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <GestureHandlerRootView style={styles.container}>
         <StatusBar barStyle="light-content" backgroundColor="#8A2BE2" translucent />
-        <AnimatedBackground />
         
         <Stack
           screenOptions={{

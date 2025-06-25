@@ -22,6 +22,7 @@ import { Switch } from '../src/components/ui/Switch';
 import { ProgressBar } from '../src/components/ui/ProgressBar';
 import { Modal } from '../src/components/ui/Modal';
 import { TextInput } from '../src/components/ui/TextInput';
+import { AnimatedBackground } from '../src/components/ui/AnimatedBackground';
 
 import { useRecording } from '../src/hooks/useRecording';
 import { useWordLimit } from '../src/hooks/useWordLimit';
@@ -461,6 +462,7 @@ export default function RecordingScreen() {
   return (
       <SafeAreaView style={styles.container}>
         <StatusBar style="light" />
+        <AnimatedBackground />
         
         {/* Header */}
         <View style={styles.header}>

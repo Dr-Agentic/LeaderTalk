@@ -158,7 +158,7 @@ export function AnimatedBackground() {
       left: 0, 
       right: 0, 
       bottom: 0,
-      zIndex: -1 
+      zIndex: 0 // Changed from -1 to 0 to be behind content but visible
     }}>
       {/* Base gradient background */}
       <LinearGradient

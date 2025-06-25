@@ -23,7 +23,7 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
   return (
     <View style={[
       styles.container, 
-      { backgroundColor: colorScheme === 'dark' ? '#121212' : '#ffffff' }
+      { backgroundColor: colorScheme === 'dark' ? '#121212' : '#ff0f2f' } // Morsy: 2025-06-24 allow me to identify the culprit easily.
     ]}>
       <View>
         <Image

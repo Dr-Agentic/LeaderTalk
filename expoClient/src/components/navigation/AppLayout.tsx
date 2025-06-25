@@ -18,6 +18,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { AppHeader } from './AppHeader';
 import { DrawerNavigation } from './DrawerNavigation';
+import { AnimatedBackground } from '../ui/AnimatedBackground';
 import { apiRequest } from '../../lib/apiClient';
 
 interface AppLayoutProps {
@@ -133,6 +134,9 @@ export function AppLayout({
 
   return (
     <View style={styles.container}>
+      {/* Animated Background - now part of each screen */}
+      <AnimatedBackground />
+      
       {/* Header */}
       {!hideHeader && (
         <AppHeader

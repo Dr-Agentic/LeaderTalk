@@ -19,6 +19,7 @@ import { router } from 'expo-router';
 import { GlassCard } from '../src/components/ui/GlassCard';
 import { Button } from '../src/components/ui/Button';
 import { ThemedText } from '../src/components/ThemedText';
+import { AnimatedBackground } from '../src/components/ui/AnimatedBackground';
 
 // Get screen dimensions
 const { width, height } = Dimensions.get('window');
@@ -95,6 +96,7 @@ export default function LoginScreen() {
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
+      <AnimatedBackground />
       
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.content}>
