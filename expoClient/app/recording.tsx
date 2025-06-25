@@ -31,14 +31,8 @@ const { width: screenWidth } = Dimensions.get('window');
 const MAX_RECORDING_TIME = 50 * 60; // 50 minutes in seconds
 
 export default function RecordingScreen() {
-  // Optional query client - only use if available
-  let queryClient;
-  try {
-    queryClient = useQueryClient();
-  } catch (error) {
-    console.warn('QueryClient not available:', error);
-    queryClient = null;
-  }
+  // Always call hooks at the top level
+  const queryClient = useQueryClient();
   
   // Recording state
   const [recordingTime, setRecordingTime] = useState(0);
@@ -185,6 +179,33 @@ export default function RecordingScreen() {
       console.error('🎤 Error stopping recording:', error);
       Alert.alert('Error', 'There was an issue stopping the recording.');
     }
+  };
+
+  // Handle cancel recording
+  const handleCancelRecording = () => {
+    console.log('🎤 Cancel recording requested');
+    Alert.alert(
+      'Cancel Recording',
+      'Are you sure you want to cancel? Your recording will be lost.',
+      [
+        {
+          text: 'Keep Recording',
+          style: 'cancel',
+        },
+        {
+          text: 'Cancel Recording',
+          style: 'destructive',
+          onPress: () => {
+            // Reset state
+            setRecordingTime(0);
+            setRecordingProgress(0);
+            setShowTitleModal(false);
+            setRecordingTitle('');
+            console.log('🎤 Recording cancelled by user');
+          },
+        },
+      ]
+    );
   };
 
   // Handle save recording
@@ -362,8 +383,10 @@ export default function RecordingScreen() {
           text: 'OK',
           onPress: () => {
             // Invalidate the recordings query to refresh the dashboard
-            if (queryClient) {
+            try {
               queryClient.invalidateQueries({ queryKey: ['/api/recordings'] });
+            } catch (error) {
+              console.warn('QueryClient not available:', error);
             }
             
             // Navigate to the transcript view
@@ -425,7 +448,7 @@ export default function RecordingScreen() {
         ) {
           errorTitle = 'Microphone access denied';
           errorMessage =
-            'The app doesn\'t have permission to use your microphone. Please enable microphone access in your device settings.';
+            'The app doesn&apost; have permission to use your microphone. Please enable microphone access in your device settings.';
         }
       }
 
@@ -436,198 +459,207 @@ export default function RecordingScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar style="light" />
-      
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <Feather name="arrow-left" size={24} color="#fff" />
-        </TouchableOpacity>
-        <ThemedText style={styles.title}>Record a Conversation</ThemedText>
-        <View style={styles.placeholder} />
-      </View>
+      <SafeAreaView style={styles.container}>
+        <StatusBar style="light" />
+        
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
+            <Feather name="arrow-left" size={24} color="#fff" />
+          </TouchableOpacity>
+          <ThemedText style={styles.title}>Record a Conversation</ThemedText>
+          <View style={styles.placeholder} />
+        </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <ThemedText style={styles.description}>
-          Record your conversations to get AI-powered insights on your communication style.
-        </ThemedText>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <ThemedText style={styles.description}>
+            Record your conversations to get AI-powered insights on your communication style.
+          </ThemedText>
 
-        <GlassCard style={styles.recordingCard}>
-          <View style={styles.cardContent}>
-            {/* Show loading state while checking word limit */}
-            {isCheckingWordLimit && (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#8A2BE2" />
-                <ThemedText style={styles.loadingText}>
-                  Checking word usage...
-                </ThemedText>
-              </View>
-            )}
-
-            {/* When loading is complete, show appropriate messages */}
-            {!isCheckingWordLimit && (
-              <>
-                {/* Show word limit exceeded warning if needed */}
-                {hasExceededWordLimit && (
-                  <View style={styles.warningContainer}>
-                    <Feather name="alert-circle" size={20} color="#FF6B6B" />
-                    <View style={styles.warningTextContainer}>
-                      <ThemedText style={styles.warningTitle}>
-                        Word limit exceeded
-                      </ThemedText>
-                      <ThemedText style={styles.warningText}>
-                        You've used {currentUsage} of {wordLimit} words this month.
-                        Please upgrade your subscription to continue.
-                      </ThemedText>
-                    </View>
-                  </View>
-                )}
-
-                {/* Recording Interface */}
-                <View style={styles.recordingInterface}>
-                  {/* Recording Button */}
-                  <TouchableOpacity
-                    style={[
-                      styles.recordButton,
-                      isRecording
-                        ? isPaused
-                          ? styles.recordButtonPaused
-                          : styles.recordButtonActive
-                        : hasExceededWordLimit
-                        ? styles.recordButtonDisabled
-                        : styles.recordButtonDefault,
-                    ]}
-                    onPress={
-                      !isRecording && !hasExceededWordLimit
-                        ? handleStartRecording
-                        : undefined
-                    }
-                    disabled={hasExceededWordLimit}
-                  >
-                    <Feather
-                      name="mic"
-                      size={48}
-                      color={hasExceededWordLimit ? '#666' : '#fff'}
-                    />
-                  </TouchableOpacity>
-
-                  <ThemedText style={styles.recordingStatus}>
-                    {isRecording
-                      ? isPaused
-                        ? 'Recording Paused'
-                        : 'Recording in Progress'
-                      : 'Start Recording'}
+          <GlassCard style={styles.recordingCard}>
+            <View style={styles.cardContent}>
+              {/* Show loading state while checking word limit */}
+              {isCheckingWordLimit && (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="large" color="#8A2BE2" />
+                  <ThemedText style={styles.loadingText}>
+                    Checking word usage...
                   </ThemedText>
+                </View>
+              )}
 
-                  <ThemedText style={styles.recordingTime}>
-                    {isRecording
-                      ? `${formatTime(recordingTime)} / 50:00`
-                      : 'Click to start recording your conversation.\nLeaderTalk will analyze your communication patterns.'}
-                  </ThemedText>
-
-                  {/* Recording Controls */}
-                  {isRecording && (
-                    <View style={styles.recordingControls}>
-                      <Button
-                        title={isPaused ? 'Resume' : 'Pause'}
-                        onPress={handlePauseResumeRecording}
-                        variant={isPaused ? 'primary' : 'secondary'}
-                        size="medium"
-                        style={styles.controlButton}
-                        icon={
-                          <Feather
-                            name={isPaused ? 'play' : 'pause'}
-                            size={16}
-                            color="#fff"
-                          />
-                        }
-                      />
-
-                      <Button
-                        title="Stop"
-                        onPress={handleStopRecording}
-                        variant="secondary"
-                        size="medium"
-                        style={styles.controlButton}
-                        icon={<Feather name="square" size={16} color="#fff" />}
-                      />
-                    </View>
-                  )}
-
-                  {/* Progress Bar */}
-                  {isRecording && (
-                    <View style={styles.progressContainer}>
-                      <ProgressBar
-                        progress={recordingProgress}
-                        style={styles.progressBar}
-                        height={6}
-                      />
-                      <View style={styles.progressLabels}>
-                        <ThemedText style={styles.progressLabel}>0:00</ThemedText>
-                        <ThemedText style={styles.progressLabel}>50:00</ThemedText>
+              {/* When loading is complete, show appropriate messages */}
+              {!isCheckingWordLimit && (
+                <>
+                  {/* Show word limit exceeded warning if needed */}
+                  {hasExceededWordLimit && (
+                    <View style={styles.warningContainer}>
+                      <Feather name="alert-circle" size={20} color="#FF6B6B" />
+                      <View style={styles.warningTextContainer}>
+                        <ThemedText style={styles.warningTitle}>
+                          Word limit exceeded
+                        </ThemedText>
+                        <ThemedText style={styles.warningText}>
+                          You've used {currentUsage} of {wordLimit} words this month.
+                          Please upgrade your subscription to continue.
+                        </ThemedText>
                       </View>
                     </View>
                   )}
 
-                  {/* Settings */}
-                  <View style={styles.settingsContainer}>
-                    <Switch
-                      value={detectSpeakers}
-                      onValueChange={setDetectSpeakers}
-                      disabled={isRecording}
-                      label="Auto-detect speakers"
-                      style={styles.settingItem}
-                    />
+                  {/* Recording Interface */}
+                  <View style={styles.recordingInterface}>
+                    {/* Recording Button */}
+                    <TouchableOpacity
+                      style={[
+                        styles.recordButton,
+                        isRecording
+                          ? isPaused
+                            ? styles.recordButtonPaused
+                            : styles.recordButtonActive
+                          : hasExceededWordLimit
+                          ? styles.recordButtonDisabled
+                          : styles.recordButtonDefault,
+                      ]}
+                      onPress={
+                        !isRecording && !hasExceededWordLimit
+                          ? handleStartRecording
+                          : undefined
+                      }
+                      disabled={hasExceededWordLimit}
+                    >
+                      <Feather
+                        name="mic"
+                        size={48}
+                        color={hasExceededWordLimit ? '#666' : '#fff'}
+                      />
+                    </TouchableOpacity>
 
-                    <Switch
-                      value={createTranscript}
-                      onValueChange={setCreateTranscript}
-                      disabled={isRecording}
-                      label="Create transcript"
-                      style={styles.settingItem}
-                    />
+                    <ThemedText style={styles.recordingStatus}>
+                      {isRecording
+                        ? isPaused
+                          ? 'Recording Paused'
+                          : 'Recording in Progress'
+                        : 'Start Recording'}
+                    </ThemedText>
+
+                    <ThemedText style={styles.recordingTime}>
+                      {isRecording
+                        ? `${formatTime(recordingTime)} / 50:00`
+                        : 'Click to start recording your conversation.\nLeaderTalk will analyze your communication patterns.'}
+                    </ThemedText>
+
+                    {/* Recording Controls */}
+                    {isRecording && (
+                      <View style={styles.recordingControls}>
+                        <Button
+                          title={isPaused ? 'Resume' : 'Pause'}
+                          onPress={handlePauseResumeRecording}
+                          variant={isPaused ? 'primary' : 'secondary'}
+                          size="medium"
+                          style={styles.controlButton}
+                          icon={
+                            <Feather
+                              name={isPaused ? 'play' : 'pause'}
+                              size={16}
+                              color="#fff"
+                            />
+                          }
+                        />
+
+                        <Button
+                          title="Stop"
+                          onPress={handleStopRecording}
+                          variant="secondary"
+                          size="medium"
+                          style={styles.controlButton}
+                          icon={<Feather name="square" size={16} color="#fff" />}
+                        />
+                      </View>
+                    )}
+
+                    {/* Progress Bar */}
+                    {isRecording && (
+                      <View style={styles.progressContainer}>
+                        <ProgressBar
+                          progress={recordingProgress}
+                          style={styles.progressBar}
+                          height={6}
+                        />
+                        <View style={styles.progressLabels}>
+                          <ThemedText style={styles.progressLabel}>0:00</ThemedText>
+                          <ThemedText style={styles.progressLabel}>50:00</ThemedText>
+                        </View>
+                      </View>
+                    )}
+
+                    {/* Settings */}
+                    <View style={styles.settingsContainer}>
+                      <Switch
+                        value={detectSpeakers}
+                        onValueChange={setDetectSpeakers}
+                        disabled={isRecording}
+                        label="Auto-detect speakers"
+                        style={styles.settingItem}
+                      />
+
+                      <Switch
+                        value={createTranscript}
+                        onValueChange={setCreateTranscript}
+                        disabled={isRecording}
+                        label="Create transcript"
+                        style={styles.settingItem}
+                      />
+                    </View>
                   </View>
-                </View>
-              </>
-            )}
-          </View>
-        </GlassCard>
-      </ScrollView>
+                </>
+              )}
+            </View>
+          </GlassCard>
+        </ScrollView>
 
-      {/* Title Modal */}
-      <Modal
-        visible={showTitleModal}
-        onClose={() => setShowTitleModal(false)}
-        title="Name Your Recording"
-        description="Give your recording a descriptive title to help you identify it later."
-        closeOnBackdrop={false}
-      >
-        <View style={styles.modalContent}>
-          <TextInput
-            value={recordingTitle}
-            onChangeText={setRecordingTitle}
-            placeholder="e.g., Team Meeting Discussion"
-            label="Title"
-            style={styles.titleInput}
-          />
-
-          <View style={styles.modalButtons}>
-            <Button
-              title={isProcessing ? 'Processing...' : 'Save Recording'}
-              onPress={handleSaveRecording}
-              disabled={isProcessing}
-              variant="cta"
-              size="large"
-              loading={isProcessing}
+        {/* Title Modal */}
+        <Modal
+          visible={showTitleModal}
+          onClose={() => setShowTitleModal(false)}
+          title="Name Your Recording"
+          description="Give your recording a descriptive title to help you identify it later."
+          closeOnBackdrop={false}
+        >
+          <View style={styles.modalContent}>
+            <TextInput
+              value={recordingTitle}
+              onChangeText={setRecordingTitle}
+              placeholder="e.g., Team Meeting Discussion"
+              label="Title"
+              style={styles.titleInput}
             />
+
+            <View style={styles.modalButtons}>
+              <Button
+                title={isProcessing ? 'Processing...' : 'Save Recording'}
+                onPress={handleSaveRecording}
+                disabled={isProcessing}
+                variant="cta"
+                size="large"
+                loading={isProcessing}
+              />
+              
+              <Button
+                title="Cancel"
+                onPress={handleCancelRecording}
+                disabled={isProcessing}
+                variant="secondary"
+                size="large"
+                style={styles.cancelButton}
+              />
+            </View>
           </View>
-        </View>
-      </Modal>
-    </SafeAreaView>
+        </Modal>
+      </SafeAreaView>
   );
 }
 
@@ -801,5 +833,9 @@ const styles = StyleSheet.create({
   },
   modalButtons: {
     alignItems: 'center',
+    gap: 12,
+  },
+  cancelButton: {
+    marginTop: 8,
   },
 });
