@@ -68,12 +68,9 @@ const isDevelopment = Constants.expoConfig?.packagerOpts?.dev === true;
 // URL to redirect back to your app after authentication
 const getRedirectTo = () => {
   if (Platform.OS === 'web') {
-    if (typeof window !== 'undefined') {
-      return `${window.location.origin}/auth/callback`;
-    }
-    return 'http://localhost:8081/auth/callback'; // fallback for SSR
+    return 'https://app.leadertalk.app/auth/callback';
   }
-  return 'exp://localhost:8081/auth/callback';
+  return 'leadertalk://auth/callback';
 };
 
 export const redirectTo = getRedirectTo();
@@ -177,13 +174,7 @@ export async function signInWithGoogle() {
 
       return { success: true };
     } else {
-      // Native mobile flow (existing code)
-      // Register a URL event listener before starting the auth flow
-      const subscription = Linking.addEventListener('url', ({ url }) => {
-        console.log('Deep link received:', url);
-        // We don't need to handle the URL here as Expo Router will do it
-      });
-      
+      // Native mobile flow
       // Create the sign-in URL for implicit flow
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -194,7 +185,6 @@ export async function signInWithGoogle() {
             prompt: 'consent',
             theme: 'dark',
           },
-          // Remove skipBrowserRedirect for implicit flow
         },
       });
 
@@ -208,7 +198,6 @@ export async function signInWithGoogle() {
         throw new Error('No URL returned from signInWithOAuth');
       }
 
-      // Note: No code verifier needed for implicit flow
       console.log('Opening browser for authentication with URL:', data.url);
       console.log('Redirect URL is:', getRedirectTo());
       
@@ -220,9 +209,6 @@ export async function signInWithGoogle() {
         );
         
         console.log('Browser auth result:', result);
-
-        // Remove the event listener
-        subscription.remove();
 
         if (result.type === 'success' && result.url) {
           console.log('Auth browser session completed successfully');
