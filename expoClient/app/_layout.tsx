@@ -5,6 +5,7 @@ import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import * as Linking from 'expo-linking';
 import { initializeSupabase } from '../src/lib/supabaseAuth';
 import { ActivityIndicator } from 'react-native';
 import { API_URL } from '../src/lib/api';
@@ -120,6 +121,11 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
+    // Basic deeplink logging for production debugging
+    const subscription = Linking.addEventListener('url', ({ url }) => {
+      console.log('🔗 Deeplink received:', url);
+    });
+
     // Initialize Supabase
     const initializeAuth = async () => {
       try {
@@ -147,6 +153,10 @@ export default function RootLayout() {
     };
 
     initializeAuth();
+
+    return () => {
+      subscription?.remove();
+    };
   }, []);
 
   // Wait for fonts to load
@@ -202,7 +212,6 @@ export default function RootLayout() {
         >
           <Stack.Screen name="index" options={{ headerShown: false }} />
           <Stack.Screen name="login" options={{ headerShown: false }} />
-          <Stack.Screen name="auth/callback" options={{ headerShown: false }} />
           <Stack.Screen name="dashboard" options={{ 
             title: "LeaderTalk Dashboard",
             headerShown: false 

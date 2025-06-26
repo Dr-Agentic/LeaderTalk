@@ -6,6 +6,7 @@ import * as SecureStore from 'expo-secure-store';
 import { createClient } from '@supabase/supabase-js';
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
+import { router } from 'expo-router';
 import { fetchAuthParameters, sendAuthCallback } from './api';
 
 // Create a platform-specific storage implementation
@@ -72,13 +73,13 @@ const getRedirectTo = () => {
     }
     return 'http://localhost:8081/auth/callback'; // fallback for SSR
   }
-  return 'exp://localhost:8081/--/auth/callback';
+  return 'exp://localhost:8081/auth/callback';
 };
 
 export const redirectTo = getRedirectTo();
 
-// Store the code verifier for PKCE
-let codeVerifier: string | null = null;
+// Store the code verifier for PKCE (no longer needed for implicit flow)
+// let codeVerifier: string | null = null;
 
 // Log the redirect URL for debugging
 console.log('Redirect URL:', redirectTo);
@@ -115,37 +116,37 @@ export function getSupabase() {
   return supabase;
 }
 
-// Platform-specific secure storage functions
-const secureStorage = {
-  setItem: async (key: string, value: string) => {
-    if (Platform.OS === 'web') {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        window.localStorage.setItem(key, value);
-      }
-    } else {
-      await SecureStore.setItemAsync(key, value);
-    }
-  },
-  getItem: async (key: string) => {
-    if (Platform.OS === 'web') {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        return window.localStorage.getItem(key);
-      }
-      return null;
-    } else {
-      return await SecureStore.getItemAsync(key);
-    }
-  },
-  deleteItem: async (key: string) => {
-    if (Platform.OS === 'web') {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        window.localStorage.removeItem(key);
-      }
-    } else {
-      await SecureStore.deleteItemAsync(key);
-    }
-  },
-};
+// Platform-specific secure storage functions (simplified, no longer needed for PKCE)
+// const secureStorage = {
+//   setItem: async (key: string, value: string) => {
+//     if (Platform.OS === 'web') {
+//       if (typeof window !== 'undefined' && window.localStorage) {
+//         window.localStorage.setItem(key, value);
+//       }
+//     } else {
+//       await SecureStore.setItemAsync(key, value);
+//     }
+//   },
+//   getItem: async (key: string) => {
+//     if (Platform.OS === 'web') {
+//       if (typeof window !== 'undefined' && window.localStorage) {
+//         return window.localStorage.getItem(key);
+//       }
+//       return null;
+//     } else {
+//       return await SecureStore.getItemAsync(key);
+//     }
+//   },
+//   deleteItem: async (key: string) => {
+//     if (Platform.OS === 'web') {
+//       if (typeof window !== 'undefined' && window.localStorage) {
+//         window.localStorage.removeItem(key);
+//       }
+//     } else {
+//       await SecureStore.deleteItemAsync(key);
+//     }
+//   },
+// };
 
 // Sign in with Google
 export async function signInWithGoogle() {
@@ -183,18 +184,17 @@ export async function signInWithGoogle() {
         // We don't need to handle the URL here as Expo Router will do it
       });
       
-      // Create the sign-in URL with PKCE and dark theme
+      // Create the sign-in URL for implicit flow
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: getRedirectTo(),
-          skipBrowserRedirect: true,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
             theme: 'dark',
           },
-          // PKCE is enabled by default in Supabase v2
+          // Remove skipBrowserRedirect for implicit flow
         },
       });
 
@@ -208,17 +208,7 @@ export async function signInWithGoogle() {
         throw new Error('No URL returned from signInWithOAuth');
       }
 
-      // Store the code verifier for later use
-      if (data.verifier) {
-        codeVerifier = data.verifier;
-        console.log('Code verifier generated and stored');
-        
-        // Store in secure storage for persistence across app restarts
-        await secureStorage.setItem('supabase_code_verifier', data.verifier);
-      } else {
-        console.warn('No code verifier returned from signInWithOAuth');
-      }
-
+      // Note: No code verifier needed for implicit flow
       console.log('Opening browser for authentication with URL:', data.url);
       console.log('Redirect URL is:', getRedirectTo());
       
@@ -234,10 +224,56 @@ export async function signInWithGoogle() {
         // Remove the event listener
         subscription.remove();
 
-        if (result.type === 'success') {
-          // The auth callback route will handle the code exchange
+        if (result.type === 'success' && result.url) {
           console.log('Auth browser session completed successfully');
-          return { success: true };
+          
+          // Process tokens directly from the returned URL
+          console.log('Processing tokens directly from browser result');
+          try {
+            const { session } = await setSessionFromTokens(result.url);
+            
+            if (!session) {
+              throw new Error('No session returned from token setup');
+            }
+            
+            console.log('Successfully authenticated with Supabase');
+            
+            // Get user data from Supabase session
+            const { user } = session;
+            
+            if (!user) {
+              throw new Error('No user data in session');
+            }
+            
+            // Send auth data to our server to create/update user and establish session
+            console.log('Syncing with server...');
+            try {
+              await sendAuthCallback({
+                uid: user.id,
+                email: user.email || '',
+                displayName: user.user_metadata?.full_name,
+                photoURL: user.user_metadata?.avatar_url,
+                emailVerified: user.email_confirmed_at ? true : false,
+              });
+              
+              console.log('Server sync complete, navigating to dashboard');
+              
+              // Navigate directly to dashboard - no deeplink needed
+              router.replace('/dashboard');
+              
+            } catch (serverError) {
+              console.error('Error syncing with server:', serverError);
+              // Even if server sync fails, we can still proceed with Supabase auth
+              console.log('Server sync failed but proceeding to dashboard');
+              router.replace('/dashboard');
+            }
+            
+            return { success: true };
+            
+          } catch (tokenError) {
+            console.error('Error processing tokens:', tokenError);
+            throw new Error(`Token processing failed: ${tokenError.message}`);
+          }
         } else {
           console.log('Auth was cancelled or failed:', result.type);
           throw new Error(`Authentication cancelled or failed: ${result.type}`);
@@ -253,46 +289,85 @@ export async function signInWithGoogle() {
   }
 }
 
-// Exchange code for session (used in auth/callback.tsx)
-export async function exchangeCodeForSession(code: string) {
+// Parse tokens from URL fragment (implicit flow)
+function parseTokensFromFragment(url: string): {
+  access_token?: string;
+  refresh_token?: string;
+  expires_at?: string;
+  expires_in?: string;
+} | null {
   try {
-    console.log('Exchanging code for session');
+    console.log('🔗 Parsing tokens from URL:', url);
     
-    // Retrieve the code verifier from storage
-    let verifier = codeVerifier;
-    
-    if (!verifier) {
-      // Try to get it from secure storage if not in memory
-      verifier = await secureStorage.getItem('supabase_code_verifier');
-      console.log('Retrieved code verifier from storage');
+    // Extract fragment part after #
+    const fragmentIndex = url.indexOf('#');
+    if (fragmentIndex === -1) {
+      console.log('🔗 No fragment found in URL');
+      return null;
     }
     
-    if (!verifier) {
-      console.error('No code verifier found for PKCE flow');
-      throw new Error('Authentication failed: No code verifier found');
+    const fragment = url.substring(fragmentIndex + 1);
+    console.log('🔗 URL fragment:', fragment);
+    
+    // Parse fragment as URL parameters
+    const params = new URLSearchParams(fragment);
+    const tokens = {
+      access_token: params.get('access_token') || undefined,
+      refresh_token: params.get('refresh_token') || undefined,
+      expires_at: params.get('expires_at') || undefined,
+      expires_in: params.get('expires_in') || undefined,
+    };
+    
+    console.log('🔗 Parsed tokens:', {
+      hasAccessToken: !!tokens.access_token,
+      hasRefreshToken: !!tokens.refresh_token,
+      expiresAt: tokens.expires_at,
+      expiresIn: tokens.expires_in,
+    });
+    
+    return tokens.access_token ? tokens : null;
+  } catch (error) {
+    console.error('🔗 Error parsing tokens from fragment:', error);
+    return null;
+  }
+}
+
+// Set session using tokens from implicit flow
+export async function setSessionFromTokens(url: string) {
+  try {
+    console.log('🔗 Setting session from tokens in URL');
+    
+    const tokens = parseTokensFromFragment(url);
+    if (!tokens || !tokens.access_token || !tokens.refresh_token) {
+      throw new Error('No valid tokens found in URL');
     }
     
-    // Exchange the code for a session using the code verifier
-    const { data, error } = await supabase.auth.exchangeCodeForSession(code, verifier);
+    // Calculate expires_at if we have expires_in
+    let expiresAt = tokens.expires_at;
+    if (!expiresAt && tokens.expires_in) {
+      const expiresInSeconds = parseInt(tokens.expires_in);
+      expiresAt = Math.floor(Date.now() / 1000 + expiresInSeconds).toString();
+    }
+    
+    // Set the session using the tokens
+    const { data, error } = await supabase.auth.setSession({
+      access_token: tokens.access_token,
+      refresh_token: tokens.refresh_token,
+    });
     
     if (error) {
-      console.error('Error exchanging code for session:', error);
+      console.error('🔗 Error setting session:', error);
       throw error;
     }
     
     if (!data.session) {
-      throw new Error('No session returned from code exchange');
+      throw new Error('No session returned from setSession');
     }
     
-    console.log('Successfully exchanged code for session');
-    
-    // Clear the code verifier after use
-    codeVerifier = null;
-    await secureStorage.deleteItem('supabase_code_verifier');
-    
+    console.log('🔗 Successfully set session from tokens');
     return data;
   } catch (error) {
-    console.error('Error in exchangeCodeForSession:', error);
+    console.error('🔗 Error in setSessionFromTokens:', error);
     throw error;
   }
 }
