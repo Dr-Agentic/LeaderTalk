@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+  <title>Franklin D. Roosevelt</title>
+  <defs>
+    <linearGradient id="portrait-gradient-fdr" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6D6027"/>
+      <stop offset="100%" stop-color="#D3CBB8"/>
+    </linearGradient>
+  </defs>
+  <rect width="300" height="300" fill="#f8f9fa" rx="10" ry="10"/>
+  <circle cx="150" cy="120" r="70" fill="url(#portrait-gradient-fdr)"/>
+  <path d="M120,140 C120,140 130,160 150,160 C170,160 180,140 180,140" stroke="#fff" stroke-width="3" fill="none"/>
+  <circle cx="130" cy="110" r="10" fill="#fff"/>
+  <circle cx="170" cy="110" r="10" fill="#fff"/>
+  <!-- FDR's glasses and cigarette holder -->
+  <circle cx="130" cy="110" r="15" stroke="#333" stroke-width="2" fill="none"/>
+  <circle cx="170" cy="110" r="15" stroke="#333" stroke-width="2" fill="none"/>
+  <line x1="145" y1="110" x2="155" y2="110" stroke="#333" stroke-width="2"/>
+  <!-- FDR's cigarette holder -->
+  <line x1="165" y1="160" x2="190" y2="170" stroke="#333" stroke-width="2"/>
+  <rect x="190" y="169" width="15" height="3" fill="#D3CBB8"/>
+</svg>

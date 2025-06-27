@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+  <title>Eleanor Roosevelt</title>
+  <defs>
+    <linearGradient id="portrait-gradient-eleanor" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a8c0ff"/>
+      <stop offset="100%" stop-color="#3f2b96"/>
+    </linearGradient>
+  </defs>
+  <rect width="300" height="300" fill="#f8f9fa" rx="10" ry="10"/>
+  <circle cx="150" cy="120" r="70" fill="url(#portrait-gradient-eleanor)"/>
+  <path d="M120,140 C120,140 130,160 150,160 C170,160 180,140 180,140" stroke="#fff" stroke-width="3" fill="none"/>
+  <circle cx="130" cy="110" r="10" fill="#fff"/>
+  <circle cx="170" cy="110" r="10" fill="#fff"/>
+  <!-- Eleanor's distinctive hairstyle -->
+  <path d="M100,80 C100,60 120,50 150,50 C180,50 200,60 200,80 C200,100 180,110 150,110 C120,110 100,100 100,80 Z" fill="#a8c0ff"/>
+  <!-- Pearl necklace -->
+  <circle cx="140" cy="170" r="3" fill="#fff"/>
+  <circle cx="150" cy="175" r="3" fill="#fff"/>
+  <circle cx="160" cy="170" r="3" fill="#fff"/>
+</svg>

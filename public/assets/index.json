@@ -1,0 +1,31 @@
+{
+  "version": "1.0.0",
+  "structure": {
+    "images": {
+      "brand": {
+        "leadertalk-logo.png": "Main LeaderTalk logo with text",
+        "leadertalk-logo-no-label.png": "LeaderTalk icon without text"
+      },
+      "leaders": {
+        "description": "SVG portraits of leadership figures for inspiration and training"
+      },
+      "icons": {
+        "description": "UI icons and interface elements"
+      }
+    },
+    "audio": {
+      "description": "Audio files for training scenarios and examples"
+    },
+    "videos": {
+      "description": "Video content for training modules"
+    },
+    "documents": {
+      "quotes.json": "Leadership quotes database",
+      "description": "Documentation, guides, and reference materials"
+    }
+  },
+  "usage": {
+    "web": "Direct URL references: /assets/images/brand/leadertalk-logo.png",
+    "expo": "Import statements: import logo from '../public/assets/images/brand/leadertalk-logo.png'"
+  }
+}

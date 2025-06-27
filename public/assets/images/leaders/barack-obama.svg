@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+  <title>Barack Obama</title>
+  <defs>
+    <linearGradient id="portrait-gradient-obama" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#56CCF2"/>
+      <stop offset="100%" stop-color="#2F80ED"/>
+    </linearGradient>
+  </defs>
+  <rect width="300" height="300" fill="#f8f9fa" rx="10" ry="10"/>
+  <circle cx="150" cy="120" r="70" fill="url(#portrait-gradient-obama)"/>
+  <path d="M120,140 C120,140 130,160 150,160 C170,160 180,140 180,140" stroke="#fff" stroke-width="3" fill="none"/>
+  <circle cx="130" cy="110" r="10" fill="#fff"/>
+  <circle cx="170" cy="110" r="10" fill="#fff"/>
+  <!-- Obama's distinctive hair -->
+  <path d="M150,50 C110,50 90,80 90,120 L100,120 C100,90 120,60 150,60 C180,60 200,90 200,120 L210,120 C210,80 190,50 150,50 Z" fill="#333"/>
+  <!-- Obama's ears -->
+  <path d="M90,110 C85,110 80,115 80,120 C80,130 85,140 90,140 C95,140 100,135 100,125 C100,115 95,110 90,110 Z" fill="#d0a080"/>
+  <path d="M210,110 C215,110 220,115 220,120 C220,130 215,140 210,140 C205,140 200,135 200,125 C200,115 205,110 210,110 Z" fill="#d0a080"/>
+  <text x="150" y="230" text-anchor="middle" font-family="Arial, sans-serif" font-weight="bold" font-size="24" fill="#333">Barack Obama</text>
+  <text x="150" y="260" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#666">Inspiring Orator</text>
+</svg>

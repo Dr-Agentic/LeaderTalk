@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <rect width="200" height="200" fill="#f0f5f5"/>
+  <circle cx="100" cy="80" r="40" fill="#d8c9b8"/>
+  <rect x="70" y="45" width="60" height="15" fill="#3e4a5c"/>
+  <circle cx="85" cy="75" r="5" fill="#3e4a5c"/>
+  <circle cx="115" cy="75" r="5" fill="#3e4a5c"/>
+  <path d="M85,95 Q100,100 115,95" fill="none" stroke="#3e4a5c" stroke-width="2"/>
+  <path d="M70,125 Q100,145 130,125" fill="#3e4a5c" stroke="none"/>
+  <rect x="85" y="110" width="30" height="15" rx="2" fill="#3e4a5c"/>
+  <text x="100" y="190" text-anchor="middle" fill="#3e4a5c" font-family="Arial" font-size="12">Franklin D. Roosevelt</text>
+</svg>

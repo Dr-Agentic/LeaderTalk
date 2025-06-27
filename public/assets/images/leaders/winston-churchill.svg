@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+  <title>Winston Churchill</title>
+  <defs>
+    <linearGradient id="portrait-gradient-churchill" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4776E6"/>
+      <stop offset="100%" stop-color="#8E54E9"/>
+    </linearGradient>
+  </defs>
+  <rect width="300" height="300" fill="#f8f9fa" rx="10" ry="10"/>
+  <circle cx="150" cy="120" r="70" fill="url(#portrait-gradient-churchill)"/>
+  <path d="M120,140 C120,140 130,160 150,160 C170,160 180,140 180,140" stroke="#fff" stroke-width="3" fill="none"/>
+  <circle cx="130" cy="110" r="10" fill="#fff"/>
+  <circle cx="170" cy="110" r="10" fill="#fff"/>
+  <!-- Churchill's characteristic features -->
+  <path d="M150,60 C120,60 105,80 100,100 C130,90 170,90 200,100 C195,80 180,60 150,60 Z" fill="#eee"/>
+  <!-- Churchill's signature bowtie -->
+  <path d="M135,170 L120,160 L110,170 L120,180 L135,170 Z" fill="#333"/>
+  <path d="M165,170 L180,160 L190,170 L180,180 L165,170 Z" fill="#333"/>
+  <rect x="135" y="165" width="30" height="10" fill="#333"/>
+  <!-- Churchill's cigar -->
+  <rect x="180" y="145" width="30" height="7" rx="3" ry="3" fill="#8B4513"/>
+  <circle cx="180" cy="148" r="4" fill="#CD853F"/>
+  <path d="M210,148 Q215,145 220,148" stroke="#aaa" stroke-width="2" fill="none" />
+  <text x="150" y="230" text-anchor="middle" font-family="Arial, sans-serif" font-weight="bold" font-size="24" fill="#333">Winston Churchill</text>
+  <text x="150" y="260" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#666">Wartime Leader</text>
+</svg>

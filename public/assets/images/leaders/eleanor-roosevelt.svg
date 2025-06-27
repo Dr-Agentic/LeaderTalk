@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+  <title>Eleanor Roosevelt</title>
+  <defs>
+    <linearGradient id="portrait-gradient-roosevelt" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFD194"/>
+      <stop offset="100%" stop-color="#D1913C"/>
+    </linearGradient>
+  </defs>
+  <rect width="300" height="300" fill="#f8f9fa" rx="10" ry="10"/>
+  <circle cx="150" cy="120" r="70" fill="url(#portrait-gradient-roosevelt)"/>
+  <path d="M120,140 C120,140 130,160 150,160 C170,160 180,140 180,140" stroke="#fff" stroke-width="3" fill="none"/>
+  <circle cx="130" cy="110" r="10" fill="#fff"/>
+  <circle cx="170" cy="110" r="10" fill="#fff"/>
+  <!-- Roosevelt's hair -->
+  <path d="M110,80 C110,50 190,50 190,80 C190,90 200,110 200,120 C200,130 190,120 180,120 C170,120 170,100 150,100 C130,100 130,120 120,120 C110,120 100,130 100,120 C100,110 110,90 110,80 Z" fill="#ccc"/>
+  <!-- Roosevelt's pearl necklace -->
+  <path d="M120,170 C120,170 150,185 180,170" stroke="#fff" stroke-width="4" fill="none" stroke-dasharray="1,6" stroke-linecap="round"/>
+  <text x="150" y="230" text-anchor="middle" font-family="Arial, sans-serif" font-weight="bold" font-size="24" fill="#333">Eleanor Roosevelt</text>
+  <text x="150" y="260" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#666">Human Rights Champion</text>
+</svg>

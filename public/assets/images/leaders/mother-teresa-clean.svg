@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+  <title>Mother Teresa</title>
+  <defs>
+    <linearGradient id="portrait-gradient-teresa" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#EAEAEA"/>
+      <stop offset="100%" stop-color="#DBDBDB"/>
+    </linearGradient>
+  </defs>
+  <rect width="300" height="300" fill="#f8f9fa" rx="10" ry="10"/>
+  <circle cx="150" cy="120" r="70" fill="url(#portrait-gradient-teresa)"/>
+  <path d="M120,140 C120,140 130,160 150,160 C170,160 180,140 180,140" stroke="#333" stroke-width="3" fill="none"/>
+  <circle cx="130" cy="110" r="10" fill="#333"/>
+  <circle cx="170" cy="110" r="10" fill="#333"/>
+  <!-- Mother Teresa's distinctive veil -->
+  <path d="M110,60 L190,60 L190,120 C190,80 150,120 110,120 Z" fill="#fff" stroke="#3366CC" stroke-width="3"/>
+  <path d="M90,90 L110,60 L110,120 L90,120 Z" fill="#fff" stroke="#3366CC" stroke-width="3"/>
+  <path d="M210,90 L190,60 L190,120 L210,120 Z" fill="#fff" stroke="#3366CC" stroke-width="3"/>
+</svg>

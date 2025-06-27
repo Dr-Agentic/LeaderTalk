@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Jamie Dimon SVG -->
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1976D2;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2962FF;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <circle cx="100" cy="100" r="95" fill="white" stroke="url(#grad1)" stroke-width="2"/>
+  
+  <!-- Face -->
+  <ellipse cx="100" cy="85" rx="35" ry="40" fill="#ffe0bd"/>
+  
+  <!-- Hair (salt and pepper style) -->
+  <path d="M60 55 Q 100 30, 140 55" fill="#777"/>
+  <path d="M65 90 Q 65 70, 75 60 L125 60 Q 135 70, 135 90" fill="#777"/>
+  <ellipse cx="83" cy="58" r="3" fill="#ddd"/>
+  <ellipse cx="90" cy="53" r="3" fill="#ddd"/>
+  <ellipse cx="107" cy="50" r="3" fill="#ddd"/>
+  <ellipse cx="117" cy="60" r="3" fill="#ddd"/>
+  
+  <!-- Eyes -->
+  <ellipse cx="85" cy="85" rx="4" ry="3" fill="#333"/>
+  <ellipse cx="115" cy="85" rx="4" ry="3" fill="#333"/>
+  
+  <!-- Eyebrows -->
+  <path d="M80 75 Q 85 73, 90 75" fill="none" stroke="#555" stroke-width="2"/>
+  <path d="M110 75 Q 115 73, 120 75" fill="none" stroke="#555" stroke-width="2"/>
+  
+  <!-- Nose -->
+  <path d="M100 85 L100 100 Q 103 105, 106 100" fill="none" stroke="#999" stroke-width="1.5"/>
+  
+  <!-- Mouth -->
+  <path d="M90 105 L110 105" fill="none" stroke="#555" stroke-width="1.5"/>
+  
+  <!-- Business Suit - darker blue for banking -->
+  <path d="M70 110 Q 100 130, 130 110 L130 170 Q 100 190, 70 170 Z" fill="#0D47A1"/>
+  <path d="M95 110 L105 110 L105 150 L95 150 Z" fill="#fff"/>
+  <path d="M95 140 L105 140" stroke="#0D47A1" stroke-width="1"/>
+  
+  <!-- JP Morgan Chase Symbol/Icon -->
+  <path d="M90 160 L110 160 L110 170 L90 170 Z" fill="#2962FF"/>
+  <path d="M95 160 L95 170 M100 160 L100 170 M105 160 L105 170" stroke="#fff" stroke-width="1"/>
+  
+  <!-- Financial Graph -->
+  <circle cx="80" cy="150" r="8" fill="#fff"/>
+  <path d="M78 150 L82 150 M80 148 L80 152" stroke="#0D47A1" stroke-width="1"/>
+  
+  <circle cx="120" cy="150" r="8" fill="#fff"/>
+  <path d="M118 150 L122 150 M120 148 L120 152" stroke="#0D47A1" stroke-width="1"/>
+</svg>
