@@ -20,6 +20,7 @@ export interface IStorage {
   // Leader operations
   getLeaders(): Promise<Leader[]>;
   getLeader(id: number): Promise<Leader | undefined>;
+  getLeadersByIds(ids: number[]): Promise<Leader[]>;
   createLeader(leader: InsertLeader): Promise<Leader>;
   
   // Recording operations
@@ -151,6 +152,12 @@ export class MemStorage implements IStorage {
 
   async getLeader(id: number): Promise<Leader | undefined> {
     return this.leaders.get(id);
+  }
+
+  async getLeadersByIds(ids: number[]): Promise<Leader[]> {
+    return ids
+      .map(id => this.leaders.get(id))
+      .filter((leader): leader is Leader => leader !== undefined);
   }
 
   async createLeader(leader: InsertLeader): Promise<Leader> {

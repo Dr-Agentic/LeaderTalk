@@ -35,6 +35,33 @@ export function registerUserRoutes(app: Express) {
     }
   });
 
+  // Get current user's selected leaders
+  app.get("/api/users/me/selected-leaders", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session?.userId;
+      if (!userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+      
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      // If user has no selected leaders, return empty array
+      if (!user.selectedLeaders || user.selectedLeaders.length === 0) {
+        return res.json([]);
+      }
+      
+      // Get only the leaders that the user has selected
+      const selectedLeaders = await storage.getLeadersByIds(user.selectedLeaders);
+      res.json(selectedLeaders);
+    } catch (error) {
+      console.error("Error fetching user's selected leaders:", error);
+      res.status(500).json({ error: "Failed to fetch selected leaders" });
+    }
+  });
+
   // Update current user info
   app.patch("/api/users/me", requireAuth, async (req, res) => {
     try {

@@ -7,7 +7,7 @@ import { createClient } from '@supabase/supabase-js';
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
-import { fetchAuthParameters, sendAuthCallback } from './api';
+import { fetchAuthParameters, sendAuthCallback, API_URL } from './api';
 
 // Create a platform-specific storage implementation
 const createStorageAdapter = () => {
@@ -68,7 +68,7 @@ const isDevelopment = Constants.expoConfig?.packagerOpts?.dev === true;
 // URL to redirect back to your app after authentication
 const getRedirectTo = () => {
   if (Platform.OS === 'web') {
-    return 'https://app.leadertalk.app/auth/callback';
+    return `${API_URL}/auth/callback`;
   }
   return 'leadertalk://auth/callback';
 };

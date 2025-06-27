@@ -224,6 +224,10 @@ export default function RootLayout() {
             title: "All Transcripts",
             headerShown: false 
           }} />
+          <Stack.Screen name="transcript/[id]" options={{ 
+            title: "Transcript View",
+            headerShown: false 
+          }} />
           <Stack.Screen name="progress" options={{ 
             title: "Your Progress",
             headerShown: false 

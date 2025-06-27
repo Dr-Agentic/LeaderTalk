@@ -129,14 +129,14 @@ export default function TranscriptView() {
       enabled: !isNaN(recordingId) && !sessionError,
     });
 
-  // Fetch all leaders data
-  const { data: leaders, isLoading: leadersLoading } = useQuery({
-    queryKey: ["/api/leaders"],
+  // Fetch user's selected leaders only (optimized)
+  const { data: selectedLeaders, isLoading: leadersLoading } = useQuery({
+    queryKey: ["/api/users/me/selected-leaders"],
     queryFn: async ({ queryKey }) => {
       // Verify session first
       const isLoggedIn = await checkSession();
       if (!isLoggedIn) {
-        console.error("Session check failed before leaders fetch");
+        console.error("Session check failed before selected leaders fetch");
         navigate("/login");
         throw new Error("Session invalid");
       }
@@ -147,7 +147,7 @@ export default function TranscriptView() {
 
       if (!response.ok) {
         if (response.status === 401) {
-          console.error("Unauthorized response from leaders fetch");
+          console.error("Unauthorized response from selected leaders fetch");
           navigate("/login");
           throw new Error("Unauthorized");
         }
@@ -156,14 +156,8 @@ export default function TranscriptView() {
 
       return await response.json();
     },
-    enabled: !!userData?.selectedLeaders && !sessionError,
+    enabled: !!userData?.selectedLeaders?.length && !sessionError,
   });
-
-  // Filter leaders to only include those selected by the user
-  const selectedLeaders =
-    leaders?.filter((leader: Leader) =>
-      userData?.selectedLeaders?.includes(leader.id),
-    ) || [];
 
   // Set up polling for analysis results if not available yet
   useEffect(() => {
