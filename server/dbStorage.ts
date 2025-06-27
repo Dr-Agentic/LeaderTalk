@@ -24,7 +24,7 @@ import {
   UpdateSubscriptionPlan,
   AnalysisResult,
 } from "@shared/schema";
-import { eq, and, desc, sql, gte, lte, isNotNull, asc } from "drizzle-orm";
+import { eq, and, desc, sql, gte, lte, isNotNull, asc, inArray } from "drizzle-orm";
 import { IStorage } from "./storage";
 
 // Helper functions for billing cycle management
@@ -125,6 +125,17 @@ export class DatabaseStorage implements IStorage {
   async getLeader(id: number): Promise<Leader | undefined> {
     const result = await db.select().from(leaders).where(eq(leaders.id, id));
     return result[0];
+  }
+
+  async getLeadersByIds(ids: number[]): Promise<Leader[]> {
+    if (ids.length === 0) return [];
+    
+    const result = await db
+      .select()
+      .from(leaders)
+      .where(inArray(leaders.id, ids));
+    
+    return result;
   }
 
   async createLeader(leader: InsertLeader): Promise<Leader> {
