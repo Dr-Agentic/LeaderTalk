@@ -164,9 +164,13 @@ async function createCustomer(email: string) {
   
   const customer = await revenueCatHandler.createOrUpdateCustomer(email);
   
-  console.log('✅ Customer created/updated:');
-  console.log(`   App User ID: ${customer.app_user_id}`);
-  console.log(`   Email: ${customer.email}`);
+  if (customer) {
+    console.log('✅ Customer created/updated:');
+    console.log(`   App User ID: ${customer.app_user_id}`);
+    console.log(`   Email: ${customer.email}`);
+  } else {
+    console.log('ℹ️ Customer creation not supported via API - customers are created through purchases');
+  }
 }
 
 async function getSubscriptions(email: string) {

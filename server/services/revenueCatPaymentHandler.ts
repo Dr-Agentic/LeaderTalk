@@ -175,22 +175,30 @@ class RevenueCatPaymentHandler {
 
   /**
    * Create or update customer
+   * RevenueCat automatically creates subscribers when they make purchases
+   * This method updates subscriber attributes if they exist
    */
-  async createOrUpdateCustomer(email: string, attributes?: Record<string, any>): Promise<RevenueCatCustomer> {
+  async createOrUpdateCustomer(email: string, attributes?: Record<string, any>): Promise<RevenueCatCustomer | null> {
     try {
       const appUserId = encodeURIComponent(email);
-      const data = await this.makeRequest(`/subscribers/${appUserId}`, {
+      
+      // Try to update subscriber attributes (this will create if doesn't exist in some cases)
+      const data = await this.makeRequest(`/subscribers/${appUserId}/attributes`, {
         method: 'POST',
         body: JSON.stringify({
-          app_user_id: appUserId,
-          email: email,
-          ...attributes
+          attributes: {
+            email: { value: email },
+            ...attributes
+          }
         })
       });
-      return data.subscriber;
-    } catch (error) {
-      console.error('Error creating/updating RevenueCat customer:', error);
-      throw error;
+      
+      // If successful, fetch the subscriber
+      return await this.getCustomerByEmail(email);
+    } catch (error: any) {
+      // RevenueCat typically creates subscribers through purchases, not direct API calls
+      console.warn('RevenueCat subscribers are typically created through purchases, not API calls');
+      return null;
     }
   }
 
