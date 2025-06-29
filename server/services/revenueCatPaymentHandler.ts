@@ -347,16 +347,18 @@ class RevenueCatPaymentHandler {
    * Retrieve user subscription with default creation logic
    */
   async retrieveUserSubscription(email: string): Promise<MobileSubscriptionData> {
+    const appUserId = this._emailToAppUserId(email);
+    
     // Try to get existing customer
-    let customer = await this.getCustomer(email);
+    let customer = await this.getCustomer(appUserId);
     
     if (!customer) {
       // Create customer if doesn't exist
-      customer = await this.createCustomer(email);
+      customer = await this.createCustomer(appUserId);
     }
     
     // Get subscriptions and check for active ones
-    const subscriptions = await this.getCustomerSubscriptions(email);
+    const subscriptions = await this.getCustomerSubscriptions(appUserId);
     const activeSubscriptions = Object.values(subscriptions).filter(sub => {
       const expiresDate = new Date(sub.expires_date);
       return expiresDate > new Date();
@@ -371,7 +373,7 @@ class RevenueCatPaymentHandler {
     }
     
     // Return existing subscription
-    const entitlements = await this.getCustomerEntitlements(email);
+    const entitlements = await this.getCustomerEntitlements(appUserId);
     return this._mapToMobileSubscriptionData(activeSubscriptions[0], entitlements, email);
   }
 
@@ -422,6 +424,13 @@ class RevenueCatPaymentHandler {
       entitlements: {},
       customerId: email
     };
+  }
+
+  /**
+   * Convert email to valid RevenueCat app user ID
+   */
+  private _emailToAppUserId(email: string): string {
+    return email.replace(/[^0-9a-zA-Z_-]/g, '_');
   }
 
   /**
