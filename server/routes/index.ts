@@ -9,6 +9,7 @@ import { registerTrainingRoutes } from "./training";
 import { registerAdminRoutes } from "./admin";
 import { registerDebugRoutes } from "./debug";
 import { registerUsageRoutes } from "./usage";
+import { registerMobileBillingRoutes } from "./mobile-billing";
 
 /**
  * Register all route modules with the Express app
@@ -31,6 +32,9 @@ export function registerAllRoutes(app: Express) {
   
   // Clean billing API routes
   registerBillingRoutes(app);
+  
+  // Mobile billing API routes
+  registerMobileBillingRoutes(app);
   
   // Usage tracking routes
   registerUsageRoutes(app);
