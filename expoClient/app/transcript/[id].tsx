@@ -17,7 +17,7 @@ import { GlassCard } from '../../src/components/ui/GlassCard';
 import { Button } from '../../src/components/ui/Button';
 import { ThemedText } from '../../src/components/ThemedText';
 import CommunicationChart from '../../src/components/charts/CommunicationChart';
-import { apiRequest } from '../../src/lib/apiClient';
+import { apiRequest } from '../../src/lib/apiService';
 
 // Types
 interface AnalysisInstance {

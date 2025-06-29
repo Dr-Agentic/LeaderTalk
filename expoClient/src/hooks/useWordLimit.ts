@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { apiRequest } from '../lib/apiClient';
+import { apiRequest } from '../lib/apiService';
 
 export interface WordUsageData {
   currentUsage?: number;

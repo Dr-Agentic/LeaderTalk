@@ -6,7 +6,7 @@ import { ThemedText } from '../src/components/ThemedText';
 import { AnimatedBackground } from '../src/components/ui/AnimatedBackground';
 
 // Set this to true to force logout on app start (useful for testing)
-const FORCE_LOGOUT_ON_START = true;
+const FORCE_LOGOUT_ON_START = false;
 
 export default function IndexScreen() {
   const [isChecking, setIsChecking] = useState(true);

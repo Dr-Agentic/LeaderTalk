@@ -26,7 +26,7 @@ import { AnimatedBackground } from '../src/components/ui/AnimatedBackground';
 
 import { useRecording } from '../src/hooks/useRecording';
 import { useWordLimit } from '../src/hooks/useWordLimit';
-import { apiRequest, uploadFile } from '../src/lib/apiClient';
+import { apiRequest, uploadFile } from '../src/lib/apiService';
 
 const { width: screenWidth } = Dimensions.get('window');
 const MAX_RECORDING_TIME = 50 * 60; // 50 minutes in seconds

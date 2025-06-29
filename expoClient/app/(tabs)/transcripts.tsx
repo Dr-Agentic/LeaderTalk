@@ -21,7 +21,7 @@ import { Picker } from '../../src/components/ui/Picker';
 import { TabView } from '../../src/components/ui/TabView';
 import { Badge } from '../../src/components/ui/Badge';
 import { ThemedText } from '../../src/components/ThemedText';
-import { apiRequest } from '../../src/lib/apiClient';
+import { apiRequest } from '../../src/lib/apiService';
 
 type SortOption = 'date-desc' | 'date-asc' | 'rating-desc' | 'rating-asc';
 

@@ -17,8 +17,7 @@ import { AppLayout } from '../src/components/navigation/AppLayout';
 import { GlassCard } from '../src/components/ui/GlassCard';
 import { Button } from '../src/components/ui/Button';
 import { ThemedText } from '../src/components/ThemedText';
-import { apiRequest } from '../src/lib/apiClient';
-import { queryClient } from '../src/lib/queryClient';
+import { apiRequest, queryClient } from '../src/lib/apiService';
 
 const { width } = Dimensions.get('window');
 

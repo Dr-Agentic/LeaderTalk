@@ -185,7 +185,7 @@ export default function LoginScreen() {
                   {/* Deep Link Test Button */}
                   <Button
                     title="Test Deep Linking"
-                    onPress={() => router.push('/deep-link-test')}
+
                     variant="secondary"
                     size="medium"
                     style={styles.deepLinkButton}
