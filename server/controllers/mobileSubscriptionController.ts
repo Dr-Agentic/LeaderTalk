@@ -56,8 +56,8 @@ async function ensureMobileUserHasValidSubscription(userId: number): Promise<Mob
     throw new Error("User email required for mobile subscription");
   }
 
-  // Check if customer exists in RevenueCat
-  let customer = await revenueCatHandler.getCustomerByEmail(email);
+  // Check if customer exists in RevenueCat (using email as app_user_id)
+  let customer = await revenueCatHandler.getCustomer(email);
   
   if (!customer) {
     // Customer doesn't exist - they need to make a purchase through mobile app

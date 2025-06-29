@@ -217,14 +217,13 @@ class RevenueCatPaymentHandler {
   }
 
   /**
-   * Get customer by app user ID (email-based)
+   * Get customer by app user ID using V2 API
    */
-  async getCustomerByEmail(email: string): Promise<RevenueCatCustomer | null> {
+  async getCustomer(appUserId: string): Promise<RevenueCatCustomer | null> {
     try {
-      // Use email as app_user_id for consistency
-      const appUserId = encodeURIComponent(email);
-      const data = await this.makeRequest(`/subscribers/${appUserId}`);
-      return data.subscriber || null;
+      const projectId = process.env.REVENUECAT_PROJECT_ID || 'proj209f9e71';
+      const data = await this.makeRequest(`/projects/${projectId}/customers/${encodeURIComponent(appUserId)}`);
+      return data;
     } catch (error: any) {
       if (error?.message?.includes('404')) {
         return null; // Customer doesn't exist
@@ -235,41 +234,25 @@ class RevenueCatPaymentHandler {
   }
 
   /**
-   * Create or update customer
-   * RevenueCat automatically creates subscribers when they make purchases
-   * This method updates subscriber attributes if they exist
+   * Get customer by email (legacy - requires email as app_user_id)
    */
-  async createOrUpdateCustomer(email: string, attributes?: Record<string, any>): Promise<RevenueCatCustomer | null> {
-    try {
-      const appUserId = encodeURIComponent(email);
-      
-      // Try to update subscriber attributes (this will create if doesn't exist in some cases)
-      const data = await this.makeRequest(`/subscribers/${appUserId}/attributes`, {
-        method: 'POST',
-        body: JSON.stringify({
-          attributes: {
-            email: { value: email },
-            ...attributes
-          }
-        })
-      });
-      
-      // If successful, fetch the subscriber
-      return await this.getCustomerByEmail(email);
-    } catch (error: any) {
-      // RevenueCat typically creates subscribers through purchases, not direct API calls
-      console.warn('RevenueCat subscribers are typically created through purchases, not API calls');
-      return null;
-    }
+  async getCustomerByEmail(email: string): Promise<RevenueCatCustomer | null> {
+    return this.getCustomer(email);
   }
 
+
+
   /**
-   * Get customer's active subscriptions
+   * Get customer's active subscriptions using V2 API
    */
-  async getCustomerSubscriptions(email: string): Promise<Record<string, RevenueCatSubscription>> {
+  async getCustomerSubscriptions(appUserId: string): Promise<Record<string, RevenueCatSubscription>> {
     try {
-      const customer = await this.getCustomerByEmail(email);
-      return customer?.subscriptions || {};
+      const projectId = process.env.REVENUECAT_PROJECT_ID || 'proj209f9e71';
+      const data = await this.makeRequest(`/projects/${projectId}/customers/${encodeURIComponent(appUserId)}/subscriptions`);
+      return data.items?.reduce((acc: any, sub: any) => {
+        acc[sub.id] = sub;
+        return acc;
+      }, {}) || {};
     } catch (error) {
       console.error('Error fetching customer subscriptions:', error);
       throw error;
@@ -277,12 +260,16 @@ class RevenueCatPaymentHandler {
   }
 
   /**
-   * Get customer's entitlements
+   * Get customer's entitlements using V2 API
    */
-  async getCustomerEntitlements(email: string): Promise<Record<string, RevenueCatEntitlement>> {
+  async getCustomerEntitlements(appUserId: string): Promise<Record<string, RevenueCatEntitlement>> {
     try {
-      const customer = await this.getCustomerByEmail(email);
-      return customer?.entitlements || {};
+      const projectId = process.env.REVENUECAT_PROJECT_ID || 'proj209f9e71';
+      const data = await this.makeRequest(`/projects/${projectId}/customers/${encodeURIComponent(appUserId)}/active_entitlements`);
+      return data.items?.reduce((acc: any, ent: any) => {
+        acc[ent.entitlement_id] = ent;
+        return acc;
+      }, {}) || {};
     } catch (error) {
       console.error('Error fetching customer entitlements:', error);
       throw error;
@@ -292,9 +279,9 @@ class RevenueCatPaymentHandler {
   /**
    * Check if customer has active subscription
    */
-  async hasActiveSubscription(email: string): Promise<boolean> {
+  async hasActiveSubscription(appUserId: string): Promise<boolean> {
     try {
-      const subscriptions = await this.getCustomerSubscriptions(email);
+      const subscriptions = await this.getCustomerSubscriptions(appUserId);
       const now = new Date();
       
       return Object.values(subscriptions).some(sub => {
@@ -308,30 +295,15 @@ class RevenueCatPaymentHandler {
   }
 
   /**
-   * Get pending subscription changes (scheduled)
+   * Grant promotional entitlement using V2 API
    */
-  async getPendingSubscriptions(email: string): Promise<any[]> {
+  async grantPromoEntitlement(appUserId: string, entitlementId: string, duration?: string): Promise<void> {
     try {
-      // RevenueCat doesn't have a direct "pending subscriptions" endpoint
-      // This would typically be handled by checking subscription modifications
-      // For now, return empty array - will implement based on specific RC features
-      return [];
-    } catch (error) {
-      console.error('Error fetching pending subscriptions:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Grant promotional entitlement
-   */
-  async grantPromoEntitlement(email: string, entitlementId: string, duration?: string): Promise<void> {
-    try {
-      const appUserId = encodeURIComponent(email);
-      await this.makeRequest(`/subscribers/${appUserId}/entitlements/${entitlementId}/promotional`, {
+      const projectId = process.env.REVENUECAT_PROJECT_ID || 'proj209f9e71';
+      await this.makeRequest(`/projects/${projectId}/customers/${encodeURIComponent(appUserId)}/entitlements/${entitlementId}/promotional_grant`, {
         method: 'POST',
         body: JSON.stringify({
-          duration: duration || 'P1M' // Default to 1 month
+          duration: duration || 'P1M'
         })
       });
     } catch (error) {
