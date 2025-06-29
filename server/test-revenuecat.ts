@@ -33,12 +33,24 @@ async function main() {
         await getOfferings();
         break;
 
+      case 'get-products':
+        await getProducts();
+        break;
+
       case 'get-product':
         if (!args[0]) {
           console.error('❌ Product ID required');
           process.exit(1);
         }
         await getProduct(args[0]);
+        break;
+
+      case 'get-all-packages':
+        await getAllPackages();
+        break;
+
+      case 'get-project-entitlements':
+        await getProjectEntitlements();
         break;
 
       case 'get-customer':
@@ -119,12 +131,62 @@ async function getOfferings() {
   console.log(`Found ${offerings.length} offerings:`);
   offerings.forEach((offering, index) => {
     console.log(`\n${index + 1}. ${offering.identifier}`);
-    console.log(`   Description: ${offering.description}`);
-    console.log(`   Packages: ${offering.packages.length}`);
+    console.log(`   Description: ${offering.description || 'No description'}`);
+    console.log(`   Packages: ${offering.packages?.length || 0}`);
     
-    offering.packages.forEach((pkg, pkgIndex) => {
-      console.log(`     ${pkgIndex + 1}. ${pkg.identifier} (${pkg.platform_product_identifier})`);
-    });
+    if (offering.packages) {
+      offering.packages.forEach((pkg, pkgIndex) => {
+        console.log(`     ${pkgIndex + 1}. ${pkg.identifier} (${pkg.platform_product_identifier})`);
+      });
+    }
+
+    if (offering.metadata) {
+      console.log(`   Metadata: ${JSON.stringify(offering.metadata)}`);
+    }
+  });
+}
+
+async function getProducts() {
+  console.log('🛍️ Fetching RevenueCat products...');
+  
+  const products = await revenueCatHandler.getProducts();
+  
+  console.log(`Found ${products.length} products:`);
+  products.forEach((product, index) => {
+    console.log(`\n${index + 1}. ${product.identifier}`);
+    console.log(`   Display Name: ${product.display_name}`);
+    console.log(`   Category: ${product.category}`);
+    
+    if (product.subscription) {
+      console.log(`   Subscription: ${product.subscription.period} ${product.subscription.period_unit}`);
+    }
+    
+    if (product.trial_duration) {
+      console.log(`   Trial Duration: ${product.trial_duration}`);
+    }
+  });
+}
+
+async function getAllPackages() {
+  console.log('📦 Fetching all RevenueCat packages...');
+  
+  const packages = await revenueCatHandler.getAllPackages();
+  
+  console.log(`Found ${packages.length} packages:`);
+  packages.forEach((pkg, index) => {
+    console.log(`\n${index + 1}. ${pkg.identifier}`);
+    console.log(`   Platform Product ID: ${pkg.platform_product_identifier}`);
+  });
+}
+
+async function getProjectEntitlements() {
+  console.log('🎟️ Fetching project entitlements...');
+  
+  const entitlements = await revenueCatHandler.getProjectEntitlements();
+  
+  console.log(`Found ${entitlements.length} entitlements:`);
+  entitlements.forEach((entitlement, index) => {
+    console.log(`\n${index + 1}. ${JSON.stringify(entitlement, null, 2)}`);
   });
 }
 
@@ -248,17 +310,21 @@ function showUsage() {
   console.log('\nAvailable commands:');
   console.log('  test-connection                    - Test API connectivity');
   console.log('  get-offerings                      - Fetch all offerings');
+  console.log('  get-products                       - Fetch all products');
   console.log('  get-product <productId>            - Get product details');
+  console.log('  get-all-packages                   - Fetch all packages');
+  console.log('  get-package <offeringId> <packageId> - Get specific package');
+  console.log('  get-project-entitlements           - Fetch project entitlements');
   console.log('  get-customer <email>               - Get customer by email');
   console.log('  create-customer <email>            - Create new customer');
   console.log('  get-subscriptions <email>          - Get customer subscriptions');
   console.log('  get-entitlements <email>           - Get customer entitlements');
   console.log('  check-active <email>               - Check active subscription');
-  console.log('  get-package <offeringId> <packageId> - Get specific package');
   console.log('\nExamples:');
   console.log('  tsx server/test-revenuecat.ts test-connection');
-  console.log('  tsx server/test-revenuecat.ts get-customer user@example.com');
   console.log('  tsx server/test-revenuecat.ts get-offerings');
+  console.log('  tsx server/test-revenuecat.ts get-products');
+  console.log('  tsx server/test-revenuecat.ts get-customer user@example.com');
 }
 
 // Handle process termination gracefully

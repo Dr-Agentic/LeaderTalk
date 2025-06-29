@@ -110,18 +110,37 @@ class RevenueCatPaymentHandler {
   }
 
   /**
-   * Get current offerings (products and packages)
-   * RevenueCat REST API doesn't have a direct offerings endpoint
-   * This would typically be handled by the mobile SDK
+   * Get current offerings from RevenueCat
+   * Uses the projects/{project_id}/offerings endpoint
    */
   async getOfferings(): Promise<RevenueCatOffering[]> {
     try {
-      // RevenueCat REST API doesn't expose offerings directly
-      // Offerings are typically configured in the dashboard and fetched by mobile SDKs
-      console.warn('⚠️ Offerings are not available via REST API - use mobile SDK');
-      return [];
+      const projectId = process.env.REVENUECAT_PROJECT_ID || 'proj209f9e71';
+      const data = await this.makeRequest(`/projects/${projectId}/offerings`);
+      return data.items || [];
     } catch (error) {
       console.error('Error fetching RevenueCat offerings:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get all packages from all offerings
+   */
+  async getAllPackages(): Promise<RevenueCatPackage[]> {
+    try {
+      const offerings = await this.getOfferings();
+      const packages: RevenueCatPackage[] = [];
+      
+      offerings.forEach(offering => {
+        if (offering.packages) {
+          packages.push(...offering.packages);
+        }
+      });
+      
+      return packages;
+    } catch (error) {
+      console.error('Error fetching RevenueCat packages:', error);
       throw error;
     }
   }
@@ -135,9 +154,37 @@ class RevenueCatPaymentHandler {
       const offering = offerings.find(o => o.identifier === offeringId);
       if (!offering) return null;
       
-      return offering.packages.find(p => p.identifier === packageId) || null;
+      return offering.packages?.find(p => p.identifier === packageId) || null;
     } catch (error) {
       console.error('Error fetching RevenueCat package:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get entitlements from project configuration
+   */
+  async getProjectEntitlements(): Promise<Record<string, any>[]> {
+    try {
+      const projectId = process.env.REVENUECAT_PROJECT_ID || 'proj209f9e71';
+      const data = await this.makeRequest(`/projects/${projectId}/entitlements`);
+      return data.items || [];
+    } catch (error) {
+      console.error('Error fetching project entitlements:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get products from RevenueCat project
+   */
+  async getProducts(): Promise<RevenueCatProduct[]> {
+    try {
+      const projectId = process.env.REVENUECAT_PROJECT_ID || 'proj209f9e71';
+      const data = await this.makeRequest(`/projects/${projectId}/products`);
+      return data.items || [];
+    } catch (error) {
+      console.error('Error fetching RevenueCat products:', error);
       throw error;
     }
   }
@@ -147,11 +194,15 @@ class RevenueCatPaymentHandler {
    */
   async getProduct(productId: string): Promise<RevenueCatProduct | null> {
     try {
-      const data = await this.makeRequest(`/products/${productId}`);
-      return data.product || null;
-    } catch (error) {
+      const projectId = process.env.REVENUECAT_PROJECT_ID || 'proj209f9e71';
+      const data = await this.makeRequest(`/projects/${projectId}/products/${productId}`);
+      return data || null;
+    } catch (error: any) {
+      if (error?.message?.includes('404')) {
+        return null;
+      }
       console.error('Error fetching RevenueCat product:', error);
-      return null;
+      throw error;
     }
   }
 
