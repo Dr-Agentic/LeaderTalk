@@ -142,7 +142,10 @@ class RevenueCatPaymentHandler {
    */
   async getOfferings(): Promise<RevenueCatOffering[]> {
     try {
-      const projectId = process.env.REVENUECAT_PROJECT_ID || 'proj209f9e71';
+      const projectId = process.env.REVENUECAT_PROJECT_ID;
+      if (!projectId) {
+        throw new Error('REVENUECAT_PROJECT_ID environment variable is required');
+      }
       const data = await this.makeRequest(`/projects/${projectId}/offerings`);
       return data.items || [];
     } catch (error) {
@@ -207,7 +210,10 @@ class RevenueCatPaymentHandler {
    */
   async getProducts(): Promise<RevenueCatProduct[]> {
     try {
-      const projectId = process.env.REVENUECAT_PROJECT_ID || 'proj209f9e71';
+      const projectId = process.env.REVENUECAT_PROJECT_ID;
+      if (!projectId) {
+        throw new Error('REVENUECAT_PROJECT_ID environment variable is required');
+      }
       const data = await this.makeRequest(`/projects/${projectId}/products`);
       return data.items || [];
     } catch (error) {
@@ -238,7 +244,10 @@ class RevenueCatPaymentHandler {
    */
   async getCustomer(appUserId: string): Promise<RevenueCatCustomer | null> {
     try {
-      const projectId = process.env.REVENUECAT_PROJECT_ID || 'proj209f9e71';
+      const projectId = process.env.REVENUECAT_PROJECT_ID;
+      if (!projectId) {
+        throw new Error('REVENUECAT_PROJECT_ID environment variable is required');
+      }
       const data = await this.makeRequest(`/projects/${projectId}/customers/${encodeURIComponent(appUserId)}`);
       return data;
     } catch (error: any) {
@@ -261,7 +270,10 @@ class RevenueCatPaymentHandler {
    * Create customer by app user ID using V2 API
    */
   async createCustomer(appUserId: string): Promise<RevenueCatCustomer> {
-    const projectId = process.env.REVENUECAT_PROJECT_ID || 'proj209f9e71';
+    const projectId = process.env.REVENUECAT_PROJECT_ID;
+    if (!projectId) {
+      throw new Error('REVENUECAT_PROJECT_ID environment variable is required');
+    }
     const data = await this.makeRequest(`/projects/${projectId}/customers`, {
       method: 'POST',
       body: JSON.stringify({
@@ -278,7 +290,10 @@ class RevenueCatPaymentHandler {
    */
   async getCustomerSubscriptions(appUserId: string): Promise<Record<string, RevenueCatSubscription>> {
     try {
-      const projectId = process.env.REVENUECAT_PROJECT_ID || 'proj209f9e71';
+      const projectId = process.env.REVENUECAT_PROJECT_ID;
+      if (!projectId) {
+        throw new Error('REVENUECAT_PROJECT_ID environment variable is required');
+      }
       const data = await this.makeRequest(`/projects/${projectId}/customers/${encodeURIComponent(appUserId)}/subscriptions`);
       return data.items?.reduce((acc: any, sub: any) => {
         acc[sub.id] = sub;
@@ -295,7 +310,10 @@ class RevenueCatPaymentHandler {
    */
   async getCustomerEntitlements(appUserId: string): Promise<Record<string, RevenueCatEntitlement>> {
     try {
-      const projectId = process.env.REVENUECAT_PROJECT_ID || 'proj209f9e71';
+      const projectId = process.env.REVENUECAT_PROJECT_ID;
+      if (!projectId) {
+        throw new Error('REVENUECAT_PROJECT_ID environment variable is required');
+      }
       const data = await this.makeRequest(`/projects/${projectId}/customers/${encodeURIComponent(appUserId)}/active_entitlements`);
       return data.items?.reduce((acc: any, ent: any) => {
         acc[ent.entitlement_id] = ent;
@@ -330,7 +348,10 @@ class RevenueCatPaymentHandler {
    */
   async grantPromoEntitlement(appUserId: string, entitlementId: string, duration?: string): Promise<void> {
     try {
-      const projectId = process.env.REVENUECAT_PROJECT_ID || 'proj209f9e71';
+      const projectId = process.env.REVENUECAT_PROJECT_ID;
+      if (!projectId) {
+        throw new Error('REVENUECAT_PROJECT_ID environment variable is required');
+      }
       await this.makeRequest(`/projects/${projectId}/customers/${encodeURIComponent(appUserId)}/entitlements/${entitlementId}/promotional_grant`, {
         method: 'POST',
         body: JSON.stringify({
@@ -382,7 +403,10 @@ class RevenueCatPaymentHandler {
    */
   async testConnection(): Promise<boolean> {
     try {
-      const projectId = process.env.REVENUECAT_PROJECT_ID || 'proj209f9e71';
+      const projectId = process.env.REVENUECAT_PROJECT_ID;
+      if (!projectId) {
+        throw new Error('REVENUECAT_PROJECT_ID environment variable is required');
+      }
       await this.makeRequest(`/projects/${projectId}/offerings`);
       return true;
     } catch (error: any) {
