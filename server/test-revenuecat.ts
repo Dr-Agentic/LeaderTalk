@@ -101,6 +101,14 @@ async function main() {
         await getPackage(args[0], args[1]);
         break;
 
+      case 'retrieve-user-subscription':
+        if (!args[0]) {
+          console.error('❌ Email required');
+          process.exit(1);
+        }
+        await retrieveUserSubscription(args[0]);
+        break;
+
       default:
         showUsage();
         break;
@@ -311,6 +319,18 @@ async function getPackage(offeringId: string, packageId: string) {
     console.log(JSON.stringify(pkg, null, 2));
   } else {
     console.log('❌ Package not found');
+  }
+}
+
+async function retrieveUserSubscription(email: string) {
+  console.log(`🔍 Retrieving subscription for: ${email}`);
+  
+  try {
+    const subscription = await revenueCatHandler.retrieveUserSubscription(email);
+    console.log('✅ Subscription retrieved:');
+    console.log(JSON.stringify(subscription, null, 2));
+  } catch (error: any) {
+    console.error('❌ Error retrieving subscription:', error.message);
   }
 }
 

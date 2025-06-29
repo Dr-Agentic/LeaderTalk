@@ -10,6 +10,23 @@ interface RevenueCatConfig {
   baseUrl: string;
 }
 
+interface MobileSubscriptionData {
+  id: string;
+  status: string;
+  plan: string;
+  planId: string;
+  productId: string;
+  isFree: boolean;
+  startDate: Date;
+  currentPeriodStart: Date;
+  currentPeriodEnd: Date;
+  nextRenewalDate: Date;
+  cancelAtPeriodEnd: boolean;
+  store: string;
+  entitlements: Record<string, any>;
+  customerId: string;
+}
+
 interface RevenueCatCustomer {
   app_user_id: string;
   email?: string;
@@ -327,21 +344,113 @@ class RevenueCatPaymentHandler {
   }
 
   /**
+   * Retrieve user subscription with default creation logic
+   */
+  async retrieveUserSubscription(email: string): Promise<MobileSubscriptionData> {
+    // Try to get existing customer
+    let customer = await this.getCustomer(email);
+    
+    if (!customer) {
+      // Create customer if doesn't exist
+      customer = await this.createCustomer(email);
+    }
+    
+    // Get subscriptions and check for active ones
+    const subscriptions = await this.getCustomerSubscriptions(email);
+    const activeSubscriptions = Object.values(subscriptions).filter(sub => {
+      const expiresDate = new Date(sub.expires_date);
+      return expiresDate > new Date();
+    });
+    
+    if (activeSubscriptions.length === 0) {
+      // No active subscription - create default
+      const defaultOffering = await this._findDefaultOffering();
+      if (defaultOffering) {
+        return await this._createDefaultSubscription(email, defaultOffering);
+      }
+    }
+    
+    // Return existing subscription
+    const entitlements = await this.getCustomerEntitlements(email);
+    return this._mapToMobileSubscriptionData(activeSubscriptions[0], entitlements, email);
+  }
+
+  /**
    * Test connection to RevenueCat API
    */
   async testConnection(): Promise<boolean> {
     try {
-      // Test with a simple subscriber lookup that should return 404 for non-existent user
-      await this.makeRequest('/subscribers/test-connection-check');
+      const projectId = process.env.REVENUECAT_PROJECT_ID || 'proj209f9e71';
+      await this.makeRequest(`/projects/${projectId}/offerings`);
       return true;
     } catch (error: any) {
-      // 404 is expected for non-existent subscriber - this means API is working
-      if (error?.message?.includes('404')) {
-        return true;
-      }
       console.error('RevenueCat connection test failed:', error);
       return false;
     }
+  }
+  /**
+   * Find offering with default_subscription metadata
+   */
+  private async _findDefaultOffering(): Promise<RevenueCatOffering | null> {
+    const offerings = await this.getOfferings();
+    return offerings.find(offering => 
+      offering.metadata?.default_subscription === 'true' || 
+      offering.metadata?.default_subscription === true
+    ) || null;
+  }
+
+  /**
+   * Create default subscription structure
+   */
+  private async _createDefaultSubscription(email: string, offering: RevenueCatOffering): Promise<MobileSubscriptionData> {
+    const now = new Date();
+    const oneYearFromNow = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
+
+    return {
+      id: `default_${offering.id}`,
+      status: 'active',
+      plan: offering.display_name,
+      planId: offering.lookup_key || offering.id,
+      productId: offering.id,
+      isFree: true,
+      startDate: now,
+      currentPeriodStart: now,
+      currentPeriodEnd: oneYearFromNow,
+      nextRenewalDate: oneYearFromNow,
+      cancelAtPeriodEnd: false,
+      store: 'default',
+      entitlements: {},
+      customerId: email
+    };
+  }
+
+  /**
+   * Map RevenueCat subscription to mobile subscription data
+   */
+  private _mapToMobileSubscriptionData(
+    subscription: RevenueCatSubscription,
+    entitlements: Record<string, RevenueCatEntitlement>,
+    customerId: string
+  ): MobileSubscriptionData {
+    const expiresDate = new Date(subscription.expires_date);
+    const purchaseDate = new Date(subscription.purchase_date);
+    
+    return {
+      id: subscription.product_identifier,
+      status: expiresDate > new Date() ? 'active' : 'expired',
+      plan: subscription.product_identifier,
+      planId: subscription.product_identifier,
+      productId: subscription.product_identifier,
+      isFree: false,
+      startDate: purchaseDate,
+      currentPeriodStart: purchaseDate,
+      currentPeriodEnd: expiresDate,
+      nextRenewalDate: expiresDate,
+      cancelAtPeriodEnd: subscription.unsubscribe_detected_at !== undefined,
+      store: subscription.store,
+      entitlements,
+      customerId
+    };
   }
 }
 

@@ -43,7 +43,7 @@ async function validateUserAccess(req: Request): Promise<{ userId: number; user:
 }
 
 /**
- * Ensure user has valid mobile subscription, create LeaderTalk Starter if missing
+ * Ensure user has valid mobile subscription, create default if missing
  */
 async function ensureMobileUserHasValidSubscription(userId: number): Promise<MobileSubscriptionData> {
   const user = await storage.getUser(userId);
@@ -51,38 +51,11 @@ async function ensureMobileUserHasValidSubscription(userId: number): Promise<Mob
     throw new Error(`User not found: ${userId}`);
   }
 
-  const email = user.email;
-  if (!email) {
+  if (!user.email) {
     throw new Error("User email required for mobile subscription");
   }
 
-  // Check if customer exists in RevenueCat (using email as app_user_id)
-  let customer = await revenueCatHandler.getCustomer(email);
-  
-  if (!customer) {
-    // Customer doesn't exist - they need to make a purchase through mobile app
-    // Return default starter subscription structure
-    return createDefaultMobileSubscription(email);
-  }
-
-  // Get customer's active subscriptions
-  const subscriptions = await revenueCatHandler.getCustomerSubscriptions(email);
-  const entitlements = await revenueCatHandler.getCustomerEntitlements(email);
-
-  // Find active subscription
-  const activeSubscriptions = Object.values(subscriptions).filter(sub => {
-    const expiresDate = new Date(sub.expires_date);
-    return expiresDate > new Date();
-  });
-
-  if (activeSubscriptions.length === 0) {
-    // No active subscription - return starter
-    return createDefaultMobileSubscription(email);
-  }
-
-  // Return the most recent active subscription
-  const subscription = activeSubscriptions[0];
-  return mapRevenueCatSubscriptionToMobileData(subscription, entitlements, customer.app_user_id);
+  return await revenueCatHandler.retrieveUserSubscription(user.email);
 }
 
 /**
