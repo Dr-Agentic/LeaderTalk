@@ -196,7 +196,10 @@ class RevenueCatPaymentHandler {
    */
   async getProjectEntitlements(): Promise<Record<string, any>[]> {
     try {
-      const projectId = process.env.REVENUECAT_PROJECT_ID || 'proj209f9e71';
+      const projectId = process.env.REVENUECAT_PROJECT_ID;
+      if (!projectId) {
+        throw new Error('REVENUECAT_PROJECT_ID environment variable is required');
+      }
       const data = await this.makeRequest(`/projects/${projectId}/entitlements`);
       return data.items || [];
     } catch (error) {
