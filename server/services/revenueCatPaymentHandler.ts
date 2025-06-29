@@ -313,11 +313,10 @@ class RevenueCatPaymentHandler {
    */
   async getCustomerEntitlements(appUserId: string): Promise<Record<string, RevenueCatEntitlement>> {
     try {
-      const projectId = process.env.REVENUECAT_PROJECT_ID;
-      if (!projectId) {
+      if (!this.config.projectId) {
         throw new Error('REVENUECAT_PROJECT_ID environment variable is required');
       }
-      const data = await this.makeRequest(`/projects/${projectId}/customers/${encodeURIComponent(appUserId)}/active_entitlements`);
+      const data = await this.makeRequest(`/projects/${this.config.projectId}/customers/${encodeURIComponent(appUserId)}/active_entitlements`);
       return data.items?.reduce((acc: any, ent: any) => {
         acc[ent.entitlement_id] = ent;
         return acc;
@@ -351,11 +350,10 @@ class RevenueCatPaymentHandler {
    */
   async grantPromoEntitlement(appUserId: string, entitlementId: string, duration?: string): Promise<void> {
     try {
-      const projectId = process.env.REVENUECAT_PROJECT_ID;
-      if (!projectId) {
+      if (!this.config.projectId) {
         throw new Error('REVENUECAT_PROJECT_ID environment variable is required');
       }
-      await this.makeRequest(`/projects/${projectId}/customers/${encodeURIComponent(appUserId)}/entitlements/${entitlementId}/promotional_grant`, {
+      await this.makeRequest(`/projects/${this.config.projectId}/customers/${encodeURIComponent(appUserId)}/entitlements/${entitlementId}/promotional_grant`, {
         method: 'POST',
         body: JSON.stringify({
           duration: duration || 'P1M'
@@ -406,11 +404,10 @@ class RevenueCatPaymentHandler {
    */
   async testConnection(): Promise<boolean> {
     try {
-      const projectId = process.env.REVENUECAT_PROJECT_ID;
-      if (!projectId) {
+      if (!this.config.projectId) {
         throw new Error('REVENUECAT_PROJECT_ID environment variable is required');
       }
-      await this.makeRequest(`/projects/${projectId}/offerings`);
+      await this.makeRequest(`/projects/${this.config.projectId}/offerings`);
       return true;
     } catch (error: any) {
       console.error('RevenueCat connection test failed:', error);
