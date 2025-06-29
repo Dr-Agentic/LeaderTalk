@@ -8,6 +8,7 @@ interface RevenueCatConfig {
   secretKey: string;
   publicKey: string;
   baseUrl: string;
+  projectId: string;
 }
 
 interface MobileSubscriptionData {
@@ -105,11 +106,16 @@ class RevenueCatPaymentHandler {
     this.config = {
       secretKey: process.env.REVENUECAT_SECRET_KEY || '',
       publicKey: process.env.REVENUECAT_PUBLIC_KEY || '',
-      baseUrl: 'https://api.revenuecat.com/v2'
+      baseUrl: 'https://api.revenuecat.com/v2',
+      projectId: process.env.REVENUECAT_PROJECT_ID || ''
     };
 
     if (!this.config.secretKey) {
       console.warn('⚠️ RevenueCat secret key not configured');
+    }
+    
+    if (!this.config.projectId) {
+      console.warn('⚠️ RevenueCat project ID not configured');
     }
   }
 
@@ -142,11 +148,10 @@ class RevenueCatPaymentHandler {
    */
   async getOfferings(): Promise<RevenueCatOffering[]> {
     try {
-      const projectId = process.env.REVENUECAT_PROJECT_ID;
-      if (!projectId) {
+      if (!this.config.projectId) {
         throw new Error('REVENUECAT_PROJECT_ID environment variable is required');
       }
-      const data = await this.makeRequest(`/projects/${projectId}/offerings`);
+      const data = await this.makeRequest(`/projects/${this.config.projectId}/offerings`);
       return data.items || [];
     } catch (error) {
       console.error('Error fetching RevenueCat offerings:', error);
@@ -196,11 +201,10 @@ class RevenueCatPaymentHandler {
    */
   async getProjectEntitlements(): Promise<Record<string, any>[]> {
     try {
-      const projectId = process.env.REVENUECAT_PROJECT_ID;
-      if (!projectId) {
+      if (!this.config.projectId) {
         throw new Error('REVENUECAT_PROJECT_ID environment variable is required');
       }
-      const data = await this.makeRequest(`/projects/${projectId}/entitlements`);
+      const data = await this.makeRequest(`/projects/${this.config.projectId}/entitlements`);
       return data.items || [];
     } catch (error) {
       console.error('Error fetching project entitlements:', error);
@@ -213,11 +217,10 @@ class RevenueCatPaymentHandler {
    */
   async getProducts(): Promise<RevenueCatProduct[]> {
     try {
-      const projectId = process.env.REVENUECAT_PROJECT_ID;
-      if (!projectId) {
+      if (!this.config.projectId) {
         throw new Error('REVENUECAT_PROJECT_ID environment variable is required');
       }
-      const data = await this.makeRequest(`/projects/${projectId}/products`);
+      const data = await this.makeRequest(`/projects/${this.config.projectId}/products`);
       return data.items || [];
     } catch (error) {
       console.error('Error fetching RevenueCat products:', error);
@@ -247,11 +250,10 @@ class RevenueCatPaymentHandler {
    */
   async getCustomer(appUserId: string): Promise<RevenueCatCustomer | null> {
     try {
-      const projectId = process.env.REVENUECAT_PROJECT_ID;
-      if (!projectId) {
+      if (!this.config.projectId) {
         throw new Error('REVENUECAT_PROJECT_ID environment variable is required');
       }
-      const data = await this.makeRequest(`/projects/${projectId}/customers/${encodeURIComponent(appUserId)}`);
+      const data = await this.makeRequest(`/projects/${this.config.projectId}/customers/${encodeURIComponent(appUserId)}`);
       return data;
     } catch (error: any) {
       if (error?.message?.includes('404')) {
@@ -273,11 +275,10 @@ class RevenueCatPaymentHandler {
    * Create customer by app user ID using V2 API
    */
   async createCustomer(appUserId: string): Promise<RevenueCatCustomer> {
-    const projectId = process.env.REVENUECAT_PROJECT_ID;
-    if (!projectId) {
+    if (!this.config.projectId) {
       throw new Error('REVENUECAT_PROJECT_ID environment variable is required');
     }
-    const data = await this.makeRequest(`/projects/${projectId}/customers`, {
+    const data = await this.makeRequest(`/projects/${this.config.projectId}/customers`, {
       method: 'POST',
       body: JSON.stringify({
         id: appUserId
@@ -293,11 +294,10 @@ class RevenueCatPaymentHandler {
    */
   async getCustomerSubscriptions(appUserId: string): Promise<Record<string, RevenueCatSubscription>> {
     try {
-      const projectId = process.env.REVENUECAT_PROJECT_ID;
-      if (!projectId) {
+      if (!this.config.projectId) {
         throw new Error('REVENUECAT_PROJECT_ID environment variable is required');
       }
-      const data = await this.makeRequest(`/projects/${projectId}/customers/${encodeURIComponent(appUserId)}/subscriptions`);
+      const data = await this.makeRequest(`/projects/${this.config.projectId}/customers/${encodeURIComponent(appUserId)}/subscriptions`);
       return data.items?.reduce((acc: any, sub: any) => {
         acc[sub.id] = sub;
         return acc;
