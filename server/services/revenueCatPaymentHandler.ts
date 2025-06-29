@@ -253,7 +253,8 @@ class RevenueCatPaymentHandler {
       if (!this.config.projectId) {
         throw new Error('REVENUECAT_PROJECT_ID environment variable is required');
       }
-      const data = await this.makeRequest(`/projects/${this.config.projectId}/customers/${encodeURIComponent(appUserId)}`);
+      const validAppUserId = this._emailToAppUserId(appUserId);
+      const data = await this.makeRequest(`/projects/${this.config.projectId}/customers/${encodeURIComponent(validAppUserId)}`);
       return data;
     } catch (error: any) {
       if (error?.message?.includes('404')) {
@@ -278,10 +279,11 @@ class RevenueCatPaymentHandler {
     if (!this.config.projectId) {
       throw new Error('REVENUECAT_PROJECT_ID environment variable is required');
     }
+    const validAppUserId = this._emailToAppUserId(appUserId);
     const data = await this.makeRequest(`/projects/${this.config.projectId}/customers`, {
       method: 'POST',
       body: JSON.stringify({
-        id: appUserId
+        id: validAppUserId
       })
     });
     return data;
@@ -297,7 +299,8 @@ class RevenueCatPaymentHandler {
       if (!this.config.projectId) {
         throw new Error('REVENUECAT_PROJECT_ID environment variable is required');
       }
-      const data = await this.makeRequest(`/projects/${this.config.projectId}/customers/${encodeURIComponent(appUserId)}/subscriptions`);
+      const validAppUserId = this._emailToAppUserId(appUserId);
+      const data = await this.makeRequest(`/projects/${this.config.projectId}/customers/${encodeURIComponent(validAppUserId)}/subscriptions`);
       return data.items?.reduce((acc: any, sub: any) => {
         acc[sub.id] = sub;
         return acc;
@@ -316,7 +319,8 @@ class RevenueCatPaymentHandler {
       if (!this.config.projectId) {
         throw new Error('REVENUECAT_PROJECT_ID environment variable is required');
       }
-      const data = await this.makeRequest(`/projects/${this.config.projectId}/customers/${encodeURIComponent(appUserId)}/active_entitlements`);
+      const validAppUserId = this._emailToAppUserId(appUserId);
+      const data = await this.makeRequest(`/projects/${this.config.projectId}/customers/${encodeURIComponent(validAppUserId)}/active_entitlements`);
       return data.items?.reduce((acc: any, ent: any) => {
         acc[ent.entitlement_id] = ent;
         return acc;
@@ -353,7 +357,8 @@ class RevenueCatPaymentHandler {
       if (!this.config.projectId) {
         throw new Error('REVENUECAT_PROJECT_ID environment variable is required');
       }
-      await this.makeRequest(`/projects/${this.config.projectId}/customers/${encodeURIComponent(appUserId)}/entitlements/${entitlementId}/promotional_grant`, {
+      const validAppUserId = this._emailToAppUserId(appUserId);
+      await this.makeRequest(`/projects/${this.config.projectId}/customers/${encodeURIComponent(validAppUserId)}/entitlements/${entitlementId}/promotional_grant`, {
         method: 'POST',
         body: JSON.stringify({
           duration: duration || 'P1M'
