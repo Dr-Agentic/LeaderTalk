@@ -29,18 +29,22 @@ interface MobileSubscriptionData {
 }
 
 interface RevenueCatCustomer {
-  app_user_id: string;
-  email?: string;
-  first_seen: string;
-  last_seen: string;
-  management_url: string;
-  original_app_user_id: string;
-  original_application_version?: string;
-  original_purchase_date?: string;
-  other_purchases: Record<string, any>;
-  subscriptions: Record<string, RevenueCatSubscription>;
-  non_subscriptions: Record<string, any>;
-  entitlements: Record<string, RevenueCatEntitlement>;
+  id: string;
+  object: string;
+  project_id: string;
+  first_seen_at: number;
+  last_seen_at: number;
+  last_seen_app_version?: string;
+  last_seen_country?: string;
+  last_seen_platform?: string;
+  last_seen_platform_version?: string;
+  experiment?: any;
+  active_entitlements: {
+    items: any[];
+    next_page?: string;
+    object: string;
+    url: string;
+  };
 }
 
 interface RevenueCatSubscription {
@@ -104,18 +108,18 @@ class RevenueCatPaymentHandler {
 
   constructor() {
     this.config = {
-      secretKey: process.env.REVENUECAT_SECRET_KEY || '',
-      publicKey: process.env.REVENUECAT_PUBLIC_KEY || '',
-      baseUrl: 'https://api.revenuecat.com/v2',
-      projectId: process.env.REVENUECAT_PROJECT_ID || ''
+      secretKey: process.env.REVENUECAT_SECRET_KEY || "",
+      publicKey: process.env.REVENUECAT_PUBLIC_KEY || "",
+      baseUrl: "https://api.revenuecat.com/v2",
+      projectId: process.env.REVENUECAT_PROJECT_ID || "",
     };
 
     if (!this.config.secretKey) {
-      console.warn('⚠️ RevenueCat secret key not configured');
+      console.warn("⚠️ RevenueCat secret key not configured");
     }
-    
+
     if (!this.config.projectId) {
-      console.warn('⚠️ RevenueCat project ID not configured');
+      console.warn("⚠️ RevenueCat project ID not configured");
     }
   }
 
@@ -124,19 +128,21 @@ class RevenueCatPaymentHandler {
    */
   private async makeRequest(endpoint: string, options: RequestInit = {}) {
     const url = `${this.config.baseUrl}${endpoint}`;
-    
+
     const response = await fetch(url, {
       ...options,
       headers: {
-        'Authorization': `Bearer ${this.config.secretKey}`,
-        'Content-Type': 'application/json',
+        Authorization: `Bearer ${this.config.secretKey}`,
+        "Content-Type": "application/json",
         ...options.headers,
       },
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`RevenueCat API error: ${response.status} - ${errorText}`);
+      throw new Error(
+        `RevenueCat API error: ${response.status} - ${errorText}`,
+      );
     }
 
     return response.json();
@@ -149,12 +155,16 @@ class RevenueCatPaymentHandler {
   async getOfferings(): Promise<RevenueCatOffering[]> {
     try {
       if (!this.config.projectId) {
-        throw new Error('REVENUECAT_PROJECT_ID environment variable is required');
+        throw new Error(
+          "REVENUECAT_PROJECT_ID environment variable is required",
+        );
       }
-      const data = await this.makeRequest(`/projects/${this.config.projectId}/offerings`);
+      const data = await this.makeRequest(
+        `/projects/${this.config.projectId}/offerings`,
+      );
       return data.items || [];
     } catch (error) {
-      console.error('Error fetching RevenueCat offerings:', error);
+      console.error("Error fetching RevenueCat offerings:", error);
       throw error;
     }
   }
@@ -166,16 +176,16 @@ class RevenueCatPaymentHandler {
     try {
       const offerings = await this.getOfferings();
       const packages: RevenueCatPackage[] = [];
-      
-      offerings.forEach(offering => {
+
+      offerings.forEach((offering) => {
         if (offering.packages) {
           packages.push(...offering.packages);
         }
       });
-      
+
       return packages;
     } catch (error) {
-      console.error('Error fetching RevenueCat packages:', error);
+      console.error("Error fetching RevenueCat packages:", error);
       throw error;
     }
   }
@@ -183,15 +193,20 @@ class RevenueCatPaymentHandler {
   /**
    * Get specific package by identifier
    */
-  async getPackage(offeringId: string, packageId: string): Promise<RevenueCatPackage | null> {
+  async getPackage(
+    offeringId: string,
+    packageId: string,
+  ): Promise<RevenueCatPackage | null> {
     try {
       const offerings = await this.getOfferings();
-      const offering = offerings.find(o => o.id === offeringId || o.lookup_key === offeringId);
+      const offering = offerings.find(
+        (o) => o.id === offeringId || o.lookup_key === offeringId,
+      );
       if (!offering) return null;
-      
-      return offering.packages?.find(p => p.identifier === packageId) || null;
+
+      return offering.packages?.find((p) => p.identifier === packageId) || null;
     } catch (error) {
-      console.error('Error fetching RevenueCat package:', error);
+      console.error("Error fetching RevenueCat package:", error);
       throw error;
     }
   }
@@ -202,12 +217,16 @@ class RevenueCatPaymentHandler {
   async getProjectEntitlements(): Promise<Record<string, any>[]> {
     try {
       if (!this.config.projectId) {
-        throw new Error('REVENUECAT_PROJECT_ID environment variable is required');
+        throw new Error(
+          "REVENUECAT_PROJECT_ID environment variable is required",
+        );
       }
-      const data = await this.makeRequest(`/projects/${this.config.projectId}/entitlements`);
+      const data = await this.makeRequest(
+        `/projects/${this.config.projectId}/entitlements`,
+      );
       return data.items || [];
     } catch (error) {
-      console.error('Error fetching project entitlements:', error);
+      console.error("Error fetching project entitlements:", error);
       throw error;
     }
   }
@@ -218,12 +237,16 @@ class RevenueCatPaymentHandler {
   async getProducts(): Promise<RevenueCatProduct[]> {
     try {
       if (!this.config.projectId) {
-        throw new Error('REVENUECAT_PROJECT_ID environment variable is required');
+        throw new Error(
+          "REVENUECAT_PROJECT_ID environment variable is required",
+        );
       }
-      const data = await this.makeRequest(`/projects/${this.config.projectId}/products`);
+      const data = await this.makeRequest(
+        `/projects/${this.config.projectId}/products`,
+      );
       return data.items || [];
     } catch (error) {
-      console.error('Error fetching RevenueCat products:', error);
+      console.error("Error fetching RevenueCat products:", error);
       throw error;
     }
   }
@@ -233,14 +256,16 @@ class RevenueCatPaymentHandler {
    */
   async getProduct(productId: string): Promise<RevenueCatProduct | null> {
     try {
-      const projectId = process.env.REVENUECAT_PROJECT_ID || 'proj209f9e71';
-      const data = await this.makeRequest(`/projects/${projectId}/products/${productId}`);
+      const projectId = process.env.REVENUECAT_PROJECT_ID || "proj209f9e71";
+      const data = await this.makeRequest(
+        `/projects/${projectId}/products/${productId}`,
+      );
       return data || null;
     } catch (error: any) {
-      if (error?.message?.includes('404')) {
+      if (error?.message?.includes("404")) {
         return null;
       }
-      console.error('Error fetching RevenueCat product:', error);
+      console.error("Error fetching RevenueCat product:", error);
       throw error;
     }
   }
@@ -251,16 +276,21 @@ class RevenueCatPaymentHandler {
   async getCustomer(appUserId: string): Promise<RevenueCatCustomer | null> {
     try {
       if (!this.config.projectId) {
-        throw new Error('REVENUECAT_PROJECT_ID environment variable is required');
+        throw new Error(
+          "REVENUECAT_PROJECT_ID environment variable is required",
+        );
       }
       const validAppUserId = this._emailToAppUserId(appUserId);
-      const data = await this.makeRequest(`/projects/${this.config.projectId}/customers/${encodeURIComponent(validAppUserId)}`);
+      const data = await this.makeRequest(
+        `/projects/${this.config.projectId}/customers/${encodeURIComponent(validAppUserId)}`,
+      );
+      console.log(JSON.stringify(data, null, 2));
       return data;
     } catch (error: any) {
-      if (error?.message?.includes('404')) {
+      if (error?.message?.includes("404")) {
         return null; // Customer doesn't exist
       }
-      console.error('Error fetching RevenueCat customer:', error);
+      console.error("Error fetching RevenueCat customer:", error);
       throw error;
     }
   }
@@ -277,36 +307,51 @@ class RevenueCatPaymentHandler {
    */
   async createCustomer(appUserId: string): Promise<RevenueCatCustomer> {
     if (!this.config.projectId) {
-      throw new Error('REVENUECAT_PROJECT_ID environment variable is required');
+      throw new Error("REVENUECAT_PROJECT_ID environment variable is required");
     }
     const validAppUserId = this._emailToAppUserId(appUserId);
-    const data = await this.makeRequest(`/projects/${this.config.projectId}/customers`, {
-      method: 'POST',
-      body: JSON.stringify({
-        id: validAppUserId
-      })
-    });
+    const data = await this.makeRequest(
+      `/projects/${this.config.projectId}/customers`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          id: validAppUserId,
+        }),
+      },
+    );
     return data;
   }
-
-
 
   /**
    * Get customer's active subscriptions using V2 API
    */
-  async getCustomerSubscriptions(appUserId: string): Promise<Record<string, RevenueCatSubscription>> {
+  async getCustomerSubscriptions(
+    appUserId: string,
+  ): Promise<Record<string, RevenueCatSubscription>> {
     try {
       if (!this.config.projectId) {
-        throw new Error('REVENUECAT_PROJECT_ID environment variable is required');
+        throw new Error(
+          "REVENUECAT_PROJECT_ID environment variable is required",
+        );
       }
       const validAppUserId = this._emailToAppUserId(appUserId);
-      const data = await this.makeRequest(`/projects/${this.config.projectId}/customers/${encodeURIComponent(validAppUserId)}/subscriptions`);
-      return data.items?.reduce((acc: any, sub: any) => {
-        acc[sub.id] = sub;
-        return acc;
-      }, {}) || {};
-    } catch (error) {
-      console.error('Error fetching customer subscriptions:', error);
+      const data = await this.makeRequest(
+        `/projects/${this.config.projectId}/customers/${encodeURIComponent(validAppUserId)}/subscriptions`,
+      );
+      // Handle V2 API response structure
+      if (data && data.items && Array.isArray(data.items)) {
+        return data.items.reduce((acc: any, sub: any) => {
+          acc[sub.id] = sub;
+          return acc;
+        }, {});
+      }
+      
+      return {};
+    } catch (error: any) {
+      if (error?.message?.includes('404')) {
+        return {}; // Customer has no subscriptions
+      }
+      console.error("Error fetching customer subscriptions:", error);
       throw error;
     }
   }
@@ -314,19 +359,33 @@ class RevenueCatPaymentHandler {
   /**
    * Get customer's entitlements using V2 API
    */
-  async getCustomerEntitlements(appUserId: string): Promise<Record<string, RevenueCatEntitlement>> {
+  async getCustomerEntitlements(
+    appUserId: string,
+  ): Promise<Record<string, RevenueCatEntitlement>> {
     try {
       if (!this.config.projectId) {
-        throw new Error('REVENUECAT_PROJECT_ID environment variable is required');
+        throw new Error(
+          "REVENUECAT_PROJECT_ID environment variable is required",
+        );
       }
       const validAppUserId = this._emailToAppUserId(appUserId);
-      const data = await this.makeRequest(`/projects/${this.config.projectId}/customers/${encodeURIComponent(validAppUserId)}/active_entitlements`);
-      return data.items?.reduce((acc: any, ent: any) => {
-        acc[ent.entitlement_id] = ent;
-        return acc;
-      }, {}) || {};
-    } catch (error) {
-      console.error('Error fetching customer entitlements:', error);
+      const data = await this.makeRequest(
+        `/projects/${this.config.projectId}/customers/${encodeURIComponent(validAppUserId)}/active_entitlements`,
+      );
+      // Handle V2 API response structure
+      if (data && data.items && Array.isArray(data.items)) {
+        return data.items.reduce((acc: any, ent: any) => {
+          acc[ent.entitlement_id] = ent;
+          return acc;
+        }, {});
+      }
+      
+      return {};
+    } catch (error: any) {
+      if (error?.message?.includes('404')) {
+        return {}; // Customer has no entitlements
+      }
+      console.error("Error fetching customer entitlements:", error);
       throw error;
     }
   }
@@ -338,13 +397,13 @@ class RevenueCatPaymentHandler {
     try {
       const subscriptions = await this.getCustomerSubscriptions(appUserId);
       const now = new Date();
-      
-      return Object.values(subscriptions).some(sub => {
+
+      return Object.values(subscriptions).some((sub) => {
         const expiresDate = new Date(sub.expires_date);
         return expiresDate > now;
       });
     } catch (error) {
-      console.error('Error checking active subscription:', error);
+      console.error("Error checking active subscription:", error);
       return false;
     }
   }
@@ -352,20 +411,29 @@ class RevenueCatPaymentHandler {
   /**
    * Grant promotional entitlement using V2 API
    */
-  async grantPromoEntitlement(appUserId: string, entitlementId: string, duration?: string): Promise<void> {
+  async grantPromoEntitlement(
+    appUserId: string,
+    entitlementId: string,
+    duration?: string,
+  ): Promise<void> {
     try {
       if (!this.config.projectId) {
-        throw new Error('REVENUECAT_PROJECT_ID environment variable is required');
+        throw new Error(
+          "REVENUECAT_PROJECT_ID environment variable is required",
+        );
       }
       const validAppUserId = this._emailToAppUserId(appUserId);
-      await this.makeRequest(`/projects/${this.config.projectId}/customers/${encodeURIComponent(validAppUserId)}/entitlements/${entitlementId}/promotional_grant`, {
-        method: 'POST',
-        body: JSON.stringify({
-          duration: duration || 'P1M'
-        })
-      });
+      await this.makeRequest(
+        `/projects/${this.config.projectId}/customers/${encodeURIComponent(validAppUserId)}/entitlements/${entitlementId}/promotional_grant`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            duration: duration || "P1M",
+          }),
+        },
+      );
     } catch (error) {
-      console.error('Error granting promotional entitlement:', error);
+      console.error("Error granting promotional entitlement:", error);
       throw error;
     }
   }
@@ -373,24 +441,26 @@ class RevenueCatPaymentHandler {
   /**
    * Retrieve user subscription with default creation logic
    */
-  async retrieveUserSubscription(email: string): Promise<MobileSubscriptionData> {
+  async retrieveUserSubscription(
+    email: string,
+  ): Promise<MobileSubscriptionData> {
     const appUserId = this._emailToAppUserId(email);
-    
+
     // Try to get existing customer
     let customer = await this.getCustomer(appUserId);
-    
+
     if (!customer) {
       // Create customer if doesn't exist
       customer = await this.createCustomer(appUserId);
     }
-    
+
     // Get subscriptions and check for active ones
     const subscriptions = await this.getCustomerSubscriptions(appUserId);
-    const activeSubscriptions = Object.values(subscriptions).filter(sub => {
+    const activeSubscriptions = Object.values(subscriptions).filter((sub) => {
       const expiresDate = new Date(sub.expires_date);
       return expiresDate > new Date();
     });
-    
+
     if (activeSubscriptions.length === 0) {
       // No active subscription - create default
       const defaultOffering = await this._findDefaultOffering();
@@ -398,10 +468,14 @@ class RevenueCatPaymentHandler {
         return await this._createDefaultSubscription(email, defaultOffering);
       }
     }
-    
+
     // Return existing subscription
     const entitlements = await this.getCustomerEntitlements(appUserId);
-    return this._mapToMobileSubscriptionData(activeSubscriptions[0], entitlements, email);
+    return this._mapToMobileSubscriptionData(
+      activeSubscriptions[0],
+      entitlements,
+      email,
+    );
   }
 
   /**
@@ -410,12 +484,14 @@ class RevenueCatPaymentHandler {
   async testConnection(): Promise<boolean> {
     try {
       if (!this.config.projectId) {
-        throw new Error('REVENUECAT_PROJECT_ID environment variable is required');
+        throw new Error(
+          "REVENUECAT_PROJECT_ID environment variable is required",
+        );
       }
       await this.makeRequest(`/projects/${this.config.projectId}/offerings`);
       return true;
     } catch (error: any) {
-      console.error('RevenueCat connection test failed:', error);
+      console.error("RevenueCat connection test failed:", error);
       return false;
     }
   }
@@ -424,22 +500,28 @@ class RevenueCatPaymentHandler {
    */
   private async _findDefaultOffering(): Promise<RevenueCatOffering | null> {
     const offerings = await this.getOfferings();
-    return offerings.find(offering => 
-      offering.metadata?.default_subscription === 'true' || 
-      offering.metadata?.default_subscription === true
-    ) || null;
+    return (
+      offerings.find(
+        (offering) =>
+          offering.metadata?.default_subscription === "true" ||
+          offering.metadata?.default_subscription === true,
+      ) || null
+    );
   }
 
   /**
    * Create default subscription structure
    */
-  private async _createDefaultSubscription(email: string, offering: RevenueCatOffering): Promise<MobileSubscriptionData> {
+  private async _createDefaultSubscription(
+    email: string,
+    offering: RevenueCatOffering,
+  ): Promise<MobileSubscriptionData> {
     const now = new Date();
     const oneYearFromNow = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
 
     return {
       id: `default_${offering.id}`,
-      status: 'active',
+      status: "active",
       plan: offering.display_name,
       planId: offering.lookup_key || offering.id,
       productId: offering.id,
@@ -449,9 +531,9 @@ class RevenueCatPaymentHandler {
       currentPeriodEnd: oneYearFromNow,
       nextRenewalDate: oneYearFromNow,
       cancelAtPeriodEnd: false,
-      store: 'default',
+      store: "default",
       entitlements: {},
-      customerId: email
+      customerId: email,
     };
   }
 
@@ -459,7 +541,7 @@ class RevenueCatPaymentHandler {
    * Convert email to valid RevenueCat app user ID
    */
   private _emailToAppUserId(email: string): string {
-    return email.replace(/[^0-9a-zA-Z_-]/g, '_');
+    return email.replace(/[^0-9a-zA-Z_-]/g, "_");
   }
 
   /**
@@ -468,14 +550,14 @@ class RevenueCatPaymentHandler {
   private _mapToMobileSubscriptionData(
     subscription: RevenueCatSubscription,
     entitlements: Record<string, RevenueCatEntitlement>,
-    customerId: string
+    customerId: string,
   ): MobileSubscriptionData {
     const expiresDate = new Date(subscription.expires_date);
     const purchaseDate = new Date(subscription.purchase_date);
-    
+
     return {
       id: subscription.product_identifier,
-      status: expiresDate > new Date() ? 'active' : 'expired',
+      status: expiresDate > new Date() ? "active" : "expired",
       plan: subscription.product_identifier,
       planId: subscription.product_identifier,
       productId: subscription.product_identifier,
@@ -487,7 +569,7 @@ class RevenueCatPaymentHandler {
       cancelAtPeriodEnd: subscription.unsubscribe_detected_at !== undefined,
       store: subscription.store,
       entitlements,
-      customerId
+      customerId,
     };
   }
 }
@@ -502,5 +584,5 @@ export type {
   RevenueCatEntitlement,
   RevenueCatOffering,
   RevenueCatPackage,
-  RevenueCatProduct
+  RevenueCatProduct,
 };

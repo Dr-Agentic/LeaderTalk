@@ -229,12 +229,13 @@ async function getCustomer(email: string) {
   
   if (customer) {
     console.log('✅ Customer found:');
-    console.log(`   App User ID: ${customer.app_user_id}`);
-    console.log(`   Email: ${customer.email || 'Not set'}`);
-    console.log(`   First Seen: ${customer.first_seen}`);
-    console.log(`   Last Seen: ${customer.last_seen}`);
-    console.log(`   Subscriptions: ${Object.keys(customer.subscriptions).length}`);
-    console.log(`   Entitlements: ${Object.keys(customer.entitlements).length}`);
+    console.log(`   ID: ${customer.id}`);
+    console.log(`   Project ID: ${customer.project_id}`);
+    console.log(`   First Seen: ${new Date(customer.first_seen_at).toISOString()}`);
+    console.log(`   Last Seen: ${new Date(customer.last_seen_at).toISOString()}`);
+    console.log(`   Platform: ${customer.last_seen_platform || 'Not set'}`);
+    console.log(`   Country: ${customer.last_seen_country || 'Not set'}`);
+    console.log(`   Active Entitlements: ${customer.active_entitlements.items.length}`);
   } else {
     console.log('❌ Customer not found');
   }
