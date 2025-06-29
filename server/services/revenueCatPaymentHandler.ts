@@ -161,7 +161,7 @@ class RevenueCatPaymentHandler {
   async getPackage(offeringId: string, packageId: string): Promise<RevenueCatPackage | null> {
     try {
       const offerings = await this.getOfferings();
-      const offering = offerings.find(o => o.identifier === offeringId);
+      const offering = offerings.find(o => o.id === offeringId || o.lookup_key === offeringId);
       if (!offering) return null;
       
       return offering.packages?.find(p => p.identifier === packageId) || null;
