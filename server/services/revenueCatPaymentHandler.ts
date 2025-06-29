@@ -212,6 +212,24 @@ class RevenueCatPaymentHandler {
   }
 
   /**
+   * Get all packages for a specific offering
+   */
+  async getOfferingPackages(offeringId: string): Promise<RevenueCatPackage[]> {
+    try {
+      const offerings = await this.getOfferings();
+      const offering = offerings.find(
+        (o) => o.id === offeringId || o.lookup_key === offeringId,
+      );
+      if (!offering) return [];
+
+      return offering.packages || [];
+    } catch (error) {
+      console.error("Error fetching offering packages:", error);
+      throw error;
+    }
+  }
+
+  /**
    * Get entitlements from project configuration
    */
   async getProjectEntitlements(): Promise<Record<string, any>[]> {

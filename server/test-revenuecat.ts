@@ -107,6 +107,14 @@ async function main() {
         await getPackage(args[0], args[1]);
         break;
 
+      case 'get-offering-packages':
+        if (!args[0]) {
+          console.error('❌ Offering ID required');
+          process.exit(1);
+        }
+        await getOfferingPackages(args[0]);
+        break;
+
       case 'retrieve-user-subscription':
         if (!args[0]) {
           console.error('❌ Email required');
@@ -344,6 +352,18 @@ async function getPackage(offeringId: string, packageId: string) {
   }
 }
 
+async function getOfferingPackages(offeringId: string) {
+  console.log(`📦 Fetching all packages for offering: ${offeringId}`);
+  
+  const packages = await revenueCatHandler.getOfferingPackages(offeringId);
+  
+  console.log(`Found ${packages.length} packages:`);
+  packages.forEach((pkg, index) => {
+    console.log(`\n${index + 1}. Package ID: ${pkg.identifier}`);
+    console.log(`   Platform Product ID: ${pkg.platform_product_identifier}`);
+  });
+}
+
 async function retrieveUserSubscription(email: string) {
   console.log(`🔍 Retrieving subscription for: ${email}`);
   
@@ -365,6 +385,7 @@ function showUsage() {
   console.log('  get-product <productId>            - Get product details');
   console.log('  get-all-packages                   - Fetch all packages');
   console.log('  get-package <offeringId> <packageId> - Get specific package');
+  console.log('  get-offering-packages <offeringId>  - Get all packages for an offering');
   console.log('  get-project-entitlements           - Fetch project entitlements');
   console.log('  list-entitlements [limit] [cursor] - List entitlements with pagination');
   console.log('  get-customer <email>               - Get customer by email');
