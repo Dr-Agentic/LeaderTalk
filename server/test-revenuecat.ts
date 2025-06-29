@@ -285,46 +285,62 @@ async function createCustomer(appUserId: string) {
 async function getSubscriptions(email: string) {
   console.log(`📋 Fetching subscriptions for: ${email}`);
   
-  const subscriptions = await revenueCatHandler.getCustomerSubscriptions(email);
-  
-  const subCount = Object.keys(subscriptions).length;
-  console.log(`Found ${subCount} subscriptions:`);
-  
-  Object.entries(subscriptions).forEach(([productId, subscription]) => {
-    console.log(`\n📱 ${productId}:`);
-    console.log(`   Store: ${subscription.store}`);
-    console.log(`   Expires: ${subscription.expires_date}`);
-    console.log(`   Period: ${subscription.period_type}`);
-    console.log(`   Sandbox: ${subscription.is_sandbox}`);
+  try {
+    const subscriptions = await revenueCatHandler.getCustomerSubscriptions(email);
     
-    const expiresDate = new Date(subscription.expires_date);
-    const isActive = expiresDate > new Date();
-    console.log(`   Status: ${isActive ? '✅ Active' : '❌ Expired'}`);
-  });
+    const subCount = Object.keys(subscriptions).length;
+    console.log(`Found ${subCount} subscriptions:`);
+    
+    Object.entries(subscriptions).forEach(([productId, subscription]) => {
+      console.log(`\n📱 ${productId}:`);
+      console.log(`   Store: ${subscription.store}`);
+      console.log(`   Expires: ${subscription.expires_date}`);
+      console.log(`   Period: ${subscription.period_type}`);
+      console.log(`   Sandbox: ${subscription.is_sandbox}`);
+      
+      const expiresDate = new Date(subscription.expires_date);
+      const isActive = expiresDate > new Date();
+      console.log(`   Status: ${isActive ? '✅ Active' : '❌ Expired'}`);
+    });
+  } catch (error: any) {
+    if (error.message.includes('Customer not found')) {
+      console.log('❌ Customer does not exist');
+    } else {
+      console.error('❌ Error fetching subscriptions:', error.message);
+    }
+  }
 }
 
 async function getEntitlements(email: string) {
   console.log(`🎟️ Fetching entitlements for: ${email}`);
   
-  const entitlements = await revenueCatHandler.getCustomerEntitlements(email);
-  
-  const entCount = Object.keys(entitlements).length;
-  console.log(`Found ${entCount} entitlements:`);
-  
-  Object.entries(entitlements).forEach(([entitlementId, entitlement]) => {
-    console.log(`\n🎫 ${entitlementId}:`);
-    console.log(`   Product: ${entitlement.product_identifier}`);
-    console.log(`   Purchase Date: ${entitlement.purchase_date}`);
+  try {
+    const entitlements = await revenueCatHandler.getCustomerEntitlements(email);
     
-    if (entitlement.expires_date) {
-      const expiresDate = new Date(entitlement.expires_date);
-      const isActive = expiresDate > new Date();
-      console.log(`   Expires: ${entitlement.expires_date}`);
-      console.log(`   Status: ${isActive ? '✅ Active' : '❌ Expired'}`);
+    const entCount = Object.keys(entitlements).length;
+    console.log(`Found ${entCount} entitlements:`);
+    
+    Object.entries(entitlements).forEach(([entitlementId, entitlement]) => {
+      console.log(`\n🎫 ${entitlementId}:`);
+      console.log(`   Product: ${entitlement.product_identifier}`);
+      console.log(`   Purchase Date: ${entitlement.purchase_date}`);
+      
+      if (entitlement.expires_date) {
+        const expiresDate = new Date(entitlement.expires_date);
+        const isActive = expiresDate > new Date();
+        console.log(`   Expires: ${entitlement.expires_date}`);
+        console.log(`   Status: ${isActive ? '✅ Active' : '❌ Expired'}`);
+      } else {
+        console.log(`   Status: ✅ Lifetime`);
+      }
+    });
+  } catch (error: any) {
+    if (error.message.includes('Customer not found')) {
+      console.log('❌ Customer does not exist');
     } else {
-      console.log(`   Status: ✅ Lifetime`);
+      console.error('❌ Error fetching entitlements:', error.message);
     }
-  });
+  }
 }
 
 async function checkActive(email: string) {

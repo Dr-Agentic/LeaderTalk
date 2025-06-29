@@ -392,6 +392,13 @@ class RevenueCatPaymentHandler {
           "REVENUECAT_PROJECT_ID environment variable is required",
         );
       }
+      
+      // First verify customer exists
+      const customer = await this.getCustomer(appUserId);
+      if (!customer) {
+        throw new Error(`Customer not found: ${appUserId}`);
+      }
+      
       const validAppUserId = this._emailToAppUserId(appUserId);
       const data = await this.makeRequest(
         `/projects/${this.config.projectId}/customers/${encodeURIComponent(validAppUserId)}/subscriptions`,
@@ -406,9 +413,6 @@ class RevenueCatPaymentHandler {
       
       return {};
     } catch (error: any) {
-      if (error?.message?.includes('404')) {
-        return {}; // Customer has no subscriptions
-      }
       console.error("Error fetching customer subscriptions:", error);
       throw error;
     }
@@ -426,6 +430,13 @@ class RevenueCatPaymentHandler {
           "REVENUECAT_PROJECT_ID environment variable is required",
         );
       }
+      
+      // First verify customer exists
+      const customer = await this.getCustomer(appUserId);
+      if (!customer) {
+        throw new Error(`Customer not found: ${appUserId}`);
+      }
+      
       const validAppUserId = this._emailToAppUserId(appUserId);
       const data = await this.makeRequest(
         `/projects/${this.config.projectId}/customers/${encodeURIComponent(validAppUserId)}/active_entitlements`,
@@ -440,9 +451,6 @@ class RevenueCatPaymentHandler {
       
       return {};
     } catch (error: any) {
-      if (error?.message?.includes('404')) {
-        return {}; // Customer has no entitlements
-      }
       console.error("Error fetching customer entitlements:", error);
       throw error;
     }
