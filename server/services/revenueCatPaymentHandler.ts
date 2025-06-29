@@ -232,6 +232,46 @@ class RevenueCatPaymentHandler {
   }
 
   /**
+   * List entitlements with pagination support
+   * @param limit Maximum number of results per page (default: 20)
+   * @param startingAfter Cursor for pagination
+   */
+  async listEntitlements(limit: number = 20, startingAfter?: string): Promise<{
+    items: Record<string, any>[];
+    hasMore: boolean;
+    nextCursor?: string;
+  }> {
+    try {
+      if (!this.config.projectId) {
+        throw new Error(
+          "REVENUECAT_PROJECT_ID environment variable is required",
+        );
+      }
+      
+      const params = new URLSearchParams({
+        limit: limit.toString()
+      });
+      
+      if (startingAfter) {
+        params.append('starting_after', startingAfter);
+      }
+      
+      const data = await this.makeRequest(
+        `/projects/${this.config.projectId}/entitlements?${params.toString()}`
+      );
+      
+      return {
+        items: data.items || [],
+        hasMore: data.has_more || false,
+        nextCursor: data.next_page || undefined
+      };
+    } catch (error) {
+      console.error("Error listing entitlements:", error);
+      throw error;
+    }
+  }
+
+  /**
    * Get products from RevenueCat project
    */
   async getProducts(): Promise<RevenueCatProduct[]> {

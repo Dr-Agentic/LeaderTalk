@@ -53,6 +53,12 @@ async function main() {
         await getProjectEntitlements();
         break;
 
+      case 'list-entitlements':
+        const limit = args[0] ? parseInt(args[0]) : undefined;
+        const startingAfter = args[1] || undefined;
+        await listEntitlements(limit, startingAfter);
+        break;
+
       case 'get-customer':
         if (!args[0]) {
           console.error('❌ Email required');
@@ -209,6 +215,21 @@ async function getProjectEntitlements() {
   });
 }
 
+async function listEntitlements(limit?: number, startingAfter?: string) {
+  console.log('📋 Listing entitlements with pagination...');
+  
+  const result = await revenueCatHandler.listEntitlements(limit, startingAfter);
+  
+  console.log(`Found ${result.items.length} entitlements (has more: ${result.hasMore}):`);
+  result.items.forEach((entitlement, index) => {
+    console.log(`\n${index + 1}. ${JSON.stringify(entitlement, null, 2)}`);
+  });
+  
+  if (result.hasMore && result.nextCursor) {
+    console.log(`\n🔄 Next page cursor: ${result.nextCursor}`);
+  }
+}
+
 async function getProduct(productId: string) {
   console.log(`🛍️ Fetching product: ${productId}`);
   
@@ -345,6 +366,7 @@ function showUsage() {
   console.log('  get-all-packages                   - Fetch all packages');
   console.log('  get-package <offeringId> <packageId> - Get specific package');
   console.log('  get-project-entitlements           - Fetch project entitlements');
+  console.log('  list-entitlements [limit] [cursor] - List entitlements with pagination');
   console.log('  get-customer <email>               - Get customer by email');
   console.log('  create-customer <email>            - Create new customer');
   console.log('  get-subscriptions <email>          - Get customer subscriptions');
