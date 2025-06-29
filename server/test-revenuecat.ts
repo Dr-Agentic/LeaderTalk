@@ -232,17 +232,15 @@ async function getCustomer(email: string) {
   }
 }
 
-async function createCustomer(email: string) {
-  console.log(`👤 Creating customer: ${email}`);
+async function createCustomer(appUserId: string) {
+  console.log(`👤 Creating customer with app user ID: ${appUserId}`);
   
-  const customer = await revenueCatHandler.createOrUpdateCustomer(email);
-  
-  if (customer) {
-    console.log('✅ Customer created/updated:');
-    console.log(`   App User ID: ${customer.app_user_id}`);
-    console.log(`   Email: ${customer.email}`);
-  } else {
-    console.log('ℹ️ Customer creation not supported via API - customers are created through purchases');
+  try {
+    const customer = await revenueCatHandler.createCustomer(appUserId);
+    console.log('✅ Customer created successfully:');
+    console.log(JSON.stringify(customer, null, 2));
+  } catch (error: any) {
+    console.error('❌ Error creating customer:', error.message);
   }
 }
 

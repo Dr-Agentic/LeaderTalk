@@ -240,6 +240,20 @@ class RevenueCatPaymentHandler {
     return this.getCustomer(email);
   }
 
+  /**
+   * Create customer by app user ID using V2 API
+   */
+  async createCustomer(appUserId: string): Promise<RevenueCatCustomer> {
+    const projectId = process.env.REVENUECAT_PROJECT_ID || 'proj209f9e71';
+    const data = await this.makeRequest(`/projects/${projectId}/customers`, {
+      method: 'POST',
+      body: JSON.stringify({
+        id: appUserId
+      })
+    });
+    return data;
+  }
+
 
 
   /**
