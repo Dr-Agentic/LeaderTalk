@@ -49,10 +49,15 @@ interface RevenueCatEntitlement {
 }
 
 interface RevenueCatOffering {
-  identifier: string;
-  description: string;
-  packages: RevenueCatPackage[];
+  id: string;
+  display_name: string;
+  created_at: number;
+  is_current: boolean;
+  lookup_key: string;
   metadata?: Record<string, any>;
+  object: string;
+  project_id: string;
+  packages?: RevenueCatPackage[];
 }
 
 interface RevenueCatPackage {
@@ -61,13 +66,18 @@ interface RevenueCatPackage {
 }
 
 interface RevenueCatProduct {
-  identifier: string;
+  id: string;
   display_name: string;
-  category: string;
-  trial_duration?: string;
+  app_id: string;
+  created_at: number;
+  object: string;
+  store_identifier: string;
+  type: string;
+  one_time?: any;
   subscription?: {
-    period: string;
-    period_unit: string;
+    duration?: string;
+    grace_period_duration?: string;
+    trial_duration?: string;
   };
 }
 

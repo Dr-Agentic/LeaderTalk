@@ -128,10 +128,16 @@ async function getOfferings() {
   
   const offerings = await revenueCatHandler.getOfferings();
   
+  console.log('\n=== RAW OFFERING DATA ===');
+  console.log(JSON.stringify(offerings[0], null, 2));
+  console.log('=========================\n');
+  
   console.log(`Found ${offerings.length} offerings:`);
   offerings.forEach((offering, index) => {
-    console.log(`\n${index + 1}. ${offering.identifier}`);
-    console.log(`   Description: ${offering.description || 'No description'}`);
+    console.log(`\n${index + 1}. ID: ${offering.id}`);
+    console.log(`   Display Name: ${offering.display_name}`);
+    console.log(`   Lookup Key: ${offering.lookup_key}`);
+    console.log(`   Current: ${offering.is_current}`);
     console.log(`   Packages: ${offering.packages?.length || 0}`);
     
     if (offering.packages) {
@@ -152,18 +158,23 @@ async function getProducts() {
   const products = await revenueCatHandler.getProducts();
   
   console.log(`Found ${products.length} products:`);
+  console.log('\n=== RAW PRODUCT DATA ===');
+  console.log(JSON.stringify(products[0], null, 2));
+  console.log('========================\n');
+  
   products.forEach((product, index) => {
-    console.log(`\n${index + 1}. ${product.identifier}`);
+    console.log(`\n${index + 1}. ID: ${product.id}`);
     console.log(`   Display Name: ${product.display_name}`);
-    console.log(`   Category: ${product.category}`);
+    console.log(`   Store Identifier: ${product.store_identifier}`);
+    console.log(`   Type: ${product.type}`);
     
     if (product.subscription) {
-      console.log(`   Subscription: ${product.subscription.period} ${product.subscription.period_unit}`);
+      console.log(`   Subscription Duration: ${product.subscription.duration || 'not set'}`);
+      console.log(`   Trial Duration: ${product.subscription.trial_duration || 'not set'}`);
     }
     
-    if (product.trial_duration) {
-      console.log(`   Trial Duration: ${product.trial_duration}`);
-    }
+    // Show all available properties
+    console.log(`   All properties: ${Object.keys(product).join(', ')}`);
   });
 }
 
