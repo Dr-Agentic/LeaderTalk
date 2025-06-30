@@ -1,9 +1,80 @@
 /**
  * RevenueCat Service for Mobile In-App Purchases
  * Handles all RevenueCat SDK interactions and subscription management
+ * 
+ * API Requirements:
+ * - EXPO_PUBLIC_REVENUECAT_API_KEY: Production RevenueCat API key
+ * - EXPO_PUBLIC_REVENUECAT_API_KEY_SANDBOX: Sandbox RevenueCat API key
+ * 
+ * Expected Flow:
+ * 1. Initialize with user ID
+ * 2. Fetch available products/offerings
+ * 3. Handle purchase/restore flows
+ * 4. Sync subscription state with backend
  */
 
-import Purchases, { PurchasesOffering, CustomerInfo, PurchasesPackage } from 'react-native-purchases';
+// Mock types for development - replace with actual imports when package is installed
+interface PurchasesOffering {
+  identifier: string;
+  serverDescription: string;
+  availablePackages: PurchasesPackage[];
+}
+
+interface EntitlementInfo {
+  identifier: string;
+  productIdentifier: string;
+  isActive: boolean;
+  willRenew: boolean;
+  expirationDate?: string;
+}
+
+interface SubscriptionInfo {
+  productIdentifier: string;
+  purchaseDate: string;
+  store: string;
+  price: string;
+  periodType: string;
+}
+
+interface CustomerInfo {
+  originalAppUserId: string;
+  entitlements: {
+    active: Record<string, EntitlementInfo>;
+  };
+  activeSubscriptions: SubscriptionInfo[];
+}
+
+interface PurchasesPackage {
+  identifier: string;
+  product: {
+    identifier: string;
+    title: string;
+    description: string;
+    price: string;
+    priceString: string;
+    subscriptionPeriod?: string;
+  };
+}
+
+// Mock Purchases object for development
+const Purchases = {
+  configure: async ({ apiKey, appUserID }: { apiKey: string; appUserID: string }) => {
+    console.log('RevenueCat configured for user:', appUserID);
+  },
+  getCustomerInfo: async (): Promise<CustomerInfo> => {
+    throw new Error('RevenueCat not initialized');
+  },
+  getOfferings: async () => ({
+    all: {} as Record<string, PurchasesOffering>,
+    current: null as PurchasesOffering | null,
+  }),
+  purchasePackage: async (pkg: PurchasesPackage) => ({
+    customerInfo: {} as CustomerInfo,
+  }),
+  restorePurchases: async (): Promise<CustomerInfo> => {
+    throw new Error('RevenueCat not initialized');
+  },
+};
 
 export interface MobileSubscriptionData {
   id: string;
@@ -71,7 +142,7 @@ class RevenueCatService {
     if (this.isInitialized) return;
 
     try {
-      const apiKey = __DEV__ 
+      const apiKey = process.env.NODE_ENV === 'development'
         ? process.env.EXPO_PUBLIC_REVENUECAT_API_KEY_SANDBOX || ''
         : process.env.EXPO_PUBLIC_REVENUECAT_API_KEY || '';
 
@@ -104,6 +175,9 @@ class RevenueCatService {
 
   /**
    * Get available offerings and products
+   * 
+   * @returns Array of MobileBillingProduct with pricing and features
+   * Expected structure: [{ id, code, name, description, pricing: { amount, formattedPrice, interval, productId }, features: { wordLimit, ... } }]
    */
   async getAvailableProducts(): Promise<MobileBillingProduct[]> {
     try {
