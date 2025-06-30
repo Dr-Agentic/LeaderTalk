@@ -13,68 +13,15 @@
  * 4. Sync subscription state with backend
  */
 
-// Mock types for development - replace with actual imports when package is installed
-interface PurchasesOffering {
-  identifier: string;
-  serverDescription: string;
-  availablePackages: PurchasesPackage[];
-}
-
-interface EntitlementInfo {
-  identifier: string;
-  productIdentifier: string;
-  isActive: boolean;
-  willRenew: boolean;
-  expirationDate?: string;
-}
-
-interface SubscriptionInfo {
-  productIdentifier: string;
-  purchaseDate: string;
-  store: string;
-  price: string;
-  periodType: string;
-}
-
-interface CustomerInfo {
-  originalAppUserId: string;
-  entitlements: {
-    active: Record<string, EntitlementInfo>;
-  };
-  activeSubscriptions: SubscriptionInfo[];
-}
-
-interface PurchasesPackage {
-  identifier: string;
-  product: {
-    identifier: string;
-    title: string;
-    description: string;
-    price: string;
-    priceString: string;
-    subscriptionPeriod?: string;
-  };
-}
-
-// Mock Purchases object for development
-const Purchases = {
-  configure: async ({ apiKey, appUserID }: { apiKey: string; appUserID: string }) => {
-    console.log('RevenueCat configured for user:', appUserID);
-  },
-  getCustomerInfo: async (): Promise<CustomerInfo> => {
-    throw new Error('RevenueCat not initialized');
-  },
-  getOfferings: async () => ({
-    all: {} as Record<string, PurchasesOffering>,
-    current: null as PurchasesOffering | null,
-  }),
-  purchasePackage: async (pkg: PurchasesPackage) => ({
-    customerInfo: {} as CustomerInfo,
-  }),
-  restorePurchases: async (): Promise<CustomerInfo> => {
-    throw new Error('RevenueCat not initialized');
-  },
-};
+// Import RevenueCat SDK
+import Purchases, { 
+  PurchasesOffering, 
+  CustomerInfo, 
+  PurchasesPackage,
+  EntitlementInfo,
+  PurchasesError,
+  LOG_LEVEL 
+} from 'react-native-purchases';
 
 export interface MobileSubscriptionData {
   id: string;
@@ -136,24 +83,40 @@ class RevenueCatService {
   private isInitialized = false;
 
   /**
-   * Initialize RevenueCat SDK
+   * Initialize RevenueCat SDK with comprehensive configuration
+   * 
+   * @param userId Unique user identifier for RevenueCat customer tracking
+   * @returns Promise that resolves when SDK is configured
    */
   async initialize(userId: string): Promise<void> {
     if (this.isInitialized) return;
 
     try {
-      const apiKey = process.env.NODE_ENV === 'development'
+      const isDevelopment = process.env.NODE_ENV === 'development';
+      const apiKey = isDevelopment
         ? process.env.EXPO_PUBLIC_REVENUECAT_API_KEY_SANDBOX || ''
         : process.env.EXPO_PUBLIC_REVENUECAT_API_KEY || '';
 
       if (!apiKey) {
-        throw new Error('RevenueCat API key not configured');
+        throw new Error(`RevenueCat API key not configured for ${isDevelopment ? 'sandbox' : 'production'}`);
       }
 
-      await Purchases.configure({ apiKey, appUserID: userId });
+      // Configure RevenueCat with debug options in development
+      await Purchases.configure({ 
+        apiKey, 
+        appUserID: userId,
+        useAmazon: false // Set to true if supporting Amazon Appstore
+      });
+
+      // Enable debug logging in development
+      if (isDevelopment) {
+        Purchases.setLogLevel(LOG_LEVEL.DEBUG);
+        console.log('RevenueCat initialized in DEBUG mode for user:', userId);
+      }
+
       this.isInitialized = true;
       
-      console.log('RevenueCat initialized successfully');
+      console.log('RevenueCat SDK initialized successfully');
     } catch (error) {
       console.error('Failed to initialize RevenueCat:', error);
       throw error;
