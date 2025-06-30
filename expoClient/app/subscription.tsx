@@ -18,6 +18,13 @@ import { GlassCard } from '../src/components/ui/GlassCard';
 import { Button } from '../src/components/ui/Button';
 import { ThemedText } from '../src/components/ThemedText';
 import { apiRequest, queryClient } from '../src/lib/apiService';
+import { 
+  useMobileSubscription, 
+  useMobileProducts, 
+  useMobilePurchase, 
+  useMobileRestore 
+} from '../src/hooks/useMobileBilling';
+import { revenueCatService } from '../src/services/revenueCatService';
 
 const { width } = Dimensions.get('window');
 
@@ -32,7 +39,7 @@ interface BillingProduct {
     formattedPrice: string;
     formattedSavings?: string;
     interval: string;
-    stripePriceId: string;
+    productId: string; // RevenueCat product ID instead of Stripe price ID
   };
   features: {
     wordLimit: number;
@@ -46,70 +53,35 @@ interface BillingProduct {
   billingType: string;
 }
 
-interface CurrentSubscription {
-  success: boolean;
-  hasSubscription: boolean;
-  formattedMessage?: string;
-  subscription?: {
-    id: string;
-    status: string;
-    plan: string;
-    planId: string;
-    priceId: string;
-    isFree: boolean;
-    formattedAmount: string;
-    formattedInterval: string;
-    startDate: Date;
-    formattedStartDate: string;
-    currentPeriodStart: Date;
-    currentPeriodEnd: Date;
-    formattedCurrentPeriod: string;
-    nextRenewalDate: Date;
-    formattedNextRenewal: string;
-    wordLimit: number;
-    currentUsage: number;
-    formattedUsage: string;
-    usagePercentage: number;
-    cancelAtPeriodEnd: boolean;
-    formattedStatus: string;
-    statusColor: string;
-    daysRemaining: number;
-    formattedDaysRemaining: string;
-  };
-}
+// Using MobileSubscriptionData directly from RevenueCat service
+import type { MobileSubscriptionData } from '../src/services/revenueCatService';
 
 export default function SubscriptionScreen() {
   const [selectedPlan, setSelectedPlan] = useState<BillingProduct | null>(null);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
 
-  // Fetch current subscription
+  // Fetch current subscription using RevenueCat
   const { data: currentSubscription, isLoading: subscriptionLoading, refetch: refetchSubscription } =
-    useQuery<CurrentSubscription>({
-      queryKey: ['subscription-current'],
-      queryFn: () => apiRequest('/api/billing/subscriptions/current'),
-      enabled: true,
-    });
+    useMobileSubscription();
 
-  // Fetch available plans
-  const { data: plans, isLoading: plansLoading } = useQuery<BillingProduct[]>({
-    queryKey: ['billing-products'],
-    queryFn: () => apiRequest('/api/billing/products'),
-    enabled: true,
-  });
+  // Fetch available plans using RevenueCat
+  const { data: plans, isLoading: plansLoading } = useMobileProducts();
 
-  // Fetch scheduled subscription changes
-  const { data: scheduledChanges, isLoading: scheduledLoading } = useQuery({
-    queryKey: ['subscription-scheduled'],
-    queryFn: () => apiRequest('/api/billing/subscription/scheduled'),
-    enabled: !!currentSubscription?.subscription?.id,
-  });
+  // Mobile billing usage
+  const { data: billingUsage } = useMobileBillingUsage();
 
-  // Update subscription mutation
+  // RevenueCat purchase mutation
+  const purchaseSubscription = useMobilePurchase();
+  
+  // RevenueCat restore mutation  
+  const restorePurchases = useMobileRestore();
+
+  // Mock update subscription for compatibility
   const updateSubscription = useMutation({
-    mutationFn: async (planData: { stripePriceId: string }) => {
-      return apiRequest('/api/billing/subscriptions/update', {
-        method: 'POST',
-        body: JSON.stringify(planData),
+    mutationFn: async (planData: { productId: string }) => {
+      // Trigger RevenueCat purchase flow
+      return purchaseSubscription.mutateAsync({
+        productId: planData.productId,
       });
     },
     onSuccess: (data, variables) => {
