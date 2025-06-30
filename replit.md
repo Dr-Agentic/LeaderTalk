@@ -122,6 +122,7 @@ Key tables include:
 - `chapters/modules/situations` - Training curriculum structure
 
 ## Changelog
+- June 30, 2025. Implemented RevenueCat migration foundation for Expo client
 - June 27, 2025. Initial setup
 
 ## User Preferences
