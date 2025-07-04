@@ -41,9 +41,9 @@ export const config = {
 
   // RevenueCat configuration
   revenueCat: {
-    secretKey: getConfigValue("REVENUECAT_SECRET_KEY"),
-    publicKey: getConfigValue("REVENUECAT_PUBLIC_KEY"),
-    projectId: getConfigValue("REVENUECAT_PROJECT_ID"),
+    secretKey: getConfigValue("RC_SECRET_KEY"),
+    publicKey: getConfigValue("RC_PUBLIC_KEY"),
+    projectId: getConfigValue("RC_PROJECT_ID"),
   },
 
   // OpenAI configuration
@@ -68,8 +68,6 @@ export const config = {
     port: process.env.PORT || "5000",
   },
 };
-
-
 
 // Export individual getters for special cases
 export { getConfigValue, getRequiredConfigValue };
