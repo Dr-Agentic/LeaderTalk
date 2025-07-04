@@ -4,6 +4,8 @@
  * Uses email-based customer lookup to avoid database ID synchronization
  */
 
+import { config } from '../config/environment';
+
 interface RevenueCatConfig {
   secretKey: string;
   publicKey: string;
@@ -108,10 +110,10 @@ class RevenueCatPaymentHandler {
 
   constructor() {
     this.config = {
-      secretKey: process.env.REVENUECAT_SECRET_KEY || "",
-      publicKey: process.env.REVENUECAT_PUBLIC_KEY || "",
+      secretKey: config.revenueCat.secretKey || "",
+      publicKey: config.revenueCat.publicKey || "",
       baseUrl: "https://api.revenuecat.com/v2",
-      projectId: process.env.REVENUECAT_PROJECT_ID || "",
+      projectId: config.revenueCat.projectId || "",
     };
 
     if (!this.config.secretKey) {

@@ -39,6 +39,13 @@ export const config = {
     publicKey: getConfigValue("VITE_STRIPE_PUBLIC_KEY"), // Optional for server-side
   },
 
+  // RevenueCat configuration
+  revenueCat: {
+    secretKey: getConfigValue("REVENUECAT_SECRET_KEY"),
+    publicKey: getConfigValue("REVENUECAT_PUBLIC_KEY"),
+    projectId: getConfigValue("REVENUECAT_PROJECT_ID"),
+  },
+
   // OpenAI configuration
   openai: {
     apiKey: getRequiredConfigValue("OPENAI_API_KEY"),
@@ -62,7 +69,7 @@ export const config = {
   },
 };
 
-console.error(config.supabase);
+
 
 // Export individual getters for special cases
 export { getConfigValue, getRequiredConfigValue };
@@ -71,18 +78,21 @@ export { getConfigValue, getRequiredConfigValue };
 console.log("🔧 Environment Configuration Loaded:");
 console.log(`   Environment: ${config.nodeEnv}`);
 console.log(
-  `   Database: ${config.database.url ? "✅ Connected" : "❌ Missing"}`,
+  `   Database: ${config.database.url ? "✅ " + config.database.url.slice(0, 8) : "❌ Missing"}`,
 );
 console.log(
-  `   Stripe: ${config.stripe.secretKey ? "✅ Configured" : "❌ Missing"}`,
+  `   Stripe: ${config.stripe.secretKey ? "✅ " + config.stripe.secretKey.slice(0, 8) : "❌ Missing"}`,
 );
 console.log(
-  `   OpenAI: ${config.openai.apiKey ? "✅ Configured" : "❌ Missing"}`,
+  `   RevenueCat: ${config.revenueCat.secretKey ? "✅ " + config.revenueCat.secretKey.slice(0, 8) : "❌ Missing"}`,
 );
 console.log(
-  `   Session: ${config.session.secret ? "✅ Configured" : "❌ Missing"}`,
+  `   OpenAI: ${config.openai.apiKey ? "✅ " + config.openai.apiKey.slice(0, 8) : "❌ Missing"}`,
 );
 console.log(
-  `   Supabase: ${config.supabase.url ? "✅ Configured" : "❌ Missing"}`,
+  `   Session: ${config.session.secret ? "✅ " + config.session.secret.slice(0, 8) : "❌ Missing"}`,
+);
+console.log(
+  `   Supabase: ${config.supabase.url ? "✅ " + config.supabase.url.slice(0, 8) : "❌ Missing"}`,
 );
 console.log(`   Cookie Domain: ${config.session.cookieDomain || "Not set"}`);

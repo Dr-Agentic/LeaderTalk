@@ -17,57 +17,6 @@ import { GlassCard } from '../../src/components/ui/GlassCard';
 import { Button } from '../../src/components/ui/Button';
 import { ThemedText } from '../../src/components/ThemedText';
 
-// Mock data for demonstration purposes
-const MOCK_RECORDINGS = [
-  {
-    id: '1',
-    title: 'Team Meeting Discussion',
-    recordedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
-    duration: 325, // 5:25 minutes
-    analysisResult: {
-      timeline: [
-        { time: 0, confidence: 0.7, clarity: 0.8, engagement: 0.6 },
-        { time: 60, confidence: 0.8, clarity: 0.7, engagement: 0.7 },
-        { time: 120, confidence: 0.6, clarity: 0.9, engagement: 0.8 },
-        { time: 180, confidence: 0.9, clarity: 0.8, engagement: 0.9 },
-        { time: 240, confidence: 0.7, clarity: 0.7, engagement: 0.8 },
-        { time: 300, confidence: 0.8, clarity: 0.8, engagement: 0.7 },
-      ],
-      positiveInstances: [
-        { timestamp: 45, analysis: "Great use of clear, concise language to explain the project goals." },
-        { timestamp: 128, analysis: "Effective acknowledgment of team member contributions." },
-        { timestamp: 210, analysis: "Strong, confident delivery of key metrics and results." }
-      ],
-      negativeInstances: [
-        { timestamp: 75, analysis: "Slight hesitation when addressing budget concerns." },
-        { timestamp: 180, analysis: "Could improve clarity when explaining technical details." }
-      ],
-      passiveInstances: [],
-      leadershipInsights: [
-        { 
-          leaderId: "1", 
-          leaderName: "Steve Jobs",
-          advice: "Would have emphasized the vision more strongly and connected it to the product's impact on users' lives."
-        },
-        {
-          leaderId: "2",
-          leaderName: "Brené Brown",
-          advice: "Would have created more space for team vulnerability and honest discussion about challenges."
-        }
-      ],
-      overview: {
-        rating: "Good",
-        score: 82
-      }
-    }
-  }
-];
-
-const MOCK_LEADERS = [
-  { id: "1", name: "Steve Jobs" },
-  { id: "2", name: "Brené Brown" },
-  { id: "3", name: "Simon Sinek" }
-];
 
 // Helper function to calculate weekly improvement
 function calculateWeeklyImprovement(recordings: any[]) {
