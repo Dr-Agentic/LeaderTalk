@@ -85,6 +85,9 @@ console.log(
   `   RevenueCat: ${config.revenueCat.secretKey ? "✅ " + config.revenueCat.secretKey.slice(0, 8) : "❌ Missing"}`,
 );
 console.log(
+  `   RevenueCat: ${config.revenueCat.projectId ? "✅ " + config.revenueCat.projectId.slice(0, 8) : "❌ Missing"}`,
+);
+console.log(
   `   OpenAI: ${config.openai.apiKey ? "✅ " + config.openai.apiKey.slice(0, 8) : "❌ Missing"}`,
 );
 console.log(
