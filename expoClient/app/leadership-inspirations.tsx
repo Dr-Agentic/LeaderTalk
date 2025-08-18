@@ -18,7 +18,7 @@ import { AppLayout } from '../src/components/navigation/AppLayout';
 import { GlassCard } from '../src/components/ui/GlassCard';
 import { Button } from '../src/components/ui/Button';
 import { ThemedText } from '../src/components/ThemedText';
-import { apiRequest } from '../src/lib/apiClient';
+import { apiRequest } from '../src/lib/apiService';
 
 interface Leader {
   id: number;

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+  <title>Abraham Lincoln</title>
+  <defs>
+    <linearGradient id="portrait-gradient-lincoln" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3A6073"/>
+      <stop offset="100%" stop-color="#16222A"/>
+    </linearGradient>
+  </defs>
+  <rect width="300" height="300" fill="#f8f9fa" rx="10" ry="10"/>
+  <circle cx="150" cy="120" r="70" fill="url(#portrait-gradient-lincoln)"/>
+  <path d="M120,140 C120,140 130,160 150,160 C170,160 180,140 180,140" stroke="#fff" stroke-width="3" fill="none"/>
+  <circle cx="130" cy="110" r="10" fill="#fff"/>
+  <circle cx="170" cy="110" r="10" fill="#fff"/>
+  <!-- Lincoln's distinctive beard -->
+  <path d="M150,160 C130,160 120,180 120,200 C120,220 130,230 150,230 C170,230 180,220 180,200 C180,180 170,160 150,160 Z" fill="#333"/>
+  <!-- Lincoln's iconic hat -->
+  <path d="M100,100 L200,100 L200,50 L100,50 Z" fill="#111"/>
+</svg>

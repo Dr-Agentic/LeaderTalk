@@ -4,7 +4,10 @@ import { StyleSheet, View, Text, Platform } from 'react-native';
 import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
+// IMPORTANT: Import the SINGLE QueryClient instance from apiService
+// DO NOT create a new QueryClient here - it will break React Query cache
+import { queryClient } from '../src/lib/apiService';
 import * as Linking from 'expo-linking';
 import { initializeSupabase } from '../src/lib/supabaseAuth';
 import { ActivityIndicator } from 'react-native';
@@ -101,15 +104,7 @@ if (Platform.OS === 'web' && typeof document !== 'undefined') {
   document.head.appendChild(style);
 }
 
-// Create a client
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      retry: 1,
-    },
-  },
-});
+
 
 export default function RootLayout() {
   const [initError, setInitError] = useState<string | null>(null);
@@ -207,6 +202,7 @@ export default function RootLayout() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      {/* Using the SINGLE QueryClient instance from apiService.ts */}
       <GestureHandlerRootView style={styles.container}>
         <StatusBar barStyle="light-content" backgroundColor="#8A2BE2" translucent />
         
@@ -254,10 +250,7 @@ export default function RootLayout() {
             headerShown: false 
           }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="deep-link-test" options={{ 
-            title: "Deep Link Test",
-            headerShown: false 
-          }} />
+
         </Stack>
       </GestureHandlerRootView>
     </QueryClientProvider>

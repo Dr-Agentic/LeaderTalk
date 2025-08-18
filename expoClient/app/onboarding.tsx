@@ -3,7 +3,7 @@ import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { apiRequest } from '@/src/lib/queryClient';
+import { apiRequest } from '../src/lib/apiService';
 
 export default function Onboarding() {
   const router = useRouter();

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Jensen Huang SVG -->
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#76FF03;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#64DD17;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <circle cx="100" cy="100" r="95" fill="white" stroke="url(#grad1)" stroke-width="2"/>
+  
+  <!-- Face -->
+  <ellipse cx="100" cy="85" rx="35" ry="40" fill="#f5d0a9"/>
+  
+  <!-- Hair -->
+  <path d="M65 50 Q 100 35, 135 50 L135 80 L65 80 Z" fill="#111"/>
+  
+  <!-- Eyes -->
+  <ellipse cx="85" cy="80" rx="5" ry="3" fill="#333"/>
+  <ellipse cx="115" cy="80" rx="5" ry="3" fill="#333"/>
+  
+  <!-- Eyebrows -->
+  <path d="M75 70 Q 85 67, 95 70" fill="none" stroke="#111" stroke-width="2"/>
+  <path d="M105 70 Q 115 67, 125 70" fill="none" stroke="#111" stroke-width="2"/>
+  
+  <!-- Nose -->
+  <path d="M100 80 L100 95 Q 105 100, 110 95" fill="none" stroke="#999" stroke-width="2"/>
+  
+  <!-- Mouth -->
+  <path d="M85 105 Q 100 100, 115 105" fill="none" stroke="#666" stroke-width="1.5"/>
+  
+  <!-- Signature Leather Jacket -->
+  <path d="M65 110 Q 100 130, 135 110 L140 160 Q 100 180, 60 160 Z" fill="#111"/>
+  <path d="M60 120 L85 115 L85 160 L60 160 Z" fill="#111"/>
+  <path d="M140 120 L115 115 L115 160 L140 160 Z" fill="#111"/>
+  
+  <!-- NVIDIA Logo -->
+  <path d="M90 140 L90 150 L100 155 L110 150 L110 140 L100 135 Z" fill="#76b900"/>
+  
+  <!-- GPU Chip Representation -->
+  <rect x="85" y="170" width="30" height="20" rx="2" ry="2" fill="#555"/>
+  <circle cx="90" cy="175" r="1" fill="#76b900"/>
+  <circle cx="95" cy="175" r="1" fill="#76b900"/>
+  <circle cx="90" cy="180" r="1" fill="#76b900"/>
+  <circle cx="95" cy="180" r="1" fill="#76b900"/>
+  <circle cx="90" cy="185" r="1" fill="#76b900"/>
+  <circle cx="95" cy="185" r="1" fill="#76b900"/>
+  
+  <circle cx="105" cy="175" r="1" fill="#76b900"/>
+  <circle cx="110" cy="175" r="1" fill="#76b900"/>
+  <circle cx="105" cy="180" r="1" fill="#76b900"/>
+  <circle cx="110" cy="180" r="1" fill="#76b900"/>
+  <circle cx="105" cy="185" r="1" fill="#76b900"/>
+  <circle cx="110" cy="185" r="1" fill="#76b900"/>
+</svg>

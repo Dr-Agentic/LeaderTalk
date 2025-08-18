@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+  <title>Winston Churchill</title>
+  <defs>
+    <linearGradient id="portrait-gradient-churchill" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#BBD2C5"/>
+      <stop offset="100%" stop-color="#536976"/>
+    </linearGradient>
+  </defs>
+  <rect width="300" height="300" fill="#f8f9fa" rx="10" ry="10"/>
+  <circle cx="150" cy="120" r="70" fill="url(#portrait-gradient-churchill)"/>
+  <path d="M120,140 C120,140 130,160 150,160 C170,160 180,140 180,140" stroke="#fff" stroke-width="3" fill="none"/>
+  <circle cx="130" cy="110" r="10" fill="#fff"/>
+  <circle cx="170" cy="110" r="10" fill="#fff"/>
+  <!-- Churchill's distinctive hat -->
+  <path d="M100,80 L200,80 L200,50 L100,50 Z" fill="#333"/>
+  <!-- Churchill's iconic cigar -->
+  <rect x="180" y="150" width="30" height="10" fill="#8B4513" rx="2" ry="2"/>
+  <circle cx="210" cy="155" r="5" fill="#CD853F"/>
+</svg>

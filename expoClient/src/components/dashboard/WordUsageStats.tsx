@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { GlassCard } from '../ui/GlassCard';
 import { ProgressBar } from '../ui/ProgressBar';
 import { ThemedText } from '../ThemedText';
-import { apiRequest } from '../../lib/apiClient';
+import { apiRequest } from '../../lib/apiService';
 
 const { width } = Dimensions.get('window');
 

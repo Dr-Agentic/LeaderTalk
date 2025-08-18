@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+  <title>Franklin D. Roosevelt</title>
+  <defs>
+    <linearGradient id="portrait-gradient-fdr" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#243949"/>
+      <stop offset="100%" stop-color="#517fa4"/>
+    </linearGradient>
+  </defs>
+  <rect width="300" height="300" fill="#f8f9fa" rx="10" ry="10"/>
+  <circle cx="150" cy="120" r="70" fill="url(#portrait-gradient-fdr)"/>
+  <path d="M120,140 C120,140 130,160 150,160 C170,160 180,140 180,140" stroke="#fff" stroke-width="3" fill="none"/>
+  <circle cx="130" cy="110" r="10" fill="#fff"/>
+  <circle cx="170" cy="110" r="10" fill="#fff"/>
+  <!-- FDR's iconic cigarette holder and glasses -->
+  <line x1="190" y1="135" x2="210" y2="125" stroke="#ccc" stroke-width="2"/>
+  <circle cx="210" cy="125" r="3" fill="#f44336"/>
+  <ellipse cx="130" cy="110" rx="15" ry="8" fill="none" stroke="#ccc" stroke-width="2"/>
+  <ellipse cx="170" cy="110" rx="15" ry="8" fill="none" stroke="#ccc" stroke-width="2"/>
+  <line x1="145" y1="110" x2="155" y2="110" stroke="#ccc" stroke-width="2"/>
+  <text x="150" y="230" text-anchor="middle" font-family="Arial, sans-serif" font-weight="bold" font-size="22" fill="#333">Franklin D. Roosevelt</text>
+  <text x="150" y="260" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#666">32nd U.S. President</text>
+</svg>

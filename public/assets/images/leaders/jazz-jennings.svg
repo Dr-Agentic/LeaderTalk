@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="300" height="300" viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="150" cy="150" r="150" fill="#E792FF" opacity="0.15"/>
+  
+  <!-- Face shape -->
+  <path d="M150 220C189.706 220 222 187.706 222 148C222 108.294 189.706 76 150 76C110.294 76 78 108.294 78 148C78 187.706 110.294 220 150 220Z" fill="#FFD2C8"/>
+  
+  <!-- Hair -->
+  <path d="M150 78C113 78 78 110 78 150C78 160 80 170 84 179C92 153 102 138 118 131C116 126 115 121 115 115C115 97 130 82 148 82C166 82 181 97 181 115C181 121 180 126 178 131C194 138 204 153 212 179C216 170 218 160 218 150C218 110 183 78 146 78H150Z" fill="#8952A8"/>
+  
+  <!-- Longer hair strands -->
+  <path d="M118 131C116 126 115 121 115 115C115 97 130 82 148 82C166 82 181 97 181 115C181 121 180 126 178 131C190 136 198 145 204 160C204 180 204 200 204 220C184 210 166 205 150 205C134 205 116 210 96 220C96 200 96 180 96 160C102 145 110 136 122 131H118Z" fill="#8952A8"/>
+  
+  <!-- Eyes -->
+  <ellipse cx="125" cy="138" rx="8" ry="6" fill="#562B7C"/>
+  <ellipse cx="175" cy="138" rx="8" ry="6" fill="#562B7C"/>
+  
+  <!-- Eyebrows -->
+  <path d="M115 126C119 124 124 124 130 126" stroke="#562B7C" stroke-width="2" stroke-linecap="round"/>
+  <path d="M185 126C181 124 176 124 170 126" stroke="#562B7C" stroke-width="2" stroke-linecap="round"/>
+  
+  <!-- White highlights in eyes -->
+  <circle cx="123" cy="136" r="2" fill="white"/>
+  <circle cx="173" cy="136" r="2" fill="white"/>
+  
+  <!-- Mouth -->
+  <path d="M130 170C137 176 163 176 170 170" stroke="#D4727E" stroke-width="3" stroke-linecap="round"/>
+  
+  <!-- Nose -->
+  <path d="M150 140V155M145 155H155" stroke="#D88E99" stroke-width="2" stroke-linecap="round"/>
+  
+  <!-- Earrings -->
+  <circle cx="90" cy="145" r="4" fill="#FFD700"/>
+  <circle cx="210" cy="145" r="4" fill="#FFD700"/>
+  
+  <!-- Small heart symbol for activism -->
+  <path d="M150 186C152 183 158 178 165 185C172 192 158 198 150 186Z" fill="#E94D87"/>
+</svg>

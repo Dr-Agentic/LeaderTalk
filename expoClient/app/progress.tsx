@@ -27,7 +27,7 @@ import { GlassCard } from '../src/components/ui/GlassCard';
 import { Picker } from '../src/components/ui/Picker';
 import { TabView } from '../src/components/ui/TabView';
 import { ThemedText } from '../src/components/ThemedText';
-import { apiRequest } from '../src/lib/apiClient';
+import { apiRequest } from '../src/lib/apiService';
 
 const { width: screenWidth } = Dimensions.get('window');
 const chartWidth = screenWidth - 80; // Account for padding
