@@ -148,6 +148,6 @@ export const revenueCatService = RevenueCatService.getInstance();
 
 // Product identifiers that should match your App Store Connect configuration
 export const REVENUECAT_PRODUCT_IDS = {
-  EXECUTIVE_MONTHLY: 'com.leadertalk.app.executive.monthly',
-  EXECUTIVE_YEARLY: 'com.leadertalk.app.executive.yearly',
+  EXECUTIVE_MONTHLY: 'com.leadertalk.app.ios.subscription.executive.monthly',
+  EXECUTIVE_YEARLY: 'com.leadertalk.app.ios.subscription.executive.yearly',
 };

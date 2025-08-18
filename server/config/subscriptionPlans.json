@@ -6,7 +6,7 @@
       "description": "Perfect for getting started with leadership coaching",
       "tier": "free",
       "features": {
-        "wordLimit": 5000,
+        "wordLimit": 1000,
         "maxRecordingLength": 300,
         "leaderLibraryAccess": true,
         "advancedAnalytics": false,
@@ -53,7 +53,7 @@
       "description": "Advanced leadership coaching with premium features",
       "tier": "premium",
       "features": {
-        "wordLimit": 50000,
+        "wordLimit": 10000,
         "maxRecordingLength": 1800,
         "leaderLibraryAccess": true,
         "advancedAnalytics": true,
@@ -62,7 +62,7 @@
       },
       "pricing": {
         "monthly": {
-          "amount": 29.99,
+          "amount": 9.99,
           "currency": "USD",
           "interval": "month"
         }
@@ -72,7 +72,7 @@
           "monthly": "price_1QQvKnP8m2KhwJhJYour_Stripe_Price_ID"
         },
         "revenuecat": {
-          "monthly": "com.leadertalk.app.executive.monthly"
+          "monthly": "com.leadertalk.app.ios.subscription.executive.monthly"
         },
         "googlePlay": {
           "monthly": "executive_monthly"
@@ -92,7 +92,7 @@
       "description": "Advanced leadership coaching with premium features (best value)",
       "tier": "premium",
       "features": {
-        "wordLimit": 50000,
+        "wordLimit": 10000,
         "maxRecordingLength": 1800,
         "leaderLibraryAccess": true,
         "advancedAnalytics": true,
@@ -101,11 +101,11 @@
       },
       "pricing": {
         "yearly": {
-          "amount": 299.99,
+          "amount": 99.00,
           "currency": "USD",
           "interval": "year",
           "savings": {
-            "amount": 59.89,
+            "amount": 20.88,
             "percentage": 17
           }
         }
@@ -115,7 +115,7 @@
           "yearly": "price_1QQvKnP8m2KhwJhJYour_Yearly_Stripe_Price_ID"
         },
         "revenuecat": {
-          "yearly": "com.leadertalk.app.executive.yearly"
+          "yearly": "com.leadertalk.app.ios.subscription.executive.yearly"
         },
         "googlePlay": {
           "yearly": "executive_yearly"
@@ -135,8 +135,14 @@
     "version": "1.0.0",
     "lastUpdated": "2024-12-19T00:00:00Z",
     "environment": "production",
-    "supportedPlatforms": ["web", "ios", "android"],
-    "supportedCurrencies": ["USD"],
+    "supportedPlatforms": [
+      "web",
+      "ios",
+      "android"
+    ],
+    "supportedCurrencies": [
+      "USD"
+    ],
     "defaultPlan": "starter"
   }
 }
