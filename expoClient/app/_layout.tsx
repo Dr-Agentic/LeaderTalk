@@ -9,6 +9,8 @@ import * as Linking from 'expo-linking';
 import { initializeSupabase } from '../src/lib/supabaseAuth';
 import { ActivityIndicator } from 'react-native';
 import { API_URL } from '../src/lib/api';
+import CustomSplashScreen from '../src/components/splash/SplashScreen';
+import { useSplashScreen } from '../src/hooks/useSplashScreen';
 
 // Add React Native Web style overrides
 if (Platform.OS === 'web' && typeof document !== 'undefined') {
@@ -120,6 +122,15 @@ export default function RootLayout() {
     'Inter-Bold': require('../assets/fonts/Inter-Bold.ttf'),
   });
 
+  // Splash screen management
+  const {
+    isReady,
+    showCustomSplash,
+    onCustomSplashComplete,
+  } = useSplashScreen({
+    minDisplayTime: 2500,
+  });
+
   useEffect(() => {
     // Basic deeplink logging for production debugging
     const subscription = Linking.addEventListener('url', ({ url }) => {
@@ -159,8 +170,18 @@ export default function RootLayout() {
     };
   }, []);
 
-  // Wait for fonts to load
-  if (!fontsLoaded) {
+  // Show custom splash screen
+  if (showCustomSplash && fontsLoaded) {
+    return (
+      <CustomSplashScreen 
+        onComplete={onCustomSplashComplete}
+        minDisplayTime={2500}
+      />
+    );
+  }
+
+  // Wait for fonts to load and splash to complete
+  if (!fontsLoaded || !isReady) {
     return (
       <View style={styles.container}>
         <View style={styles.loadingContainer}>
