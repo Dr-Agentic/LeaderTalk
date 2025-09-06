@@ -39,14 +39,15 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "../public/assets/LeaderTalk-NoLabel.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#0f0f23"
         }
       ],
       "expo-secure-store",
-      "expo-av"
+      "expo-av",
+      "react-native-purchases"
     ],
     "experiments": {
       "typedRoutes": true

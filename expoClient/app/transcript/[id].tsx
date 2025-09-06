@@ -175,10 +175,23 @@ export default function TranscriptView() {
       return leaderAlternatives[cacheKey];
     }
 
-    fetchLeaderAlternative(instance, leaderId);
+    // Don't fetch during render - just return placeholder
     return loading[cacheKey]
       ? 'Loading alternative response...'
       : 'Click to load alternative response';
+  };
+
+  const handleLeaderButtonPress = async (instance: AnalysisInstance, leaderId: number, index: number) => {
+    if (activeLeader === leaderId && activeInstance === index) {
+      setActiveLeader(null);
+      setActiveInstance(null);
+    } else {
+      setActiveLeader(leaderId);
+      setActiveInstance(index);
+      
+      // Fetch alternative when button is pressed, not during render
+      await fetchLeaderAlternative(instance, leaderId);
+    }
   };
 
   const formatTimestamp = (seconds: number): string => {
@@ -358,6 +371,7 @@ export default function TranscriptView() {
               activeLeader={activeLeader}
               setActiveLeader={setActiveLeader}
               getLeaderAlternative={getLeaderAlternative}
+              onLeaderButtonPress={handleLeaderButtonPress}
             />
           </GlassCard>
         </View>
@@ -417,6 +431,7 @@ function AnalysisInstancesList({
   activeLeader,
   setActiveLeader,
   getLeaderAlternative,
+  onLeaderButtonPress,
 }: {
   instances: AnalysisInstance[];
   emptyMessage: string;
@@ -427,6 +442,7 @@ function AnalysisInstancesList({
   activeLeader?: number | null;
   setActiveLeader?: (id: number | null) => void;
   getLeaderAlternative?: (instance: AnalysisInstance, leaderId: number) => string;
+  onLeaderButtonPress?: (instance: AnalysisInstance, leaderId: number, index: number) => void;
 }) {
   const formatTimestamp = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
@@ -481,14 +497,8 @@ function AnalysisInstancesList({
                       activeLeader === leader.id && activeInstance === index && styles.leaderButtonActive
                     ]}
                     onPress={() => {
-                      if (setActiveLeader && setActiveInstance) {
-                        if (activeLeader === leader.id && activeInstance === index) {
-                          setActiveLeader(null);
-                          setActiveInstance(null);
-                        } else {
-                          setActiveLeader(leader.id);
-                          setActiveInstance(index);
-                        }
+                      if (onLeaderButtonPress) {
+                        onLeaderButtonPress(instance, leader.id, index);
                       }
                     }}
                   >

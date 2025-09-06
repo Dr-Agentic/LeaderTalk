@@ -1,0 +1,19 @@
+CSS Styling Guide for LeaderTalk Application Architecture Overview This application uses a 5-layer CSS hierarchy:
+
+tokens.css - Design tokens (colors, spacing, shadows) base.css - HTML element defaults themes.css - Visual effects (glass morphism, gradients, component styling) layout.css - Layout utilities (flex, grid, spacing) index.css - Global overrides (high-specificity fixes) Critical Rules
+
+CSS Specificity Management Never use !important unless absolutely necessary Scope selectors precisely to avoid unintended targeting Check existing selectors in index.css for conflicts before adding new styles Use semantic class names instead of Tailwind utilities
+Glass Morphism Effects Apply glass effects only to individual components, never containers Use .glass-card class for card components Container elements should remain transparent Glass effects include: backdrop-filter: blur(), semi-transparent backgrounds, and subtle borders
+Component Targeting Tab triggers: Use [role="tab"] selectors Tab content: Use [role="tabpanel"] but avoid styling - keep transparent Cards: Apply glass effects to .glass-card class Avoid broad selectors like [data-state="active"] without role specification Creating New Styles Step 1: Identify Layer Visual effects → themes.css Layout utilities → layout.css Color/spacing tokens → tokens.css Global fixes → index.css (last resort) Step 2: Check for Conflicts Search existing CSS for selectors that might conflict:
+grep -r "your-selector" client/src/styles/ Step 3: Semantic Naming Use descriptive class names: .transcript-card, .user-profile, .stats-panel Avoid generic names: .container, .wrapper, .box Troubleshooting Guide Issue: Styles Not Applying Check CSS specificity: Use browser dev tools to see which rules are overriding Search for conflicting selectors: Look in index.css for broad overrides Verify class hierarchy: Ensure parent elements aren't blocking inheritance Issue: Glass Effects on Wrong Elements Check for broad selectors targeting [data-state] or [data-orientation] Scope to specific roles: Add [role="tab"] or component classes Remove glass effects from containers: Only individual components should have glass effects Issue: Purple Tint Appearing This indicates glass background variables are being applied incorrectly:
+
+Search for selectors targeting your element with var(--glass-bg) or var(--glass-hover) Add role specificity: Change [data-state="active"] to [role="tab"][data-state="active"] Check inheritance: Ensure transparent containers aren't inheriting glass variables Issue: Layout Breaking Check flex/grid properties: Ensure layout classes aren't conflicting Verify container hierarchy: Glass effects can interfere with layout containers Test responsive breakpoints: Use dev tools to check mobile/tablet views Best Practices DO: Test styles in browser dev tools first Use semantic class names Apply glass effects to leaf components only Check all tab states (active/inactive) Verify mobile responsiveness DON'T: Use overly broad CSS selectors Apply glass effects to container elements Mix layout and visual properties in the same class Use !important unless fixing urgent conflicts Target elements by data attributes without role specification Quick Commands for Debugging
+
+Find conflicting selectors
+grep -r "your-problematic-class" client/src/styles/
+
+Check for glass effect applications
+grep -r "glass-bg|glass-hover" client/src/styles/
+
+Find broad data-state selectors
+grep -r "[data-state" client/src/styles/ Remember: The goal is clean, maintainable CSS that preserves the glass morphism aesthetic on individual components while keeping containers transparent for proper visual hierarchy.

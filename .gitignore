@@ -38,4 +38,9 @@ Thumbs.db
 .upm/
 .breakpoints
 replit.nix
-attached_assets/
+# Apple Developer Keys (keep secure, never commit)
+*.p8
+AuthKey_*.p8
+SubscriptionKey_*.p8
+attached_assets/AuthKey_*.p8
+attached_assets/SubscriptionKey_*.p8

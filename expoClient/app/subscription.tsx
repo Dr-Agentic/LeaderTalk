@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -8,26 +8,26 @@ import {
   Alert,
   TouchableOpacity,
   Dimensions,
-} from 'react-native';
-import { StatusBar } from 'expo-status-bar';
-import { router } from 'expo-router';
-import { Feather } from '@expo/vector-icons';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { AppLayout } from '../src/components/navigation/AppLayout';
-import { GlassCard } from '../src/components/ui/GlassCard';
-import { Button } from '../src/components/ui/Button';
-import { ThemedText } from '../src/components/ThemedText';
-import { apiRequest, queryClient } from '../src/lib/apiService';
-import { 
-  useMobileSubscription, 
-  useMobileProducts, 
-  useMobilePurchase, 
+} from "react-native";
+import { StatusBar } from "expo-status-bar";
+import { router } from "expo-router";
+import { Feather } from "@expo/vector-icons";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { AppLayout } from "../src/components/navigation/AppLayout";
+import { GlassCard } from "../src/components/ui/GlassCard";
+import { Button } from "../src/components/ui/Button";
+import { ThemedText } from "../src/components/ThemedText";
+import { apiRequest, queryClient } from "../src/lib/apiService";
+import {
+  useMobileSubscription,
+  useMobileProducts,
+  useMobilePurchase,
   useMobileRestore,
-  useMobileBillingUsage 
-} from '../src/hooks/useMobileBilling';
-import { revenueCatService } from '../src/services/revenueCatService';
+  useMobileBillingUsage,
+} from "../src/hooks/useMobileBilling";
+import { revenueCatService } from "../src/services/revenueCatService";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 
 interface BillingProduct {
   id: string;
@@ -55,15 +55,18 @@ interface BillingProduct {
 }
 
 // Using MobileSubscriptionData directly from RevenueCat service
-import type { MobileSubscriptionData } from '../src/services/revenueCatService';
+import type { MobileSubscriptionData } from "../src/services/revenueCatService";
 
 export default function SubscriptionScreen() {
   const [selectedPlan, setSelectedPlan] = useState<BillingProduct | null>(null);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
 
   // Fetch current subscription using RevenueCat
-  const { data: currentSubscription, isLoading: subscriptionLoading, refetch: refetchSubscription } =
-    useMobileSubscription();
+  const {
+    data: currentSubscription,
+    isLoading: subscriptionLoading,
+    refetch: refetchSubscription,
+  } = useMobileSubscription();
 
   // Fetch available plans using RevenueCat
   const { data: plans, isLoading: plansLoading } = useMobileProducts();
@@ -73,8 +76,8 @@ export default function SubscriptionScreen() {
 
   // RevenueCat purchase mutation
   const purchaseSubscription = useMobilePurchase();
-  
-  // RevenueCat restore mutation  
+
+  // RevenueCat restore mutation
   const restorePurchases = useMobileRestore();
 
   // Mock update subscription for compatibility
@@ -86,22 +89,16 @@ export default function SubscriptionScreen() {
       });
     },
     onSuccess: (data, variables) => {
-      if (data.requiresPayment && data.clientSecret) {
-        Alert.alert(
-          'Payment Method Required',
-          'Please add a payment method to complete the subscription change. This feature will be available in a future update.',
-          [{ text: 'OK' }]
-        );
-      } else {
-        showSubscriptionSuccessMessage(data, variables);
-        queryClient.invalidateQueries({ queryKey: ['subscription-current'] });
-      }
+      // RevenueCat will handle the actual payment processing
+      // This success handler now just shows confirmation
+      showSubscriptionSuccessMessage(data, variables);
+      queryClient.invalidateQueries({ queryKey: ["subscription-current"] });
     },
     onError: (error: any) => {
       Alert.alert(
-        'Error',
-        error.message || 'Failed to update subscription. Please try again.',
-        [{ text: 'OK' }]
+        "Error",
+        error.message || "Failed to update subscription. Please try again.",
+        [{ text: "OK" }],
       );
     },
   });
@@ -109,120 +106,123 @@ export default function SubscriptionScreen() {
   // Cancel subscription mutation
   const cancelSubscription = useMutation({
     mutationFn: async () => {
-      return apiRequest('/api/billing/subscriptions/cancel', {
-        method: 'POST',
+      return apiRequest("/api/billing/subscriptions/cancel", {
+        method: "POST",
       });
     },
     onSuccess: () => {
       Alert.alert(
-        'Subscription Cancelled',
+        "Subscription Cancelled",
         `Your subscription has been cancelled. You'll continue to enjoy Executive features until ${currentSubscription?.subscription?.formattedNextRenewal}, then switch to the free Starter plan.`,
-        [{ text: 'OK' }]
+        [{ text: "OK" }],
       );
-      queryClient.invalidateQueries({ queryKey: ['subscription-current'] });
+      queryClient.invalidateQueries({ queryKey: ["subscription-current"] });
     },
     onError: (error: any) => {
       Alert.alert(
-        'Error',
-        error.message || 'Failed to cancel subscription. Please try again.',
-        [{ text: 'OK' }]
+        "Error",
+        error.message || "Failed to cancel subscription. Please try again.",
+        [{ text: "OK" }],
       );
     },
   });
 
   const showSubscriptionSuccessMessage = (data: any, variables: any) => {
-    const currentPlan = currentSubscription?.subscription?.plan || '';
-    const newPlan = data.newPlan || '';
+    const currentPlan = currentSubscription?.subscription?.plan || "";
+    const newPlan = data.newPlan || "";
     const amount = data.amount || 0;
-    const interval = data.interval || '';
-    const nextRenewal = data.nextRenewal || '';
+    const interval = data.interval || "";
+    const nextRenewal = data.nextRenewal || "";
 
-    let title = 'Success!';
-    let message = 'Your subscription has been updated successfully';
+    let title = "Success!";
+    let message = "Your subscription has been updated successfully";
 
-    if (currentPlan === 'leadertalk_starter' && newPlan.includes('exec')) {
-      title = '🎉 Welcome to Executive!';
+    if (currentPlan === "leadertalk_starter" && newPlan.includes("exec")) {
+      title = "🎉 Welcome to Executive!";
       message = `You've successfully upgraded to our premium plan! You'll be billed ${amount} ${interval}ly starting ${nextRenewal}.`;
-    } else if (interval === 'year' && currentPlan.includes('monthly')) {
-      title = '🎉 Annual Savings Activated!';
+    } else if (interval === "year" && currentPlan.includes("monthly")) {
+      title = "🎉 Annual Savings Activated!";
       message = `You've switched to our annual plan! Your annual subscription (${amount}/year) begins at the end of your current cycle.`;
-    } else if (newPlan === 'leadertalk_starter' && currentPlan.includes('exec')) {
-      title = 'Subscription Updated';
+    } else if (
+      newPlan === "leadertalk_starter" &&
+      currentPlan.includes("exec")
+    ) {
+      title = "Subscription Updated";
       message = `You've switched to our free starter plan. You'll continue enjoying Executive benefits until ${nextRenewal}.`;
     }
 
-    Alert.alert(title, message, [{ text: 'OK' }]);
+    Alert.alert(title, message, [{ text: "OK" }]);
   };
 
   const handleSubscribe = async (plan: BillingProduct) => {
     const priceId = plan.pricing?.stripePriceId;
     if (!priceId) {
-      Alert.alert('Error', 'Invalid plan selected. Please try again.');
+      Alert.alert("Error", "Invalid plan selected. Please try again.");
       return;
     }
 
     const currentPriceId = currentSubscription?.subscription?.priceId;
     const isCurrentPlan = currentPriceId === priceId;
-    
+
     if (isCurrentPlan) {
       return;
     }
 
     Alert.alert(
-      'Confirm Subscription Change',
+      "Confirm Subscription Change",
       `Are you sure you want to change to ${plan.name}?`,
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: "Cancel", style: "cancel" },
         {
-          text: 'Confirm',
+          text: "Confirm",
           onPress: () => updateSubscription.mutate({ stripePriceId: priceId }),
         },
-      ]
+      ],
     );
   };
 
   const handleCancelSubscription = () => {
     Alert.alert(
-      'Cancel Subscription?',
+      "Cancel Subscription?",
       `Are you sure you want to cancel your Executive subscription?\n\n• You'll keep Executive features until ${currentSubscription?.subscription?.formattedNextRenewal}\n• After that, you'll switch to the free Starter plan\n• No refunds for the current billing period`,
       [
-        { text: 'Keep Subscription', style: 'cancel' },
+        { text: "Keep Subscription", style: "cancel" },
         {
-          text: 'Cancel Subscription',
-          style: 'destructive',
+          text: "Cancel Subscription",
+          style: "destructive",
           onPress: () => cancelSubscription.mutate(),
         },
-      ]
+      ],
     );
   };
 
   const handleCancelScheduledChange = async (scheduleId: string) => {
     try {
-      await apiRequest('/api/billing/subscription/scheduled/cancel', {
-        method: 'POST',
+      await apiRequest("/api/billing/subscription/scheduled/cancel", {
+        method: "POST",
         body: JSON.stringify({ scheduleId }),
       });
 
       Alert.alert(
-        'Scheduled Change Cancelled',
-        'Your scheduled subscription change has been cancelled successfully.',
-        [{ text: 'OK' }]
+        "Scheduled Change Cancelled",
+        "Your scheduled subscription change has been cancelled successfully.",
+        [{ text: "OK" }],
       );
-      
+
       refetchSubscription();
-      queryClient.invalidateQueries({ queryKey: ['subscription-scheduled'] });
+      queryClient.invalidateQueries({ queryKey: ["subscription-scheduled"] });
     } catch (error: any) {
       Alert.alert(
-        'Error',
-        error.message || 'Failed to cancel scheduled change',
-        [{ text: 'OK' }]
+        "Error",
+        error.message || "Failed to cancel scheduled change",
+        [{ text: "OK" }],
       );
     }
   };
 
   if (subscriptionLoading || plansLoading) {
     return (
-      <AppLayout 
+      <AppLayout
         pageTitle="Subscription"
         showBackButton={true}
         backTo="/settings"
@@ -230,22 +230,24 @@ export default function SubscriptionScreen() {
       >
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#8A2BE2" />
-          <ThemedText style={styles.loadingText}>Loading subscription details...</ThemedText>
+          <ThemedText style={styles.loadingText}>
+            Loading subscription details...
+          </ThemedText>
         </View>
       </AppLayout>
     );
   }
 
   return (
-    <AppLayout 
+    <AppLayout
       pageTitle="Subscription Management"
       showBackButton={true}
       backTo="/settings"
       backLabel="Back to Settings"
     >
       <StatusBar style="light" />
-      
-      <ScrollView 
+
+      <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -254,105 +256,131 @@ export default function SubscriptionScreen() {
         <View style={styles.header}>
           <ThemedText style={styles.title}>Choose Your Plan</ThemedText>
           <ThemedText style={styles.subtitle}>
-            Upgrade your leadership training with premium features and increased word limits
+            Upgrade your leadership training with premium features and increased
+            word limits
           </ThemedText>
         </View>
 
         {/* Current Subscription Status */}
-        {currentSubscription?.hasSubscription && currentSubscription.subscription && (
-          <GlassCard style={styles.currentSubscriptionCard}>
-            <View style={styles.cardHeader}>
-              <View>
-                <ThemedText style={styles.cardTitle}>Current Subscription</ThemedText>
-                <ThemedText style={styles.cardSubtitle}>
-                  You're subscribed to {currentSubscription.subscription.plan}
-                </ThemedText>
-              </View>
-              <View style={[styles.badge, { backgroundColor: 'rgba(138, 43, 226, 0.2)' }]}>
-                <ThemedText style={styles.badgeText}>
-                  {currentSubscription.subscription.formattedStatus}
-                </ThemedText>
-              </View>
-            </View>
-
-            <View style={styles.subscriptionStats}>
-              <View style={styles.statItem}>
-                <ThemedText style={styles.statLabel}>Word Usage</ThemedText>
-                <ThemedText style={styles.statValue}>
-                  {currentSubscription.subscription.formattedUsage}
-                </ThemedText>
-              </View>
-              <View style={styles.statItem}>
-                <ThemedText style={styles.statLabel}>Amount</ThemedText>
-                <ThemedText style={styles.statValue}>
-                  {currentSubscription.subscription.formattedAmount}
-                  {currentSubscription.subscription.formattedInterval}
-                </ThemedText>
-              </View>
-              <View style={styles.statItem}>
-                <ThemedText style={styles.statLabel}>Next Billing</ThemedText>
-                <ThemedText style={styles.statSubvalue}>
-                  {currentSubscription.subscription.formattedNextRenewal}
-                </ThemedText>
-              </View>
-              <View style={styles.statItem}>
-                <ThemedText style={styles.statLabel}>Subscription Created</ThemedText>
-                <ThemedText style={styles.statSubvalue}>
-                  {currentSubscription.subscription.formattedStartDate}
-                </ThemedText>
-              </View>
-            </View>
-
-            {/* Cancel Subscription Button for Paid Plans */}
-            {!currentSubscription.subscription.isFree && (
-              <Button
-                title="Cancel Subscription"
-                onPress={handleCancelSubscription}
-                style={[styles.cancelButton, { backgroundColor: 'rgba(255, 107, 107, 0.1)' }]}
-                textStyle={{ color: '#FF6B6B' }}
-                disabled={cancelSubscription.isPending}
-                loading={cancelSubscription.isPending}
-              />
-            )}
-          </GlassCard>
-        )}
-
-        {/* Scheduled Subscription Changes */}
-        {scheduledChanges && Array.isArray(scheduledChanges) && scheduledChanges.length > 0 && (
-          <GlassCard style={[styles.scheduledChangesCard, { borderColor: 'rgba(255, 193, 7, 0.3)' }]}>
-            <View style={styles.cardHeader}>
-              <View style={styles.scheduledHeader}>
-                <Feather name="clock" size={20} color="#FFC107" />
-                <ThemedText style={[styles.cardTitle, { color: '#FFC107' }]}>
-                  Scheduled Subscription Change
-                </ThemedText>
-              </View>
-              <ThemedText style={styles.cardSubtitle}>
-                Your subscription will automatically change at the end of your current billing period.
-              </ThemedText>
-            </View>
-
-            {scheduledChanges.map((change: any, index: number) => (
-              <View key={index} style={styles.scheduledChangeItem}>
-                <View style={styles.changeDetails}>
-                  <ThemedText style={styles.changePlan}>
-                    Changing to: <ThemedText style={styles.planName}>{change.scheduledPlan || 'New Plan'}</ThemedText>
+        {currentSubscription?.hasSubscription &&
+          currentSubscription.subscription && (
+            <GlassCard style={styles.currentSubscriptionCard}>
+              <View style={styles.cardHeader}>
+                <View>
+                  <ThemedText style={styles.cardTitle}>
+                    Current Subscription
                   </ThemedText>
-                  <ThemedText style={styles.changeDate}>
-                    Effective: {new Date(change.scheduledDate).toLocaleDateString()}
+                  <ThemedText style={styles.cardSubtitle}>
+                    You're subscribed to {currentSubscription.subscription.plan}
                   </ThemedText>
                 </View>
-                <Button
-                  title="Cancel Change"
-                  onPress={() => handleCancelScheduledChange(change.id)}
-                  style={styles.cancelChangeButton}
-                  textStyle={{ color: '#FF6B6B' }}
-                  size="small"
-                />
+                <View
+                  style={[
+                    styles.badge,
+                    { backgroundColor: "rgba(138, 43, 226, 0.2)" },
+                  ]}
+                >
+                  <ThemedText style={styles.badgeText}>
+                    {currentSubscription.subscription.formattedStatus}
+                  </ThemedText>
+                </View>
               </View>
-            ))}
-          </GlassCard>
-        )}
+
+              <View style={styles.subscriptionStats}>
+                <View style={styles.statItem}>
+                  <ThemedText style={styles.statLabel}>Word Usage</ThemedText>
+                  <ThemedText style={styles.statValue}>
+                    {currentSubscription.subscription.formattedUsage}
+                  </ThemedText>
+                </View>
+                <View style={styles.statItem}>
+                  <ThemedText style={styles.statLabel}>Amount</ThemedText>
+                  <ThemedText style={styles.statValue}>
+                    {currentSubscription.subscription.formattedAmount}
+                    {currentSubscription.subscription.formattedInterval}
+                  </ThemedText>
+                </View>
+                <View style={styles.statItem}>
+                  <ThemedText style={styles.statLabel}>Next Billing</ThemedText>
+                  <ThemedText style={styles.statSubvalue}>
+                    {currentSubscription.subscription.formattedNextRenewal}
+                  </ThemedText>
+                </View>
+                <View style={styles.statItem}>
+                  <ThemedText style={styles.statLabel}>
+                    Subscription Created
+                  </ThemedText>
+                  <ThemedText style={styles.statSubvalue}>
+                    {currentSubscription.subscription.formattedStartDate}
+                  </ThemedText>
+                </View>
+              </View>
+
+              {/* Cancel Subscription Button for Paid Plans */}
+              {!currentSubscription.subscription.isFree && (
+                <Button
+                  title="Cancel Subscription"
+                  onPress={handleCancelSubscription}
+                  style={[
+                    styles.cancelButton,
+                    { backgroundColor: "rgba(255, 107, 107, 0.1)" },
+                  ]}
+                  textStyle={{ color: "#FF6B6B" }}
+                  disabled={cancelSubscription.isPending}
+                  loading={cancelSubscription.isPending}
+                />
+              )}
+            </GlassCard>
+          )}
+
+        {/* Scheduled Subscription Changes */}
+        {scheduledChanges &&
+          Array.isArray(scheduledChanges) &&
+          scheduledChanges.length > 0 && (
+            <GlassCard
+              style={[
+                styles.scheduledChangesCard,
+                { borderColor: "rgba(255, 193, 7, 0.3)" },
+              ]}
+            >
+              <View style={styles.cardHeader}>
+                <View style={styles.scheduledHeader}>
+                  <Feather name="clock" size={20} color="#FFC107" />
+                  <ThemedText style={[styles.cardTitle, { color: "#FFC107" }]}>
+                    Scheduled Subscription Change
+                  </ThemedText>
+                </View>
+                <ThemedText style={styles.cardSubtitle}>
+                  Your subscription will automatically change at the end of your
+                  current billing period.
+                </ThemedText>
+              </View>
+
+              {scheduledChanges.map((change: any, index: number) => (
+                <View key={index} style={styles.scheduledChangeItem}>
+                  <View style={styles.changeDetails}>
+                    <ThemedText style={styles.changePlan}>
+                      Changing to:{" "}
+                      <ThemedText style={styles.planName}>
+                        {change.scheduledPlan || "New Plan"}
+                      </ThemedText>
+                    </ThemedText>
+                    <ThemedText style={styles.changeDate}>
+                      Effective:{" "}
+                      {new Date(change.scheduledDate).toLocaleDateString()}
+                    </ThemedText>
+                  </View>
+                  <Button
+                    title="Cancel Change"
+                    onPress={() => handleCancelScheduledChange(change.id)}
+                    style={styles.cancelChangeButton}
+                    textStyle={{ color: "#FF6B6B" }}
+                    size="small"
+                  />
+                </View>
+              ))}
+            </GlassCard>
+          )}
 
         {/* Available Plans */}
         <View style={styles.plansContainer}>
@@ -362,11 +390,11 @@ export default function SubscriptionScreen() {
             const isCurrentPlan = currentPriceId === planPriceId;
 
             return (
-              <GlassCard 
-                key={plan.id} 
+              <GlassCard
+                key={plan.id}
                 style={[
                   styles.planCard,
-                  selectedPlan?.id === plan.id && styles.selectedPlanCard
+                  selectedPlan?.id === plan.id && styles.selectedPlanCard,
                 ]}
               >
                 <View style={styles.planHeader}>
@@ -374,18 +402,26 @@ export default function SubscriptionScreen() {
                     <ThemedText style={styles.planName}>{plan.name}</ThemedText>
                     {plan.isPopular && (
                       <View style={styles.popularBadge}>
-                        <ThemedText style={styles.popularText}>Popular</ThemedText>
+                        <ThemedText style={styles.popularText}>
+                          Popular
+                        </ThemedText>
                       </View>
                     )}
                   </View>
-                  <ThemedText style={styles.planDescription}>{plan.description}</ThemedText>
+                  <ThemedText style={styles.planDescription}>
+                    {plan.description}
+                  </ThemedText>
                 </View>
 
                 {/* Pricing */}
                 <View style={styles.pricingSection}>
-                  <ThemedText style={styles.price}>{plan.pricing.formattedPrice}</ThemedText>
+                  <ThemedText style={styles.price}>
+                    {plan.pricing.formattedPrice}
+                  </ThemedText>
                   {plan.pricing.formattedSavings && (
-                    <ThemedText style={styles.savings}>{plan.pricing.formattedSavings}</ThemedText>
+                    <ThemedText style={styles.savings}>
+                      {plan.pricing.formattedSavings}
+                    </ThemedText>
                   )}
                 </View>
 
@@ -400,19 +436,28 @@ export default function SubscriptionScreen() {
                   {plan.features.advancedAnalytics && (
                     <View style={styles.featureItem}>
                       <Feather name="check" size={16} color="#10B981" />
-                      <ThemedText style={styles.featureText}>Advanced analytics</ThemedText>
+                      <ThemedText style={styles.featureText}>
+                        Advanced analytics
+                      </ThemedText>
                     </View>
                   )}
                   {plan.features.prioritySupport && (
                     <View style={styles.featureItem}>
                       <Feather name="check" size={16} color="#10B981" />
-                      <ThemedText style={styles.featureText}>Priority support</ThemedText>
+                      <ThemedText style={styles.featureText}>
+                        Priority support
+                      </ThemedText>
                     </View>
                   )}
-                  {plan.billingType === 'yearly' && (
+                  {plan.billingType === "yearly" && (
                     <View style={styles.featureItem}>
                       <Feather name="check" size={16} color="#3B82F6" />
-                      <ThemedText style={[styles.featureText, { color: '#fff', fontWeight: '600' }]}>
+                      <ThemedText
+                        style={[
+                          styles.featureText,
+                          { color: "#fff", fontWeight: "600" },
+                        ]}
+                      >
                         Best value option
                       </ThemedText>
                     </View>
@@ -421,15 +466,19 @@ export default function SubscriptionScreen() {
 
                 {/* Select Button */}
                 <Button
-                  title={isCurrentPlan ? 'Current Plan' : 'Select Plan'}
+                  title={isCurrentPlan ? "Current Plan" : "Select Plan"}
                   onPress={() => handleSubscribe(plan)}
                   disabled={updateSubscription.isPending || isCurrentPlan}
                   loading={updateSubscription.isPending}
                   style={[
                     styles.selectButton,
-                    isCurrentPlan && styles.currentPlanButton
+                    isCurrentPlan && styles.currentPlanButton,
                   ]}
-                  textStyle={isCurrentPlan ? { color: 'rgba(255, 255, 255, 0.6)' } : undefined}
+                  textStyle={
+                    isCurrentPlan
+                      ? { color: "rgba(255, 255, 255, 0.6)" }
+                      : undefined
+                  }
                 />
               </GlassCard>
             );
@@ -440,11 +489,13 @@ export default function SubscriptionScreen() {
         <GlassCard style={styles.securityCard}>
           <View style={styles.securityHeader}>
             <Feather name="check-circle" size={20} color="#10B981" />
-            <ThemedText style={styles.securityTitle}>Secure Payment Processing</ThemedText>
+            <ThemedText style={styles.securityTitle}>
+              Secure Payment Processing
+            </ThemedText>
           </View>
           <ThemedText style={styles.securityText}>
-            All payments are processed securely through our payment provider. Your payment
-            information is never stored on our servers.
+            All payments are processed securely through our payment provider.
+            Your payment information is never stored on our servers.
           </ThemedText>
         </GlassCard>
       </ScrollView>
@@ -462,131 +513,131 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#fff',
+    color: "#fff",
   },
   header: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 32,
   },
   title: {
     fontSize: 28,
-    fontWeight: 'bold',
-    color: '#fff',
-    textAlign: 'center',
+    fontWeight: "bold",
+    color: "#fff",
+    textAlign: "center",
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.7)',
-    textAlign: 'center',
+    color: "rgba(255, 255, 255, 0.7)",
+    textAlign: "center",
     lineHeight: 24,
   },
   currentSubscriptionCard: {
     marginBottom: 24,
   },
   cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
     marginBottom: 20,
   },
   cardTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
+    fontWeight: "bold",
+    color: "#fff",
     marginBottom: 4,
   },
   cardSubtitle: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: "rgba(255, 255, 255, 0.7)",
   },
   badge: {
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(138, 43, 226, 0.3)',
+    borderColor: "rgba(138, 43, 226, 0.3)",
   },
   badgeText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#8A2BE2',
+    fontWeight: "600",
+    color: "#8A2BE2",
   },
   subscriptionStats: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
     marginBottom: 20,
   },
   statItem: {
-    width: '48%',
+    width: "48%",
     marginBottom: 16,
-    alignItems: 'center',
+    alignItems: "center",
   },
   statLabel: {
     fontSize: 14,
-    fontWeight: '500',
-    color: 'rgba(255, 255, 255, 0.7)',
+    fontWeight: "500",
+    color: "rgba(255, 255, 255, 0.7)",
     marginBottom: 4,
   },
   statValue: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
+    fontWeight: "bold",
+    color: "#fff",
   },
   statSubvalue: {
     fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.7)',
-    textAlign: 'center',
+    color: "rgba(255, 255, 255, 0.7)",
+    textAlign: "center",
   },
   cancelButton: {
     borderWidth: 1,
-    borderColor: 'rgba(255, 107, 107, 0.3)',
+    borderColor: "rgba(255, 107, 107, 0.3)",
   },
   scheduledChangesCard: {
     marginBottom: 24,
     borderWidth: 1,
   },
   scheduledHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
     marginBottom: 4,
   },
   scheduledChangeItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.1)',
+    borderTopColor: "rgba(255, 255, 255, 0.1)",
   },
   changeDetails: {
     flex: 1,
   },
   changePlan: {
     fontSize: 16,
-    color: '#fff',
+    color: "#fff",
     marginBottom: 4,
   },
   planName: {
-    color: '#8A2BE2',
-    fontWeight: '600',
+    color: "#8A2BE2",
+    fontWeight: "600",
   },
   changeDate: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: "rgba(255, 255, 255, 0.7)",
   },
   cancelChangeButton: {
-    backgroundColor: 'rgba(255, 107, 107, 0.1)',
+    backgroundColor: "rgba(255, 107, 107, 0.1)",
     borderWidth: 1,
-    borderColor: 'rgba(255, 107, 107, 0.3)',
+    borderColor: "rgba(255, 107, 107, 0.3)",
     paddingHorizontal: 16,
     paddingVertical: 8,
   },
@@ -599,51 +650,51 @@ const styles = StyleSheet.create({
   },
   selectedPlanCard: {
     borderWidth: 2,
-    borderColor: '#8A2BE2',
+    borderColor: "#8A2BE2",
   },
   planHeader: {
     marginBottom: 20,
   },
   planTitleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 8,
   },
   planName: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
+    fontWeight: "bold",
+    color: "#fff",
   },
   popularBadge: {
-    backgroundColor: '#8A2BE2',
+    backgroundColor: "#8A2BE2",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
   },
   popularText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#fff',
+    fontWeight: "600",
+    color: "#fff",
   },
   planDescription: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: "rgba(255, 255, 255, 0.7)",
     lineHeight: 20,
   },
   pricingSection: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 20,
   },
   price: {
     fontSize: 32,
-    fontWeight: 'bold',
-    color: '#fff',
+    fontWeight: "bold",
+    color: "#fff",
   },
   savings: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#10B981',
+    fontWeight: "600",
+    color: "#10B981",
     marginTop: 4,
   },
   featuresSection: {
@@ -651,37 +702,37 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   featureItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
   },
   featureText: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: "rgba(255, 255, 255, 0.7)",
   },
   selectButton: {
-    marginTop: 'auto',
+    marginTop: "auto",
   },
   currentPlanButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
   },
   securityCard: {
     marginTop: 8,
   },
   securityHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
     marginBottom: 8,
   },
   securityTitle: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#fff',
+    fontWeight: "600",
+    color: "#fff",
   },
   securityText: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: "rgba(255, 255, 255, 0.7)",
     lineHeight: 20,
   },
 });

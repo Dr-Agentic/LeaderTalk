@@ -14,11 +14,12 @@ import {
   cancelScheduledChange
 } from "../paymentServiceHandler";
 import { 
-  getBillingProducts,
   getCurrentSubscriptionFormatted,
   updateUserSubscription,
   cancelSubscription
 } from "../subscriptionController";
+import { spc } from "../controllers/subscriptionPlansController";
+import { handleRevenueCatWebhook } from "../subscription";
 import Stripe from "stripe";
 import { config } from "../config/environment";
 
@@ -31,6 +32,9 @@ const requireAuth = (req: Request, res: Response, next: Function) => {
 
 export function registerBillingRoutes(app: Express) {
   
+  // RevenueCat webhook endpoint for handling mobile subscription events
+  app.post('/api/billing/webhooks/revenuecat', express.raw({type: 'application/json'}), handleRevenueCatWebhook);
+
   // Stripe webhook endpoint for handling payment events
   app.post('/api/billing/webhooks/stripe', express.raw({type: 'application/json'}), async (req: Request, res: Response) => {
     const sig = req.headers['stripe-signature'];
@@ -86,7 +90,7 @@ export function registerBillingRoutes(app: Express) {
   });
   
   // GET /api/billing/products - Get all available subscription plans with server-side formatting
-  app.get('/api/billing/products', getBillingProducts);
+  app.get('/api/billing/products', spc.getBillingProducts);
 
   // GET /api/billing/subscriptions/current - Get user's current subscription with formatting
   app.get('/api/billing/subscriptions/current', requireAuth, getCurrentSubscriptionFormatted);

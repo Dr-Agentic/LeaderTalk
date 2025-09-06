@@ -1,0 +1,148 @@
+{
+  "plans": {
+    "starter": {
+      "planCode": "starter",
+      "name": "Starter",
+      "description": "Perfect for getting started with leadership coaching",
+      "tier": "free",
+      "features": {
+        "wordLimit": 1000,
+        "maxRecordingLength": 300,
+        "leaderLibraryAccess": true,
+        "advancedAnalytics": false,
+        "prioritySupport": false,
+        "customReports": false
+      },
+      "pricing": {
+        "monthly": {
+          "amount": 0,
+          "currency": "USD",
+          "interval": "month"
+        },
+        "yearly": {
+          "amount": 0,
+          "currency": "USD",
+          "interval": "year"
+        }
+      },
+      "platformIds": {
+        "stripe": {
+          "monthly": null,
+          "yearly": null
+        },
+        "revenuecat": {
+          "monthly": null,
+          "yearly": null
+        },
+        "googlePlay": {
+          "monthly": null,
+          "yearly": null
+        }
+      },
+      "metadata": {
+        "isDefault": true,
+        "isPopular": false,
+        "displayOrder": 1,
+        "color": "#6B7280",
+        "icon": "starter-icon.png"
+      }
+    },
+    "executive_monthly": {
+      "planCode": "executive_monthly",
+      "name": "Executive Monthly",
+      "description": "Advanced leadership coaching with premium features",
+      "tier": "premium",
+      "features": {
+        "wordLimit": 10000,
+        "maxRecordingLength": 1800,
+        "leaderLibraryAccess": true,
+        "advancedAnalytics": true,
+        "prioritySupport": true,
+        "customReports": true
+      },
+      "pricing": {
+        "monthly": {
+          "amount": 9.99,
+          "currency": "USD",
+          "interval": "month"
+        }
+      },
+      "platformIds": {
+        "stripe": {
+          "monthly": "price_1QQvKnP8m2KhwJhJYour_Stripe_Price_ID"
+        },
+        "revenuecat": {
+          "monthly": "com.leadertalk.app.ios.subscription.executive.monthly"
+        },
+        "googlePlay": {
+          "monthly": "executive_monthly"
+        }
+      },
+      "metadata": {
+        "isDefault": false,
+        "isPopular": true,
+        "displayOrder": 2,
+        "color": "#8B5CF6",
+        "icon": "executive-icon.png"
+      }
+    },
+    "executive_yearly": {
+      "planCode": "executive_yearly",
+      "name": "Executive Yearly",
+      "description": "Advanced leadership coaching with premium features (best value)",
+      "tier": "premium",
+      "features": {
+        "wordLimit": 10000,
+        "maxRecordingLength": 1800,
+        "leaderLibraryAccess": true,
+        "advancedAnalytics": true,
+        "prioritySupport": true,
+        "customReports": true
+      },
+      "pricing": {
+        "yearly": {
+          "amount": 99.00,
+          "currency": "USD",
+          "interval": "year",
+          "savings": {
+            "amount": 20.88,
+            "percentage": 17
+          }
+        }
+      },
+      "platformIds": {
+        "stripe": {
+          "yearly": "price_1QQvKnP8m2KhwJhJYour_Yearly_Stripe_Price_ID"
+        },
+        "revenuecat": {
+          "yearly": "com.leadertalk.app.ios.subscription.executive.yearly"
+        },
+        "googlePlay": {
+          "yearly": "executive_yearly"
+        }
+      },
+      "metadata": {
+        "isDefault": false,
+        "isPopular": false,
+        "displayOrder": 3,
+        "color": "#10B981",
+        "icon": "executive-yearly-icon.png",
+        "badge": "Best Value"
+      }
+    }
+  },
+  "metadata": {
+    "version": "1.0.0",
+    "lastUpdated": "2024-12-19T00:00:00Z",
+    "environment": "production",
+    "supportedPlatforms": [
+      "web",
+      "ios",
+      "android"
+    ],
+    "supportedCurrencies": [
+      "USD"
+    ],
+    "defaultPlan": "starter"
+  }
+}

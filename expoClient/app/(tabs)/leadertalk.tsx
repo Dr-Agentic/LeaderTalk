@@ -3,12 +3,13 @@ import { StyleSheet } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { Image } from 'expo-image';
+import logoIcon from '../../../public/assets/LeaderTalk-NoLabel.png';
 
 export default function LeaderTalkScreen() {
   return (
     <ThemedView style={styles.container}>
       <Image
-        source={require('@/assets/images/icon.png')}
+        source={logoIcon}
         style={styles.logo}
         contentFit="contain"
       />
