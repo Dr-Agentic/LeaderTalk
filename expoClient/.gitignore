@@ -37,3 +37,9 @@ yarn-error.*
 *.tsbuildinfo
 
 app-example
+
+# Project config files
+.config
+.git
+.kiro
+.*
