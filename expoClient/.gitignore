@@ -41,3 +41,9 @@ app-example
 # Project documentation
 summary.md
 journal.md
+
+# Project config files
+.config
+.git
+.kiro
+.*

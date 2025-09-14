@@ -1,4 +1,4 @@
-### Grouding rules and directives to be respected in all times.
+### Grounding rules and directives to be respected in all times.
 
 Write module code using the handler/controller architecture.
 
@@ -30,7 +30,7 @@ Import using a namespace, with a 3–5 letter lowercase alias based on the modul
 
 Do not implement default values and fake data. Prefer to have the code fail so that we can fix it effetively as opposed to working with fake data.
 
-Use strong typing throughout. Avoid any unless absolutely necessary, and prefer interfaces for complex objects.
+Use strong typing throughout. Avoid "any" unless absolutely necessary, and prefer interfaces for complex objects.
 
 Do not implement or change code without being 95% sure of the change. If there is doubt, ask questions.
 Do not start changing code with a clear instruction of what to do. 
