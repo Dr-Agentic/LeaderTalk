@@ -7,6 +7,7 @@
 import { Request, Response } from "express";
 import { storage } from "../storage";
 import { revenueCatHandler } from "../services/revenueCatPaymentHandler";
+import { subscriptionPlanService } from "../services/subscriptionPlanService";
 
 interface MobileSubscriptionData {
   id: string;
@@ -134,22 +135,56 @@ export async function getMobileUserSubscription(req: Request, res: Response): Pr
 
 /**
  * Get available mobile billing products/plans
+ * Uses existing JSON configuration instead of calling RevenueCat directly
  */
 export async function getMobileBillingProducts(req: Request, res: Response): Promise<void> {
   try {
     await validateUserAccess(req);
     
-    const [products, offerings, entitlements] = await Promise.all([
-      revenueCatHandler.getProducts(),
-      revenueCatHandler.getOfferings(),
-      revenueCatHandler.getProjectEntitlements()
-    ]);
+    const platformPlans = subscriptionPlanService.getPlansForPlatform('ios');
+    
+    // Transform SubscriptionPlan data to MobileBillingProduct[] format
+    const mobileBillingProducts = platformPlans.map((plan: any) => {
+      // Determine pricing info - prefer monthly, fallback to yearly
+      const monthlyPricing = plan.pricing.monthly;
+      const yearlyPricing = plan.pricing.yearly;
+      const primaryPricing = monthlyPricing || yearlyPricing;
+      
+      if (!primaryPricing) {
+        console.warn(`Plan ${plan.code} has no pricing information`);
+        return null;
+      }
 
-    res.json({
-      products,
-      offerings,
-      entitlements
-    });
+      const billingProduct = {
+        id: plan.code,
+        code: plan.code,
+        name: plan.name,
+        description: plan.description,
+        productIcon: null,
+        pricing: {
+          amount: Math.round(primaryPricing.amount * 100), // Convert to cents
+          formattedPrice: primaryPricing.amount === 0 ? 'Free' : `$${primaryPricing.amount.toFixed(2)}`,
+          formattedSavings: yearlyPricing?.savings ? `Save ${yearlyPricing.savings.percentage}%` : undefined,
+          interval: primaryPricing.interval === 'month' ? '/month' : '/year',
+          productId: primaryPricing.platformId || `fallback_${plan.code}`
+        },
+        features: {
+          wordLimit: plan.features.wordLimit,
+          maxRecordingLength: plan.features.maxRecordingLength,
+          leaderLibraryAccess: plan.features.leaderLibraryAccess,
+          advancedAnalytics: plan.features.advancedAnalytics,
+          prioritySupport: plan.features.prioritySupport
+        },
+        isDefault: plan.metadata.isDefault,
+        isPopular: plan.metadata.isPopular,
+        billingType: 'mobile'
+      };
+
+      return billingProduct;
+    }).filter(Boolean); // Remove null entries
+
+    console.log(`✅ Returning ${mobileBillingProducts.length} mobile billing products from JSON config`);
+    res.json(mobileBillingProducts);
   } catch (error: any) {
     console.error("Error getting mobile products:", error);
     res.status(500).json({ error: error.message });
