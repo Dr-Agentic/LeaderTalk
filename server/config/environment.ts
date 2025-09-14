@@ -44,6 +44,8 @@ export const config = {
     secretKey: getConfigValue("RC_SECRET_KEY"),
     publicKey: getConfigValue("RC_PUBLIC_KEY"),
     projectId: getConfigValue("RC_PROJECT_ID"),
+    iosApiKey: getConfigValue("REVENUECAT_IOS_API_KEY"),
+    androidApiKey: getConfigValue("REVENUECAT_ANDROID_API_KEY"),
   },
 
   // OpenAI configuration
@@ -85,7 +87,10 @@ console.log(
   `   RevenueCat: ${config.revenueCat.secretKey ? "✅ " + config.revenueCat.secretKey.slice(0, 8) : "❌ Missing"}`,
 );
 console.log(
-  `   RevenueCat: ${config.revenueCat.projectId ? "✅ " + config.revenueCat.projectId.slice(0, 8) : "❌ Missing"}`,
+  `   RevenueCat iOS: ${config.revenueCat.iosApiKey ? "✅ " + config.revenueCat.iosApiKey.slice(0, 8) : "❌ Missing"}`,
+);
+console.log(
+  `   RevenueCat Android: ${config.revenueCat.androidApiKey ? "✅ " + config.revenueCat.androidApiKey.slice(0, 8) : "❌ Missing"}`,
 );
 console.log(
   `   OpenAI: ${config.openai.apiKey ? "✅ " + config.openai.apiKey.slice(0, 8) : "❌ Missing"}`,

@@ -29,6 +29,10 @@ export function registerAuthRoutes(app: Express) {
         supabaseUrl,
         supabaseAnonKey,
         environment: config.isProduction ? "production" : "development",
+        revenueCat: {
+          iosApiKey: config.revenueCat.iosApiKey,
+          androidApiKey: config.revenueCat.androidApiKey,
+        },
       });
     } catch (error) {
       console.error("Auth parameters error:", error);

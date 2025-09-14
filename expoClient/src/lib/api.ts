@@ -8,7 +8,7 @@ export const API_URL = process.env.EXPO_PUBLIC_API_URL || DEFAULT_API_URL;
 
 /**
  * Fetch auth parameters from the server
- * This allows us to get Supabase credentials without hardcoding them
+ * This allows us to get Supabase and RevenueCat credentials without hardcoding them
  */
 export async function fetchAuthParameters() {
   try {
@@ -28,6 +28,8 @@ export async function fetchAuthParameters() {
     console.log('Auth parameters received:', {
       url: data.supabaseUrl ? 'present' : 'missing',
       key: data.supabaseAnonKey ? 'present' : 'missing',
+      revenueCatIos: data.revenueCat?.iosApiKey ? 'present' : 'missing',
+      revenueCatAndroid: data.revenueCat?.androidApiKey ? 'present' : 'missing',
       environment: data.environment,
     });
     
@@ -35,6 +37,10 @@ export async function fetchAuthParameters() {
       supabaseUrl: data.supabaseUrl,
       supabaseAnonKey: data.supabaseAnonKey,
       environment: data.environment,
+      revenueCat: {
+        iosApiKey: data.revenueCat?.iosApiKey,
+        androidApiKey: data.revenueCat?.androidApiKey,
+      },
     };
   } catch (error) {
     console.error('Error fetching auth parameters:', error);

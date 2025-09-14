@@ -22,6 +22,8 @@ import Purchases, {
   PurchasesError,
   LOG_LEVEL 
 } from 'react-native-purchases';
+import { Platform } from 'react-native';
+import { fetchAuthParameters } from '../lib/api';
 
 export interface MobileSubscriptionData {
   id: string;
@@ -92,14 +94,20 @@ class RevenueCatService {
     if (this.isInitialized) return;
 
     try {
-      const isDevelopment = process.env.NODE_ENV === 'development';
-      const apiKey = isDevelopment
-        ? process.env.EXPO_PUBLIC_REVENUECAT_API_KEY_SANDBOX || ''
-        : process.env.EXPO_PUBLIC_REVENUECAT_API_KEY || '';
+      // Fetch RevenueCat API key from server
+      const authParams = await fetchAuthParameters();
+      
+      const apiKey = Platform.select({
+        ios: authParams.revenueCat.iosApiKey,
+        android: authParams.revenueCat.androidApiKey,
+        default: authParams.revenueCat.iosApiKey, // Fallback to iOS for web testing
+      });
 
       if (!apiKey) {
-        throw new Error(`RevenueCat API key not configured for ${isDevelopment ? 'sandbox' : 'production'}`);
+        throw new Error(`RevenueCat API key not configured for platform: ${Platform.OS}`);
       }
+
+      console.log('RevenueCat initializing with server-provided key for platform:', Platform.OS);
 
       // Configure RevenueCat with debug options in development
       await Purchases.configure({ 
@@ -109,6 +117,7 @@ class RevenueCatService {
       });
 
       // Enable debug logging in development
+      const isDevelopment = authParams.environment === 'development';
       if (isDevelopment) {
         Purchases.setLogLevel(LOG_LEVEL.DEBUG);
         console.log('RevenueCat initialized in DEBUG mode for user:', userId);
