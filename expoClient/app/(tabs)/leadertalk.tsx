@@ -3,7 +3,7 @@ import { StyleSheet } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { Image } from 'expo-image';
-import logoIcon from '../../../public/assets/LeaderTalk-NoLabel.png';
+import logoIcon from '../../assets/images/LeaderTalk-NoLabel.png';
 
 export default function LeaderTalkScreen() {
   return (

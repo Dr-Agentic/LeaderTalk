@@ -8,6 +8,7 @@ import {
   Alert,
   TouchableOpacity,
   Dimensions,
+  Platform,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
@@ -18,6 +19,8 @@ import { GlassCard } from '../src/components/ui/GlassCard';
 import { Button } from '../src/components/ui/Button';
 import { ThemedText } from '../src/components/ThemedText';
 import { apiRequest, queryClient } from '../src/lib/apiService';
+import { useRevenueCat } from '../src/hooks/useRevenueCat';
+import { useAuth } from '../src/hooks/useAuth';
 
 const { width } = Dimensions.get('window');
 
@@ -32,7 +35,8 @@ interface BillingProduct {
     formattedPrice: string;
     formattedSavings?: string;
     interval: string;
-    stripePriceId: string;
+    stripePriceId?: string; // For web platform
+    revenueCatProductId?: string; // For iOS platform
   };
   features: {
     wordLimit: number;
@@ -80,7 +84,16 @@ interface CurrentSubscription {
 
 export default function SubscriptionScreen() {
   const [selectedPlan, setSelectedPlan] = useState<BillingProduct | null>(null);
-  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const { user } = useAuth();
+  
+  // Initialize RevenueCat for iOS
+  const {
+    isInitialized: revenueCatInitialized,
+    offerings: revenueCatOfferings,
+    loading: revenueCatLoading,
+    purchasePackage,
+    hasActiveSubscription: hasRevenueCatSubscription,
+  } = useRevenueCat(user?.id?.toString());
 
   // Fetch current subscription
   const { data: currentSubscription, isLoading: subscriptionLoading, refetch: refetchSubscription } =
@@ -178,30 +191,83 @@ export default function SubscriptionScreen() {
   };
 
   const handleSubscribe = async (plan: BillingProduct) => {
-    const priceId = plan.pricing?.stripePriceId;
-    if (!priceId) {
-      Alert.alert('Error', 'Invalid plan selected. Please try again.');
-      return;
-    }
+    // For iOS, use RevenueCat
+    if (Platform.OS === 'ios') {
+      if (!revenueCatInitialized) {
+        Alert.alert('Error', 'Payment system not ready. Please try again.');
+        return;
+      }
 
-    const currentPriceId = currentSubscription?.subscription?.priceId;
-    const isCurrentPlan = currentPriceId === priceId;
-    
-    if (isCurrentPlan) {
-      return;
-    }
+      // Find the RevenueCat package for this plan
+      const productId = plan.pricing?.revenueCatProductId;
+      if (!productId) {
+        Alert.alert('Error', 'Invalid plan selected. Please try again.');
+        return;
+      }
 
-    Alert.alert(
-      'Confirm Subscription Change',
-      `Are you sure you want to change to ${plan.name}?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Confirm',
-          onPress: () => updateSubscription.mutate({ stripePriceId: priceId }),
-        },
-      ]
-    );
+      // Find the package in RevenueCat offerings
+      let packageToPurchase = null;
+      for (const offering of revenueCatOfferings) {
+        packageToPurchase = offering.availablePackages.find(
+          pkg => pkg.product.identifier === productId
+        );
+        if (packageToPurchase) break;
+      }
+
+      if (!packageToPurchase) {
+        Alert.alert('Error', 'Plan not available. Please try again.');
+        return;
+      }
+
+      Alert.alert(
+        'Confirm Purchase',
+        `Purchase ${plan.name} for ${plan.pricing.formattedPrice}?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Purchase',
+            onPress: async () => {
+              try {
+                const customerInfo = await purchasePackage(packageToPurchase);
+                if (customerInfo) {
+                  Alert.alert('Success!', 'Your subscription has been activated.');
+                  queryClient.invalidateQueries({ queryKey: ['subscription-current'] });
+                }
+              } catch (error: any) {
+                console.error('Purchase error:', error);
+                Alert.alert('Purchase Failed', error.message || 'Please try again.');
+              }
+            },
+          },
+        ]
+      );
+    } else {
+      // For web, use existing Stripe flow
+      const priceId = plan.pricing?.stripePriceId;
+      if (!priceId) {
+        Alert.alert('Error', 'Invalid plan selected. Please try again.');
+        return;
+      }
+
+      const currentPriceId = currentSubscription?.subscription?.priceId;
+      const isCurrentPlan = currentPriceId === priceId;
+      
+      if (isCurrentPlan) {
+        return;
+      }
+
+      Alert.alert(
+        'Confirm Subscription Change',
+        `Are you sure you want to change to ${plan.name}?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Confirm',
+            onPress: () => updateSubscription.mutate({ stripePriceId: priceId }),
+          },
+        ]
+      );
+    }
   };
 
   const handleCancelSubscription = () => {
@@ -243,7 +309,7 @@ export default function SubscriptionScreen() {
     }
   };
 
-  if (subscriptionLoading || plansLoading) {
+  if (subscriptionLoading || plansLoading || (Platform.OS === 'ios' && revenueCatLoading)) {
     return (
       <AppLayout 
         pageTitle="Subscription"
@@ -253,7 +319,9 @@ export default function SubscriptionScreen() {
       >
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#8A2BE2" />
-          <ThemedText style={styles.loadingText}>Loading subscription details...</ThemedText>
+          <ThemedText style={styles.loadingText}>
+            {Platform.OS === 'ios' ? 'Loading subscription and payment options...' : 'Loading subscription details...'}
+          </ThemedText>
         </View>
       </AppLayout>
     );
@@ -381,7 +449,9 @@ export default function SubscriptionScreen() {
         <View style={styles.plansContainer}>
           {plans?.map((plan) => {
             const currentPriceId = currentSubscription?.subscription?.priceId;
-            const planPriceId = plan.pricing?.stripePriceId;
+            const planPriceId = Platform.OS === 'ios' 
+              ? plan.pricing?.revenueCatProductId 
+              : plan.pricing?.stripePriceId;
             const isCurrentPlan = currentPriceId === planPriceId;
 
             return (

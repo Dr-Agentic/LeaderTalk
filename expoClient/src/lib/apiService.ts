@@ -1,4 +1,5 @@
 import { QueryClient } from '@tanstack/react-query';
+import { Platform } from 'react-native';
 import { getSupabase } from './supabaseAuth';
 import { API_URL } from './api';
 
@@ -97,6 +98,7 @@ export async function apiRequest(
         'Content-Type': 'application/json',
         'Accept': 'application/json',
         'Authorization': `Bearer ${token}`,
+        'x-platform': Platform.OS, // ios | android | web
         ...requestOptions.headers,
       },
       credentials: 'include',
