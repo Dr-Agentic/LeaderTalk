@@ -1,0 +1,53 @@
+## **Agent Task: Fix Subscription Page Data Structure Mismatch**
+
+### **Problem Statement:**
+The subscription page is not displaying any subscription options or upgrade buttons. Analysis shows a definitive data structure mismatch between server response and client expectations.
+
+### **Root Cause (95% Confident):**
+Server controller getMobileBillingProducts() returns raw RevenueCat API data structure:
+json
+{
+  "products": [...],
+  "offerings": [...], 
+  "entitlements": [...]
+}
+
+
+But client expects formatted MobileBillingProduct[] array:
+typescript
+[{
+  id: string,
+  code: string,
+  name: string, 
+  description: string,
+  pricing: { amount, formattedPrice, interval, productId },
+  features: { wordLimit, maxRecordingLength, advancedAnalytics, prioritySupport },
+  isDefault: boolean,
+  isPopular: boolean,
+  billingType: string
+}]
+
+
+### **Files to Fix:**
+1. Primary: /server/controllers/mobileSubscriptionController.ts - getMobileBillingProducts() function
+2. Reference: /expoClient/src/services/revenueCatService.ts - MobileBillingProduct interface
+3. Reference: /expoClient/app/subscription.tsx - BillingProduct interface usage
+
+### **Requirements:**
+1. Transform raw RevenueCat data into expected MobileBillingProduct[] format
+2. Map RevenueCat products to subscription plans with proper pricing and features
+3. Include formatted pricing (formattedPrice, amount, interval)
+4. Add feature mappings (word limits, analytics, support levels based on product tiers)
+5. Set plan metadata (isDefault, isPopular, billingType)
+6. Maintain existing API contract - return array directly, not wrapped object
+
+### **Success Criteria:**
+• Subscription page displays available plans
+• Each plan shows pricing, features, and upgrade buttons
+• Client can iterate over plans array without errors
+• UI renders subscription options correctly
+
+### **Context:**
+This is part of iOS RevenueCat integration where server provides formatted subscription data to mobile client following established server-side configuration patterns.
+
+Agent Task: Fix the server controller to return properly formatted subscription data that matches client expectations.
