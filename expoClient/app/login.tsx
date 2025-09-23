@@ -181,15 +181,6 @@ export default function LoginScreen() {
                     disabled={loading || demoLoading}
                     style={styles.demoButton}
                   />
-
-                  {/* Deep Link Test Button */}
-                  <Button
-                    title="Test Deep Linking"
-
-                    variant="secondary"
-                    size="medium"
-                    style={styles.deepLinkButton}
-                  />
                 </View>
 
                 <ThemedText style={styles.termsText}>
@@ -287,9 +278,6 @@ const styles = StyleSheet.create({
   },
   demoButton: {
     marginBottom: 4,
-  },
-  deepLinkButton: {
-    marginBottom: 8,
   },
   googleLogo: {
     width: 24,

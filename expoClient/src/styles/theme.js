@@ -4,7 +4,7 @@
 export const colors = {
   // Main colors
   background: '#0f0f23', // Dark purple-blue background
-  foreground: '#ffff12', // White text
+  foreground: '#ffffff', // White text
   
   // Primary colors
   primary: '#8A2BE2', // Purple

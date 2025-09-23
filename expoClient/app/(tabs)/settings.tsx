@@ -22,6 +22,7 @@ import { apiRequest, queryClient } from '../../src/lib/apiService';
 import { SubscriptionTimeline } from '../../src/components/subscription/SubscriptionTimeline';
 import { WordUsageStats } from '../../src/components/dashboard/WordUsageStats';
 import { BillingCycleHistory } from '../../src/components/dashboard/BillingCycleHistory';
+import { theme } from '../../src/styles/theme';
 
 export default function SettingsScreen() {
   const { user, signOut } = useAuth();
@@ -272,14 +273,14 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   cardTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
+    fontSize: theme.fontSizes.heading3,
+    fontWeight: theme.fontWeights.bold,
+    color: theme.colors.foreground,
     marginBottom: 4,
   },
   cardDescription: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.7)',
+    fontSize: theme.fontSizes.body,
+    color: theme.colors.mutedForeground,
     lineHeight: 20,
   },
   cardContent: {
@@ -343,7 +344,7 @@ const styles = StyleSheet.create({
   },
   dangerCard: {
     borderColor: 'rgba(255, 107, 107, 0.3)',
-    borderWidth: 1,
+    borderWidth: 0,
   },
   dangerLabel: {
     fontSize: 12,
@@ -360,15 +361,15 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   deleteButton: {
-    backgroundColor: 'rgba(255, 107, 107, 0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 107, 107, 0.3)',
+    // backgroundColor: 'rgba(255, 107, 107, 0.1)',
+    // borderWidth: 1,
+    // borderColor: 'rgba(255, 107, 107, 0.3)',
   },
   deleteButtonText: {
-    color: '#FF6B6B',
+    color: '#FFFFBB',
   },
   signOutButton: {
-    backgroundColor: '#f44336',
+    //backgroundColor: '#f44336',
     marginVertical: 24,
   },
   signOutButtonText: {
