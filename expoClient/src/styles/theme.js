@@ -39,6 +39,25 @@ export const colors = {
   info: '#60A5FA',         // Blue - for information
   purple: '#7e22ce',       // Purple variant
   
+  // Reference design colors
+  coral: '#FF6B6B',        // Coral/salmon from template
+  teal: '#4ECDC4',         // Turquoise/teal from template
+  
+  // Glass effect variations
+  glass: {
+    light: 'rgba(255, 255, 255, 0.05)',
+    medium: 'rgba(255, 255, 255, 0.1)', 
+    strong: 'rgba(255, 255, 255, 0.15)',
+  },
+  
+  // Purple glow variations
+  glow: {
+    primary: 'rgba(138, 43, 226, 0.4)',
+    medium: 'rgba(138, 43, 226, 0.3)',
+    subtle: 'rgba(138, 43, 226, 0.2)',
+    faint: 'rgba(138, 43, 226, 0.1)',
+  },
+  
   // Borders and inputs
   border: 'rgba(255, 255, 255, 0.1)',
   input: 'rgba(255, 255, 255, 0.05)',

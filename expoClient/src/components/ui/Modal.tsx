@@ -16,6 +16,7 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import { ThemedText } from '../ThemedText';
+import { theme } from '../../styles/theme';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 

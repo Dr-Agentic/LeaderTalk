@@ -3,6 +3,7 @@ import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { theme } from '../src/styles/theme';
 import { apiRequest } from '../src/lib/apiService';
 
 export default function Onboarding() {

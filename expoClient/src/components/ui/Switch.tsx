@@ -7,6 +7,7 @@ import Animated, {
   interpolateColor,
 } from 'react-native-reanimated';
 import { ThemedText } from '../ThemedText';
+import { theme } from '../../styles/theme';
 
 interface SwitchProps {
   value: boolean;

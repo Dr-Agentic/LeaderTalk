@@ -20,6 +20,7 @@ import { AppHeader } from './AppHeader';
 import { DrawerNavigation } from './DrawerNavigation';
 import { AnimatedBackground } from '../ui/AnimatedBackground';
 import { apiRequest } from '../../lib/apiService';
+import { theme } from '../../styles/theme';
 
 interface AppLayoutProps {
   children: React.ReactNode;

@@ -3,6 +3,7 @@ import { View, TouchableOpacity, StyleSheet, Modal, ScrollView } from 'react-nat
 import { BlurView } from 'expo-blur';
 import { Feather } from '@expo/vector-icons';
 import { ThemedText } from '../ThemedText';
+import { theme } from '../../styles/theme';
 
 interface PickerOption {
   label: string;

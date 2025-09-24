@@ -23,7 +23,6 @@ import { apiRequest, queryClient } from '../../src/lib/apiService';
 import { SubscriptionTimeline } from '../../src/components/subscription/SubscriptionTimeline';
 import { WordUsageStats } from '../../src/components/dashboard/WordUsageStats';
 import { BillingCycleHistory } from '../../src/components/dashboard/BillingCycleHistory';
-import { theme } from '../../src/styles/theme';
 
 export default function SettingsScreen() {
   const { user, signOut } = useAuth();

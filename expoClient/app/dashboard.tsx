@@ -18,6 +18,7 @@ import { QuoteDisplay } from '../src/components/dashboard/QuoteDisplay';
 import { GlassCard } from '../src/components/ui/GlassCard';
 import { Button } from '../src/components/ui/Button';
 import { ThemedText } from '../src/components/ThemedText';
+import { theme } from '../src/styles/theme';
 
 // Mock data for demonstration purposes
 const MOCK_RECORDINGS = [

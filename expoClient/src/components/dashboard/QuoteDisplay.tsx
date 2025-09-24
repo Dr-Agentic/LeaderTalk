@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { GlassCard } from '../ui/GlassCard';
 import { ThemedText } from '../ThemedText';
+import { theme } from '../../styles/theme';
 
 interface Quote {
   quote: string;

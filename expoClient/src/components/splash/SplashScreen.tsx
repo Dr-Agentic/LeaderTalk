@@ -11,6 +11,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
 import logoImage from '../../../assets/images/LeaderTalk-2025-05-30.png';
+import { theme } from '../../styles/theme';
 
 interface SplashScreenProps {
   onComplete: () => void;

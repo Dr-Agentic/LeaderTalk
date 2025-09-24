@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { getSupabase } from '../src/lib/supabaseAuth';
 import { ThemedText } from '../src/components/ThemedText';
 import { AnimatedBackground } from '../src/components/ui/AnimatedBackground';
+import { theme } from '../src/styles/theme';
 
 // Set this to true to force logout on app start (useful for testing)
 const FORCE_LOGOUT_ON_START = false;
@@ -76,7 +77,7 @@ export default function IndexScreen() {
     <View style={styles.container}>
       <AnimatedBackground />
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#8A2BE2" />
+        <ActivityIndicator size="large" color={theme.colors.primary} />
         <ThemedText style={styles.loadingText}>
           {isChecking ? debugInfo : 'Redirecting...'}
         </ThemedText>
@@ -93,7 +94,7 @@ export default function IndexScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f0f23',
+    backgroundColor: theme.colors.background,
   },
   loadingContainer: {
     flex: 1,
@@ -102,14 +103,14 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   loadingText: {
-    color: '#fff',
+    color: theme.colors.foreground,
     marginTop: 20,
     fontSize: 16,
     textAlign: 'center',
     paddingHorizontal: 20,
   },
   debugText: {
-    color: 'rgba(255, 255, 255, 0.6)',
+    color: theme.colors.mutedForeground,
     marginTop: 8,
     fontSize: 12,
     textAlign: 'center',

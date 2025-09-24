@@ -29,7 +29,6 @@ import { TabView } from '../src/components/ui/TabView';
 import { ThemedText } from '../src/components/ThemedText';
 import { apiRequest } from '../src/lib/apiService';
 import { theme } from '../src/styles/theme';
-import { theme } from '../src/styles/theme';
 
 const { width: screenWidth } = Dimensions.get('window');
 const chartWidth = screenWidth - 80; // Account for padding
