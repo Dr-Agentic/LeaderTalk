@@ -4,6 +4,7 @@ import { Feather } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { GlassCard } from '../ui/GlassCard';
 import { ThemedText } from '../ThemedText';
+import { theme } from '../../styles/theme';
 import { apiRequest } from '../../lib/apiService';
 
 // Format date to a readable format

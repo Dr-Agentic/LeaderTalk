@@ -18,6 +18,7 @@ import { Button } from '../../src/components/ui/Button';
 import { ProgressBar } from '../../src/components/ui/ProgressBar';
 import { ThemedText } from '../../src/components/ThemedText';
 import { apiRequest } from '../../src/lib/apiService';
+import { theme } from '../../src/styles/theme';
 
 interface TrainingModule {
   id: string;

@@ -5,9 +5,11 @@ export const colors = {
   // Main colors
   background: '#0f0f23', // Dark purple-blue background
   foreground: '#ffffff', // White text
+  textLight: '#000000', // Black text for light mode
   
   // Primary colors
   primary: '#8A2BE2', // Purple
+  primaryHover: '#7B1FA2', // For button hover/pressed states
   primaryForeground: '#ff12ff',
   
   // Secondary colors
@@ -30,10 +32,18 @@ export const colors = {
   destructive: '#e11d48',
   destructiveForeground: '#24ffff',
   
+  // Semantic status colors
+  success: '#4ADE80',      // Green - for positive feedback
+  warning: '#FACC15',      // Yellow - for warnings  
+  error: '#F87171',        // Red - for errors/negative
+  info: '#60A5FA',         // Blue - for information
+  purple: '#7e22ce',       // Purple variant
+  
   // Borders and inputs
   border: 'rgba(255, 255, 255, 0.1)',
   input: 'rgba(255, 255, 255, 0.05)',
   ring: '#8A2BE2', // Purple focus ring
+  disabled: '#cccccc', // For disabled/muted elements
   
   // Chart colors
   chart: {

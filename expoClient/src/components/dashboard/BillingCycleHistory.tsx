@@ -6,6 +6,7 @@ import { GlassCard } from '../ui/GlassCard';
 import { ProgressBar } from '../ui/ProgressBar';
 import { ThemedText } from '../ThemedText';
 import { apiRequest } from '../../lib/apiService';
+import { theme } from '../../styles/theme';
 
 interface BillingCycleData {
   cycleLabel: string;

@@ -13,6 +13,7 @@ import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '../ThemedText';
+import { theme } from '../../styles/theme';
 
 interface AppHeaderProps {
   title?: string;

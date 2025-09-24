@@ -22,6 +22,7 @@ import { TabView } from '../src/components/ui/TabView';
 import { Badge } from '../src/components/ui/Badge';
 import { ThemedText } from '../src/components/ThemedText';
 import { apiRequest } from '../src/lib/apiService';
+import { theme } from '../src/styles/theme';
 
 type SortOption = 'date-desc' | 'date-asc' | 'rating-desc' | 'rating-asc';
 

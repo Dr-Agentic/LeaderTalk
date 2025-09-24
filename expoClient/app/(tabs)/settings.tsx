@@ -13,6 +13,7 @@ import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { useMutation } from '@tanstack/react-query';
+import { theme } from '../../src/styles/theme';
 import { AppLayout } from '../../src/components/navigation/AppLayout';
 import { GlassCard } from '../../src/components/ui/GlassCard';
 import { Button } from '../../src/components/ui/Button';

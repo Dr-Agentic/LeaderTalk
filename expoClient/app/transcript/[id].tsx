@@ -13,6 +13,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { StatusBar } from 'expo-status-bar';
 import { Feather } from '@expo/vector-icons';
 import { AppLayout } from '../../src/components/navigation/AppLayout';
+import { theme } from '../../src/styles/theme';
 import { GlassCard } from '../../src/components/ui/GlassCard';
 import { Button } from '../../src/components/ui/Button';
 import { ThemedText } from '../../src/components/ThemedText';
@@ -204,7 +205,7 @@ export default function TranscriptView() {
     return (
       <AppLayout showBackButton backTo="/transcripts" backLabel="Back to All Transcripts">
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#8A2BE2" />
+          <ActivityIndicator size="large" color={theme.colors.primary} />
         </View>
       </AppLayout>
     );
@@ -232,7 +233,7 @@ export default function TranscriptView() {
             <View style={styles.analysisContent}>
               <ThemedText style={styles.title}>Analysis in Progress</ThemedText>
               
-              <ActivityIndicator size="large" color="#8A2BE2" style={styles.spinner} />
+              <ActivityIndicator size="large" color={theme.colors.primary} style={styles.spinner} />
               
               <View style={styles.progressContainer}>
                 <View style={styles.progressBar}>
@@ -248,14 +249,14 @@ export default function TranscriptView() {
                   title="Return to Dashboard"
                   onPress={() => router.push('/dashboard')}
                   variant="secondary"
-                  icon={<Feather name="arrow-left" size={16} color="#fff" />}
+                  icon={<Feather name="arrow-left" size={16} color={theme.colors.foreground} />}
                 />
                 
                 <Button
                   title="Start New Recording"
                   onPress={() => router.push('/recording')}
                   variant="secondary"
-                  icon={<Feather name="mic" size={16} color="#fff" />}
+                  icon={<Feather name="mic" size={16} color={theme.colors.foreground} />}
                 />
                 
                 <Button
@@ -266,7 +267,7 @@ export default function TranscriptView() {
                     });
                   }}
                   variant="cta"
-                  icon={<Feather name="refresh-cw" size={16} color="#fff" />}
+                  icon={<Feather name="refresh-cw" size={16} color={theme.colors.foreground} />}
                 />
               </View>
             </View>
@@ -347,7 +348,7 @@ export default function TranscriptView() {
         {/* Analysis Cards */}
         <View style={styles.analysisGrid}>
           <GlassCard style={styles.card}>
-            <ThemedText style={[styles.cardTitle, { color: '#7EFEF7' }]}>
+            <ThemedText style={[styles.cardTitle, { color: theme.colors.success }]}>
               Positive Moments
             </ThemedText>
             <AnalysisInstancesList
@@ -358,7 +359,7 @@ export default function TranscriptView() {
           </GlassCard>
 
           <GlassCard style={styles.card}>
-            <ThemedText style={[styles.cardTitle, { color: '#FFB0B0' }]}>
+            <ThemedText style={[styles.cardTitle, { color: theme.colors.error }]}>
               Negative Moments
             </ThemedText>
             <AnalysisInstancesList
@@ -377,7 +378,7 @@ export default function TranscriptView() {
         </View>
 
         <GlassCard style={styles.card}>
-          <ThemedText style={[styles.cardTitle, { color: '#C8A2EA' }]}>
+          <ThemedText style={[styles.cardTitle, { color: theme.colors.info }]}>
             Areas for Improvement
           </ThemedText>
           <AnalysisInstancesList
@@ -502,7 +503,7 @@ function AnalysisInstancesList({
                       }
                     }}
                   >
-                    <Feather name="message-square" size={14} color="#fff" />
+                    <Feather name="message-square" size={14} color={theme.colors.foreground} />
                     <ThemedText style={styles.leaderButtonText}>{leader.name}</ThemedText>
                   </TouchableOpacity>
                 ))}
@@ -568,7 +569,7 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#8A2BE2',
+    backgroundColor: theme.colors.primary,
     borderRadius: 4,
   },
   progressText: {

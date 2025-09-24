@@ -5,6 +5,7 @@ import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { GlassCard } from '../ui/GlassCard';
 import { ThemedText } from '../ThemedText';
+import { theme } from '../../styles/theme';
 
 interface QuickActionsProps {
   recordingsCount: number;

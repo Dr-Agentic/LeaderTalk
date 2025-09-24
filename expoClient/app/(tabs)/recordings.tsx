@@ -6,6 +6,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import { useColorScheme } from '@/src/hooks/useColorScheme';
 import { getRecordings, deleteRecording } from '@/src/services/recordingService';
 import { router } from 'expo-router';
+import { theme } from '../../src/styles/theme';
 
 interface Recording {
   id: string;

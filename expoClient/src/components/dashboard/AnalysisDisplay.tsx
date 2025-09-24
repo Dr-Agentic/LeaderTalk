@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-nati
 import { BlurView } from 'expo-blur';
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { theme } from '../../styles/theme';
 
 // Placeholder for the CommunicationChart component
 // In a real app, you would implement this with a charting library like react-native-chart-kit
@@ -89,11 +90,11 @@ export default function AnalysisDisplay({ recording, leaders }: AnalysisDisplayP
   const getBadgeColor = (rating: string) => {
     switch(rating) {
       case 'Good':
-        return { bg: 'rgba(74, 222, 128, 0.2)', text: '#4ADE80' };
+        return { bg: 'rgba(74, 222, 128, 0.2)', text: theme.colors.success };
       case 'Average':
-        return { bg: 'rgba(250, 204, 21, 0.2)', text: '#FACC15' };
+        return { bg: 'rgba(250, 204, 21, 0.2)', text: theme.colors.warning };
       default:
-        return { bg: 'rgba(248, 113, 113, 0.2)', text: '#F87171' };
+        return { bg: 'rgba(248, 113, 113, 0.2)', text: theme.colors.error };
     }
   };
   
@@ -179,8 +180,8 @@ export default function AnalysisDisplay({ recording, leaders }: AnalysisDisplayP
                 {activeTab === 'positive' && (
                   <View style={[styles.tabPanel, { backgroundColor: 'rgba(74, 222, 128, 0.1)', borderColor: 'rgba(74, 222, 128, 0.2)' }]}>
                     <View style={styles.tabPanelHeader}>
-                      <Feather name="check-circle" size={16} color="#4ADE80" />
-                      <Text style={[styles.tabPanelTitle, { color: '#4ADE80' }]}>
+                      <Feather name="check-circle" size={16} color={theme.colors.success} />
+                      <Text style={[styles.tabPanelTitle, { color: theme.colors.success }]}>
                         Positive Moments
                       </Text>
                     </View>
@@ -189,7 +190,7 @@ export default function AnalysisDisplay({ recording, leaders }: AnalysisDisplayP
                       {positiveInstances && positiveInstances.length > 0 ? (
                         positiveInstances.map((instance: any, index: number) => (
                           <View key={index} style={styles.instanceItem}>
-                            <Text style={[styles.instanceTimestamp, { color: '#4ADE80' }]}>
+                            <Text style={[styles.instanceTimestamp, { color: theme.colors.success }]}>
                               {formatTimestamp(instance.timestamp)} -
                             </Text>
                             <Text style={[styles.instanceText, { color: 'rgba(74, 222, 128, 0.9)' }]}>
@@ -209,8 +210,8 @@ export default function AnalysisDisplay({ recording, leaders }: AnalysisDisplayP
                 {activeTab === 'improve' && (
                   <View style={[styles.tabPanel, { backgroundColor: 'rgba(248, 113, 113, 0.1)', borderColor: 'rgba(248, 113, 113, 0.2)' }]}>
                     <View style={styles.tabPanelHeader}>
-                      <Feather name="alert-circle" size={16} color="#F87171" />
-                      <Text style={[styles.tabPanelTitle, { color: '#F87171' }]}>
+                      <Feather name="alert-circle" size={16} color={theme.colors.error} />
+                      <Text style={[styles.tabPanelTitle, { color: theme.colors.error }]}>
                         Areas for Improvement
                       </Text>
                     </View>
@@ -219,7 +220,7 @@ export default function AnalysisDisplay({ recording, leaders }: AnalysisDisplayP
                       {negativeInstances && negativeInstances.length > 0 ? (
                         negativeInstances.map((instance: any, index: number) => (
                           <View key={index} style={styles.instanceItem}>
-                            <Text style={[styles.instanceTimestamp, { color: '#F87171' }]}>
+                            <Text style={[styles.instanceTimestamp, { color: theme.colors.error }]}>
                               {formatTimestamp(instance.timestamp)} -
                             </Text>
                             <Text style={[styles.instanceText, { color: 'rgba(248, 113, 113, 0.9)' }]}>
@@ -239,8 +240,8 @@ export default function AnalysisDisplay({ recording, leaders }: AnalysisDisplayP
                 {activeTab === 'leadership' && (
                   <View style={[styles.tabPanel, { backgroundColor: 'rgba(96, 165, 250, 0.1)', borderColor: 'rgba(96, 165, 250, 0.2)' }]}>
                     <View style={styles.tabPanelHeader}>
-                      <Feather name="zap" size={16} color="#60A5FA" />
-                      <Text style={[styles.tabPanelTitle, { color: '#60A5FA' }]}>
+                      <Feather name="zap" size={16} color={theme.colors.info} />
+                      <Text style={[styles.tabPanelTitle, { color: theme.colors.info }]}>
                         Leadership Insights
                       </Text>
                     </View>
@@ -251,7 +252,7 @@ export default function AnalysisDisplay({ recording, leaders }: AnalysisDisplayP
                           const leader = getLeaderById(insight.leaderId);
                           return (
                             <View key={index} style={styles.insightItem}>
-                              <Text style={[styles.insightLeader, { color: '#60A5FA' }]}>
+                              <Text style={[styles.insightLeader, { color: theme.colors.info }]}>
                                 {leader?.name || insight.leaderName} would have:
                               </Text>
                               <Text style={[styles.insightText, { color: 'rgba(96, 165, 250, 0.9)' }]}>
@@ -310,7 +311,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#fff',
+    color: theme.colors.foreground,
     marginBottom: 16,
   },
   card: {

@@ -27,6 +27,7 @@ import {
   useMobileBillingUsage,
 } from "../src/hooks/useMobileBilling";
 import { revenueCatService } from "../src/services/revenueCatService";
+import { theme } from "../src/styles/theme";
 
 const { width } = Dimensions.get("window");
 
@@ -229,7 +230,7 @@ export default function SubscriptionScreen() {
         backLabel="Back to Settings"
       >
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#8A2BE2" />
+          <ActivityIndicator size="large" color={theme.colors.primary} />
           <ThemedText style={styles.loadingText}>
             Loading subscription details...
           </ThemedText>
@@ -325,7 +326,7 @@ export default function SubscriptionScreen() {
                     styles.cancelButton,
                     { backgroundColor: "rgba(255, 107, 107, 0.1)" },
                   ]}
-                  textStyle={{ color: "#FF6B6B" }}
+                  textStyle={{ color: theme.colors.chart[5] }}
                   disabled={cancelSubscription.isPending}
                   loading={cancelSubscription.isPending}
                 />
@@ -379,14 +380,14 @@ export default function SubscriptionScreen() {
                 {/* Features */}
                 <View style={styles.featuresSection}>
                   <View style={styles.featureItem}>
-                    <Feather name="check" size={16} color="#10B981" />
+                    <Feather name="check" size={16} color={theme.colors.success} />
                     <ThemedText style={styles.featureText}>
                       {plan.features.wordLimit.toLocaleString()} words/month
                     </ThemedText>
                   </View>
                   {plan.features.advancedAnalytics && (
                     <View style={styles.featureItem}>
-                      <Feather name="check" size={16} color="#10B981" />
+                      <Feather name="check" size={16} color={theme.colors.success} />
                       <ThemedText style={styles.featureText}>
                         Advanced analytics
                       </ThemedText>
@@ -394,7 +395,7 @@ export default function SubscriptionScreen() {
                   )}
                   {plan.features.prioritySupport && (
                     <View style={styles.featureItem}>
-                      <Feather name="check" size={16} color="#10B981" />
+                      <Feather name="check" size={16} color={theme.colors.success} />
                       <ThemedText style={styles.featureText}>
                         Priority support
                       </ThemedText>
@@ -402,11 +403,11 @@ export default function SubscriptionScreen() {
                   )}
                   {plan.billingType === "yearly" && (
                     <View style={styles.featureItem}>
-                      <Feather name="check" size={16} color="#3B82F6" />
+                      <Feather name="check" size={16} color={theme.colors.info} />
                       <ThemedText
                         style={[
                           styles.featureText,
-                          { color: "#fff", fontWeight: "600" },
+                          { color: theme.colors.foreground, fontWeight: "600" },
                         ]}
                       >
                         Best value option
@@ -439,7 +440,7 @@ export default function SubscriptionScreen() {
         {/* Security Notice */}
         <GlassCard style={styles.securityCard}>
           <View style={styles.securityHeader}>
-            <Feather name="check-circle" size={20} color="#10B981" />
+            <Feather name="check-circle" size={20} color={theme.colors.success} />
             <ThemedText style={styles.securityTitle}>
               Secure Payment Processing
             </ThemedText>
@@ -518,7 +519,7 @@ const styles = StyleSheet.create({
   badgeText: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#8A2BE2",
+    color: theme.colors.primary,
   },
   subscriptionStats: {
     flexDirection: "row",
@@ -560,7 +561,7 @@ const styles = StyleSheet.create({
   },
   selectedPlanCard: {
     borderWidth: 2,
-    borderColor: "#8A2BE2",
+    borderColor: theme.colors.primary,
   },
   planHeader: {
     marginBottom: 20,
@@ -577,7 +578,7 @@ const styles = StyleSheet.create({
     color: "#fff",
   },
   popularBadge: {
-    backgroundColor: "#8A2BE2",
+    backgroundColor: theme.colors.primary,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
@@ -604,7 +605,7 @@ const styles = StyleSheet.create({
   savings: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#10B981",
+    color: theme.colors.success,
     marginTop: 4,
   },
   featuresSection: {

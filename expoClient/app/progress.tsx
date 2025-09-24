@@ -28,6 +28,8 @@ import { Picker } from '../src/components/ui/Picker';
 import { TabView } from '../src/components/ui/TabView';
 import { ThemedText } from '../src/components/ThemedText';
 import { apiRequest } from '../src/lib/apiService';
+import { theme } from '../src/styles/theme';
+import { theme } from '../src/styles/theme';
 
 const { width: screenWidth } = Dimensions.get('window');
 const chartWidth = screenWidth - 80; // Account for padding
@@ -613,7 +615,7 @@ export default function ProgressScreen() {
         pageTitle="Your Progress"
       >
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#8A2BE2" />
+          <ActivityIndicator size="large" color={theme.colors.primary} />
           <ThemedText style={styles.loadingText}>Loading your progress...</ThemedText>
         </View>
       </AppLayout>

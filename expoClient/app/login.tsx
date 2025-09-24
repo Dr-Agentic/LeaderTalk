@@ -18,6 +18,7 @@ import { signInWithDemo } from '../src/lib/demoAuth';
 import { router } from 'expo-router';
 import { GlassCard } from '../src/components/ui/GlassCard';
 import { Button } from '../src/components/ui/Button';
+import { theme } from '../src/styles/theme';
 import { ThemedText } from '../src/components/ThemedText';
 import { AnimatedBackground } from '../src/components/ui/AnimatedBackground';
 
@@ -215,13 +216,13 @@ const styles = StyleSheet.create({
   logoText: {
     fontSize: 36,
     fontWeight: 'bold',
-    color: '#fff',
+    color: theme.colors.foreground,
     marginBottom: 8,
     textAlign: 'center',
   },
   tagline: {
     fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: theme.colors.mutedForeground,
     textAlign: 'center',
   },
   cardContainer: {
@@ -238,7 +239,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#fff',
+    color: theme.colors.foreground,
     marginBottom: 12,
     textAlign: 'center',
   },
@@ -282,14 +283,14 @@ const styles = StyleSheet.create({
   googleLogo: {
     width: 24,
     height: 24,
-    backgroundColor: '#fff',
+    backgroundColor: theme.colors.foreground,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 8,
   },
   googleLogoText: {
-    color: '#7e22ce',
+    color: theme.colors.purple,
     fontWeight: 'bold',
     fontSize: 16,
   },

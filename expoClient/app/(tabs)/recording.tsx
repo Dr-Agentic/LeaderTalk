@@ -13,6 +13,7 @@ import { Feather } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { ThemedText } from '../../src/components/ThemedText';
+import { theme } from '../../src/styles/theme';
 import { AppLayout } from '../../src/components/navigation/AppLayout';
 import { GlassCard } from '../../src/components/ui/GlassCard';
 import { Button } from '../../src/components/ui/Button';

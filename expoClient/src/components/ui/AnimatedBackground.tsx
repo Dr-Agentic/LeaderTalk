@@ -12,6 +12,7 @@ import Animated, {
   Easing,
   withSequence,
 } from 'react-native-reanimated';
+import { theme } from '../../styles/theme';
 
 const { width, height } = Dimensions.get('window');
 
@@ -162,7 +163,7 @@ export function AnimatedBackground() {
     }}>
       {/* Base gradient background */}
       <LinearGradient
-        colors={['#0f0f23', '#1a0033', '#0f0f23']}
+        colors={[theme.colors.background, '#1a0033', theme.colors.background]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={{ flex: 1 }}

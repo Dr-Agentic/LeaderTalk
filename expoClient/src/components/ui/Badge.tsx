@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, ViewStyle } from 'react-native';
 import { ThemedText } from '../ThemedText';
+import { theme } from '../../styles/theme';
 
 interface BadgeProps {
   children: React.ReactNode;

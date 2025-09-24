@@ -16,6 +16,7 @@ import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '../ThemedText';
+import { theme } from '../../styles/theme';
 import { signOut } from '../../lib/supabaseAuth';
 
 interface DrawerNavigationProps {

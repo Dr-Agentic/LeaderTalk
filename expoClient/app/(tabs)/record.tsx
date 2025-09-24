@@ -8,6 +8,7 @@ import * as Haptics from 'expo-haptics';
 import { useColorScheme } from '@/src/hooks/useColorScheme';
 import { uploadRecording } from '@/src/services/recordingService';
 import { router } from 'expo-router';
+import { theme } from '../../src/styles/theme';
 
 export default function RecordScreen() {
   const colorScheme = useColorScheme();

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Text, TextProps, StyleSheet } from 'react-native';
 import { useColorScheme } from '@/src/hooks/useColorScheme';
+import { theme } from '../styles/theme';
 
 interface ThemedTextProps extends TextProps {
   type?: 'default' | 'defaultSemiBold' | 'title' | 'subtitle' | 'small';
@@ -9,7 +10,7 @@ interface ThemedTextProps extends TextProps {
 
 export function ThemedText({ type = 'default', style, ...props }: ThemedTextProps) {
   const colorScheme = useColorScheme();
-  const color = colorScheme === 'dark' ? '#ffffff' : '#000000';
+  const color = colorScheme === 'dark' ? theme.colors.foreground : '#000000';
   
   let textStyle;
   switch (type) {

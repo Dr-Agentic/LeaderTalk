@@ -13,6 +13,7 @@ import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { theme } from '../src/styles/theme';
 
 import { AppLayout } from '../src/components/navigation/AppLayout';
 import { GlassCard } from '../src/components/ui/GlassCard';
@@ -253,7 +254,7 @@ export default function LeadershipInspirationsScreen() {
                 style={styles.removeButton}
                 onPress={() => toggleLeader(selectedLeader.id)}
               >
-                <Feather name="x" size={12} color="#fff" />
+                <Feather name="x" size={12} color={theme.colors.foreground} />
               </TouchableOpacity>
             </View>
             
@@ -386,7 +387,7 @@ export default function LeadershipInspirationsScreen() {
         pageTitle="Leadership Inspirations"
       >
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#8A2BE2" />
+          <ActivityIndicator size="large" color={theme.colors.primary} />
           <ThemedText style={styles.loadingText}>Loading leadership inspirations...</ThemedText>
         </View>
       </AppLayout>
@@ -564,7 +565,7 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: '#EF4444',
+    backgroundColor: theme.colors.error,
     alignItems: 'center',
     justifyContent: 'center',
   },

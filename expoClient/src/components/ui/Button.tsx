@@ -10,6 +10,7 @@ import Animated, {
   interpolate,
 } from 'react-native-reanimated';
 import { ThemedText } from '../ThemedText';
+import { theme } from '../../styles/theme';
 
 interface ButtonProps {
   title: string;
@@ -119,7 +120,7 @@ export function Button({
           {
             fontSize: getTextSize(),
             fontWeight: '600',
-            color: variant === 'secondary' ? 'rgba(255, 255, 255, 0.9)' : 'white',
+            color: variant === 'secondary' ? 'rgba(255, 255, 255, 0.9)' : theme.colors.foreground,
             textAlign: 'center',
           },
           textStyle,
@@ -151,7 +152,7 @@ export function Button({
                 bottom: -4,
                 borderRadius: getSizeStyles().borderRadius + 4,
                 backgroundColor: 'transparent',
-                shadowColor: '#8A2BE2',
+                shadowColor: theme.colors.primary,
                 shadowOffset: { width: 0, height: 0 },
                 shadowOpacity: 0.8,
                 shadowRadius: 20,
@@ -162,7 +163,7 @@ export function Button({
           />
 
           <LinearGradient
-            colors={['#8A2BE2', '#FF6B6B']}
+            colors={[theme.colors.primary, theme.colors.chart[5]]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={[
@@ -282,7 +283,7 @@ export function Button({
         disabled={disabled || loading}
       >
         <LinearGradient
-          colors={['#8A2BE2', '#7B1FA2']}
+          colors={[theme.colors.primary, theme.colors.primaryHover]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={[
