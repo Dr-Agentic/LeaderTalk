@@ -3,7 +3,7 @@ import { View, TouchableOpacity, StyleSheet, Modal, ScrollView } from 'react-nat
 import { BlurView } from 'expo-blur';
 import { Feather } from '@expo/vector-icons';
 import { ThemedText } from '../ThemedText';
-import { theme } from '../../styles/theme';
+import { useTheme } from '../../hooks/useTheme';
 
 interface PickerOption {
   label: string;
@@ -25,6 +25,7 @@ export function Picker({
   placeholder = 'Select...',
   icon,
 }: PickerProps) {
+  const theme = useTheme();
   const [isOpen, setIsOpen] = React.useState(false);
 
   const selectedOption = options.find(option => option.value === selectedValue);
@@ -86,7 +87,7 @@ export function Picker({
                       {option.label}
                     </ThemedText>
                     {selectedValue === option.value && (
-                      <Feather name="check" size={16} color="#8A2BE2" />
+                      <Feather name="check" size={16} color={theme.colors.primary} />
                     )}
                   </TouchableOpacity>
                 ))}
@@ -172,7 +173,6 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.9)',
   },
   selectedOptionText: {
-    color: '#fff',
     fontWeight: '600',
   },
 });

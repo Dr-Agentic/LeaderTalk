@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, ViewStyle } from 'react-native';
 import { ThemedText } from '../ThemedText';
-import { theme } from '../../styles/theme';
+import { useTheme } from '../../hooks/useTheme';
 
 interface BadgeProps {
   children: React.ReactNode;
@@ -10,6 +10,7 @@ interface BadgeProps {
 }
 
 export function Badge({ children, variant = 'default', style }: BadgeProps) {
+  const theme = useTheme();
   const getVariantStyles = () => {
     switch (variant) {
       case 'success':
@@ -44,7 +45,7 @@ export function Badge({ children, variant = 'default', style }: BadgeProps) {
       case 'error':
         return '#EF4444';
       default:
-        return '#8A2BE2';
+        return theme.colors.primary;
     }
   };
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import Svg, { Line, Circle, Text as SvgText } from 'react-native-svg';
-import { theme } from '../../styles/theme';
+import { useTheme } from '../../hooks/useTheme';
 
 interface TimelinePoint {
   timestamp: number;

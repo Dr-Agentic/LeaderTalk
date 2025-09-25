@@ -24,7 +24,6 @@ import Purchases, {
 } from 'react-native-purchases';
 import { Platform } from 'react-native';
 import { fetchAuthParameters } from '../lib/api';
-import { theme } from '../styles/theme';
 
 export interface MobileSubscriptionData {
   id: string;

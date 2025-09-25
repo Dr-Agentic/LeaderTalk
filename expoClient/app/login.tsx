@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   View, 
   StyleSheet, 
@@ -18,7 +18,7 @@ import { signInWithDemo } from '../src/lib/demoAuth';
 import { router } from 'expo-router';
 import { GlassCard } from '../src/components/ui/GlassCard';
 import { Button } from '../src/components/ui/Button';
-import { theme } from '../src/styles/theme';
+import { useTheme } from '../src/hooks/useTheme';
 import { ThemedText } from '../src/components/ThemedText';
 import { AnimatedBackground } from '../src/components/ui/AnimatedBackground';
 
@@ -26,9 +26,35 @@ import { AnimatedBackground } from '../src/components/ui/AnimatedBackground';
 const { width, height } = Dimensions.get('window');
 
 export default function LoginScreen() {
+  const theme = useTheme();
   const [loading, setLoading] = useState(false);
   const [demoLoading, setDemoLoading] = useState(false);
   const [initError, setInitError] = useState<string | null>(null);
+  
+  // Dynamic styles based on theme
+  const dynamicStyles = useMemo(() => ({
+    tagline: {
+      color: theme.colors.muted,
+    },
+    title: {
+      color: theme.colors.foreground,
+    },
+    description: {
+      color: theme.colors.muted,
+    },
+    featureText: {
+      color: theme.colors.foreground,
+    },
+    googleLogo: {
+      backgroundColor: theme.colors.foreground,
+    },
+    googleLogoText: {
+      color: theme.colors.primary,
+    },
+    termsText: {
+      color: theme.colors.disabled,
+    },
+  }), [theme]);
   
   // Animation value for the card entrance
   const cardOpacity = new Animated.Value(0);
@@ -104,7 +130,7 @@ export default function LoginScreen() {
           {/* Logo Section */}
           <View style={styles.logoContainer}>
             <ThemedText style={styles.logoText}>LeaderTalk</ThemedText>
-            <ThemedText style={styles.tagline}>
+            <ThemedText style={[styles.tagline, dynamicStyles.tagline]}>
               Talk Like the Leader You Aspire to Be
             </ThemedText>
           </View>
@@ -125,8 +151,8 @@ export default function LoginScreen() {
               showShimmer={true}
             >
               <View style={styles.cardContent}>
-                <ThemedText style={styles.title}>Welcome to LeaderTalk</ThemedText>
-                <ThemedText style={styles.description}>
+                <ThemedText style={[styles.title, dynamicStyles.title]}>Welcome to LeaderTalk</ThemedText>
+                <ThemedText style={[styles.description, dynamicStyles.description]}>
                   Transform your communication skills with AI-powered coaching and personalized feedback.
                 </ThemedText>
                 
@@ -134,21 +160,21 @@ export default function LoginScreen() {
                 <View style={styles.featuresList}>
                   <View style={styles.featureItem}>
                     <ThemedText style={styles.featureIcon}>🎯</ThemedText>
-                    <ThemedText style={styles.featureText}>
+                    <ThemedText style={[styles.featureText, dynamicStyles.featureText]}>
                       Personalized speech analysis
                     </ThemedText>
                   </View>
                   
                   <View style={styles.featureItem}>
                     <ThemedText style={styles.featureIcon}>🎭</ThemedText>
-                    <ThemedText style={styles.featureText}>
+                    <ThemedText style={[styles.featureText, dynamicStyles.featureText]}>
                       Leadership style emulation
                     </ThemedText>
                   </View>
                   
                   <View style={styles.featureItem}>
                     <ThemedText style={styles.featureIcon}>📈</ThemedText>
-                    <ThemedText style={styles.featureText}>
+                    <ThemedText style={[styles.featureText, dynamicStyles.featureText]}>
                       Progress tracking & insights
                     </ThemedText>
                   </View>
@@ -166,8 +192,8 @@ export default function LoginScreen() {
                     style={styles.googleButton}
                     icon={
                       !loading && (
-                        <View style={styles.googleLogo}>
-                          <ThemedText style={styles.googleLogoText}>G</ThemedText>
+                        <View style={[styles.googleLogo, dynamicStyles.googleLogo]}>
+                          <ThemedText style={[styles.googleLogoText, dynamicStyles.googleLogoText]}>G</ThemedText>
                         </View>
                       )
                     }
@@ -184,7 +210,7 @@ export default function LoginScreen() {
                   />
                 </View>
 
-                <ThemedText style={styles.termsText}>
+                <ThemedText style={[styles.termsText, dynamicStyles.termsText]}>
                   By continuing, you agree to our Terms of Service and Privacy Policy
                 </ThemedText>
               </View>
@@ -216,13 +242,11 @@ const styles = StyleSheet.create({
   logoText: {
     fontSize: 36,
     fontWeight: 'bold',
-    color: theme.colors.foreground,
     marginBottom: 8,
     textAlign: 'center',
   },
   tagline: {
     fontSize: 16,
-    color: theme.colors.mutedForeground,
     textAlign: 'center',
   },
   cardContainer: {
@@ -239,13 +263,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: theme.colors.foreground,
     marginBottom: 12,
     textAlign: 'center',
   },
   description: {
     fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.8)',
     marginBottom: 24,
     textAlign: 'center',
     lineHeight: 24,
@@ -266,7 +288,6 @@ const styles = StyleSheet.create({
   },
   featureText: {
     fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.9)',
     flex: 1,
   },
   buttonSection: {
@@ -283,20 +304,17 @@ const styles = StyleSheet.create({
   googleLogo: {
     width: 24,
     height: 24,
-    backgroundColor: theme.colors.foreground,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 8,
   },
   googleLogoText: {
-    color: theme.colors.purple,
     fontWeight: 'bold',
     fontSize: 16,
   },
   termsText: {
     fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.6)',
     textAlign: 'center',
     lineHeight: 18,
   },

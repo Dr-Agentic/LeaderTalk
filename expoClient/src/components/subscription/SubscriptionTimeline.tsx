@@ -4,7 +4,7 @@ import { Feather } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { GlassCard } from '../ui/GlassCard';
 import { ThemedText } from '../ThemedText';
-import { theme } from '../../styles/theme';
+import { useTheme } from '../../hooks/useTheme';
 import { apiRequest } from '../../lib/apiService';
 
 // Format date to a readable format
@@ -38,6 +38,7 @@ interface SubscriptionTimelineProps {
 }
 
 export function SubscriptionTimeline({ data: propData, style }: SubscriptionTimelineProps) {
+  const theme = useTheme();
   // Fetch subscription information if not provided via props
   const { data: fetchedData, isLoading: queryLoading, error: queryError } = useQuery({
     queryKey: ['subscription-current'],

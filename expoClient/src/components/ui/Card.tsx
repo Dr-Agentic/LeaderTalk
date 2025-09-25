@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, ViewStyle } from 'react-native';
 import { BlurView } from 'expo-blur';
-import { theme } from '../../styles/theme';
+import { useTheme } from '../../hooks/useTheme';
 
 interface CardProps {
   children: React.ReactNode;
@@ -16,6 +16,8 @@ export const Card = ({
   variant = 'default',
   padding = 'md',
 }: CardProps) => {
+  const theme = useTheme();
+  
   // Determine padding based on prop
   const getPaddingStyle = () => {
     switch (padding) {

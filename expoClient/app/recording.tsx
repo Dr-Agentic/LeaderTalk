@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -13,7 +13,7 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
-import { theme } from '../src/styles/theme';
+import { useTheme } from '../src/hooks/useTheme';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { ThemedText } from '../src/components/ThemedText';
@@ -33,6 +33,42 @@ const { width: screenWidth } = Dimensions.get('window');
 const MAX_RECORDING_TIME = 50 * 60; // 50 minutes in seconds
 
 export default function RecordingScreen() {
+  const theme = useTheme();
+  
+  // Dynamic styles based on theme
+  const dynamicStyles = useMemo(() => ({
+    errorBackground: {
+      backgroundColor: `${theme.colors.error}1A`, // 10% opacity
+    },
+    errorBorder: {
+      borderColor: `${theme.colors.error}4D`, // 30% opacity
+    },
+    disabledBackground: {
+      backgroundColor: `${theme.colors.disabled}80`, // 50% opacity
+    },
+    disabledBorder: {
+      borderColor: `${theme.colors.disabled}80`, // 50% opacity
+    },
+    borderTop: {
+      borderTopColor: theme.colors.border,
+    },
+    recordButtonShadow: {
+      shadowColor: theme.colors.primary,
+    },
+    recordButtonActive: {
+      backgroundColor: theme.colors.primary,
+      borderColor: theme.colors.primaryHover,
+    },
+    recordButtonError: {
+      backgroundColor: theme.colors.error,
+      borderColor: theme.colors.chart[5],
+    },
+    recordButtonWarning: {
+      backgroundColor: theme.colors.warning,
+      borderColor: theme.colors.chart[3],
+    },
+  }), [theme]);
+  
   // Always call hooks at the top level
   const queryClient = useQueryClient();
   
@@ -450,7 +486,7 @@ export default function RecordingScreen() {
         ) {
           errorTitle = 'Microphone access denied';
           errorMessage =
-            'The app doesn&apost; have permission to use your microphone. Please enable microphone access in your device settings.';
+            'The app doesn\'t have permission to use your microphone. Please enable microphone access in your device settings.';
         }
       }
 
@@ -499,7 +535,7 @@ export default function RecordingScreen() {
                 <>
                   {/* Show word limit exceeded warning if needed */}
                   {hasExceededWordLimit && (
-                    <View style={styles.warningContainer}>
+                    <View style={[styles.warningContainer, dynamicStyles.errorBackground, dynamicStyles.errorBorder]}>
                       <Feather name="alert-circle" size={20} color={theme.colors.chart[5]} />
                       <View style={styles.warningTextContainer}>
                         <ThemedText style={styles.warningTitle}>
@@ -519,13 +555,14 @@ export default function RecordingScreen() {
                     <TouchableOpacity
                       style={[
                         styles.recordButton,
+                        dynamicStyles.recordButtonShadow,
                         isRecording
                           ? isPaused
-                            ? styles.recordButtonPaused
-                            : styles.recordButtonActive
+                            ? [styles.recordButtonPaused, dynamicStyles.recordButtonWarning]
+                            : [styles.recordButtonActive, dynamicStyles.recordButtonError]
                           : hasExceededWordLimit
-                          ? styles.recordButtonDisabled
-                          : styles.recordButtonDefault,
+                          ? [styles.recordButtonDisabled, dynamicStyles.disabledBackground, dynamicStyles.disabledBorder]
+                          : [styles.recordButtonDefault, dynamicStyles.recordButtonActive],
                       ]}
                       onPress={
                         !isRecording && !hasExceededWordLimit
@@ -600,7 +637,7 @@ export default function RecordingScreen() {
                     )}
 
                     {/* Settings */}
-                    <View style={styles.settingsContainer}>
+                    <View style={[styles.settingsContainer, dynamicStyles.borderTop]}>
                       <Switch
                         value={detectSpeakers}
                         onValueChange={setDetectSpeakers}
@@ -684,7 +721,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#fff',
     flex: 1,
     textAlign: 'center',
   },
@@ -697,7 +733,6 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.7)',
     textAlign: 'center',
     marginBottom: 24,
     lineHeight: 24,
@@ -713,16 +748,13 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   loadingText: {
-    color: 'rgba(255, 255, 255, 0.7)',
     marginTop: 16,
     fontSize: 16,
   },
   warningContainer: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: 'rgba(255, 107, 107, 0.1)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 107, 107, 0.3)',
     borderRadius: 12,
     padding: 16,
     marginBottom: 24,
@@ -734,12 +766,10 @@ const styles = StyleSheet.create({
   warningTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: theme.colors.chart[5],
     marginBottom: 4,
   },
   warningText: {
     fontSize: 14,
-    color: 'rgba(255, 107, 107, 0.8)',
     lineHeight: 20,
   },
   recordingInterface: {
@@ -752,42 +782,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 24,
-    shadowColor: theme.colors.primary,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
     shadowRadius: 16,
     elevation: 16,
   },
   recordButtonDefault: {
-    backgroundColor: theme.colors.primary,
     borderWidth: 2,
-    borderColor: theme.colors.primaryHover,
   },
   recordButtonActive: {
-    backgroundColor: theme.colors.error,
     borderWidth: 2,
-    borderColor: theme.colors.chart[5],
   },
   recordButtonPaused: {
-    backgroundColor: theme.colors.warning,
     borderWidth: 2,
-    borderColor: theme.colors.chart[3],
   },
   recordButtonDisabled: {
-    backgroundColor: 'rgba(100, 100, 100, 0.5)',
     borderWidth: 2,
-    borderColor: 'rgba(150, 150, 150, 0.5)',
   },
   recordingStatus: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#fff',
     marginBottom: 8,
     textAlign: 'center',
   },
   recordingTime: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.7)',
     textAlign: 'center',
     lineHeight: 20,
     marginBottom: 24,
@@ -814,12 +833,10 @@ const styles = StyleSheet.create({
   },
   progressLabel: {
     fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.5)',
   },
   settingsContainer: {
     width: '100%',
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.1)',
     paddingTop: 24,
     gap: 20,
   },

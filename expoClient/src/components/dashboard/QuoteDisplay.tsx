@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { GlassCard } from '../ui/GlassCard';
 import { ThemedText } from '../ThemedText';
-import { theme } from '../../styles/theme';
+import { useTheme } from '../../hooks/useTheme';
 
 interface Quote {
   quote: string;
@@ -34,6 +34,7 @@ const FALLBACK_QUOTES = [
 ];
 
 export function QuoteDisplay() {
+  const theme = useTheme();
   const [currentQuote, setCurrentQuote] = useState<Quote | null>(null);
 
   useEffect(() => {
@@ -84,13 +85,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontStyle: 'italic',
     fontWeight: '300',
-    color: '#fff',
     marginBottom: 8,
     lineHeight: 24,
   },
   authorText: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.7)',
     textAlign: 'right',
     fontWeight: '500',
   },

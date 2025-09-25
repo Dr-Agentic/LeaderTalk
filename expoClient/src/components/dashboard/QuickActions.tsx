@@ -5,7 +5,7 @@ import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { GlassCard } from '../ui/GlassCard';
 import { ThemedText } from '../ThemedText';
-import { theme } from '../../styles/theme';
+import { useTheme } from '../../hooks/useTheme';
 
 interface QuickActionsProps {
   recordingsCount: number;
@@ -13,6 +13,7 @@ interface QuickActionsProps {
 }
 
 export default function QuickActions({ recordingsCount, weeklyImprovement }: QuickActionsProps) {
+  const theme = useTheme();
   return (
     <View style={styles.container}>
       {/* Record New Conversation */}
@@ -25,7 +26,7 @@ export default function QuickActions({ recordingsCount, weeklyImprovement }: Qui
               end={{ x: 1, y: 1 }}
               style={styles.iconContainer}
             >
-              <Feather name="mic" size={20} color="#fff" />
+              <Feather name="mic" size={20} color={theme.colors.foreground} />
             </LinearGradient>
             <View style={styles.textContainer}>
               <ThemedText style={styles.cardLabel}>Record Conversation</ThemedText>
@@ -54,7 +55,7 @@ export default function QuickActions({ recordingsCount, weeklyImprovement }: Qui
               end={{ x: 1, y: 1 }}
               style={styles.iconContainer}
             >
-              <Feather name="bar-chart-2" size={20} color="#fff" />
+              <Feather name="bar-chart-2" size={20} color={theme.colors.foreground} />
             </LinearGradient>
             <View style={styles.textContainer}>
               <ThemedText style={styles.cardLabel}>Recent Analyses</ThemedText>
@@ -85,7 +86,7 @@ export default function QuickActions({ recordingsCount, weeklyImprovement }: Qui
               end={{ x: 1, y: 1 }}
               style={styles.iconContainer}
             >
-              <Feather name="trending-up" size={20} color="#fff" />
+              <Feather name="trending-up" size={20} color={theme.colors.foreground} />
             </LinearGradient>
             <View style={styles.textContainer}>
               <ThemedText style={styles.cardLabel}>Weekly Improvement</ThemedText>
@@ -124,7 +125,7 @@ export default function QuickActions({ recordingsCount, weeklyImprovement }: Qui
               end={{ x: 1, y: 1 }}
               style={styles.iconContainer}
             >
-              <Feather name="award" size={20} color="#fff" />
+              <Feather name="award" size={20} color={theme.colors.foreground} />
             </LinearGradient>
             <View style={styles.textContainer}>
               <ThemedText style={styles.cardLabel}>Training Module</ThemedText>
@@ -180,7 +181,6 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#fff',
   },
   cardFooter: {
     marginTop: 16,
@@ -195,12 +195,10 @@ const styles = StyleSheet.create({
   linkText: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#fff',
   },
   arrowIcon: {
     marginLeft: 4,
     fontSize: 14,
-    color: '#fff',
   },
   improvementContainer: {
     flexDirection: 'row',

@@ -1,11 +1,11 @@
-import { theme } from '../src/styles/theme';
+import { theme } from '../src/theme/index';
 
 const tintColorLight = theme.colors.primary;
 const tintColorDark = theme.colors.primary;
 
 export const Colors = {
   light: {
-    text: theme.colors.textLight,
+    text: '#000000', // textLight equivalent
     background: theme.colors.foreground,
     tint: tintColorLight,
     tabIconDefault: theme.colors.disabled,

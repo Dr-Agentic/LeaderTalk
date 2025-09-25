@@ -2,7 +2,7 @@ import React from 'react';
 import { Text, View, StyleSheet, TextStyle } from 'react-native';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { LinearGradient } from 'expo-linear-gradient';
-import { theme } from '../../styles/theme';
+import { useTheme } from '../../hooks/useTheme';
 
 interface GradientTextProps {
   text: string;
@@ -19,6 +19,7 @@ export const GradientText = ({
   start = { x: 0, y: 0 },
   end = { x: 1, y: 1 },
 }: GradientTextProps) => {
+  const theme = useTheme();
   return (
     <MaskedView
       maskElement={

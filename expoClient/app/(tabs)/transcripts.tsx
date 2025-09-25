@@ -22,7 +22,7 @@ import { TabView } from '../../src/components/ui/TabView';
 import { Badge } from '../../src/components/ui/Badge';
 import { ThemedText } from '../../src/components/ThemedText';
 import { apiRequest } from '../../src/lib/apiService';
-import { theme } from '../../src/styles/theme';
+import { useTheme } from '../../src/hooks/useTheme';
 
 type SortOption = 'date-desc' | 'date-asc' | 'rating-desc' | 'rating-asc';
 
@@ -120,6 +120,7 @@ const MOCK_RECORDINGS: Recording[] = [
 ];
 
 export default function TranscriptsScreen() {
+  const theme = useTheme();
   const [sortBy, setSortBy] = useState<SortOption>('date-desc');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
@@ -344,7 +345,7 @@ function TranscriptCard({ recording }: { recording: Recording }) {
                         key={i}
                         style={[
                           styles.star,
-                          { color: i < starRating ? '#FBBF24' : 'rgba(255, 255, 255, 0.3)' },
+                          { color: i < starRating ? theme.colors.warning : theme.colors.disabled },
                         ]}
                       >
                         ★
@@ -359,14 +360,14 @@ function TranscriptCard({ recording }: { recording: Recording }) {
           {/* Stats */}
           <View style={styles.statsContainer}>
             <View style={styles.statItem}>
-              <Feather name="thumbs-up" size={16} color="#10B981" />
+              <Feather name="thumbs-up" size={16} color={theme.colors.success} />
               <ThemedText style={styles.statText}>
                 {positiveCount} positive moment{positiveCount !== 1 ? 's' : ''}
               </ThemedText>
             </View>
 
             <View style={styles.statItem}>
-              <Feather name="thumbs-down" size={16} color="#EF4444" />
+              <Feather name="thumbs-down" size={16} color={theme.colors.error} />
               <ThemedText style={styles.statText}>
                 {negativeCount} negative moment{negativeCount !== 1 ? 's' : ''}
               </ThemedText>
@@ -387,7 +388,7 @@ function TranscriptCard({ recording }: { recording: Recording }) {
           <View style={styles.cardFooter}>
             <View style={styles.viewTranscriptButton}>
               <ThemedText style={styles.viewTranscriptText}>View transcript</ThemedText>
-              <Feather name="chevron-right" size={16} color="#8A2BE2" />
+              <Feather name="chevron-right" size={16} color={theme.colors.primary} />
             </View>
           </View>
         </View>
@@ -445,7 +446,7 @@ function EmptyState({ filter, query }: { filter?: string; query?: string }) {
         onPress={() => router.push('/recording')}
         variant="cta"
         style={styles.emptyButton}
-        icon={<Feather name="mic" size={16} color="#fff" />}
+        icon={<Feather name="mic" size={16} color={theme.colors.foreground} />}
       />
     </View>
   );
@@ -492,7 +493,6 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#fff',
     marginBottom: 8,
   },
   cardMeta: {
@@ -563,7 +563,6 @@ const styles = StyleSheet.create({
   viewTranscriptText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#8A2BE2',
   },
   // Skeleton styles
   skeletonHeader: {
@@ -620,7 +619,6 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#fff',
     marginBottom: 8,
   },
   emptyDescription: {

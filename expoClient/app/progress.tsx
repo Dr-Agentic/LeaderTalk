@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   StyleSheet,
@@ -28,28 +28,10 @@ import { Picker } from '../src/components/ui/Picker';
 import { TabView } from '../src/components/ui/TabView';
 import { ThemedText } from '../src/components/ThemedText';
 import { apiRequest } from '../src/lib/apiService';
-import { theme } from '../src/styles/theme';
+import { useTheme } from '../src/hooks/useTheme';
 
 const { width: screenWidth } = Dimensions.get('window');
 const chartWidth = screenWidth - 80; // Account for padding
-
-// Custom theme for Victory charts
-const customTheme = {
-  axis: {
-    style: {
-      axis: { stroke: 'rgba(255, 255, 255, 0.3)', strokeWidth: 1 },
-      tickLabels: { 
-        fill: 'rgba(255, 255, 255, 0.8)', 
-        fontSize: 12,
-        fontFamily: 'Inter'
-      },
-      grid: { stroke: 'rgba(255, 255, 255, 0.1)', strokeWidth: 1 },
-    },
-  },
-  chart: {
-    padding: { left: 60, top: 40, right: 40, bottom: 80 },
-  },
-};
 
 type TimeBasedView = 'week' | 'month' | 'quarter' | 'year' | 'alltime';
 type RecordingsCount = 10 | 20 | 50;
@@ -158,12 +140,65 @@ const tabs = [
 ];
 
 export default function ProgressScreen() {
+  const theme = useTheme();
   const [timeBasedView, setTimeBasedView] = useState<TimeBasedView>('month');
   const [recordingsCount, setRecordingsCount] = useState<RecordingsCount>(10);
   const [activeTab, setActiveTab] = useState('overview');
   const [refreshing, setRefreshing] = useState(false);
   const [allRecordings, setAllRecordings] = useState<RecordingWithScore[]>([]);
   const [timeRanges, setTimeRanges] = useState<TimeRange[]>([]);
+
+  // Dynamic styles based on theme
+  const dynamicStyles = useMemo(() => ({
+    sectionDescription: {
+      color: theme.colors.muted,
+    },
+    scoreValue: {
+      color: theme.colors.foreground,
+    },
+    scoreLabel: {
+      color: theme.colors.muted,
+    },
+    metricValue: {
+      color: theme.colors.foreground,
+    },
+    metricLabel: {
+      color: theme.colors.muted,
+    },
+    emptyStateText: {
+      color: theme.colors.muted,
+    },
+    improvementText: {
+      color: theme.colors.foreground,
+    },
+  }), [theme]);
+
+  // Chart theme based on current theme
+  const chartTheme = useMemo(() => ({
+    axis: {
+      style: {
+        axis: { stroke: theme.colors.disabled, strokeWidth: 1 },
+        tickLabels: { 
+          fill: theme.colors.muted, 
+          fontSize: 12,
+          fontFamily: 'Inter'
+        },
+        grid: { stroke: theme.colors.border, strokeWidth: 1 },
+      },
+    },
+    chart: {
+      padding: { left: 60, top: 40, right: 40, bottom: 80 },
+    },
+  }), [theme]);
+
+  // Score color function using theme
+  const getScoreColor = useMemo(() => (score: number) => {
+    if (score >= 80) return theme.colors.success;
+    if (score >= 60) return theme.colors.success;
+    if (score >= 40) return theme.colors.warning;
+    if (score >= 20) return theme.colors.warning;
+    return theme.colors.error;
+  }, [theme]);
 
   // For now, use mock data. In production, this would fetch from API
   const { data: recordings, isLoading, refetch } = useQuery<RecordingWithScore[]>({
@@ -272,15 +307,6 @@ export default function ProgressScreen() {
     setRefreshing(true);
     await refetch();
     setRefreshing(false);
-  };
-
-  // Generate chart color based on score
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return '#22c55e'; // Good (green)
-    if (score >= 60) return '#84cc16'; // Above average (lime)
-    if (score >= 40) return '#eab308'; // Average (yellow)
-    if (score >= 20) return '#f97316'; // Below average (orange)
-    return '#ef4444'; // Poor (red)
   };
 
   // Create time-based chart data
@@ -404,8 +430,8 @@ export default function ProgressScreen() {
         <GlassCard style={styles.chartCard}>
           <View style={styles.cardHeader}>
             <View style={styles.cardTitleContainer}>
-              <ThemedText style={styles.cardTitle}>Progress Over Time</ThemedText>
-              <ThemedText style={styles.cardDescription}>
+              <ThemedText style={[styles.cardTitle, dynamicStyles.scoreValue]}>Progress Over Time</ThemedText>
+              <ThemedText style={[styles.cardDescription, dynamicStyles.sectionDescription]}>
                 Your leadership score evolution by time period
               </ThemedText>
             </View>
@@ -429,17 +455,17 @@ export default function ProgressScreen() {
                   domain={[0, 100]}
                   tickFormat={(t) => `${t}`}
                   style={{
-                    axis: { stroke: 'rgba(255, 255, 255, 0.3)' },
-                    tickLabels: { fill: 'rgba(255, 255, 255, 0.8)', fontSize: 12 },
-                    grid: { stroke: 'rgba(255, 255, 255, 0.1)' },
+                    axis: { stroke: chartTheme.axis.style.axis.stroke },
+                    tickLabels: { fill: chartTheme.axis.style.tickLabels.fill, fontSize: 12 },
+                    grid: { stroke: chartTheme.axis.style.grid.stroke },
                   }}
                 />
                 <VictoryAxis
                   fixLabelOverlap={true}
                   style={{
-                    axis: { stroke: 'rgba(255, 255, 255, 0.3)' },
+                    axis: { stroke: chartTheme.axis.style.axis.stroke },
                     tickLabels: { 
-                      fill: 'rgba(255, 255, 255, 0.8)', 
+                      fill: chartTheme.axis.style.tickLabels.fill, 
                       fontSize: 10,
                       angle: -45,
                     },
@@ -458,8 +484,8 @@ export default function ProgressScreen() {
               </VictoryChart>
             ) : (
               <View style={styles.emptyChart}>
-                <Feather name="bar-chart-2" size={48} color="rgba(255, 255, 255, 0.3)" />
-                <ThemedText style={styles.emptyChartText}>
+                <Feather name="bar-chart-2" size={48} color={theme.colors.disabled} />
+                <ThemedText style={[styles.emptyChartText, dynamicStyles.emptyStateText]}>
                   No data available for this time period
                 </ThemedText>
               </View>
@@ -471,8 +497,8 @@ export default function ProgressScreen() {
         <GlassCard style={styles.chartCard}>
           <View style={styles.cardHeader}>
             <View style={styles.cardTitleContainer}>
-              <ThemedText style={styles.cardTitle}>Recent Recordings</ThemedText>
-              <ThemedText style={styles.cardDescription}>
+              <ThemedText style={[styles.cardTitle, dynamicStyles.scoreValue]}>Recent Recordings</ThemedText>
+              <ThemedText style={[styles.cardDescription, dynamicStyles.sectionDescription]}>
                 Your progress across your most recent recordings
               </ThemedText>
             </View>
@@ -496,21 +522,21 @@ export default function ProgressScreen() {
                   domain={[0, 100]}
                   tickFormat={(t) => `${t}`}
                   style={{
-                    axis: { stroke: 'rgba(255, 255, 255, 0.3)' },
-                    tickLabels: { fill: 'rgba(255, 255, 255, 0.8)', fontSize: 12 },
-                    grid: { stroke: 'rgba(255, 255, 255, 0.1)' },
+                    axis: { stroke: chartTheme.axis.style.axis.stroke },
+                    tickLabels: { fill: chartTheme.axis.style.tickLabels.fill, fontSize: 12 },
+                    grid: { stroke: chartTheme.axis.style.grid.stroke },
                   }}
                 />
                 <VictoryAxis
                   style={{
-                    axis: { stroke: 'rgba(255, 255, 255, 0.3)' },
-                    tickLabels: { fill: 'rgba(255, 255, 255, 0.8)', fontSize: 12 },
+                    axis: { stroke: chartTheme.axis.style.axis.stroke },
+                    tickLabels: { fill: chartTheme.axis.style.tickLabels.fill, fontSize: 12 },
                   }}
                 />
                 <VictoryLine
                   data={recordingsChartData}
                   style={{
-                    data: { stroke: '#3B82F6', strokeWidth: 3 },
+                    data: { stroke: theme.colors.info, strokeWidth: 3 },
                   }}
                   animate={{
                     duration: 1000,
@@ -521,7 +547,7 @@ export default function ProgressScreen() {
                   data={recordingsChartData}
                   style={{
                     data: { 
-                      fill: '#3B82F6', 
+                      fill: theme.colors.info, 
                       fillOpacity: 0.2,
                       stroke: 'transparent',
                     },
@@ -534,8 +560,8 @@ export default function ProgressScreen() {
               </VictoryChart>
             ) : (
               <View style={styles.emptyChart}>
-                <Feather name="trending-up" size={48} color="rgba(255, 255, 255, 0.3)" />
-                <ThemedText style={styles.emptyChartText}>
+                <Feather name="trending-up" size={48} color={theme.colors.disabled} />
+                <ThemedText style={[styles.emptyChartText, dynamicStyles.emptyStateText]}>
                   No recordings available yet
                 </ThemedText>
               </View>
@@ -548,35 +574,35 @@ export default function ProgressScreen() {
 
   const renderStatsTab = () => (
     <View style={styles.tabContent}>
-      <ThemedText style={styles.sectionTitle}>Time Period Breakdown</ThemedText>
+      <ThemedText style={[styles.sectionTitle, dynamicStyles.scoreValue]}>Time Period Breakdown</ThemedText>
       
       <View style={styles.statsGrid}>
         {timeRanges.map((range) => (
           <GlassCard key={range.label} style={styles.statCard}>
             <View style={styles.statCardContent}>
-              <ThemedText style={styles.statCardTitle}>{range.label}</ThemedText>
-              <ThemedText style={styles.statCardSubtitle}>
+              <ThemedText style={[styles.statCardTitle, dynamicStyles.scoreValue]}>{range.label}</ThemedText>
+              <ThemedText style={[styles.statCardSubtitle, dynamicStyles.sectionDescription]}>
                 {range.recordings.length} recording{range.recordings.length !== 1 ? 's' : ''}
               </ThemedText>
               
               <View style={styles.statRow}>
-                <ThemedText style={styles.statLabel}>Average score:</ThemedText>
-                <ThemedText style={styles.statValue}>
+                <ThemedText style={[styles.statLabel, dynamicStyles.metricLabel]}>Average score:</ThemedText>
+                <ThemedText style={[styles.statValue, dynamicStyles.metricValue]}>
                   {range.averageScore.toFixed(1)}
                 </ThemedText>
               </View>
               
               <View style={styles.statRow}>
-                <ThemedText style={styles.statLabel}>Improvement:</ThemedText>
+                <ThemedText style={[styles.statLabel, dynamicStyles.metricLabel]}>Improvement:</ThemedText>
                 <ThemedText
                   style={[
                     styles.statValue,
                     {
                       color: range.improvement > 0
-                        ? '#22c55e'
+                        ? theme.colors.success
                         : range.improvement < 0
-                        ? '#ef4444'
-                        : 'rgba(255, 255, 255, 0.9)',
+                        ? theme.colors.error
+                        : theme.colors.foreground,
                     },
                   ]}
                 >
@@ -615,7 +641,7 @@ export default function ProgressScreen() {
       >
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
-          <ThemedText style={styles.loadingText}>Loading your progress...</ThemedText>
+          <ThemedText style={[styles.loadingText, dynamicStyles.scoreValue]}>Loading your progress...</ThemedText>
         </View>
       </AppLayout>
     );
@@ -636,7 +662,7 @@ export default function ProgressScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
       >
-        <ThemedText style={styles.subtitle}>
+        <ThemedText style={[styles.subtitle, dynamicStyles.sectionDescription]}>
           Track your communication improvement over time
         </ThemedText>
 
@@ -659,7 +685,6 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.7)',
     marginBottom: 24,
   },
   loadingContainer: {
@@ -668,7 +693,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    color: '#fff',
     marginTop: 20,
     fontSize: 16,
   },
@@ -692,12 +716,10 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#fff',
     marginBottom: 4,
   },
   cardDescription: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.7)',
   },
   chartContainer: {
     padding: 20,
@@ -709,14 +731,12 @@ const styles = StyleSheet.create({
   },
   emptyChartText: {
     fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.7)',
     marginTop: 16,
     textAlign: 'center',
   },
   sectionTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#fff',
     marginBottom: 20,
   },
   statsGrid: {
@@ -731,12 +751,10 @@ const styles = StyleSheet.create({
   statCardTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#fff',
     marginBottom: 4,
   },
   statCardSubtitle: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.7)',
     marginBottom: 16,
   },
   statRow: {
@@ -747,11 +765,9 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.7)',
   },
   statValue: {
     fontSize: 16,
     fontWeight: '600',
-    color: 'rgba(255, 255, 255, 0.9)',
   },
 });

@@ -10,7 +10,7 @@ import Animated, {
   interpolate,
 } from 'react-native-reanimated';
 import { ThemedText } from '../ThemedText';
-import { theme } from '../../styles/theme';
+import { useTheme } from '../../hooks/useTheme';
 
 interface ButtonProps {
   title: string;
@@ -24,34 +24,45 @@ interface ButtonProps {
   loading?: boolean;
 }
 
-export function Button({
-  title,
-  onPress,
-  variant = 'primary',
-  size = 'medium',
-  disabled = false,
-  style,
-  textStyle,
-  icon,
-  loading = false,
-}: ButtonProps) {
-  const scale = useSharedValue(1);
-  const glowOpacity = useSharedValue(0);
-  const shimmerPosition = useSharedValue(-100);
+export function Button(props: ButtonProps) {
+  // Safety check for undefined props
+  if (!props) {
+    console.warn('Button called with undefined props');
+    return null;
+  }
+  
+  const {
+    title,
+    onPress,
+    variant = 'primary',
+    size = 'medium',
+    disabled = false,
+    style,
+    textStyle,
+    icon,
+    loading = false,
+  } = props;
+  const theme = useTheme();
+  
+  const initialScale = 1;
+  const initialOpacity = 0;
+  const initialPosition = -100;
+  
+  const scale = useSharedValue(initialScale);
+  const glowOpacity = useSharedValue(initialOpacity);
+  const shimmerPosition = useSharedValue(initialPosition);
 
   const handlePressIn = () => {
     if (disabled || loading) return;
-    scale.value = withSpring(0.95, { damping: 15 });
-    glowOpacity.value = withTiming(1, { duration: 150 });
-    
-    // Shimmer effect on press
-    shimmerPosition.value = withTiming(100, { duration: 600 });
+    scale.value = withSpring(0.95);
+    glowOpacity.value = withTiming(1);
+    shimmerPosition.value = withTiming(100);
   };
 
   const handlePressOut = () => {
     if (disabled || loading) return;
-    scale.value = withSpring(1, { damping: 15 });
-    glowOpacity.value = withTiming(0, { duration: 300 });
+    scale.value = withSpring(1);
+    glowOpacity.value = withTiming(0);
     shimmerPosition.value = -100;
   };
 
@@ -120,7 +131,7 @@ export function Button({
           {
             fontSize: getTextSize(),
             fontWeight: '600',
-            color: variant === 'secondary' ? 'rgba(255, 255, 255, 0.9)' : theme.colors.foreground,
+            color: variant === 'secondary' ? theme.colors.muted : theme.colors.foreground,
             textAlign: 'center',
           },
           textStyle,
@@ -190,7 +201,7 @@ export function Button({
               ]}
             >
               <LinearGradient
-                colors={['transparent', 'rgba(255, 255, 255, 0.3)', 'transparent']}
+                colors={['transparent', theme.colors.glass.medium, 'transparent']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={{ flex: 1, width: 100 }}
@@ -220,9 +231,9 @@ export function Button({
             style={[
               getSizeStyles(),
               {
-                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                backgroundColor: theme.colors.glass.light,
                 borderWidth: 1,
-                borderColor: 'rgba(255, 255, 255, 0.1)',
+                borderColor: theme.colors.glass.light,
                 opacity: disabled ? 0.6 : 1,
                 position: 'relative',
                 overflow: 'hidden',
@@ -260,9 +271,9 @@ export function Button({
           style={[
             getSizeStyles(),
             {
-              backgroundColor: 'rgba(255, 255, 255, 0.08)',
+              backgroundColor: theme.colors.glass.medium,
               borderWidth: 1,
-              borderColor: 'rgba(255, 255, 255, 0.2)',
+              borderColor: theme.colors.border,
               opacity: disabled ? 0.6 : 1,
             },
           ]}

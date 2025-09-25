@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -27,7 +27,7 @@ import {
   useMobileBillingUsage,
 } from "../src/hooks/useMobileBilling";
 import { revenueCatService } from "../src/services/revenueCatService";
-import { theme } from "../src/styles/theme";
+import { useTheme } from '../src/hooks/useTheme';
 
 const { width } = Dimensions.get("window");
 
@@ -60,7 +60,43 @@ interface BillingProduct {
 import type { MobileSubscriptionData } from "../src/services/revenueCatService";
 
 export default function SubscriptionScreen() {
+  const theme = useTheme();
   const [selectedPlan, setSelectedPlan] = useState<BillingProduct | null>(null);
+
+  // Dynamic styles based on theme
+  const dynamicStyles = useMemo(() => ({
+    currentPlanText: {
+      color: theme.colors.foreground,
+    },
+    planDescription: {
+      color: theme.colors.muted,
+    },
+    priceText: {
+      color: theme.colors.foreground,
+    },
+    featureText: {
+      color: theme.colors.muted,
+    },
+    popularBadge: {
+      backgroundColor: theme.colors.success,
+    },
+    selectedPlan: {
+      borderColor: theme.colors.primary,
+      backgroundColor: `${theme.colors.primary}1A`, // 10% opacity
+    },
+    usageText: {
+      color: theme.colors.muted,
+    },
+    loadingText: {
+      color: theme.colors.muted,
+    },
+    errorText: {
+      color: theme.colors.error,
+    },
+    successText: {
+      color: theme.colors.success,
+    },
+  }), [theme]);
 
   // Fetch current subscription using RevenueCat
   const {
@@ -169,17 +205,53 @@ export default function SubscriptionScreen() {
       return;
     }
 
-    Alert.alert(
-      "Confirm Subscription Change",
-      `Are you sure you want to change to ${plan.name}?`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Confirm",
-          onPress: () => updateSubscription.mutate({ productId }),
-        },
-      ],
-    );
+    // Platform-specific purchase flow
+    if (Platform.OS === 'ios' || Platform.OS === 'android') {
+      // Mobile: Use RevenueCat via mobile billing hooks
+      Alert.alert(
+        "Confirm Purchase",
+        `Purchase ${plan.name} for ${plan.pricing.formattedPrice}${plan.pricing.interval}?`,
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Purchase",
+            onPress: () => {
+              purchaseSubscription.mutate({
+                productId: productId,
+              }, {
+                onSuccess: () => {
+                  Alert.alert(
+                    "Purchase Successful!",
+                    `You've successfully subscribed to ${plan.name}. Your subscription is now active.`,
+                    [{ text: "OK" }]
+                  );
+                },
+                onError: (error: any) => {
+                  Alert.alert(
+                    "Purchase Failed",
+                    error.message || "Unable to complete purchase. Please try again.",
+                    [{ text: "OK" }]
+                  );
+                }
+              });
+            },
+          },
+        ],
+      );
+    } else {
+      // Web: Use existing Stripe flow
+      Alert.alert(
+        "Confirm Subscription Change",
+        `Are you sure you want to change to ${plan.name}?`,
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Confirm",
+            onPress: () => updateSubscription.mutate({ productId }),
+          },
+        ],
+      );
+    }
   };
 
   const handleCancelSubscription = () => {
@@ -231,7 +303,7 @@ export default function SubscriptionScreen() {
       >
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
-          <ThemedText style={styles.loadingText}>
+          <ThemedText style={[styles.loadingText, dynamicStyles.loadingText]}>
             Loading subscription details...
           </ThemedText>
         </View>
@@ -255,8 +327,8 @@ export default function SubscriptionScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <ThemedText style={styles.title}>Choose Your Plan</ThemedText>
-          <ThemedText style={styles.subtitle}>
+          <ThemedText style={[styles.title, dynamicStyles.currentPlanText]}>Choose Your Plan</ThemedText>
+          <ThemedText style={[styles.subtitle, dynamicStyles.planDescription]}>
             Upgrade your leadership training with premium features and increased
             word limits
           </ThemedText>
@@ -268,20 +340,20 @@ export default function SubscriptionScreen() {
             <GlassCard style={styles.currentSubscriptionCard}>
               <View style={styles.cardHeader}>
                 <View>
-                  <ThemedText style={styles.cardTitle}>
+                  <ThemedText style={[styles.cardTitle, dynamicStyles.currentPlanText]}>
                     Current Subscription
                   </ThemedText>
-                  <ThemedText style={styles.cardSubtitle}>
+                  <ThemedText style={[styles.cardSubtitle, dynamicStyles.planDescription]}>
                     You're subscribed to {currentSubscription.subscription.plan}
                   </ThemedText>
                 </View>
                 <View
                   style={[
                     styles.badge,
-                    { backgroundColor: "rgba(138, 43, 226, 0.2)" },
+                    { backgroundColor: `${theme.colors.primary}33` }, // 20% opacity
                   ]}
                 >
-                  <ThemedText style={styles.badgeText}>
+                  <ThemedText style={[styles.badgeText, dynamicStyles.currentPlanText]}>
                     {currentSubscription.subscription.formattedStatus}
                   </ThemedText>
                 </View>
@@ -289,21 +361,21 @@ export default function SubscriptionScreen() {
 
               <View style={styles.subscriptionStats}>
                 <View style={styles.statItem}>
-                  <ThemedText style={styles.statLabel}>Word Usage</ThemedText>
-                  <ThemedText style={styles.statValue}>
+                  <ThemedText style={[styles.statLabel, dynamicStyles.usageText]}>Word Usage</ThemedText>
+                  <ThemedText style={[styles.statValue, dynamicStyles.currentPlanText]}>
                     {currentSubscription.subscription.formattedUsage}
                   </ThemedText>
                 </View>
                 <View style={styles.statItem}>
-                  <ThemedText style={styles.statLabel}>Amount</ThemedText>
-                  <ThemedText style={styles.statValue}>
+                  <ThemedText style={[styles.statLabel, dynamicStyles.usageText]}>Amount</ThemedText>
+                  <ThemedText style={[styles.statValue, dynamicStyles.currentPlanText]}>
                     {currentSubscription.subscription.formattedAmount}
                     {currentSubscription.subscription.formattedInterval}
                   </ThemedText>
                 </View>
                 <View style={styles.statItem}>
-                  <ThemedText style={styles.statLabel}>Next Billing</ThemedText>
-                  <ThemedText style={styles.statSubvalue}>
+                  <ThemedText style={[styles.statLabel, dynamicStyles.usageText]}>Next Billing</ThemedText>
+                  <ThemedText style={[styles.statSubvalue, dynamicStyles.usageText]}>
                     {currentSubscription.subscription.formattedNextRenewal}
                   </ThemedText>
                 </View>
@@ -324,11 +396,43 @@ export default function SubscriptionScreen() {
                   onPress={handleCancelSubscription}
                   style={[
                     styles.cancelButton,
-                    { backgroundColor: "rgba(255, 107, 107, 0.1)" },
+                    { backgroundColor: `${theme.colors.error}1A` }, // 10% opacity
                   ]}
                   textStyle={{ color: theme.colors.chart[5] }}
                   disabled={cancelSubscription.isPending}
                   loading={cancelSubscription.isPending}
+                />
+              )}
+
+              {/* Restore Purchases Button for Mobile */}
+              {(Platform.OS === 'ios' || Platform.OS === 'android') && (
+                <Button
+                  title="Restore Purchases"
+                  onPress={() => {
+                    restorePurchases.mutate(undefined, {
+                      onSuccess: () => {
+                        Alert.alert(
+                          "Restore Complete",
+                          "Your purchases have been restored successfully.",
+                          [{ text: "OK" }]
+                        );
+                      },
+                      onError: (error: any) => {
+                        Alert.alert(
+                          "Restore Failed",
+                          error.message || "Unable to restore purchases. Please try again.",
+                          [{ text: "OK" }]
+                        );
+                      }
+                    });
+                  }}
+                  style={[
+                    styles.restoreButton,
+                    { backgroundColor: `${theme.colors.primary}1A` }, // 10% opacity
+                  ]}
+                  textStyle={{ color: theme.colors.primary }}
+                  disabled={restorePurchases.isPending}
+                  loading={restorePurchases.isPending}
                 />
               )}
             </GlassCard>
@@ -346,32 +450,32 @@ export default function SubscriptionScreen() {
                 key={plan.id}
                 style={[
                   styles.planCard,
-                  selectedPlan?.id === plan.id && styles.selectedPlanCard,
+                  selectedPlan?.id === plan.id && [styles.selectedPlanCard, dynamicStyles.selectedPlan],
                 ]}
               >
                 <View style={styles.planHeader}>
                   <View style={styles.planTitleRow}>
-                    <ThemedText style={styles.planName}>{plan.name}</ThemedText>
+                    <ThemedText style={[styles.planName, dynamicStyles.currentPlanText]}>{plan.name}</ThemedText>
                     {plan.isPopular && (
-                      <View style={styles.popularBadge}>
-                        <ThemedText style={styles.popularText}>
+                      <View style={[styles.popularBadge, dynamicStyles.popularBadge]}>
+                        <ThemedText style={[styles.popularText, dynamicStyles.currentPlanText]}>
                           Popular
                         </ThemedText>
                       </View>
                     )}
                   </View>
-                  <ThemedText style={styles.planDescription}>
+                  <ThemedText style={[styles.planDescription, dynamicStyles.planDescription]}>
                     {plan.description}
                   </ThemedText>
                 </View>
 
                 {/* Pricing */}
                 <View style={styles.pricingSection}>
-                  <ThemedText style={styles.price}>
+                  <ThemedText style={[styles.price, dynamicStyles.priceText]}>
                     {plan.pricing.formattedPrice}
                   </ThemedText>
                   {plan.pricing.formattedSavings && (
-                    <ThemedText style={styles.savings}>
+                    <ThemedText style={[styles.savings, dynamicStyles.successText]}>
                       {plan.pricing.formattedSavings}
                     </ThemedText>
                   )}
@@ -381,14 +485,14 @@ export default function SubscriptionScreen() {
                 <View style={styles.featuresSection}>
                   <View style={styles.featureItem}>
                     <Feather name="check" size={16} color={theme.colors.success} />
-                    <ThemedText style={styles.featureText}>
+                    <ThemedText style={[styles.featureText, dynamicStyles.featureText]}>
                       {plan.features.wordLimit.toLocaleString()} words/month
                     </ThemedText>
                   </View>
                   {plan.features.advancedAnalytics && (
                     <View style={styles.featureItem}>
                       <Feather name="check" size={16} color={theme.colors.success} />
-                      <ThemedText style={styles.featureText}>
+                      <ThemedText style={[styles.featureText, dynamicStyles.featureText]}>
                         Advanced analytics
                       </ThemedText>
                     </View>
@@ -396,7 +500,7 @@ export default function SubscriptionScreen() {
                   {plan.features.prioritySupport && (
                     <View style={styles.featureItem}>
                       <Feather name="check" size={16} color={theme.colors.success} />
-                      <ThemedText style={styles.featureText}>
+                      <ThemedText style={[styles.featureText, dynamicStyles.featureText]}>
                         Priority support
                       </ThemedText>
                     </View>
@@ -407,7 +511,8 @@ export default function SubscriptionScreen() {
                       <ThemedText
                         style={[
                           styles.featureText,
-                          { color: theme.colors.foreground, fontWeight: "600" },
+                          dynamicStyles.currentPlanText,
+                          { fontWeight: "600" },
                         ]}
                       >
                         Best value option
@@ -428,7 +533,7 @@ export default function SubscriptionScreen() {
                   ]}
                   textStyle={
                     isCurrentPlan
-                      ? { color: "rgba(255, 255, 255, 0.6)" }
+                      ? { color: theme.colors.disabled }
                       : undefined
                   }
                 />
@@ -471,7 +576,6 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: "#fff",
   },
   header: {
     alignItems: "center",
@@ -480,13 +584,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: "bold",
-    color: "#fff",
     textAlign: "center",
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: "rgba(255, 255, 255, 0.7)",
     textAlign: "center",
     lineHeight: 24,
   },
@@ -502,24 +604,20 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#fff",
     marginBottom: 4,
   },
   cardSubtitle: {
     fontSize: 14,
-    color: "rgba(255, 255, 255, 0.7)",
   },
   badge: {
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "rgba(138, 43, 226, 0.3)",
   },
   badgeText: {
     fontSize: 12,
     fontWeight: "600",
-    color: theme.colors.primary,
   },
   subscriptionStats: {
     flexDirection: "row",
@@ -535,22 +633,22 @@ const styles = StyleSheet.create({
   statLabel: {
     fontSize: 14,
     fontWeight: "500",
-    color: "rgba(255, 255, 255, 0.7)",
     marginBottom: 4,
   },
   statValue: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#fff",
   },
   statSubvalue: {
     fontSize: 12,
-    color: "rgba(255, 255, 255, 0.7)",
     textAlign: "center",
   },
   cancelButton: {
     borderWidth: 1,
-    borderColor: "rgba(255, 107, 107, 0.3)",
+  },
+  restoreButton: {
+    borderWidth: 1,
+    marginTop: 12,
   },
   plansContainer: {
     gap: 20,
@@ -561,7 +659,6 @@ const styles = StyleSheet.create({
   },
   selectedPlanCard: {
     borderWidth: 2,
-    borderColor: theme.colors.primary,
   },
   planHeader: {
     marginBottom: 20,
@@ -575,10 +672,8 @@ const styles = StyleSheet.create({
   planName: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#fff",
   },
   popularBadge: {
-    backgroundColor: theme.colors.primary,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
@@ -586,11 +681,9 @@ const styles = StyleSheet.create({
   popularText: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#fff",
   },
   planDescription: {
     fontSize: 14,
-    color: "rgba(255, 255, 255, 0.7)",
     lineHeight: 20,
   },
   pricingSection: {
@@ -600,12 +693,10 @@ const styles = StyleSheet.create({
   price: {
     fontSize: 32,
     fontWeight: "bold",
-    color: "#fff",
   },
   savings: {
     fontSize: 14,
     fontWeight: "600",
-    color: theme.colors.success,
     marginTop: 4,
   },
   featuresSection: {
@@ -619,13 +710,11 @@ const styles = StyleSheet.create({
   },
   featureText: {
     fontSize: 14,
-    color: "rgba(255, 255, 255, 0.7)",
   },
   selectButton: {
     marginTop: "auto",
   },
   currentPlanButton: {
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
   },
   securityCard: {
     marginTop: 8,
@@ -639,11 +728,9 @@ const styles = StyleSheet.create({
   securityTitle: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#fff",
   },
   securityText: {
     fontSize: 14,
-    color: "rgba(255, 255, 255, 0.7)",
     lineHeight: 20,
   },
 });

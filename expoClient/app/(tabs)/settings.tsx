@@ -13,7 +13,7 @@ import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { useMutation } from '@tanstack/react-query';
-import { theme } from '../../src/styles/theme';
+import { useTheme } from '../../src/hooks/useTheme';
 import { AppLayout } from '../../src/components/navigation/AppLayout';
 import { GlassCard } from '../../src/components/ui/GlassCard';
 import { Button } from '../../src/components/ui/Button';
@@ -25,6 +25,7 @@ import { WordUsageStats } from '../../src/components/dashboard/WordUsageStats';
 import { BillingCycleHistory } from '../../src/components/dashboard/BillingCycleHistory';
 
 export default function SettingsScreen() {
+  const theme = useTheme();
   const { user, signOut } = useAuth();
   const [darkMode, setDarkMode] = useState(true); // Always dark for now
   const [notifications, setNotifications] = useState(true);
@@ -170,7 +171,7 @@ export default function SettingsScreen() {
               title="Manage Subscription"
               onPress={handleSubscriptionPress}
               style={styles.subscriptionButton}
-              icon={<Feather name="credit-card" size={16} color="#fff" />}
+              icon={<Feather name="credit-card" size={16} color={theme.colors.foreground} />}
             />
           </View>
         </GlassCard>
@@ -187,27 +188,27 @@ export default function SettingsScreen() {
           <View style={styles.cardContent}>
             <View style={styles.settingItem}>
               <View style={styles.settingLabel}>
-                <Feather name="bell" size={20} color="#fff" style={styles.settingIcon} />
+                <Feather name="bell" size={20} color={theme.colors.foreground} style={styles.settingIcon} />
                 <ThemedText style={styles.settingText}>Notifications</ThemedText>
               </View>
               <Switch
                 value={notifications}
                 onValueChange={setNotifications}
-                trackColor={{ false: '#767577', true: '#8A2BE2' }}
-                thumbColor="#f4f3f4"
+                trackColor={{ false: theme.colors.disabled, true: theme.colors.primary }}
+                thumbColor={theme.colors.foreground}
               />
             </View>
 
             <View style={styles.settingItem}>
               <View style={styles.settingLabel}>
-                <Feather name="moon" size={20} color="#fff" style={styles.settingIcon} />
+                <Feather name="moon" size={20} color={theme.colors.foreground} style={styles.settingIcon} />
                 <ThemedText style={styles.settingText}>Dark Mode</ThemedText>
               </View>
               <Switch
                 value={darkMode}
                 onValueChange={setDarkMode}
-                trackColor={{ false: '#767577', true: '#8A2BE2' }}
-                thumbColor="#f4f3f4"
+                trackColor={{ false: theme.colors.disabled, true: theme.colors.primary }}
+                thumbColor={theme.colors.foreground}
                 disabled={true} // Always dark for now
               />
             </View>
@@ -237,7 +238,7 @@ export default function SettingsScreen() {
               textStyle={styles.deleteButtonText}
               disabled={deleteUserMutation.isPending}
               loading={deleteUserMutation.isPending}
-              icon={<Feather name="user-x" size={16} color="#FF6B6B" />}
+              icon={<Feather name="user-x" size={16} color={theme.colors.error} />}
             />
           </View>
         </GlassCard>
@@ -248,7 +249,7 @@ export default function SettingsScreen() {
           onPress={handleSignOut}
           style={styles.signOutButton}
           textStyle={styles.signOutButtonText}
-          icon={<Feather name="log-out" size={16} color="#fff" />}
+          icon={<Feather name="log-out" size={16} color={theme.colors.foreground} />}
         />
 
         {/* Version */}
@@ -273,14 +274,12 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   cardTitle: {
-    fontSize: theme.fontSizes.heading3,
-    fontWeight: theme.fontWeights.bold,
-    color: theme.colors.foreground,
+    fontSize: 18,
+    fontWeight: 'bold',
     marginBottom: 4,
   },
   cardDescription: {
-    fontSize: theme.fontSizes.body,
-    color: theme.colors.mutedForeground,
+    fontSize: 14,
     lineHeight: 20,
   },
   cardContent: {
@@ -309,7 +308,6 @@ const styles = StyleSheet.create({
   },
   infoValue: {
     fontSize: 14,
-    color: '#fff',
     lineHeight: 20,
   },
   sectionDescription: {
@@ -340,7 +338,6 @@ const styles = StyleSheet.create({
   },
   settingText: {
     fontSize: 16,
-    color: '#fff',
   },
   dangerCard: {
     borderColor: 'rgba(255, 107, 107, 0.3)',
@@ -349,7 +346,6 @@ const styles = StyleSheet.create({
   dangerLabel: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#FF6B6B',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: 8,
@@ -366,14 +362,11 @@ const styles = StyleSheet.create({
     // borderColor: 'rgba(255, 107, 107, 0.3)',
   },
   deleteButtonText: {
-    color: '#FFFFBB',
   },
   signOutButton: {
-    //backgroundColor: '#f44336',
     marginVertical: 24,
   },
   signOutButtonText: {
-    color: '#ffffff',
     fontWeight: '600',
   },
   versionText: {

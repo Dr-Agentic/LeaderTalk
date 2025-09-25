@@ -12,6 +12,7 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import { ThemedText } from '../ThemedText';
+import { useTheme } from '../../hooks/useTheme';
 
 interface GlassCardProps {
   children?: React.ReactNode;
@@ -25,17 +26,19 @@ interface GlassCardProps {
   disabled?: boolean;
 }
 
-export function GlassCard({ 
-  children, 
-  style, 
-  onPress, 
-  icon, 
-  title, 
-  description,
-  showShimmer = false,
-  variant = 'default',
-  disabled = false
-}: GlassCardProps) {
+export function GlassCard(props: GlassCardProps = {}) {
+  const {
+    children, 
+    style, 
+    onPress, 
+    icon, 
+    title, 
+    description,
+    showShimmer = false,
+    variant = 'default',
+    disabled = false,
+  } = props;
+  const theme = useTheme();
   const scale = useSharedValue(1);
   const translateY = useSharedValue(0);
   const shimmerAnimation = useSharedValue(0);
@@ -103,21 +106,21 @@ export function GlassCard({
         return {
           borderRadius: 24,
           borderWidth: 1,
-          borderColor: 'rgba(138, 43, 226, 0.3)',
+          borderColor: theme.colors.glow.medium,
           minHeight: 120,
         };
       case 'interactive':
         return {
           borderRadius: 20,
           borderWidth: 1,
-          borderColor: 'rgba(255, 255, 255, 0.15)',
+          borderColor: theme.colors.border,
           minHeight: 80,
         };
       default:
         return {
           borderRadius: 16,
           borderWidth: 1,
-          borderColor: 'rgba(255, 255, 255, 0.1)',
+          borderColor: theme.colors.glass.light,
         };
     }
   };
@@ -145,8 +148,8 @@ export function GlassCard({
           right: 0,
           bottom: 0,
           backgroundColor: variant === 'hero' 
-            ? 'rgba(138, 43, 226, 0.08)' 
-            : 'rgba(255, 255, 255, 0.05)',
+            ? theme.colors.glow.faint 
+            : theme.colors.glass.light,
         }}
       />
 
@@ -162,7 +165,7 @@ export function GlassCard({
             borderRadius: variant === 'hero' ? 26 : variant === 'interactive' ? 22 : 18,
             backgroundColor: 'transparent',
             borderWidth: 2,
-            borderColor: 'rgba(138, 43, 226, 0.4)',
+            borderColor: theme.colors.glow.primary,
           },
           glowStyle,
         ]}
@@ -187,8 +190,8 @@ export function GlassCard({
             colors={[
               'transparent',
               variant === 'hero' 
-                ? 'rgba(138, 43, 226, 0.2)' 
-                : 'rgba(255, 255, 255, 0.15)',
+                ? theme.colors.glow.subtle 
+                : theme.colors.border,
               'transparent',
             ]}
             start={{ x: 0, y: 0 }}
@@ -211,7 +214,7 @@ export function GlassCard({
                   width: 48,
                   height: 48,
                   borderRadius: 12,
-                  backgroundColor: 'rgba(138, 43, 226, 0.2)',
+                  backgroundColor: theme.colors.glow.subtle,
                   alignItems: 'center',
                   justifyContent: 'center',
                   marginRight: 12,
@@ -233,7 +236,7 @@ export function GlassCard({
             <ThemedText 
               style={{ 
                 fontSize: 14, 
-                color: 'rgba(255, 255, 255, 0.7)',
+                color: theme.colors.muted,
                 lineHeight: 20
               }}
             >

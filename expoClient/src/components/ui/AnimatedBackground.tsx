@@ -12,7 +12,7 @@ import Animated, {
   Easing,
   withSequence,
 } from 'react-native-reanimated';
-import { theme } from '../../styles/theme';
+import { useTheme } from '../../hooks/useTheme';
 
 const { width, height } = Dimensions.get('window');
 
@@ -119,6 +119,7 @@ function FloatingLight({ size, color, duration, delay, initialX, initialY }: Flo
 }
 
 export function AnimatedBackground() {
+  const theme = useTheme();
   const rotation = useSharedValue(0);
   const conicRotation = useSharedValue(0);
 
@@ -185,9 +186,9 @@ export function AnimatedBackground() {
         <LinearGradient
           colors={[
             'transparent',
-            'rgba(138, 43, 226, 0.1)',
+            theme.colors.glow.faint,
             'transparent',
-            'rgba(138, 43, 226, 0.05)',
+            theme.colors.glow.subtle,
             'transparent',
           ]}
           start={{ x: 0, y: 0 }}
@@ -211,11 +212,11 @@ export function AnimatedBackground() {
       >
         <LinearGradient
           colors={[
-            'rgba(138, 43, 226, 0.15)',
+            theme.colors.glow.medium,
             'transparent',
-            'rgba(255, 107, 107, 0.1)',
+            theme.colors.coral + '1A', // 0.1 opacity
             'transparent',
-            'rgba(76, 205, 196, 0.08)',
+            theme.colors.teal + '14', // 0.08 opacity
             'transparent',
           ]}
           start={{ x: 0, y: 0 }}
@@ -227,7 +228,7 @@ export function AnimatedBackground() {
       {/* Floating light orbs */}
       <FloatingLight
         size={250}
-        color="rgba(138, 43, 226, 0.2)"
+        color={theme.colors.glow.subtle}
         duration={8000}
         delay={0}
         initialX={width * 0.2}
@@ -236,7 +237,7 @@ export function AnimatedBackground() {
       
       <FloatingLight
         size={200}
-        color="rgba(255, 107, 107, 0.15)"
+        color={theme.colors.coral + '26'}
         duration={12000}
         delay={2000}
         initialX={width * 0.7}
@@ -245,7 +246,7 @@ export function AnimatedBackground() {
       
       <FloatingLight
         size={180}
-        color="rgba(76, 205, 196, 0.12)"
+        color={theme.colors.teal + '1F'}
         duration={10000}
         delay={4000}
         initialX={width * 0.5}
@@ -254,7 +255,7 @@ export function AnimatedBackground() {
 
       <FloatingLight
         size={220}
-        color="rgba(138, 43, 226, 0.1)"
+        color={theme.colors.glow.faint}
         duration={15000}
         delay={1000}
         initialX={width * 0.8}
@@ -263,7 +264,7 @@ export function AnimatedBackground() {
 
       <FloatingLight
         size={160}
-        color="rgba(255, 107, 107, 0.08)"
+        color={theme.colors.coral + '14'}
         duration={9000}
         delay={3000}
         initialX={width * 0.1}
@@ -278,7 +279,7 @@ export function AnimatedBackground() {
           left: 0,
           right: 0,
           bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.3)',
+          backgroundColor: theme.colors.overlay,
         }}
       />
     </View>

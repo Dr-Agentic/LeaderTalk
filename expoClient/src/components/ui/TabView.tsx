@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { ThemedText } from '../ThemedText';
-import { theme } from '../../styles/theme';
+import { useTheme } from '../../hooks/useTheme';
 
 interface Tab {
   key: string;
@@ -16,6 +16,7 @@ interface TabViewProps {
 }
 
 export function TabView({ tabs, activeTab, onTabChange, children }: TabViewProps) {
+  const theme = useTheme();
   return (
     <View style={styles.container}>
       {/* Tab Headers */}
@@ -85,7 +86,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   activeTabText: {
-    color: '#fff',
     fontWeight: '600',
   },
   content: {

@@ -6,11 +6,12 @@ import { GlassCard } from '../ui/GlassCard';
 import { ProgressBar } from '../ui/ProgressBar';
 import { ThemedText } from '../ThemedText';
 import { apiRequest } from '../../lib/apiService';
-import { theme } from '../../styles/theme';
+import { useTheme } from '../../hooks/useTheme';
 
 const { width } = Dimensions.get('window');
 
 export function WordUsageStats() {
+  const theme = useTheme();
   // Use the billing cycle endpoint for accurate calculations
   const { data, isLoading } = useQuery({
     queryKey: ['usage-billing-cycle'],
@@ -160,7 +161,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#fff',
   },
   content: {
     gap: 20,

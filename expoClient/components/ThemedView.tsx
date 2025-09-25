@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, ViewProps, StyleSheet } from 'react-native';
 import { useColorScheme } from '@/src/hooks/useColorScheme';
-import { theme } from '../src/styles/theme';
+import { useTheme } from '../src/hooks/useTheme';
 
 interface ThemedViewProps extends ViewProps {
   children: React.ReactNode;
@@ -9,6 +9,7 @@ interface ThemedViewProps extends ViewProps {
 }
 
 export function ThemedView({ variant = 'default', style, ...props }: ThemedViewProps) {
+  const theme = useTheme();
   const colorScheme = useColorScheme();
   const backgroundColor = colorScheme === 'dark' ? '#121212' : '#ffffff';
   

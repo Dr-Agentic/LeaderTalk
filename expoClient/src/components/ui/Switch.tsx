@@ -7,7 +7,7 @@ import Animated, {
   interpolateColor,
 } from 'react-native-reanimated';
 import { ThemedText } from '../ThemedText';
-import { theme } from '../../styles/theme';
+import { useTheme } from '../../hooks/useTheme';
 
 interface SwitchProps {
   value: boolean;
@@ -18,6 +18,7 @@ interface SwitchProps {
 }
 
 export function Switch({ value, onValueChange, disabled = false, style, label }: SwitchProps) {
+  const theme = useTheme();
   const translateX = useSharedValue(value ? 20 : 0);
   const backgroundColor = useSharedValue(value ? 1 : 0);
 
@@ -34,7 +35,7 @@ export function Switch({ value, onValueChange, disabled = false, style, label }:
     backgroundColor: interpolateColor(
       backgroundColor.value,
       [0, 1],
-      ['rgba(255, 255, 255, 0.2)', '#8A2BE2']
+      ['rgba(255, 255, 255, 0.2)', theme.colors.primary]
     ),
   }));
 

@@ -8,9 +8,10 @@ import * as Haptics from 'expo-haptics';
 import { useColorScheme } from '@/src/hooks/useColorScheme';
 import { uploadRecording } from '@/src/services/recordingService';
 import { router } from 'expo-router';
-import { theme } from '../../src/styles/theme';
+import { useTheme } from '../../src/hooks/useTheme';
 
 export default function RecordScreen() {
+  const theme = useTheme();
   const colorScheme = useColorScheme();
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [isRecording, setIsRecording] = useState(false);

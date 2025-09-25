@@ -3,13 +3,13 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-nati
 import { BlurView } from 'expo-blur';
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { theme } from '../../styles/theme';
+import { useTheme } from '../../hooks/useTheme';
 
 // Placeholder for the CommunicationChart component
 // In a real app, you would implement this with a charting library like react-native-chart-kit
 const CommunicationChart = () => (
   <View style={styles.chartPlaceholder}>
-    <Text style={styles.chartText}>Communication Analysis Chart</Text>
+    <Text style={[styles.chartText, { color: theme.colors.foreground }]}>Communication Analysis Chart</Text>
     <Text style={styles.chartSubtext}>
       (This would be a real chart in the production app)
     </Text>
@@ -58,6 +58,7 @@ interface AnalysisDisplayProps {
 }
 
 export default function AnalysisDisplay({ recording, leaders }: AnalysisDisplayProps) {
+  const theme = useTheme();
   const [activeTab, setActiveTab] = useState('positive');
   
   if (!recording || !recording.analysisResult) {
@@ -102,14 +103,14 @@ export default function AnalysisDisplay({ recording, leaders }: AnalysisDisplayP
   
   return (
     <View style={styles.container}>
-      <Text style={styles.sectionTitle}>Last Analysis</Text>
+      <Text style={[styles.sectionTitle, { color: theme.colors.foreground }]}>Last Analysis</Text>
       
       <View style={styles.card}>
         <BlurView intensity={20} tint="dark" style={styles.blurContainer}>
           {/* Card Header */}
           <View style={styles.cardHeader}>
             <View>
-              <Text style={styles.cardTitle}>{title}</Text>
+              <Text style={[styles.cardTitle, { color: theme.colors.foreground }]}>{title}</Text>
               <Text style={styles.cardSubtitle}>
                 Recorded {formattedDate} ({formattedDuration})
               </Text>
@@ -138,7 +139,7 @@ export default function AnalysisDisplay({ recording, leaders }: AnalysisDisplayP
                 >
                   <Text style={[
                     styles.tabButtonText,
-                    activeTab === 'positive' && styles.activeTabButtonText
+                    activeTab === 'positive' && [styles.activeTabButtonText, { color: theme.colors.foreground }]
                   ]}>
                     Positive Moments
                   </Text>
@@ -153,7 +154,7 @@ export default function AnalysisDisplay({ recording, leaders }: AnalysisDisplayP
                 >
                   <Text style={[
                     styles.tabButtonText,
-                    activeTab === 'improve' && styles.activeTabButtonText
+                    activeTab === 'improve' && [styles.activeTabButtonText, { color: theme.colors.foreground }]
                   ]}>
                     Areas for Improvement
                   </Text>
@@ -168,7 +169,7 @@ export default function AnalysisDisplay({ recording, leaders }: AnalysisDisplayP
                 >
                   <Text style={[
                     styles.tabButtonText,
-                    activeTab === 'leadership' && styles.activeTabButtonText
+                    activeTab === 'leadership' && [styles.activeTabButtonText, { color: theme.colors.foreground }]
                   ]}>
                     Leadership Insights
                   </Text>
@@ -279,7 +280,7 @@ export default function AnalysisDisplay({ recording, leaders }: AnalysisDisplayP
               style={styles.footerLink}
               onPress={() => router.push(`/transcript/${recording.id}`)}
             >
-              <Text style={styles.footerLinkText}>View transcript</Text>
+              <Text style={[styles.footerLinkText, { color: theme.colors.foreground }]}>View transcript</Text>
             </TouchableOpacity>
             
             <View style={styles.footerActions}>
@@ -311,7 +312,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: theme.colors.foreground,
     marginBottom: 16,
   },
   card: {
@@ -335,7 +335,6 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#fff',
     marginBottom: 4,
   },
   cardSubtitle: {
@@ -364,7 +363,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   chartText: {
-    color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -396,7 +394,6 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.7)',
   },
   activeTabButtonText: {
-    color: '#fff',
     fontWeight: '600',
   },
   tabContent: {
@@ -460,7 +457,6 @@ const styles = StyleSheet.create({
   footerLinkText: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#fff',
   },
   footerActions: {
     flexDirection: 'row',

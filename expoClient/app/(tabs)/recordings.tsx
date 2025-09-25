@@ -6,7 +6,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import { useColorScheme } from '@/src/hooks/useColorScheme';
 import { getRecordings, deleteRecording } from '@/src/services/recordingService';
 import { router } from 'expo-router';
-import { theme } from '../../src/styles/theme';
+import { useTheme } from '../../src/hooks/useTheme';
 
 interface Recording {
   id: string;
@@ -19,6 +19,7 @@ interface Recording {
 }
 
 export default function RecordingsScreen() {
+  const theme = useTheme();
   const colorScheme = useColorScheme();
   const textColor = colorScheme === 'dark' ? '#ffffff' : '#000000';
   const [recordings, setRecordings] = useState<Recording[]>([]);

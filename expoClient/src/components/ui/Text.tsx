@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text as RNText, StyleSheet, TextStyle } from 'react-native';
-import { theme } from '../../styles/theme';
+import { useTheme } from '../../hooks/useTheme';
 
 interface TextProps {
   children: React.ReactNode;
@@ -12,6 +12,7 @@ interface TextProps {
 }
 
 export const Text = ({
+  const theme = useTheme();
   children,
   variant = 'body',
   weight = 'normal',

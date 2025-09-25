@@ -6,7 +6,7 @@ import { GlassCard } from '../ui/GlassCard';
 import { ProgressBar } from '../ui/ProgressBar';
 import { ThemedText } from '../ThemedText';
 import { apiRequest } from '../../lib/apiService';
-import { theme } from '../../styles/theme';
+import { useTheme } from '../../hooks/useTheme';
 
 interface BillingCycleData {
   cycleLabel: string;
@@ -19,6 +19,7 @@ interface BillingCycleData {
 }
 
 export function BillingCycleHistory() {
+  const theme = useTheme();
   // Get current subscription to determine billing cycle dates
   const { data: subscriptionData } = useQuery({
     queryKey: ['subscription-current'],
@@ -196,11 +197,9 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#fff',
   },
   subtitle: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.7)',
   },
   loadingContainer: {
     flexDirection: 'row',

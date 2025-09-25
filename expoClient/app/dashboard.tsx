@@ -18,7 +18,7 @@ import { QuoteDisplay } from '../src/components/dashboard/QuoteDisplay';
 import { GlassCard } from '../src/components/ui/GlassCard';
 import { Button } from '../src/components/ui/Button';
 import { ThemedText } from '../src/components/ThemedText';
-import { theme } from '../src/styles/theme';
+import { useTheme } from '../src/hooks/useTheme';
 
 // Mock data for demonstration purposes
 const MOCK_RECORDINGS = [
@@ -97,6 +97,7 @@ function calculateWeeklyImprovement(recordings: any[]) {
 }
 
 export default function DashboardScreen() {
+  const theme = useTheme();
   const [user, setUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showQuote, setShowQuote] = useState(true);
@@ -176,7 +177,7 @@ export default function DashboardScreen() {
     return (
       <View style={styles.loadingContainer}>
         <StatusBar style="light" />
-        <ActivityIndicator size="large" color="#8A2BE2" />
+        <ActivityIndicator size="large" color={theme.colors.primary} />
         <ThemedText style={styles.loadingText}>Loading dashboard...</ThemedText>
       </View>
     );
@@ -230,7 +231,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   loadingText: {
-    color: '#fff',
     marginTop: 16,
     fontSize: 16,
   },
@@ -247,12 +247,10 @@ const styles = StyleSheet.create({
   recordCardTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#fff',
     marginBottom: 8,
   },
   recordCardDescription: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.7)',
     marginBottom: 16,
   },
   recordButton: {

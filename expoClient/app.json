@@ -47,7 +47,8 @@
       ],
       "expo-secure-store",
       "expo-av",
-      "react-native-purchases"
+      "react-native-purchases",
+      "react-native-reanimated"
     ],
     "experiments": {
       "typedRoutes": true

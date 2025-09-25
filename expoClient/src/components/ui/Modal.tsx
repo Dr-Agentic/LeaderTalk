@@ -16,7 +16,7 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import { ThemedText } from '../ThemedText';
-import { theme } from '../../styles/theme';
+import { useTheme } from '../../hooks/useTheme';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -39,6 +39,7 @@ export function Modal({
   style,
   closeOnBackdrop = true,
 }: ModalProps) {
+  const theme = useTheme();
   const scale = useSharedValue(0);
   const opacity = useSharedValue(0);
 
@@ -81,7 +82,7 @@ export function Modal({
               flex: 1,
               justifyContent: 'center',
               alignItems: 'center',
-              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              backgroundColor: theme.colors.overlay,
             },
             animatedBackdropStyle,
           ]}
@@ -101,15 +102,15 @@ export function Modal({
             <Animated.View
               style={[
                 {
-                  backgroundColor: 'rgba(30, 30, 30, 0.95)',
+                  backgroundColor: theme.colors.surface,
                   borderRadius: 20,
                   borderWidth: 1,
-                  borderColor: 'rgba(138, 43, 226, 0.3)',
+                  borderColor: theme.colors.glow.medium,
                   padding: 24,
                   margin: 20,
                   maxWidth: screenWidth - 40,
                   maxHeight: screenHeight - 100,
-                  shadowColor: '#8A2BE2',
+                  shadowColor: theme.colors.primary,
                   shadowOffset: { width: 0, height: 10 },
                   shadowOpacity: 0.3,
                   shadowRadius: 20,
@@ -139,7 +140,7 @@ export function Modal({
                     <ThemedText
                       style={{
                         fontSize: 14,
-                        color: 'rgba(255, 255, 255, 0.7)',
+                        color: theme.colors.muted,
                         textAlign: 'center',
                         lineHeight: 20,
                       }}

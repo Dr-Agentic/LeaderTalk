@@ -13,7 +13,7 @@ import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '../ThemedText';
-import { theme } from '../../styles/theme';
+import { useTheme } from '../../hooks/useTheme';
 
 interface AppHeaderProps {
   title?: string;
@@ -34,6 +34,7 @@ export function AppHeader({
   showMenuButton = true,
   user,
 }: AppHeaderProps) {
+  const theme = useTheme();
   const handleBack = () => {
     if (backTo) {
       router.push(backTo);
@@ -70,7 +71,7 @@ export function AppHeader({
                 style={styles.menuButton}
                 onPress={onMenuPress}
               >
-                <Feather name="menu" size={24} color="#fff" />
+                <Feather name="menu" size={24} color={theme.colors.text} />
               </TouchableOpacity>
             )}
             
@@ -189,7 +190,6 @@ const styles = StyleSheet.create({
   logoText: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#fff',
     textAlign: 'center',
   },
   rightControls: {
@@ -217,6 +217,5 @@ const styles = StyleSheet.create({
   profileInitial: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#fff',
   },
 });

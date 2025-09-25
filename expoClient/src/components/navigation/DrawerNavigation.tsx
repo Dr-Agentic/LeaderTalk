@@ -16,7 +16,7 @@ import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '../ThemedText';
-import { theme } from '../../styles/theme';
+import { useTheme } from '../../hooks/useTheme';
 import { signOut } from '../../lib/supabaseAuth';
 
 interface DrawerNavigationProps {
@@ -43,6 +43,7 @@ const navItems: NavItem[] = [
 ];
 
 export function DrawerNavigation({ user, currentRoute, onClose }: DrawerNavigationProps) {
+  const theme = useTheme();
   const handleNavigation = (href: string) => {
     onClose();
     router.push(href);
@@ -87,7 +88,7 @@ export function DrawerNavigation({ user, currentRoute, onClose }: DrawerNavigati
         <View style={styles.header}>
           <ThemedText style={styles.headerTitle}>LeaderTalk</ThemedText>
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Feather name="x" size={24} color="#fff" />
+            <Feather name="x" size={24} color={theme.colors.foreground} />
           </TouchableOpacity>
         </View>
 
@@ -108,7 +109,7 @@ export function DrawerNavigation({ user, currentRoute, onClose }: DrawerNavigati
                   <Feather
                     name={item.icon}
                     size={20}
-                    color={isActive ? '#fff' : 'rgba(255, 255, 255, 0.7)'}
+                    color={isActive ? theme.colors.foreground : theme.colors.textSecondary}
                     style={styles.navIcon}
                   />
                   <ThemedText
@@ -157,7 +158,7 @@ export function DrawerNavigation({ user, currentRoute, onClose }: DrawerNavigati
               style={styles.signOutButton}
               onPress={handleSignOut}
             >
-              <Feather name="log-out" size={16} color="#fff" style={styles.signOutIcon} />
+              <Feather name="log-out" size={16} color={theme.colors.foreground} style={styles.signOutIcon} />
               <ThemedText style={styles.signOutText}>Sign out</ThemedText>
             </TouchableOpacity>
           </View>
@@ -206,7 +207,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#fff',
   },
   closeButton: {
     padding: 4,

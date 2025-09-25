@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -13,7 +13,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { StatusBar } from 'expo-status-bar';
 import { Feather } from '@expo/vector-icons';
 import { AppLayout } from '../../src/components/navigation/AppLayout';
-import { theme } from '../../src/styles/theme';
+import { useTheme } from '../../src/hooks/useTheme';
 import { GlassCard } from '../../src/components/ui/GlassCard';
 import { Button } from '../../src/components/ui/Button';
 import { ThemedText } from '../../src/components/ThemedText';
@@ -56,7 +56,48 @@ interface Leader {
 }
 
 export default function TranscriptView() {
+  const theme = useTheme();
   const router = useRouter();
+
+  // Dynamic styles based on theme
+  const dynamicStyles = useMemo(() => ({
+    headerText: {
+      color: theme.colors.foreground,
+    },
+    transcriptText: {
+      color: theme.colors.foreground,
+    },
+    speakerLabel: {
+      color: theme.colors.primary,
+    },
+    timestampText: {
+      color: theme.colors.muted,
+    },
+    progressBar: {
+      backgroundColor: theme.colors.primary,
+    },
+    progressBackground: {
+      backgroundColor: theme.colors.border,
+    },
+    loadingText: {
+      color: theme.colors.muted,
+    },
+    errorText: {
+      color: theme.colors.error,
+    },
+    successText: {
+      color: theme.colors.success,
+    },
+    overlayBackground: {
+      backgroundColor: `${theme.colors.background}CC`, // 80% opacity
+    },
+    buttonBackground: {
+      backgroundColor: theme.colors.primary,
+    },
+    disabledText: {
+      color: theme.colors.disabled,
+    },
+  }), [theme]);
   const params = useLocalSearchParams();
   const recordingId = parseInt(params.id as string);
   const queryClient = useQueryClient();
@@ -215,7 +256,7 @@ export default function TranscriptView() {
     return (
       <AppLayout showBackButton backTo="/transcripts" backLabel="Back to All Transcripts">
         <View style={styles.centerContainer}>
-          <ThemedText style={styles.title}>Recording Not Found</ThemedText>
+          <ThemedText style={[styles.title, dynamicStyles.headerText]}>Recording Not Found</ThemedText>
           <ThemedText style={styles.description}>
             The requested recording could not be found.
           </ThemedText>
@@ -231,13 +272,13 @@ export default function TranscriptView() {
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <GlassCard style={styles.analysisCard}>
             <View style={styles.analysisContent}>
-              <ThemedText style={styles.title}>Analysis in Progress</ThemedText>
+              <ThemedText style={[styles.title, dynamicStyles.headerText]}>Analysis in Progress</ThemedText>
               
               <ActivityIndicator size="large" color={theme.colors.primary} style={styles.spinner} />
               
               <View style={styles.progressContainer}>
-                <View style={styles.progressBar}>
-                  <View style={[styles.progressFill, { width: `${progress}%` }]} />
+                <View style={[styles.progressBar, dynamicStyles.progressBackground]}>
+                  <View style={[styles.progressFill, dynamicStyles.progressBar, { width: `${progress}%` }]} />
                 </View>
                 <ThemedText style={styles.progressText}>
                   Your recording is being analyzed by our AI. This usually takes less than a minute.
@@ -290,7 +331,7 @@ export default function TranscriptView() {
         <GlassCard style={styles.headerCard}>
           <View style={styles.headerContent}>
             <View>
-              <ThemedText style={styles.title}>{recording.title}</ThemedText>
+              <ThemedText style={[styles.title, dynamicStyles.headerText]}>{recording.title}</ThemedText>
               <ThemedText style={styles.subtitle}>
                 Recorded {new Date(recording.recordedAt).toLocaleDateString()}
                 {recording.analysis?.overview?.rating && ` • Overall: ${recording.analysis.overview.rating}`}
@@ -495,7 +536,7 @@ function AnalysisInstancesList({
                     key={leader.id}
                     style={[
                       styles.leaderButton,
-                      activeLeader === leader.id && activeInstance === index && styles.leaderButtonActive
+                      activeLeader === leader.id && activeInstance === index && [styles.leaderButtonActive, dynamicStyles.buttonBackground]
                     ]}
                     onPress={() => {
                       if (onLeaderButtonPress) {
@@ -562,14 +603,12 @@ const styles = StyleSheet.create({
   },
   progressBar: {
     height: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderRadius: 4,
     overflow: 'hidden',
     marginBottom: 12,
   },
   progressFill: {
     height: '100%',
-    backgroundColor: theme.colors.primary,
     borderRadius: 4,
   },
   progressText: {
@@ -597,13 +636,11 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#fff',
     marginBottom: 16,
   },
   title: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#fff',
     marginBottom: 4,
   },
   subtitle: {
@@ -635,7 +672,6 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     fontSize: 12,
-    color: '#fff',
     fontWeight: '500',
   },
   badgeContainer: {
@@ -695,7 +731,6 @@ const styles = StyleSheet.create({
   },
   quoteText: {
     fontSize: 14,
-    color: '#fff',
     fontWeight: '500',
   },
   timestamp: {
@@ -709,7 +744,6 @@ const styles = StyleSheet.create({
   },
   improvementText: {
     fontSize: 14,
-    color: '#60A5FA',
     marginLeft: 8,
   },
   improvementLabel: {
@@ -741,12 +775,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
   leaderButtonActive: {
-    backgroundColor: '#8A2BE2',
-    borderColor: '#8A2BE2',
+    borderWidth: 1,
   },
   leaderButtonText: {
     fontSize: 12,
-    color: '#fff',
   },
   leaderResponse: {
     marginTop: 12,
@@ -758,12 +790,10 @@ const styles = StyleSheet.create({
   },
   leaderResponseHeader: {
     fontSize: 12,
-    color: '#93C5FD',
     marginBottom: 8,
   },
   leaderResponseText: {
     fontSize: 14,
-    color: '#DBEAFE',
     lineHeight: 20,
   },
   emptyText: {

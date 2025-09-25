@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,8 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
 import logoImage from '../../../assets/images/LeaderTalk-2025-05-30.png';
-import { theme } from '../../styles/theme';
+import { useTheme } from '../../hooks/useTheme';
+import { ThemedText } from '../ThemedText';
 
 interface SplashScreenProps {
   onComplete: () => void;
@@ -20,11 +21,24 @@ interface SplashScreenProps {
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
-export default function SplashScreen({ 
+export default function SplashScreen({
   onComplete, 
   minDisplayTime = 2500 
 }: SplashScreenProps) {
+  const theme = useTheme();
   const [isComplete, setIsComplete] = useState(false);
+  
+  // Dynamic styles based on theme
+  const dynamicStyles = useMemo(() => ({
+    gradientColors: [
+      `${theme.colors.primary}33`, // primary/20
+      theme.colors.background,
+      `${theme.colors.primary}1A`, // primary/10
+    ],
+    subtitleText: {
+      color: theme.colors.muted,
+    },
+  }), [theme]);
   
   // Animation values
   const logoOpacity = useRef(new Animated.Value(0)).current;
@@ -139,11 +153,7 @@ export default function SplashScreen({
       
       {/* Background Gradient */}
       <LinearGradient
-        colors={[
-          'rgba(138, 43, 226, 0.2)', // primary/20
-          '#0f0f23', // background
-          'rgba(138, 43, 226, 0.1)', // primary/10
-        ]}
+        colors={dynamicStyles.gradientColors}
         locations={[0, 0.5, 1]}
         style={styles.gradient}
       />
@@ -179,8 +189,8 @@ export default function SplashScreen({
             },
           ]}
         >
-          <Text style={styles.title}>LeaderTalk</Text>
-          <Text style={styles.subtitle}>
+          <ThemedText style={styles.title}>LeaderTalk</ThemedText>
+          <Text style={[styles.subtitle, dynamicStyles.subtitleText]}>
             Talk Like the Leader You Aspire to Be
           </Text>
         </Animated.View>
@@ -195,19 +205,19 @@ export default function SplashScreen({
           <Animated.View
             style={[
               styles.dot,
-              { opacity: dot1Opacity },
+              { opacity: dot1Opacity, backgroundColor: theme.colors.primary },
             ]}
           />
           <Animated.View
             style={[
               styles.dot,
-              { opacity: dot2Opacity },
+              { opacity: dot2Opacity, backgroundColor: theme.colors.primary },
             ]}
           />
           <Animated.View
             style={[
               styles.dot,
-              { opacity: dot3Opacity },
+              { opacity: dot3Opacity, backgroundColor: theme.colors.primary },
             ]}
           />
         </Animated.View>
@@ -256,7 +266,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: screenWidth > 768 ? 24 : 20, // Responsive text size
     fontWeight: '600',
-    color: '#8A2BE2', // Primary color
     textAlign: 'center',
     marginBottom: 4,
     // Gradient text effect would require additional library
@@ -264,7 +273,6 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: screenWidth > 768 ? 16 : 14,
-    color: 'rgba(255, 255, 255, 0.7)', // Secondary color
     textAlign: 'center',
     lineHeight: screenWidth > 768 ? 24 : 20,
   },
@@ -279,6 +287,5 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#8A2BE2', // Primary color
   },
 });

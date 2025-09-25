@@ -18,7 +18,7 @@ import { Button } from '../../src/components/ui/Button';
 import { ProgressBar } from '../../src/components/ui/ProgressBar';
 import { ThemedText } from '../../src/components/ThemedText';
 import { apiRequest } from '../../src/lib/apiService';
-import { theme } from '../../src/styles/theme';
+import { useTheme } from '../../src/hooks/useTheme';
 
 interface TrainingModule {
   id: string;
@@ -135,6 +135,7 @@ const MOCK_NEXT_SITUATION: NextSituation = {
 };
 
 export default function TrainingScreen() {
+  const theme = useTheme();
   const [refreshing, setRefreshing] = useState(false);
 
   // Fetch training chapters
@@ -269,7 +270,7 @@ export default function TrainingScreen() {
                 variant="cta"
                 size="large"
                 style={styles.continueButton}
-                icon={<Feather name="chevron-right" size={20} color="#fff" />}
+                icon={<Feather name="chevron-right" size={20} color={theme.colors.foreground} />}
               />
             </View>
           </GlassCard>
@@ -397,7 +398,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    color: '#fff',
     marginTop: 20,
     fontSize: 16,
   },
@@ -493,7 +493,6 @@ const styles = StyleSheet.create({
   chapterTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#fff',
     marginLeft: 8,
   },
   chapterMeta: {

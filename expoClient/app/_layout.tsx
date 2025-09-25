@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
 import { StyleSheet, View, Text, Platform } from 'react-native';
 import { useFonts } from 'expo-font';
-import { theme } from '../src/styles/theme';
+import { useTheme } from '../src/hooks/useTheme';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -108,6 +108,7 @@ if (Platform.OS === 'web' && typeof document !== 'undefined') {
 
 
 export default function RootLayout() {
+  const theme = useTheme();
   const [initError, setInitError] = useState<string | null>(null);
 
   // Load custom fonts

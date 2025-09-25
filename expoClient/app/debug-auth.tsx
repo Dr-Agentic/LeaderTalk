@@ -7,9 +7,10 @@ import { GlassCard } from '../src/components/ui/GlassCard';
 import { Button } from '../src/components/ui/Button';
 import { ThemedText } from '../src/components/ThemedText';
 import { clearAuthAndRedirect, isAuthenticated, getCurrentSession } from '../src/lib/authUtils';
-import { theme } from '../src/styles/theme';
+import { useTheme } from '../src/hooks/useTheme';
 
 export default function DebugAuthScreen() {
+  const theme = useTheme();
   const [authStatus, setAuthStatus] = useState<string>('Checking...');
   const [sessionInfo, setSessionInfo] = useState<string>('Loading...');
 

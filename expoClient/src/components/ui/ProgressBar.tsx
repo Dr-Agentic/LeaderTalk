@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { theme } from '../../styles/theme';
+import { useTheme } from '../../hooks/useTheme';
 
 interface ProgressBarProps {
   progress: number; // 0 to 1
@@ -16,25 +16,29 @@ export function ProgressBar({
   progress,
   height = 6,
   style,
-  backgroundColor = 'rgba(255, 255, 255, 0.1)',
-  progressColor = '#8A2BE2',
+  backgroundColor,
+  progressColor,
   useGradient = true,
 }: ProgressBarProps) {
+  const theme = useTheme();
   const clampedProgress = Math.max(0, Math.min(1, progress));
   const progressWidth = `${clampedProgress * 100}%`;
+  
+  const bgColor = backgroundColor || theme.colors.glass.medium;
+  const progColor = progressColor || theme.colors.primary;
 
   return (
-    <View style={[styles.container, { height, backgroundColor }, style]}>
+    <View style={[styles.container, { height, backgroundColor: bgColor }, style]}>
       <View style={[styles.progressContainer, { width: progressWidth }]}>
         {useGradient ? (
           <LinearGradient
-            colors={['#8A2BE2', '#FF6B6B']}
+            colors={[theme.colors.primary, theme.colors.coral]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={styles.progressGradient}
           />
         ) : (
-          <View style={[styles.progressSolid, { backgroundColor: progressColor }]} />
+          <View style={[styles.progressSolid, { backgroundColor: progColor }]} />
         )}
       </View>
     </View>

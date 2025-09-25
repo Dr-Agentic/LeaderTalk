@@ -16,7 +16,7 @@ import { QuoteDisplay } from '../../src/components/dashboard/QuoteDisplay';
 import { GlassCard } from '../../src/components/ui/GlassCard';
 import { Button } from '../../src/components/ui/Button';
 import { ThemedText } from '../../src/components/ThemedText';
-import { theme } from '../../src/styles/theme';
+import { useTheme } from '../../src/hooks/useTheme';
 
 
 // Helper function to calculate weekly improvement
@@ -44,6 +44,7 @@ function calculateWeeklyImprovement(recordings: any[]) {
 }
 
 export default function DashboardScreen() {
+  const theme = useTheme();
   const [user, setUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showQuote, setShowQuote] = useState(true);

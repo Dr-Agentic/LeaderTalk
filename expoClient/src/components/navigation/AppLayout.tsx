@@ -20,7 +20,7 @@ import { AppHeader } from './AppHeader';
 import { DrawerNavigation } from './DrawerNavigation';
 import { AnimatedBackground } from '../ui/AnimatedBackground';
 import { apiRequest } from '../../lib/apiService';
-import { theme } from '../../styles/theme';
+import { useTheme } from '../../hooks/useTheme';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -41,6 +41,7 @@ export function AppLayout({
   pageTitle,
   hideHeader = false,
 }: AppLayoutProps) {
+  const theme = useTheme();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const pathname = usePathname();
 

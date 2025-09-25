@@ -3,13 +3,15 @@ import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 import { getSupabase } from '../src/lib/supabaseAuth';
 import { ThemedText } from '../src/components/ThemedText';
+import { ThemedView } from '../src/components/ThemedView';
 import { AnimatedBackground } from '../src/components/ui/AnimatedBackground';
-import { theme } from '../src/styles/theme';
+import { useTheme } from '../src/hooks/useTheme';
 
 // Set this to true to force logout on app start (useful for testing)
 const FORCE_LOGOUT_ON_START = false;
 
 export default function IndexScreen() {
+  const theme = useTheme();
   const [isChecking, setIsChecking] = useState(true);
   const [debugInfo, setDebugInfo] = useState('Initializing...');
 
@@ -74,7 +76,7 @@ export default function IndexScreen() {
 
   // Show loading screen while checking authentication
   return (
-    <View style={styles.container}>
+    <ThemedView style={styles.container}>
       <AnimatedBackground />
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={theme.colors.primary} />
@@ -87,14 +89,13 @@ export default function IndexScreen() {
           </ThemedText>
         )}
       </View>
-    </View>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background,
   },
   loadingContainer: {
     flex: 1,
@@ -103,14 +104,12 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   loadingText: {
-    color: theme.colors.foreground,
     marginTop: 20,
     fontSize: 16,
     textAlign: 'center',
     paddingHorizontal: 20,
   },
   debugText: {
-    color: theme.colors.mutedForeground,
     marginTop: 8,
     fontSize: 12,
     textAlign: 'center',

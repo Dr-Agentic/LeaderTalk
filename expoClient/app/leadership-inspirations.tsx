@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   StyleSheet,
@@ -13,7 +13,7 @@ import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { theme } from '../src/styles/theme';
+import { useTheme } from '../src/hooks/useTheme';
 
 import { AppLayout } from '../src/components/navigation/AppLayout';
 import { GlassCard } from '../src/components/ui/GlassCard';
@@ -104,12 +104,62 @@ const MOCK_LEADERS: Leader[] = [
 const MOCK_USER_SELECTIONS = [1, 2, 3]; // Steve Jobs, Brené Brown, Simon Sinek
 
 export default function LeadershipInspirationsScreen() {
+  const theme = useTheme();
   const [refreshing, setRefreshing] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('detailed');
   const [selectedSlots, setSelectedSlots] = useState<(number | null)[]>([null, null, null]);
   const [isSaving, setIsSaving] = useState(false);
   
   const queryClient = useQueryClient();
+
+  // Dynamic styles based on theme
+  const dynamicStyles = useMemo(() => ({
+    leaderSlotSelected: {
+      backgroundColor: theme.colors.glow.faint,
+    },
+    leaderSlotInitials: {
+      color: theme.colors.primary,
+    },
+    removeButton: {
+      backgroundColor: theme.colors.error,
+    },
+    emptySlotIcon: {
+      color: theme.colors.disabled,
+    },
+    toggleButtonActive: {
+      backgroundColor: theme.colors.glass.medium,
+    },
+    toggleButtonTextActive: {
+      color: theme.colors.foreground,
+      fontWeight: '600',
+    },
+    leaderCardSelected: {
+      borderColor: theme.colors.primary,
+      borderWidth: 2,
+    },
+    selectedBadge: {
+      backgroundColor: theme.colors.primary,
+    },
+    selectedBadgeText: {
+      color: theme.colors.foreground,
+    },
+    leaderName: {
+      color: theme.colors.foreground,
+    },
+    compactLeaderItemSelected: {
+      borderColor: theme.colors.primary,
+      backgroundColor: theme.colors.glow.faint,
+    },
+    compactInitials: {
+      color: theme.colors.primary,
+    },
+    compactLeaderName: {
+      color: theme.colors.foreground,
+    },
+    compactSelectedText: {
+      color: theme.colors.primary,
+    },
+  }), [theme]);
 
   // Fetch leaders data
   const { data: leaders, isLoading: isLoadingLeaders, refetch: refetchLeaders } = useQuery<Leader[]>({
@@ -232,7 +282,7 @@ export default function LeadershipInspirationsScreen() {
     const hasLeader = !!selectedLeader;
 
     return (
-      <View key={index} style={[styles.leaderSlot, hasLeader && styles.leaderSlotSelected]}>
+      <View key={index} style={[styles.leaderSlot, hasLeader && dynamicStyles.leaderSlotSelected]}>
         {hasLeader ? (
           <>
             <View style={styles.leaderSlotImageContainer}>
@@ -244,14 +294,14 @@ export default function LeadershipInspirationsScreen() {
                 />
               ) : (
                 <View style={styles.leaderSlotPlaceholder}>
-                  <ThemedText style={styles.leaderSlotInitials}>
+                  <ThemedText style={[styles.leaderSlotInitials, dynamicStyles.leaderSlotInitials]}>
                     {selectedLeader.name.split(' ').map(n => n[0]).join('')}
                   </ThemedText>
                 </View>
               )}
               
               <TouchableOpacity
-                style={styles.removeButton}
+                style={[styles.removeButton, dynamicStyles.removeButton]}
                 onPress={() => toggleLeader(selectedLeader.id)}
               >
                 <Feather name="x" size={12} color={theme.colors.foreground} />
@@ -265,7 +315,7 @@ export default function LeadershipInspirationsScreen() {
         ) : (
           <>
             <View style={styles.emptySlotContainer}>
-              <Feather name="user" size={24} color="rgba(255, 255, 255, 0.3)" />
+              <Feather name="user" size={24} color={dynamicStyles.emptySlotIcon.color} />
             </View>
             <ThemedText style={styles.emptySlotText}>Empty Slot</ThemedText>
           </>
@@ -280,12 +330,12 @@ export default function LeadershipInspirationsScreen() {
     return (
       <TouchableOpacity
         key={leader.id}
-        style={[styles.leaderCard, isSelected && styles.leaderCardSelected]}
+        style={[styles.leaderCard, isSelected && dynamicStyles.leaderCardSelected]}
         onPress={() => toggleLeader(leader.id)}
       >
         {isSelected && (
-          <View style={styles.selectedBadge}>
-            <ThemedText style={styles.selectedBadgeText}>Selected</ThemedText>
+          <View style={[styles.selectedBadge, dynamicStyles.selectedBadge]}>
+            <ThemedText style={[styles.selectedBadgeText, dynamicStyles.selectedBadgeText]}>Selected</ThemedText>
           </View>
         )}
 
@@ -304,7 +354,7 @@ export default function LeadershipInspirationsScreen() {
         </View>
 
         <View style={styles.leaderInfo}>
-          <ThemedText style={styles.leaderName}>{leader.name}</ThemedText>
+          <ThemedText style={[styles.leaderName, dynamicStyles.leaderName]}>{leader.name}</ThemedText>
           <ThemedText style={styles.leaderTitle} numberOfLines={2}>
             {leader.title}
           </ThemedText>
@@ -333,7 +383,7 @@ export default function LeadershipInspirationsScreen() {
     return (
       <TouchableOpacity
         key={leader.id}
-        style={[styles.compactLeaderItem, isSelected && styles.compactLeaderItemSelected]}
+        style={[styles.compactLeaderItem, isSelected && dynamicStyles.compactLeaderItemSelected]}
         onPress={() => toggleLeader(leader.id)}
       >
         <View style={styles.compactLeaderImage}>
@@ -345,7 +395,7 @@ export default function LeadershipInspirationsScreen() {
             />
           ) : (
             <View style={styles.compactImagePlaceholder}>
-              <ThemedText style={styles.compactInitials}>
+              <ThemedText style={[styles.compactInitials, dynamicStyles.compactInitials]}>
                 {leader.name.split(' ').map(n => n[0]).join('')}
               </ThemedText>
             </View>
@@ -354,9 +404,9 @@ export default function LeadershipInspirationsScreen() {
 
         <View style={styles.compactLeaderInfo}>
           <View style={styles.compactLeaderHeader}>
-            <ThemedText style={styles.compactLeaderName}>{leader.name}</ThemedText>
+            <ThemedText style={[styles.compactLeaderName, dynamicStyles.compactLeaderName]}>{leader.name}</ThemedText>
             {isSelected && (
-              <ThemedText style={styles.compactSelectedText}>Selected</ThemedText>
+              <ThemedText style={[styles.compactSelectedText, dynamicStyles.compactSelectedText]}>Selected</ThemedText>
             )}
           </View>
           
@@ -431,18 +481,18 @@ export default function LeadershipInspirationsScreen() {
               
               <View style={styles.viewModeToggle}>
                 <TouchableOpacity
-                  style={[styles.toggleButton, viewMode === 'detailed' && styles.toggleButtonActive]}
+                  style={[styles.toggleButton, viewMode === 'detailed' && dynamicStyles.toggleButtonActive]}
                   onPress={() => setViewMode('detailed')}
                 >
-                  <ThemedText style={[styles.toggleButtonText, viewMode === 'detailed' && styles.toggleButtonTextActive]}>
+                  <ThemedText style={[styles.toggleButtonText, viewMode === 'detailed' && dynamicStyles.toggleButtonTextActive]}>
                     Detailed
                   </ThemedText>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={[styles.toggleButton, viewMode === 'compact' && styles.toggleButtonActive]}
+                  style={[styles.toggleButton, viewMode === 'compact' && dynamicStyles.toggleButtonActive]}
                   onPress={() => setViewMode('compact')}
                 >
-                  <ThemedText style={[styles.toggleButtonText, viewMode === 'compact' && styles.toggleButtonTextActive]}>
+                  <ThemedText style={[styles.toggleButtonText, viewMode === 'compact' && dynamicStyles.toggleButtonTextActive]}>
                     Compact
                   </ThemedText>
                 </TouchableOpacity>
@@ -492,7 +542,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    color: '#fff',
     marginTop: 20,
     fontSize: 16,
   },
@@ -508,12 +557,10 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#fff',
     marginBottom: 8,
   },
   sectionDescription: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.7)',
     marginBottom: 20,
     lineHeight: 20,
   },
@@ -528,13 +575,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     minHeight: 120,
-  },
-  leaderSlotSelected: {
-    borderColor: '#8A2BE2',
-    backgroundColor: 'rgba(138, 43, 226, 0.1)',
   },
   leaderSlotImageContainer: {
     position: 'relative',
@@ -549,14 +590,12 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: 'rgba(138, 43, 226, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   leaderSlotInitials: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#8A2BE2',
   },
   removeButton: {
     position: 'absolute',
@@ -565,28 +604,24 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: theme.colors.error,
     alignItems: 'center',
     justifyContent: 'center',
   },
   leaderSlotName: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#fff',
     textAlign: 'center',
   },
   emptySlotContainer: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 8,
   },
   emptySlotText: {
     fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.5)',
     textAlign: 'center',
   },
   leadersHeader: {
@@ -597,7 +632,6 @@ const styles = StyleSheet.create({
   },
   viewModeToggle: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderRadius: 8,
     padding: 2,
   },
@@ -606,16 +640,8 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 6,
   },
-  toggleButtonActive: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-  },
   toggleButtonText: {
     fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.7)',
-  },
-  toggleButtonTextActive: {
-    color: '#fff',
-    fontWeight: '600',
   },
   detailedGrid: {
     gap: 16,
@@ -623,20 +649,13 @@ const styles = StyleSheet.create({
   leaderCard: {
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     overflow: 'hidden',
     position: 'relative',
-  },
-  leaderCardSelected: {
-    borderColor: '#8A2BE2',
-    borderWidth: 2,
   },
   selectedBadge: {
     position: 'absolute',
     top: 8,
     right: 8,
-    backgroundColor: '#8A2BE2',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
@@ -645,11 +664,9 @@ const styles = StyleSheet.create({
   selectedBadgeText: {
     fontSize: 10,
     fontWeight: '600',
-    color: '#fff',
   },
   leaderImageContainer: {
     height: 180,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
   },
   leaderImage: {
     width: '100%',
@@ -660,11 +677,9 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
   noImageText: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.5)',
   },
   leaderInfo: {
     padding: 16,
@@ -672,17 +687,14 @@ const styles = StyleSheet.create({
   leaderName: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#fff',
     marginBottom: 4,
   },
   leaderTitle: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.7)',
     marginBottom: 12,
   },
   leaderDescription: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.8)',
     lineHeight: 20,
     marginBottom: 12,
   },
@@ -692,16 +704,12 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   tag: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
   },
   tagText: {
     fontSize: 10,
-    color: 'rgba(255, 255, 255, 0.8)',
   },
   compactList: {
     gap: 8,
@@ -712,12 +720,6 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-  },
-  compactLeaderItemSelected: {
-    borderColor: '#8A2BE2',
-    backgroundColor: 'rgba(138, 43, 226, 0.1)',
   },
   compactLeaderImage: {
     marginRight: 12,
@@ -731,14 +733,12 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: 'rgba(138, 43, 226, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   compactInitials: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#8A2BE2',
   },
   compactLeaderInfo: {
     flex: 1,
@@ -752,16 +752,13 @@ const styles = StyleSheet.create({
   compactLeaderName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#fff',
   },
   compactSelectedText: {
     fontSize: 12,
-    color: '#8A2BE2',
     fontWeight: '600',
   },
   compactLeaderTitle: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.7)',
     marginBottom: 4,
   },
   compactTagsContainer: {
@@ -770,14 +767,12 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   compactTag: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 8,
   },
   compactTagText: {
     fontSize: 10,
-    color: 'rgba(255, 255, 255, 0.7)',
   },
   saveButtonContainer: {
     marginTop: 24,

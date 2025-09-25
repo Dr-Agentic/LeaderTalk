@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   StyleSheet,
@@ -22,7 +22,7 @@ import { TabView } from '../src/components/ui/TabView';
 import { Badge } from '../src/components/ui/Badge';
 import { ThemedText } from '../src/components/ThemedText';
 import { apiRequest } from '../src/lib/apiService';
-import { theme } from '../src/styles/theme';
+import { useTheme } from '../src/hooks/useTheme';
 
 type SortOption = 'date-desc' | 'date-asc' | 'rating-desc' | 'rating-asc';
 
@@ -56,7 +56,36 @@ const tabs = [
 ];
 
 export default function AllTranscriptsScreen() {
+  const theme = useTheme();
   const [sortBy, setSortBy] = useState<SortOption>('date-desc');
+
+  // Dynamic styles based on theme
+  const dynamicStyles = useMemo(() => ({
+    headerText: {
+      color: theme.colors.foreground,
+    },
+    transcriptText: {
+      color: theme.colors.foreground,
+    },
+    metaText: {
+      color: theme.colors.muted,
+    },
+    loadingText: {
+      color: theme.colors.muted,
+    },
+    errorText: {
+      color: theme.colors.error,
+    },
+    emptyText: {
+      color: theme.colors.muted,
+    },
+    sortButton: {
+      backgroundColor: theme.colors.primary,
+    },
+    sortButtonText: {
+      color: theme.colors.background,
+    },
+  }), [theme]);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
   const [refreshing, setRefreshing] = useState(false);
@@ -267,12 +296,12 @@ function TranscriptCard({ recording }: { recording: Recording }) {
               <View style={styles.cardMeta}>
                 <View style={styles.metaItem}>
                   <Feather name="calendar" size={14} color="rgba(255, 255, 255, 0.7)" />
-                  <ThemedText style={styles.metaText}>{formattedDate}</ThemedText>
+                  <ThemedText style={[styles.metaText, dynamicStyles.metaText]}>{formattedDate}</ThemedText>
                 </View>
                 <ThemedText style={styles.metaSeparator}>•</ThemedText>
                 <View style={styles.metaItem}>
                   <Feather name="clock" size={14} color="rgba(255, 255, 255, 0.7)" />
-                  <ThemedText style={styles.metaText}>{formattedDuration}</ThemedText>
+                  <ThemedText style={[styles.metaText, dynamicStyles.metaText]}>{formattedDuration}</ThemedText>
                 </View>
               </View>
             </View>
@@ -434,7 +463,6 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#fff',
     marginBottom: 8,
   },
   cardMeta: {
@@ -505,7 +533,7 @@ const styles = StyleSheet.create({
   viewTranscriptText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#8A2BE2',
+    
   },
   // Skeleton styles
   skeletonHeader: {
@@ -562,7 +590,6 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#fff',
     marginBottom: 8,
   },
   emptyDescription: {

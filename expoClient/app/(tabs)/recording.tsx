@@ -13,7 +13,7 @@ import { Feather } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { ThemedText } from '../../src/components/ThemedText';
-import { theme } from '../../src/styles/theme';
+import { useTheme } from '../../src/hooks/useTheme';
 import { AppLayout } from '../../src/components/navigation/AppLayout';
 import { GlassCard } from '../../src/components/ui/GlassCard';
 import { Button } from '../../src/components/ui/Button';
@@ -30,6 +30,7 @@ const { width: screenWidth } = Dimensions.get('window');
 const MAX_RECORDING_TIME = 50 * 60; // 50 minutes in seconds
 
 export default function RecordingScreen() {
+  const theme = useTheme();
   // Optional query client - only use if available
   let queryClient;
   try {
@@ -271,7 +272,7 @@ export default function RecordingScreen() {
             {/* Show loading state while checking word limit */}
             {isCheckingWordLimit && (
               <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#8A2BE2" />
+                <ActivityIndicator size="large" color={theme.colors.primary} />
                 <ThemedText style={styles.loadingText}>
                   Checking word usage...
                 </ThemedText>
@@ -284,7 +285,7 @@ export default function RecordingScreen() {
                 {/* Show word limit exceeded warning if needed */}
                 {hasExceededWordLimit && (
                   <View style={styles.warningContainer}>
-                    <Feather name="alert-circle" size={20} color="#FF6B6B" />
+                    <Feather name="alert-circle" size={20} color={theme.colors.error} />
                     <View style={styles.warningTextContainer}>
                       <ThemedText style={styles.warningTitle}>
                         Word limit exceeded
@@ -321,7 +322,7 @@ export default function RecordingScreen() {
                     <Feather
                       name="mic"
                       size={48}
-                      color={hasExceededWordLimit ? '#666' : '#fff'}
+                      color={hasExceededWordLimit ? theme.colors.disabled : theme.colors.foreground}
                     />
                   </TouchableOpacity>
 
@@ -352,7 +353,7 @@ export default function RecordingScreen() {
                           <Feather
                             name={isPaused ? 'play' : 'pause'}
                             size={16}
-                            color="#fff"
+                            color={theme.colors.foreground}
                           />
                         }
                       />
@@ -363,7 +364,7 @@ export default function RecordingScreen() {
                         variant="secondary"
                         size="medium"
                         style={styles.controlButton}
-                        icon={<Feather name="square" size={16} color="#fff" />}
+                        icon={<Feather name="square" size={16} color={theme.colors.foreground} />}
                       />
                     </View>
                   )}
@@ -449,7 +450,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#fff',
     textAlign: 'center',
     marginBottom: 16,
   },
@@ -492,7 +492,6 @@ const styles = StyleSheet.create({
   warningTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FF6B6B',
     marginBottom: 4,
   },
   warningText: {
@@ -510,36 +509,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 24,
-    shadowColor: '#8A2BE2',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
     elevation: 16,
   },
   recordButtonDefault: {
-    backgroundColor: '#8A2BE2',
     borderWidth: 2,
-    borderColor: '#9A3BE2',
   },
   recordButtonActive: {
-    backgroundColor: '#DC2626',
     borderWidth: 2,
-    borderColor: '#EF4444',
   },
   recordButtonPaused: {
-    backgroundColor: '#F59E0B',
     borderWidth: 2,
-    borderColor: '#FBBF24',
   },
   recordButtonDisabled: {
-    backgroundColor: 'rgba(100, 100, 100, 0.5)',
     borderWidth: 2,
-    borderColor: 'rgba(150, 150, 150, 0.5)',
   },
   recordingStatus: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#fff',
     marginBottom: 8,
     textAlign: 'center',
   },
