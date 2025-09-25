@@ -1,15 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { 
-  View, 
-  StyleSheet, 
-  Image, 
-  ActivityIndicator, 
-  TouchableOpacity, 
-  Animated, 
-  Dimensions,
-  Platform,
-  Text,
-  Alert
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import {
+  View,
+  StyleSheet,
+  Animated,
+  Alert,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -22,14 +16,11 @@ import { useTheme } from '../src/hooks/useTheme';
 import { ThemedText } from '../src/components/ThemedText';
 import { AnimatedBackground } from '../src/components/ui/AnimatedBackground';
 
-// Get screen dimensions
-const { width, height } = Dimensions.get('window');
-
 export default function LoginScreen() {
   const theme = useTheme();
   const [loading, setLoading] = useState(false);
   const [demoLoading, setDemoLoading] = useState(false);
-  const [initError, setInitError] = useState<string | null>(null);
+  // initError removed (was unused)
   
   // Dynamic styles based on theme
   const dynamicStyles = useMemo(() => ({
@@ -56,14 +47,13 @@ export default function LoginScreen() {
     },
   }), [theme]);
   
-  // Animation value for the card entrance
-  const cardOpacity = new Animated.Value(0);
-  const cardTranslateY = new Animated.Value(20);
-  
-  // Set up entrance animation
+  // Animation values: stable refs so they are not recreated each render
+  const cardOpacity = useRef(new Animated.Value(0)).current;
+  const cardTranslateY = useRef(new Animated.Value(20)).current;
+
+  // Set up entrance animation with cleanup on unmount
   useEffect(() => {
-    // Card entrance animation
-    Animated.parallel([
+    const animation = Animated.parallel([
       Animated.timing(cardOpacity, {
         toValue: 1,
         duration: 800,
@@ -74,51 +64,56 @@ export default function LoginScreen() {
         duration: 800,
         useNativeDriver: true,
       }),
-    ]).start();
-  }, []);
+    ]);
 
-  const handleGoogleSignIn = async () => {
+    animation.start();
+
+    return () => {
+      // stop running animations and clear any native drivers
+      animation.stop?.();
+      try {
+        cardOpacity.stopAnimation();
+      } catch {
+        /* ignore */
+      }
+      try {
+        cardTranslateY.stopAnimation();
+      } catch {
+        /* ignore */
+      }
+    };
+  }, [cardOpacity, cardTranslateY]);
+
+  const handleGoogleSignIn = useCallback(async (): Promise<void> => {
     try {
       setLoading(true);
-      console.log("Google sign-in process initiated from UI");
+      if (__DEV__) console.log('Google sign-in process initiated from UI');
       await signInWithGoogle();
-      // Navigation will be handled by the auth state change listener
+      // Navigation handled by auth listener
     } catch (error) {
-      console.error('Google sign-in error:', error);
-      Alert.alert(
-        'Sign In Failed',
-        'Unable to sign in with Google. Please try again.',
-        [{ text: 'OK' }]
-      );
+      if (__DEV__) console.error('Google sign-in error:', error);
+      Alert.alert('Sign In Failed', 'Unable to sign in with Google. Please try again.', [{ text: 'OK' }]);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const handleDemoSignIn = async () => {
+  const handleDemoSignIn = useCallback(async (): Promise<void> => {
     try {
       setDemoLoading(true);
       const success = await signInWithDemo();
       if (success) {
         router.replace('/dashboard');
       } else {
-        Alert.alert(
-          'Demo Sign In Failed',
-          'Unable to sign in with demo account. Please try again.',
-          [{ text: 'OK' }]
-        );
+        Alert.alert('Demo Sign In Failed', 'Unable to sign in with demo account. Please try again.', [{ text: 'OK' }]);
       }
     } catch (error) {
-      console.error('Demo sign-in error:', error);
-      Alert.alert(
-        'Demo Sign In Failed',
-        'Unable to sign in with demo account. Please try again.',
-        [{ text: 'OK' }]
-      );
+      if (__DEV__) console.error('Demo sign-in error:', error);
+      Alert.alert('Demo Sign In Failed', 'Unable to sign in with demo account. Please try again.', [{ text: 'OK' }]);
     } finally {
       setDemoLoading(false);
     }
-  };
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -182,32 +177,46 @@ export default function LoginScreen() {
 
                 {/* Action Buttons */}
                 <View style={styles.buttonSection}>
-                  <Button
-                    title="Continue with Google"
-                    onPress={handleGoogleSignIn}
-                    variant="cta"
-                    size="large"
-                    loading={loading}
-                    disabled={loading || demoLoading}
-                    style={styles.googleButton}
-                    icon={
-                      !loading && (
-                        <View style={[styles.googleLogo, dynamicStyles.googleLogo]}>
-                          <ThemedText style={[styles.googleLogoText, dynamicStyles.googleLogoText]}>G</ThemedText>
-                        </View>
-                      )
-                    }
-                  />
+                  <View
+                    accessible
+                    accessibilityLabel="Sign in with your Google account"
+                    accessibilityRole="button"
+                    accessibilityHint="Opens Google sign-in flow"
+                  >
+                    <Button
+                      title="Continue with Google"
+                      onPress={handleGoogleSignIn}
+                      variant="cta"
+                      size="large"
+                      loading={loading}
+                      disabled={loading || demoLoading}
+                      style={styles.googleButton}
+                      icon={
+                        !loading && (
+                          <View style={[styles.googleLogo, dynamicStyles.googleLogo]}>
+                            <ThemedText style={[styles.googleLogoText, dynamicStyles.googleLogoText]}>G</ThemedText>
+                          </View>
+                        )
+                      }
+                    />
+                  </View>
 
-                  <Button
-                    title="Try Demo Account"
-                    onPress={handleDemoSignIn}
-                    variant="glass"
-                    size="large"
-                    loading={demoLoading}
-                    disabled={loading || demoLoading}
-                    style={styles.demoButton}
-                  />
+                  <View
+                    accessible
+                    accessibilityLabel="Sign in with demo account"
+                    accessibilityRole="button"
+                    accessibilityHint="Signs you in with a demonstration account"
+                  >
+                    <Button
+                      title="Try Demo Account"
+                      onPress={handleDemoSignIn}
+                      variant="glass"
+                      size="large"
+                      loading={demoLoading}
+                      disabled={loading || demoLoading}
+                      style={styles.demoButton}
+                    />
+                  </View>
                 </View>
 
                 <ThemedText style={[styles.termsText, dynamicStyles.termsText]}>
@@ -292,14 +301,13 @@ const styles = StyleSheet.create({
   },
   buttonSection: {
     width: '100%',
-    gap: 12,
     marginBottom: 20,
   },
   googleButton: {
-    marginBottom: 4,
+    marginBottom: 12,
   },
   demoButton: {
-    marginBottom: 4,
+    marginBottom: 0,
   },
   googleLogo: {
     width: 24,
