@@ -28,6 +28,7 @@ export function servePublicFiles(app: Express) {
   const publicPath = path.resolve(process.cwd(), "public");
   console.log("Setting up static file serving from:", publicPath);
 
+  // Always serve assets from public directory
   app.use(
     "/assets",
     express.static(path.join(publicPath, "assets"), {
@@ -46,8 +47,10 @@ export function servePublicFiles(app: Express) {
     }),
   );
 
-  // Also serve root public files
-  app.use(express.static(publicPath));
+  // Only serve root public files in production - Vite handles frontend in development
+  if (process.env.NODE_ENV === "production") {
+    app.use(express.static(publicPath));
+  }
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
