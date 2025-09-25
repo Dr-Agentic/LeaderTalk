@@ -134,7 +134,7 @@ export default function RootLayout() {
       console.log('🔗 Deeplink received:', url);
     });
 
-    // Initialize Supabase
+    // Initialize Supabase and RevenueCat
     const initializeAuth = async () => {
       try {
         console.log('Initializing app with API URL:', API_URL);
@@ -153,6 +153,16 @@ export default function RootLayout() {
         // Initialize Supabase with parameters from the server
         await initializeSupabase();
         console.log('Supabase initialized successfully');
+        
+        // Initialize RevenueCat
+        try {
+          const { revenueCatService } = await import('../src/lib/revenueCat');
+          await revenueCatService.initialize();
+          console.log('RevenueCat initialized successfully');
+        } catch (revenueCatError) {
+          console.warn('RevenueCat initialization failed:', revenueCatError);
+          // Don't throw error - app should still work without RevenueCat
+        }
         
       } catch (error) {
         console.error('Error initializing auth:', error);

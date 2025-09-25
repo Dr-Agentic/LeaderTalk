@@ -5,6 +5,7 @@ import Purchases, {
   PURCHASES_ERROR_CODE 
 } from 'react-native-purchases';
 import { Platform } from 'react-native';
+import { fetchAuthParameters } from './api';
 
 export class RevenueCatService {
   private static instance: RevenueCatService;
@@ -19,14 +20,16 @@ export class RevenueCatService {
 
   async initialize(userId?: string): Promise<boolean> {
     try {
-      // Replace with your actual RevenueCat API keys
+      // Fetch API keys from server
+      const authParams = await fetchAuthParameters();
+      
       const apiKey = Platform.select({
-        ios: process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY || 'your_ios_api_key',
-        android: process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY || 'your_android_api_key',
+        ios: authParams.revenueCat?.iosApiKey,
+        android: authParams.revenueCat?.androidApiKey,
       });
 
-      if (!apiKey || apiKey.includes('your_')) {
-        console.warn('RevenueCat API key not configured');
+      if (!apiKey) {
+        console.warn('RevenueCat API key not available from server');
         return false;
       }
 
@@ -37,7 +40,7 @@ export class RevenueCatService {
       }
 
       this.isInitialized = true;
-      console.log('RevenueCat initialized successfully');
+      console.log('RevenueCat initialized successfully with key:', apiKey.slice(0, 8) + '...');
       return true;
     } catch (error) {
       console.error('Failed to initialize RevenueCat:', error);
