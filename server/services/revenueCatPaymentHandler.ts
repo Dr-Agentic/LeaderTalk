@@ -4,7 +4,7 @@
  * Uses email-based customer lookup to avoid database ID synchronization
  */
 
-import { config } from '../config/environment';
+import { config } from "../config/environment";
 
 interface RevenueCatConfig {
   secretKey: string;
@@ -256,7 +256,10 @@ class RevenueCatPaymentHandler {
    * @param limit Maximum number of results per page (default: 20)
    * @param startingAfter Cursor for pagination
    */
-  async listEntitlements(limit: number = 20, startingAfter?: string): Promise<{
+  async listEntitlements(
+    limit: number = 20,
+    startingAfter?: string,
+  ): Promise<{
     items: Record<string, any>[];
     hasMore: boolean;
     nextCursor?: string;
@@ -267,23 +270,23 @@ class RevenueCatPaymentHandler {
           "REVENUECAT_PROJECT_ID environment variable is required",
         );
       }
-      
+
       const params = new URLSearchParams({
-        limit: limit.toString()
+        limit: limit.toString(),
       });
-      
+
       if (startingAfter) {
-        params.append('starting_after', startingAfter);
+        params.append("starting_after", startingAfter);
       }
-      
+
       const data = await this.makeRequest(
-        `/projects/${this.config.projectId}/entitlements?${params.toString()}`
+        `/projects/${this.config.projectId}/entitlements?${params.toString()}`,
       );
-      
+
       return {
         items: data.items || [],
         hasMore: data.has_more || false,
-        nextCursor: data.next_page || undefined
+        nextCursor: data.next_page || undefined,
       };
     } catch (error) {
       console.error("Error listing entitlements:", error);
@@ -344,7 +347,7 @@ class RevenueCatPaymentHandler {
       const data = await this.makeRequest(
         `/projects/${this.config.projectId}/customers/${encodeURIComponent(validAppUserId)}`,
       );
-      console.log(JSON.stringify(data, null, 2));
+      console.log("RevenueCat Customer: ", JSON.stringify(data, null, 2));
       return data;
     } catch (error: any) {
       if (error?.message?.includes("404")) {
@@ -394,13 +397,13 @@ class RevenueCatPaymentHandler {
           "REVENUECAT_PROJECT_ID environment variable is required",
         );
       }
-      
+
       // First verify customer exists
       const customer = await this.getCustomer(appUserId);
       if (!customer) {
         throw new Error(`Customer not found: ${appUserId}`);
       }
-      
+
       const validAppUserId = this._emailToAppUserId(appUserId);
       const data = await this.makeRequest(
         `/projects/${this.config.projectId}/customers/${encodeURIComponent(validAppUserId)}/subscriptions`,
@@ -412,7 +415,7 @@ class RevenueCatPaymentHandler {
           return acc;
         }, {});
       }
-      
+
       return {};
     } catch (error: any) {
       console.error("Error fetching customer subscriptions:", error);
@@ -432,13 +435,13 @@ class RevenueCatPaymentHandler {
           "REVENUECAT_PROJECT_ID environment variable is required",
         );
       }
-      
+
       // First verify customer exists
       const customer = await this.getCustomer(appUserId);
       if (!customer) {
         throw new Error(`Customer not found: ${appUserId}`);
       }
-      
+
       const validAppUserId = this._emailToAppUserId(appUserId);
       const data = await this.makeRequest(
         `/projects/${this.config.projectId}/customers/${encodeURIComponent(validAppUserId)}/active_entitlements`,
@@ -450,7 +453,7 @@ class RevenueCatPaymentHandler {
           return acc;
         }, {});
       }
-      
+
       return {};
     } catch (error: any) {
       console.error("Error fetching customer entitlements:", error);
