@@ -15,9 +15,10 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { MobileSubscriptionData, MobileBillingProduct } from '../services/revenueCatService';
+import { API_URL } from '../lib/api';
 
-// Base API URL for mobile billing
-const API_BASE = '/api/mobile/billing';
+// Base API URL for mobile billing - use full server URL
+const API_BASE = `${API_URL}/api/mobile/billing`;
 
 /**
  * Fetch current user subscription

@@ -102,26 +102,17 @@ export default function SubscriptionScreen() {
   const {
     data: currentSubscription,
     isLoading: subscriptionLoading,
-    error: subscriptionError,
     refetch: refetchSubscription,
   } = useMobileSubscription();
 
   // Fetch available plans using RevenueCat
-  const { 
-    data: plans, 
-    isLoading: plansLoading,
-    error: plansError,
-  } = useMobileProducts();
+  const { data: plans, isLoading: plansLoading } = useMobileProducts();
 
-  // DEBUG: Console log API responses
-  console.log('=== SUBSCRIPTION DEBUG ===');
-  console.log('currentSubscription:', JSON.stringify(currentSubscription, null, 2));
-  console.log('plans:', JSON.stringify(plans, null, 2));
-  console.log('subscriptionLoading:', subscriptionLoading);
-  console.log('plansLoading:', plansLoading);
-  console.log('subscriptionError:', subscriptionError);
-  console.log('plansError:', plansError);
-  console.log('========================');
+  // DEBUG: Keep one log for implementation analysis
+  console.log('Server JSON - currentSubscription:', currentSubscription);
+  console.log('Type:', typeof currentSubscription);
+  console.log('Is null:', currentSubscription === null);
+  console.log('Is undefined:', currentSubscription === undefined);
 
   // Mobile billing usage
   const { data: billingUsage } = useMobileBillingUsage();
