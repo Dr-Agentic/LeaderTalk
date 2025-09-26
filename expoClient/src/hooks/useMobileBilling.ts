@@ -32,11 +32,15 @@ export function useMobileSubscription() {
         credentials: 'include',
       });
       
+      console.log('Subscription API Response:', response.status, response.statusText);
+      const responseText = await response.text();
+      console.log('Subscription Response Body:', responseText.substring(0, 200));
+      
       if (!response.ok) {
         throw new Error(`Failed to fetch subscription: ${response.statusText}`);
       }
       
-      return response.json();
+      return JSON.parse(responseText);
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
     retry: 2,

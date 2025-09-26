@@ -5,34 +5,12 @@
  */
 
 import { Express, Request, Response } from "express";
+import { requireAuth } from "../middleware/auth";
 import { 
   getMobileUserSubscription,
   getMobileBillingProducts,
   validateMobilePurchase
 } from "../controllers/mobileSubscriptionController";
-
-const requireAuth = async (req: Request, res: Response, next: Function) => {
-  // Check session-based auth first (web client)
-  if ((req.session as any)?.userId) {
-    return next();
-  }
-  
-  // Check Bearer token auth (mobile client)
-  const authHeader = req.headers.authorization;
-  if (authHeader?.startsWith('Bearer ')) {
-    try {
-      const token = authHeader.substring(7);
-      // TODO: Validate Supabase token and get user ID
-      // For now, allow through - implement proper token validation
-      console.log('Mobile client authenticated with Bearer token');
-      return next();
-    } catch (error) {
-      console.error('Bearer token validation failed:', error);
-    }
-  }
-  
-  return res.status(401).json({ error: "Authentication required" });
-};
 
 export function registerMobileBillingRoutes(app: Express) {
   
