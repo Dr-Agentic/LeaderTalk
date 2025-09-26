@@ -525,6 +525,12 @@ class RevenueCatPaymentHandler {
       customer = await this.createCustomer(appUserId);
     }
 
+    // Check if customer has any active entitlements
+    if (!customer.active_entitlements?.items || customer.active_entitlements.items.length === 0) {
+      console.warn(`No active entitlements found for user ${email}, creating fallback entitlement`);
+      return this._createFallbackEntitlement(email);
+    }
+
     // Get subscriptions and check for active ones
     const subscriptions = await this.getCustomerSubscriptions(appUserId);
     const activeSubscriptions = Object.values(subscriptions).filter((sub) => {
@@ -538,6 +544,10 @@ class RevenueCatPaymentHandler {
       if (defaultOffering) {
         return await this._createDefaultSubscription(email, defaultOffering);
       }
+      
+      // If no default offering found, also return fallback
+      console.warn(`No default offering found for user ${email}, creating fallback entitlement`);
+      return this._createFallbackEntitlement(email);
     }
 
     // Return existing subscription
@@ -604,6 +614,45 @@ class RevenueCatPaymentHandler {
       cancelAtPeriodEnd: false,
       store: "default",
       entitlements: {},
+      customerId: email,
+    };
+  }
+
+  /**
+   * Create fallback entitlement when no active entitlements exist
+   */
+  private _createFallbackEntitlement(email: string): MobileSubscriptionData {
+    const now = new Date();
+    const oneHourFromNow = new Date(now.getTime() + 60 * 60 * 1000); // 1 hour expiry
+    const nowTimestamp = now.getTime();
+    const oneHourTimestamp = oneHourFromNow.getTime();
+
+    console.log(`Creating fallback entitlement for ${email} valid until ${oneHourFromNow.toISOString()}`);
+
+    return {
+      id: 'fallback_entitlement_temp',
+      status: 'active',
+      plan: 'Setting up your subscription...',
+      planId: 'temp_setup',
+      productId: 'temp_fallback_access', 
+      isFree: true,
+      startDate: now,
+      currentPeriodStart: now,
+      currentPeriodEnd: oneHourFromNow,
+      nextRenewalDate: oneHourFromNow,
+      cancelAtPeriodEnd: false,
+      store: 'server_fallback',
+      entitlements: {
+        'temp_access': {
+          expires_at: oneHourTimestamp, // API v2 format: Unix timestamp
+          expires_date: oneHourFromNow.toISOString(), // Compatibility for existing code
+          product_identifier: 'temp_fallback_access',
+          purchase_date: now.toISOString(),
+          grace_period_expires_date: null,
+          _server_generated: true,
+          _error_message: 'Your subscription is being processed. This temporary access will be replaced shortly. If this persists, please contact support.'
+        }
+      },
       customerId: email,
     };
   }
