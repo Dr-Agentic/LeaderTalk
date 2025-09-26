@@ -24,8 +24,8 @@ export class RevenueCatService {
       const authParams = await fetchAuthParameters();
       
       const apiKey = Platform.select({
-        ios: authParams.revenueCat?.iosApiKey,
-        android: authParams.revenueCat?.androidApiKey,
+        ios: authParams.revenueCatIos,
+        android: authParams.revenueCatAndroid,
       });
 
       if (!apiKey) {
