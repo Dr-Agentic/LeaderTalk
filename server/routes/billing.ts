@@ -1,4 +1,5 @@
 import express, { Express, Request, Response } from "express";
+import { requireAuth } from "../middleware/auth";
 import { storage } from "../storage";
 import { 
   retrievePaymentSubscriptionById,
@@ -22,13 +23,6 @@ import { spc } from "../controllers/subscriptionPlansController";
 import { handleRevenueCatWebhook } from "../subscription";
 import Stripe from "stripe";
 import { config } from "../config/environment";
-
-const requireAuth = (req: Request, res: Response, next: Function) => {
-  if (!(req.session as any)?.userId) {
-    return res.status(401).json({ error: "Authentication required" });
-  }
-  next();
-};
 
 export function registerBillingRoutes(app: Express) {
   

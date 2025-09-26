@@ -1,4 +1,5 @@
 import { Express, Request, Response } from "express";
+import { requireAuth } from "../middleware/auth";
 import { db } from "../db";
 import { 
   situationAttempts,
@@ -10,13 +11,6 @@ import { eq, desc, and, inArray } from "drizzle-orm";
 import * as fs from 'fs';
 import * as path from 'path';
 import { TrainingService } from "../services/trainingService";
-
-const requireAuth = (req: Request, res: Response, next: Function) => {
-  if (!req.session?.userId) {
-    return res.status(401).json({ error: "Authentication required" });
-  }
-  next();
-};
 
 function loadChapterData(chapterNumber: number) {
   const projectRoot = process.cwd();

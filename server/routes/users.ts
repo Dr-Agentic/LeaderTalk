@@ -1,15 +1,9 @@
 import { Express, Request, Response } from "express";
+import { requireAuth } from "../middleware/auth";
 import { storage } from "../storage";
 import { insertUserSchema, updateUserSchema } from "@shared/schema";
 import { getBillingCycleWordUsageAnalytics } from "../subscriptionController";
 import { z } from "zod";
-
-const requireAuth = (req: Request, res: Response, next: Function) => {
-  if (!req.session?.userId) {
-    return res.status(401).json({ error: "Authentication required" });
-  }
-  next();
-};
 
 export function registerUserRoutes(app: Express) {
   // Get current user info

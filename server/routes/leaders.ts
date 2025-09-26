@@ -1,13 +1,7 @@
 import { Express, Request, Response } from "express";
+import { requireAuth } from "../middleware/auth";
 import { storage } from "../storage";
 import { generateLeaderAlternative } from "../openai";
-
-const requireAuth = (req: Request, res: Response, next: Function) => {
-  if (!req.session?.userId) {
-    return res.status(401).json({ error: "Authentication required" });
-  }
-  next();
-};
 
 export function registerLeaderRoutes(app: Express) {
   // Get all leaders

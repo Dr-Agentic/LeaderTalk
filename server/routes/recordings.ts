@@ -1,4 +1,5 @@
 import { Express, Request, Response } from "express";
+import { requireAuth } from "../middleware/auth";
 import { storage } from "../storage";
 import { transcribeAndAnalyzeAudio } from "../openai";
 import { insertRecordingSchema } from "@shared/schema";
@@ -61,13 +62,6 @@ async function processAudioInBackground(recordingId: number, audioBuffer: Buffer
     }
   }
 }
-
-const requireAuth = (req: Request, res: Response, next: Function) => {
-  if (!req.session?.userId) {
-    return res.status(401).json({ error: "Authentication required" });
-  }
-  next();
-};
 
 // Configure multer for file uploads without corrupting binary data
 const upload = multer({

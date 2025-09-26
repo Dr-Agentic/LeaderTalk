@@ -1,16 +1,10 @@
 import { Express, Request, Response } from "express";
+import { requireAuth } from "../middleware/auth";
 import { storage } from "../storage";
 import { 
   getCurrentSubscription
 } from "../subscriptionController";
 import express from "express";
-
-const requireAuth = (req: Request, res: Response, next: Function) => {
-  if (!req.session?.userId) {
-    return res.status(401).json({ error: "Authentication required" });
-  }
-  next();
-};
 
 export function registerSubscriptionRoutes(app: Express) {
   // Get current user's subscription details - Marked for deletion

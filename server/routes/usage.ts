@@ -1,13 +1,7 @@
 import { Express, Request, Response } from "express";
+import { requireAuth } from "../middleware/auth";
 import { getBillingCycleWordUsageAnalytics, getUserBillingCycle, getHistoricalBillingCycleUsage } from "../subscriptionController";
 import { getUserWordLimit } from "../paymentServiceHandler";
-
-const requireAuth = (req: Request, res: Response, next: Function) => {
-  if (!req.session?.userId) {
-    return res.status(401).json({ error: "Authentication required" });
-  }
-  next();
-};
 
 export function registerUsageRoutes(app: Express) {
   // Get billing cycle information (current cycle or historical cycles)
