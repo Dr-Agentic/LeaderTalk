@@ -636,7 +636,6 @@ class RevenueCatPaymentHandler {
       planId: 'temp_setup',
       productId: 'temp_fallback_access', 
       isFree: true,
-      hasSubscription: true,
       startDate: now,
       currentPeriodStart: now,
       currentPeriodEnd: oneHourFromNow,
