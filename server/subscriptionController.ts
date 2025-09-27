@@ -15,6 +15,19 @@ import {
 } from "./paymentServiceHandler";
 
 /**
+ * Clean stale subscription reference from database
+ * Follows existing cleanup patterns like handleInvalidCustomer
+ */
+async function _cleanStaleSubscriptionReference(userId: number): Promise<void> {
+  try {
+    await storage.updateUser(userId, { stripeSubscriptionId: null });
+    console.log(`🧹 Cleared stale subscription reference for user ${userId}`);
+  } catch (error) {
+    console.error(`Failed to clear stale subscription reference for user ${userId}:`, error);
+  }
+}
+
+/**
  * Validate user authentication and retrieve user data
  */
 async function validateUserAccess(
@@ -37,7 +50,7 @@ async function validateUserAccess(
  * Ensure user has a valid subscription, create one if missing
  * Return a PaymentSubscription
  */
-async function ensureUserHasValidSubscription(userId: number): Promise<any> {
+export async function ensureUserHasValidSubscription(userId: number): Promise<any> {
   var user = await storage.getUser(userId);
   if (!user) {
     throw new Error(`User not found: ${userId}`);
@@ -79,6 +92,8 @@ async function ensureUserHasValidSubscription(userId: number): Promise<any> {
       }
     } catch (error) {
       console.log("Error retrieving subscription: ", error);
+      // Clear stale subscription reference from database
+      await _cleanStaleSubscriptionReference(userId);
       // consider that the subscription does not exist.
     }
   } else {

@@ -126,7 +126,10 @@ export async function getMobileUserSubscription(req: Request, res: Response): Pr
     const { userId } = await validateUserAccess(req);
     const subscription = await ensureMobileUserHasValidSubscription(userId);
     
-    res.json({ subscription });
+    res.json({ 
+      hasSubscription: true,
+      subscription 
+    });
   } catch (error: any) {
     console.error("Error getting mobile subscription:", error);
     res.status(500).json({ error: error.message });

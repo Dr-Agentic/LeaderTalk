@@ -1,0 +1,217 @@
+{
+  "id": 4,
+  "order": 4,
+  "chapter_title": "Chapter 4: Conflict Resolution and Negotiation",
+  "modules": [
+    {
+      "id": 16,
+      "order": 1,
+      "module_title": "Mediating Team Disputes",
+      "leadership_trait": "Conflict Management",
+      "situation_type": "Cross-functional Disagreement",
+      "scenarios": [
+        {
+          "id": 46,
+          "description": "The marketing and product teams are in a heated disagreement about launch timing for a new feature.",
+          "context": "Cross-team Meeting",
+          "style_responses": {
+            "empathetic": "I can see both teams have valid concerns here. Let's pause and have each side explain their constraints and priorities without interruption.",
+            "inspirational": "This tension shows how much we all care about getting this right. Let's focus on our shared goal of an amazing customer experience and find a creative solution together.",
+            "commanding": "We need resolution now. Marketing, outline your timeline needs. Product, clarify your technical constraints. We'll find a compromise that respects both, but we're not leaving until we have a decision."
+          },
+          "user_prompt": "How would you mediate this conflict? Provide your leadership response."
+        },
+        {
+          "id": 47,
+          "description": "Two senior team members have different approaches to a critical project methodology, creating team division.",
+          "context": "Team Alignment",
+          "style_responses": {
+            "empathetic": "I appreciate the passion you both bring to this project. Let's explore the strengths of each approach and the concerns you have about the alternative method.",
+            "inspirational": "Great innovations often emerge from constructive tension between different perspectives. Let's use this moment to develop an approach that captures the best of both methodologies.",
+            "commanding": "This division is affecting team performance. Let's evaluate both approaches against our three key success metrics, make a decision based on data, and align the entire team today."
+          },
+          "user_prompt": "How would you resolve this methodological dispute? Share your approach."
+        },
+        {
+          "id": 48,
+          "description": "A team member comes to you privately complaining about another colleague's work habits and communication style.",
+          "context": "Interpersonal Conflict",
+          "style_responses": {
+            "empathetic": "Thank you for bringing this to me. I'd like to understand more about the specific situations that are creating friction and how they're affecting your work.",
+            "inspirational": "Working through interpersonal challenges often leads to stronger relationships and better outcomes. Let's discuss how we might transform this situation into an opportunity for growth.",
+            "commanding": "I need specific examples of the problematic behaviors, their impact on deliverables, and what you've done to address this directly. Then we'll determine appropriate next steps."
+          },
+          "user_prompt": "How would you respond to this complaint? Record your approach."
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "order": 2,
+      "module_title": "Navigating Difficult Conversations",
+      "leadership_trait": "Courageous Communication",
+      "situation_type": "Performance Issues",
+      "scenarios": [
+        {
+          "id": 49,
+          "description": "You need to address declining performance with a previously high-performing team member who is going through personal challenges.",
+          "context": "Performance Discussion",
+          "style_responses": {
+            "empathetic": "I've noticed some changes in your work recently, and I'm concerned. Before we discuss the specific performance issues, I want to check in on how you're doing.",
+            "inspirational": "You've consistently demonstrated excellence in your work, which is why these recent changes stand out. I believe in your ability to navigate challenges while maintaining your professional standards.",
+            "commanding": "We need to address the performance decline I've observed over the past month. Here are the specific issues, their impact, and my expectations for improvement within the next two weeks."
+          },
+          "user_prompt": "How would you approach this sensitive performance conversation? Share your strategy."
+        },
+        {
+          "id": 50,
+          "description": "You must inform your team that a popular project is being canceled due to strategic shifts beyond your control.",
+          "context": "Disappointing News",
+          "style_responses": {
+            "empathetic": "I have difficult news to share that I know will be disappointing. The Horizon project is being canceled, and I want to acknowledge the exceptional work you've all invested in it.",
+            "inspirational": "Today we face a challenging pivot. While the Horizon project is ending, the skills, innovations, and collaboration you've demonstrated will fuel our next opportunity.",
+            "commanding": "I need to inform you that the Horizon project is being canceled effective immediately. Here's the rationale, the transition plan, and how we'll reallocate resources to other priorities."
+          },
+          "user_prompt": "How would you deliver this disappointing news? Record your message."
+        },
+        {
+          "id": 51,
+          "description": "You need to address inappropriate comments a team member made during a client meeting.",
+          "context": "Behavioral Feedback",
+          "style_responses": {
+            "empathetic": "I'd like to discuss something sensitive from yesterday's client meeting. The comments about their industry regulations came across in a way that might have damaged our relationship.",
+            "inspirational": "Our client relationships are built on respect and understanding. I'd like to discuss how certain comments yesterday might have undermined that foundation and how we can strengthen it going forward.",
+            "commanding": "We need to address the inappropriate comments you made about regulations during the client meeting. They were unprofessional, potentially damaging to our relationship, and cannot happen again."
+          },
+          "user_prompt": "How would you address this sensitive behavioral issue? Share your approach."
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "order": 3,
+      "module_title": "Win-Win Negotiation Strategies",
+      "leadership_trait": "Collaborative Problem-Solving",
+      "situation_type": "Resource Allocation",
+      "scenarios": [
+        {
+          "id": 52,
+          "description": "Your team and another department both need the same limited technical resources for high-priority projects.",
+          "context": "Resource Negotiation",
+          "style_responses": {
+            "empathetic": "I understand both our projects have significant business impact. Let's explore the specific needs and constraints for each so we can find a solution that supports both priorities.",
+            "inspirational": "This resource challenge gives us an opportunity to demonstrate true cross-functional collaboration. I believe we can find an innovative approach that advances both our important initiatives.",
+            "commanding": "Let's be efficient about this. We'll each present our business case with quantified impact, timeline requirements, and minimum viable resources. Then we'll develop a sharing agreement based on organizational priorities."
+          },
+          "user_prompt": "How would you negotiate this resource conflict? Share your approach."
+        },
+        {
+          "id": 53,
+          "description": "You're negotiating with a key vendor who has proposed a significant price increase for critical services.",
+          "context": "Vendor Management",
+          "style_responses": {
+            "empathetic": "I value our partnership and want to understand the factors driving this price increase so we can find a sustainable solution for both organizations.",
+            "inspirational": "Our long-term relationship has created value for both companies. Let's approach this challenge with creativity to find a solution that supports our mutual growth and success.",
+            "commanding": "This increase exceeds our budget parameters. Here's what we can accommodate, the business justification, and three alternative approaches to consider that would maintain our relationship."
+          },
+          "user_prompt": "How would you negotiate with this vendor? Record your approach."
+        },
+        {
+          "id": 54,
+          "description": "Your team needs deadline flexibility from a client, while the client is pushing for additional features within the original timeline.",
+          "context": "Client Negotiation",
+          "style_responses": {
+            "empathetic": "I understand the importance of both the timeline and these additional features to your business goals. Let's discuss priorities and explore options that could work for both of us.",
+            "inspirational": "The best partnerships find creative solutions when challenges arise. I believe we can develop an approach that delivers the most critical value on time while accommodating the full vision.",
+            "commanding": "We need to make practical decisions. Here's a proposed prioritization framework, three delivery options with associated tradeoffs, and my recommendation for maximizing value within constraints."
+          },
+          "user_prompt": "How would you negotiate this scope-timeline challenge? Share your strategy."
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "order": 4,
+      "module_title": "De-escalation Techniques",
+      "leadership_trait": "Emotional Regulation",
+      "situation_type": "Heated Conflicts",
+      "scenarios": [
+        {
+          "id": 55,
+          "description": "A team meeting erupts into a heated argument with raised voices and accusations.",
+          "context": "Meeting Disruption",
+          "style_responses": {
+            "empathetic": "Let's take a moment to pause and reset. I can see there are strong feelings here, and I want to make sure everyone feels heard, but in a way that's respectful and productive.",
+            "inspirational": "Passion is valuable when channeled constructively. Let's redirect this energy toward our shared purpose and find a way forward that honors each perspective with respect.",
+            "commanding": "This stops now. We'll take a 10-minute break, return with composed professionalism, and then address the issues one by one with facts, not accusations."
+          },
+          "user_prompt": "How would you de-escalate this heated situation? Record your intervention."
+        },
+        {
+          "id": 56,
+          "description": "An angry customer is berating your team member during a call that you've joined.",
+          "context": "Customer Interaction",
+          "style_responses": {
+            "empathetic": "I understand you're frustrated, and you have every right to expect excellence from us. If you're willing, I'd like to hear specifically what went wrong so we can address it properly.",
+            "inspirational": "We value your business and the opportunity to make this right. Let's work together to find a solution that restores your confidence in our partnership.",
+            "commanding": "I appreciate your concern. To resolve this efficiently, I need to understand the specific issues. I'll take personal responsibility for investigating what happened and ensuring it's addressed within 24 hours."
+          },
+          "user_prompt": "How would you intervene in this customer situation? Share your approach."
+        },
+        {
+          "id": 57,
+          "description": "Two executives are having an increasingly tense disagreement about strategic direction during a board presentation you're leading.",
+          "context": "Executive Conflict",
+          "style_responses": {
+            "empathetic": "I appreciate the passion both of you are bringing to this important decision. Let's capture the key points of disagreement so we can address them systematically with the data we have.",
+            "inspirational": "These challenging questions reflect how much we all care about getting this right. Let's harness this energy to thoroughly examine both perspectives before determining our path forward.",
+            "commanding": "Let's structure this discussion productively. I'll document the core disagreements, we'll review the supporting data for each position, then identify what additional information we need before our next meeting."
+          },
+          "user_prompt": "How would you manage this executive disagreement? Record your intervention."
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "order": 5,
+      "module_title": "Building Consensus",
+      "leadership_trait": "Alignment Creation",
+      "situation_type": "Decision Making",
+      "scenarios": [
+        {
+          "id": 58,
+          "description": "Your leadership team is divided on a strategic initiative with valid perspectives on both sides.",
+          "context": "Strategic Decision",
+          "style_responses": {
+            "empathetic": "I value the thoughtful perspectives everyone has shared. Let's identify the core concerns on both sides and see if we can find common ground that addresses the most critical issues.",
+            "inspirational": "The robust debate we're having reflects the importance of this decision. Our challenge now is to craft an approach that incorporates the wisdom from both perspectives to create something stronger.",
+            "commanding": "We've heard compelling arguments on both sides. Let's identify our non-negotiable requirements, areas of flexibility, and use our strategic priorities as the final decision filter."
+          },
+          "user_prompt": "How would you build consensus among your divided leadership team? Share your approach."
+        },
+        {
+          "id": 59,
+          "description": "Team members have conflicting ideas about the best approach for an important customer presentation.",
+          "context": "Team Alignment",
+          "style_responses": {
+            "empathetic": "Everyone has contributed valuable ideas for this presentation. Let's identify what we agree are the most important messages for the customer, then find a structure that delivers those effectively.",
+            "inspirational": "This presentation is our opportunity to demonstrate our unified vision to the customer. Let's combine the strongest elements from each approach to create something truly compelling.",
+            "commanding": "We need alignment on this presentation within the hour. Let's evaluate each approach against our three customer objectives, integrate the strongest components, and finalize the structure now."
+          },
+          "user_prompt": "How would you align the team on this presentation approach? Record your facilitation."
+        },
+        {
+          "id": 60,
+          "description": "Cross-functional stakeholders disagree about product feature prioritization for the next release.",
+          "context": "Product Planning",
+          "style_responses": {
+            "empathetic": "Each function brings an important perspective to this prioritization. Let's understand the key concerns and constraints from each area so we can find a balanced approach.",
+            "inspirational": "Our greatest innovations come when we integrate diverse perspectives. Let's use this tension to create a prioritization that delivers exceptional customer value while respecting our constraints.",
+            "commanding": "We'll use a structured decision framework for this prioritization. Each function will present their top three requirements with supporting data, then we'll score features against our strategic criteria."
+          },
+          "user_prompt": "How would you facilitate this prioritization decision? Share your approach."
+        }
+      ]
+    }
+  ]
+}

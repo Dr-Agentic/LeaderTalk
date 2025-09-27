@@ -21,7 +21,7 @@ async function importLeadersFromUpdatedJson() {
     console.log('Starting leader import from updated JSON file...');
     
     // Read the JSON file
-    const filePath = path.join(__dirname, '../attached_assets/updated_leaders.json');
+    const filePath = path.join(__dirname, 'data/leaders/updated_leaders.json');
     console.log(`Reading from file: ${filePath}`);
     const rawData = fs.readFileSync(filePath, 'utf8');
     const leaders_data: LeaderData[] = JSON.parse(rawData);

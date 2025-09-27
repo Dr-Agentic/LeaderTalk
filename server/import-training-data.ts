@@ -62,7 +62,7 @@ export async function importTrainingData() {
     let learningPath: Chapter[] = [];
     
     for (const chapterFile of chapterFiles) {
-      const filePath = path.join(__dirname, '..', 'attached_assets', chapterFile);
+      const filePath = path.join(__dirname, 'data', 'training', chapterFile);
       
       if (fs.existsSync(filePath)) {
         const rawData = fs.readFileSync(filePath, 'utf-8');
