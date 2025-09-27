@@ -37,7 +37,7 @@ async function validateUserAccess(
  * Ensure user has a valid subscription, create one if missing
  * Return a PaymentSubscription
  */
-async function ensureUserHasValidSubscription(userId: number): Promise<any> {
+export async function ensureUserHasValidSubscription(userId: number): Promise<any> {
   var user = await storage.getUser(userId);
   if (!user) {
     throw new Error(`User not found: ${userId}`);
