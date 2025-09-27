@@ -44,3 +44,6 @@ AuthKey_*.p8
 SubscriptionKey_*.p8
 attached_assets/AuthKey_*.p8
 attached_assets/SubscriptionKey_*.p8
+
+# Legacy attached_assets directory - files have been migrated to proper locations
+attached_assets/
