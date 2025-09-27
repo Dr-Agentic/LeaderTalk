@@ -1,0 +1,217 @@
+{
+  "id": 3,
+  "order": 3,
+  "chapter_title": "Chapter 3: Effective Listening and Feedback",
+  "modules": [
+    {
+      "id": 11,
+      "order": 1,
+      "module_title": "Active Listening Techniques",
+      "leadership_trait": "Receptive Communication",
+      "situation_type": "Team Feedback Session",
+      "scenarios": [
+        {
+          "id": 31,
+          "description": "A team member is sharing concerns about project direction, but seems hesitant to speak candidly.",
+          "context": "One-on-One Meeting",
+          "style_responses": {
+            "empathetic": "I appreciate you bringing this up. Take your time - I'm listening fully and want to understand your perspective completely before we discuss solutions.",
+            "inspirational": "Your insights are exactly what we need to elevate this project. Please share your honest thoughts - that's how we'll create something truly exceptional.",
+            "commanding": "I need your direct input. No filters. What specifically isn't working, and what's your proposed solution? Let's address this now."
+          },
+          "user_prompt": "How would you encourage open communication in this moment? Record your response."
+        },
+        {
+          "id": 32,
+          "description": "During a town hall, an employee raises concerns about work-life balance that resonate with many team members.",
+          "context": "Public Forum",
+          "style_responses": {
+            "empathetic": "Thank you for raising this important concern. I'd like to understand more about the specific challenges you and others are experiencing with work-life balance. Could you elaborate?",
+            "inspirational": "Work-life harmony is essential to sustainable excellence. I value your courage in raising this. Let's explore how we can honor both our commitments to each other and to our personal lives.",
+            "commanding": "Work-life balance directly impacts our performance and retention. I want to hear specific examples of where we're falling short, and I commit to addressing the structural issues within two weeks."
+          },
+          "user_prompt": "How would you respond to this public concern? Share your approach."
+        },
+        {
+          "id": 33,
+          "description": "A client is expressing frustration about project delays, but seems to be holding back their full concerns.",
+          "context": "Client Relationship",
+          "style_responses": {
+            "empathetic": "I sense there might be more concerns beyond the timeline issues we've discussed. I want to make sure I fully understand all your concerns so we can address them properly.",
+            "inspirational": "Our partnership is built on transparent communication. I invite you to share your complete perspective so we can transform these challenges into a stronger delivery and relationship.",
+            "commanding": "For us to effectively solve these issues, I need to hear all your concerns, not just about timelines. What other aspects of our delivery or communication aren't meeting your expectations?"
+          },
+          "user_prompt": "How would you encourage the client to share their full concerns? Record your response."
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "order": 2,
+      "module_title": "Providing Constructive Feedback",
+      "leadership_trait": "Developmental Communication",
+      "situation_type": "Performance Improvement",
+      "scenarios": [
+        {
+          "id": 34,
+          "description": "A high-potential team member consistently submits work with quality issues due to rushing.",
+          "context": "Performance Discussion",
+          "style_responses": {
+            "empathetic": "I've noticed a pattern in your recent deliverables that I'd like to discuss. Your ideas are strong, but there are quality issues that seem to stem from rushing. How are you experiencing the workload?",
+            "inspirational": "Your potential to make an impact here is exceptional. To fully realize that potential, I want to discuss how we can elevate the quality of your deliverables to match the brilliance of your ideas.",
+            "commanding": "We need to address the quality issues in your recent work. You have three consistent error patterns that are affecting team outcomes. Let's identify the cause and establish clear quality standards going forward."
+          },
+          "user_prompt": "How would you deliver this constructive feedback? Share your approach."
+        },
+        {
+          "id": 35,
+          "description": "A peer leader's communication style is creating friction with your team during a collaborative project.",
+          "context": "Peer Feedback",
+          "style_responses": {
+            "empathetic": "I wanted to connect about our teams' collaboration. My team has shared some communication challenges that are creating friction. I'm curious about your perspective on how the interaction is going.",
+            "inspirational": "The work our teams are doing together has such potential for impact. To help us reach that potential, I'd like to discuss how we might adjust some communication patterns to strengthen our collaboration.",
+            "commanding": "We need to address communication issues between our teams that are impacting project progress. Here are three specific instances and their impact. How do you suggest we improve this dynamic?"
+          },
+          "user_prompt": "How would you approach this feedback conversation with your peer? Record your opening."
+        },
+        {
+          "id": 36,
+          "description": "You need to provide feedback to your manager about a decision that's creating obstacles for your team.",
+          "context": "Upward Feedback",
+          "style_responses": {
+            "empathetic": "I'd like to discuss how the recent procurement policy change is affecting our team's ability to meet deadlines. We're experiencing specific challenges that I think are important for you to be aware of.",
+            "inspirational": "I'm committed to helping us achieve our ambitious goals, which is why I want to share how a recent decision is creating unexpected barriers for our team and some ideas for addressing them.",
+            "commanding": "The new procurement policy has extended our delivery timeline by 20%. I need to share the specific impacts and propose three alternatives that would allow us to maintain our commitments."
+          },
+          "user_prompt": "How would you provide this upward feedback effectively? Share your approach."
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "order": 3,
+      "module_title": "Receiving Feedback Gracefully",
+      "leadership_trait": "Growth Mindset",
+      "situation_type": "Personal Development",
+      "scenarios": [
+        {
+          "id": 37,
+          "description": "A direct report gives you feedback that your communication style in meetings can be intimidating.",
+          "context": "Feedback Reception",
+          "style_responses": {
+            "empathetic": "Thank you for having the courage to share this with me. It's important feedback. Could you help me understand specific instances or behaviors that come across as intimidating?",
+            "inspirational": "I deeply value feedback that helps me grow as a leader. Your perspective gives me an opportunity to better align my communication style with the inclusive environment I want to create.",
+            "commanding": "I appreciate your directness. This is actionable feedback. Give me specific examples so I can identify the pattern, and let's schedule a follow-up in two weeks to assess my improvement."
+          },
+          "user_prompt": "How would you respond to this feedback about your communication style? Share your response."
+        },
+        {
+          "id": 38,
+          "description": "Your skip-level manager provides critical feedback about your strategic thinking in front of other leaders.",
+          "context": "Public Criticism",
+          "style_responses": {
+            "empathetic": "Thank you for that perspective. I value the feedback and would appreciate the opportunity to discuss specific examples so I can better understand where my strategic thinking needs development.",
+            "inspirational": "I appreciate you highlighting this growth area. Strategic thinking is crucial for the impact I want to make, and I'm committed to developing this skill to better serve our objectives.",
+            "commanding": "I understand your concern. I'll reassess my approach to strategic planning and would welcome the chance to review my revised thinking with you next week."
+          },
+          "user_prompt": "How would you respond to this public criticism? Record your response."
+        },
+        {
+          "id": 39,
+          "description": "360-degree feedback reveals that your team feels you don't delegate enough and are creating a bottleneck.",
+          "context": "Comprehensive Feedback",
+          "style_responses": {
+            "empathetic": "I want to thank everyone for this honest feedback. It's clear my approach to delegation is affecting both your growth opportunities and our team's efficiency. I'd like to understand more about where this is most problematic.",
+            "inspirational": "This feedback is a gift that will help us all reach our full potential. I'm committed to transforming my delegation approach to empower each of you and strengthen our collective impact.",
+            "commanding": "I acknowledge this feedback about my delegation. I'll implement a new project assignment protocol next week and establish clear decision-making authorities for each role level. I welcome your accountability."
+          },
+          "user_prompt": "How would you address this feedback with your team? Share your response."
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "order": 4,
+      "module_title": "Creating Feedback Loops",
+      "leadership_trait": "Continuous Improvement",
+      "situation_type": "Team Development",
+      "scenarios": [
+        {
+          "id": 40,
+          "description": "You want to establish regular feedback practices in a team that has historically avoided direct feedback.",
+          "context": "Culture Change",
+          "style_responses": {
+            "empathetic": "I've noticed we tend to hold back on sharing feedback with each other. I believe we all have valuable perspectives that could help each of us grow. How do you feel about creating more regular feedback opportunities?",
+            "inspirational": "The teams that achieve extraordinary results are those that help each other excel through honest, supportive feedback. I'd like us to build this muscle together as part of our commitment to excellence.",
+            "commanding": "Starting next week, we'll implement structured feedback sessions after each project milestone. I expect everyone to come prepared with specific, constructive observations for at least two team members."
+          },
+          "user_prompt": "How would you introduce regular feedback practices? Share your approach."
+        },
+        {
+          "id": 41,
+          "description": "A recent product launch received mixed customer feedback, and you need to debrief with the cross-functional team.",
+          "context": "Project Retrospective",
+          "style_responses": {
+            "empathetic": "Thank you all for joining this important debrief. Before we dive into the data, I'd like to hear how each of you is feeling about the launch and the feedback we've received.",
+            "inspirational": "Every product launch teaches us something valuable about our customers and ourselves. Today's conversation isn't about assigning blame but about capturing insights that will fuel our next breakthrough.",
+            "commanding": "Let's conduct a structured analysis of what worked and what didn't. We'll start with the customer feedback data, identify our three biggest misses, determine root causes, and establish corrective actions."
+          },
+          "user_prompt": "How would you facilitate this feedback debrief? Record your opening."
+        },
+        {
+          "id": 42,
+          "description": "You want to gather honest feedback from clients about their experience working with your team.",
+          "context": "External Feedback",
+          "style_responses": {
+            "empathetic": "Your experience working with us matters deeply. I'd appreciate your candid thoughts on what's working well and where we have opportunities to better support your needs.",
+            "inspirational": "Our partnership can only reach its full potential through open dialogue. Your perspective will help shape how we evolve our approach to create even greater impact together.",
+            "commanding": "For us to optimize our service delivery, I need your direct assessment in three areas: responsiveness, solution quality, and strategic alignment. What specific improvements would you prioritize?"
+          },
+          "user_prompt": "How would you request feedback from this client? Share your approach."
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "order": 5,
+      "module_title": "Non-verbal Listening Skills",
+      "leadership_trait": "Presence",
+      "situation_type": "Attentive Communication",
+      "scenarios": [
+        {
+          "id": 43,
+          "description": "A team member is sharing a complex personal challenge that's affecting their work performance.",
+          "context": "Sensitive Conversation",
+          "style_responses": {
+            "empathetic": "[Maintaining eye contact, nodding occasionally] I appreciate you sharing something so personal. Take all the time you need. I'm here to listen and understand how I can support you.",
+            "inspirational": "[Leaning forward, giving full attention] Your wellbeing matters tremendously. I'm fully present to understand your situation and how we can navigate this challenge together.",
+            "commanding": "[Putting aside phone, focusing completely] You have my full attention. Please share what you're comfortable with, and then we'll discuss specific accommodations or support you might need."
+          },
+          "user_prompt": "How would you demonstrate active listening in this sensitive conversation? Describe your approach."
+        },
+        {
+          "id": 44,
+          "description": "During a tense executive meeting, stakeholders are talking over each other about project priorities.",
+          "context": "High-Stakes Meeting",
+          "style_responses": {
+            "empathetic": "[Making eye contact with each speaker, using calm hand gestures to acknowledge points] I notice we have several important perspectives here. Let's ensure each view is fully heard before we move to solutions.",
+            "inspirational": "[Standing up, moving to the whiteboard] I'm hearing passion for different priorities that all matter. Let's capture each perspective visually so we can see the complete picture before deciding.",
+            "commanding": "[Raising hand firmly but respectfully] We need structure in this discussion. I'll give each stakeholder two minutes of uninterrupted time to present their priority and rationale, then we'll identify common ground."
+          },
+          "user_prompt": "How would you use non-verbal cues to manage this tense discussion? Describe your approach."
+        },
+        {
+          "id": 45,
+          "description": "A remote team member seems disengaged during virtual meetings, rarely contributing or showing video presence.",
+          "context": "Virtual Engagement",
+          "style_responses": {
+            "empathetic": "[Sending a private message before addressing directly] I've noticed you've been quiet in our recent meetings. I value your perspective and want to make sure our virtual format isn't creating barriers to your participation.",
+            "inspirational": "[Using video, making 'eye contact' with camera] Our team's strength comes from each unique voice. I'd like to create space for everyone to contribute, including those joining us remotely.",
+            "commanding": "[Directing specific questions] Alex, we haven't heard your perspective on this approach. Please share your thoughts and turn on video when speaking so we can fully engage with your input."
+          },
+          "user_prompt": "How would you engage this remote team member? Describe your approach."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,320 @@
+[
+  {
+    "name": "Abraham Lincoln",
+    "generation_most_affected": "Lost Gen+",
+    "leadership_styles": [
+      "Principled",
+      "Integrative",
+      "Transformational"
+    ],
+    "famous_phrases": [
+      "I am not bound to win, but I am bound to be true.",
+      "Determine that the thing can and shall be done and then... find the way."
+    ],
+    "controversial": false
+  },
+  {
+    "name": "Mahatma Gandhi",
+    "generation_most_affected": "Greatest/Silent",
+    "leadership_styles": [
+      "Transformational",
+      "Visionary",
+      "Adaptive",
+      "Ethical"
+    ],
+    "famous_phrases": [
+      "The future depends on what we do in the present.",
+      "Hate the sin, love the sinner."
+    ],
+    "controversial": false
+  },
+  {
+    "name": "Winston Churchill",
+    "generation_most_affected": "Silent",
+    "leadership_styles": [
+      "Authentic",
+      "Crisis",
+      "Resilient",
+      "Strategic"
+    ],
+    "famous_phrases": [
+      "Success is not final, failure is not fatal: it is the courage to continue that counts.",
+      "If you're going through hell, keep going."
+    ],
+    "controversial": false
+  },
+  {
+    "name": "Franklin D. Roosevelt",
+    "generation_most_affected": "Greatest/Silent",
+    "leadership_styles": [
+      "Pragmatic",
+      "Charismatic",
+      "Centralized"
+    ],
+    "famous_phrases": [
+      "The only thing we have to fear is fear itself.",
+      "The country needs... bold, persistent experimentation."
+    ],
+    "controversial": false
+  },
+  {
+    "name": "Nelson Mandela",
+    "generation_most_affected": "Gen X",
+    "leadership_styles": [
+      "Transformational",
+      "Ethical",
+      "Charismatic",
+      "Empowering"
+    ],
+    "famous_phrases": [
+      "It always seems impossible until it’s done.",
+      "Education is the most powerful weapon which you can use to change the world."
+    ],
+    "controversial": false
+  },
+  {
+    "name": "Martin Luther King Jr.",
+    "generation_most_affected": "Boomers",
+    "leadership_styles": [
+      "Transformational",
+      "Visionary",
+      "Nonviolent",
+      "Inclusive"
+    ],
+    "famous_phrases": [
+      "I have a dream.",
+      "Love is mankind's most potent weapon for personal and social transformation."
+    ],
+    "controversial": false
+  },
+  {
+    "name": "Mother Teresa",
+    "generation_most_affected": "Gen X",
+    "leadership_styles": [
+      "Servant",
+      "Compassionate",
+      "Ethical"
+    ],
+    "famous_phrases": [
+      "Not all of us can do great things. But we can do small things with great love."
+    ],
+    "controversial": false
+  },
+  {
+    "name": "Xi Jinping",
+    "generation_most_affected": "Gen Z",
+    "leadership_styles": [
+      "Authoritarian",
+      "Strategic",
+      "Centralized"
+    ],
+    "famous_phrases": [
+      "The Chinese nation has stood up, grown rich, and is becoming strong."
+    ],
+    "controversial": true
+  },
+  {
+    "name": "Vladimir Putin",
+    "generation_most_affected": "Millennials/Gen Z",
+    "leadership_styles": [
+      "Authoritarian",
+      "Strategic",
+      "Assertive"
+    ],
+    "famous_phrases": [
+      "Whoever does not miss the Soviet Union has no heart. Whoever wants it back has no brain."
+    ],
+    "controversial": true
+  },
+  {
+    "name": "Joseph Stalin",
+    "generation_most_affected": "Greatest/Silent",
+    "leadership_styles": [
+      "Authoritarian",
+      "Strategic",
+      "Ruthless"
+    ],
+    "famous_phrases": [
+      "The only real power comes out of a long rifle."
+    ],
+    "controversial": true
+  },
+  {
+    "name": "Vladimir Lenin",
+    "generation_most_affected": "Greatest/Silent",
+    "leadership_styles": [
+      "Revolutionary",
+      "Authoritarian",
+      "Ideological"
+    ],
+    "famous_phrases": [
+      "There are decades where nothing happens; and there are weeks where decades happen."
+    ],
+    "controversial": true
+  },
+  {
+    "name": "Ali Khamenei",
+    "generation_most_affected": "Gen X/Gen Z",
+    "leadership_styles": [
+      "Authoritarian",
+      "Theocratic",
+      "Strategic"
+    ],
+    "famous_phrases": [
+      "America is the great Satan."
+    ],
+    "controversial": true
+  },
+  {
+    "name": "Elon Musk",
+    "generation_most_affected": "Millennials/Gen Z",
+    "leadership_styles": [
+      "Visionary",
+      "Provocative",
+      "Innovative"
+    ],
+    "famous_phrases": [
+      "When something is important enough, you do it even if the odds are not in your favor.",
+      "I think it’s possible for ordinary people to choose to be extraordinary."
+    ],
+    "controversial": true
+  },
+  {
+    "name": "Satya Nadella",
+    "generation_most_affected": "Millennials/Gen Z",
+    "leadership_styles": [
+      "Empathetic",
+      "Inclusive",
+      "Strategic"
+    ],
+    "famous_phrases": [
+      "Our industry does not respect tradition—it respects innovation.",
+      "We need to be willing to lean into ambiguity."
+    ],
+    "controversial": false
+  },
+  {
+    "name": "Tim Cook",
+    "generation_most_affected": "Millennials/Gen Z",
+    "leadership_styles": [
+      "Measured",
+      "Professional",
+      "Ethical"
+    ],
+    "famous_phrases": [
+      "We believe that privacy is a fundamental human right.",
+      "You can focus on things that are barriers or you can focus on scaling the wall."
+    ],
+    "controversial": false
+  },
+  {
+    "name": "Neal Keny-Guyer",
+    "generation_most_affected": "Millennials",
+    "leadership_styles": [
+      "Authentic",
+      "Relational",
+      "Inspiring"
+    ],
+    "famous_phrases": [
+      "Local leadership is the key to sustainable change."
+    ],
+    "controversial": false
+  },
+  {
+    "name": "Dianne Calvi",
+    "generation_most_affected": "Millennials/Gen Z",
+    "leadership_styles": [
+      "Collaborative",
+      "Community-focused",
+      "Empowering"
+    ],
+    "famous_phrases": [
+      "Empowering local communities drives lasting impact."
+    ],
+    "controversial": false
+  },
+  {
+    "name": "George Soros",
+    "generation_most_affected": "Gen X/Millennials",
+    "leadership_styles": [
+      "Strategic",
+      "Ideological",
+      "Philanthropic"
+    ],
+    "famous_phrases": [
+      "I’m not better than the next trader, just quicker to admit I’m wrong.",
+      "An open society is a society which allows its members the greatest possible degree of freedom."
+    ],
+    "controversial": true
+  },
+  {
+    "name": "Jensen Huang",
+    "generation_most_affected": "Millennials/Gen Z",
+    "leadership_styles": [
+      "Visionary",
+      "Technical",
+      "Bold"
+    ],
+    "famous_phrases": [
+      "The future is AI—it’s not a question of if, but how fast.",
+      "We’re always one generation away from changing the world."
+    ],
+    "controversial": false
+  },
+  {
+    "name": "Lisa Su",
+    "generation_most_affected": "Millennials/Gen Z",
+    "leadership_styles": [
+      "Strategic",
+      "Results-driven",
+      "Collaborative"
+    ],
+    "famous_phrases": [
+      "Execution is everything—vision without execution is just a dream.",
+      "We compete by innovating relentlessly."
+    ],
+    "controversial": false
+  },
+  {
+    "name": "Mary Barra",
+    "generation_most_affected": "Millennials/Gen Z",
+    "leadership_styles": [
+      "Resilient",
+      "Forward-thinking",
+      "Pragmatic"
+    ],
+    "famous_phrases": [
+      "We’re not just building cars; we’re building the future of mobility.",
+      "Do what’s right, even when it’s hard."
+    ],
+    "controversial": false
+  },
+  {
+    "name": "Jamie Dimon",
+    "generation_most_affected": "Millennials/Gen Z",
+    "leadership_styles": [
+      "Authoritative",
+      "Candid",
+      "Strategic"
+    ],
+    "famous_phrases": [
+      "You don’t run a business on hope; you run it on reality.",
+      "Leadership is about making tough calls and owning them."
+    ],
+    "controversial": false
+  },
+  {
+    "name": "Brian Moynihan",
+    "generation_most_affected": "Millennials/Gen Z",
+    "leadership_styles": [
+      "Steady",
+      "Ethical",
+      "Inclusive"
+    ],
+    "famous_phrases": [
+      "Responsible growth is about doing right by our clients and communities.",
+      "Trust is earned through consistent action."
+    ],
+    "controversial": false
+  }
+]
