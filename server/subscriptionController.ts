@@ -70,6 +70,7 @@ export async function ensureUserHasValidSubscription(userId: number): Promise<an
       const subscription = await retrievePaymentSubscriptionById(
         paymentSubscriptionId,
       );
+      console.log("🔍 Retrieved subscription object from Stripe:", JSON.stringify(subscription, null, 2));
       if (subscription?.status === "active") {
         foundPaymentSubscriptionId = subscription.id;
         foundPaymentUserId = subscription.paymentCustomerId;
