@@ -7,8 +7,8 @@ import { leaders } from "@shared/schema";
 export async function importLeadersFromFile() {
   try {
     // Read both leader data files - regular and controversial
-    const filePath = path.join(process.cwd(), 'attached_assets', 'leaders_data.json');
-    const controversialPath = path.join(process.cwd(), 'attached_assets', 'controversial_leaders.json');
+    const filePath = path.join(process.cwd(), 'server/data/leaders', 'leaders_data.json');
+    const controversialPath = path.join(process.cwd(), 'server/data/leaders', 'controversial_leaders.json');
     console.log(`Reading leaders data from ${filePath} and ${controversialPath}`);
 
     // Define leader data interface to match JSON structure
