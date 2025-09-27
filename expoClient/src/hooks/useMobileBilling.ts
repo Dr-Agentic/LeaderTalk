@@ -35,7 +35,7 @@ export function useMobileSubscription() {
       
       console.log('Subscription API Response:', response.status, response.statusText);
       const responseText = await response.text();
-      console.log('Subscription Response Body:', responseText.substring(0, 200));
+      console.log('Full Subscription Response:', responseText);
       
       if (!response.ok) {
         throw new Error(`Failed to fetch subscription: ${response.statusText}`);
@@ -57,7 +57,7 @@ export function useMobileProducts() {
   return useQuery({
     queryKey: [API_BASE, 'products'],
     queryFn: async (): Promise<MobileBillingProduct[]> => {
-      const response = await fetch(`${API_BASE}/products`, {
+      const response = await fetch(`${API_URL}/api/mobile/billing/products`, {
         credentials: 'include',
       });
       
@@ -91,7 +91,7 @@ export function useMobilePurchase() {
       subscription?: MobileSubscriptionData;
       error?: string;
     }> => {
-      const response = await fetch(`${API_BASE}/purchase`, {
+      const response = await fetch(`${API_URL}/api/mobile/billing/purchase`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -129,7 +129,7 @@ export function useMobileRestore() {
       subscription?: MobileSubscriptionData;
       restoredCount?: number;
     }> => {
-      const response = await fetch(`${API_BASE}/restore`, {
+      const response = await fetch(`${API_URL}/api/mobile/billing/restore`, {
         method: 'POST',
         credentials: 'include',
       });
@@ -163,7 +163,7 @@ export function useMobileCancelSubscription() {
       redirectUrl?: string;
       message?: string;
     }> => {
-      const response = await fetch(`${API_BASE}/cancel`, {
+      const response = await fetch(`${API_URL}/api/mobile/billing/cancel`, {
         method: 'POST',
         credentials: 'include',
       });
@@ -190,34 +190,38 @@ export function useMobileCancelSubscription() {
  */
 export function useMobileBillingUsage(cycleId?: string) {
   return useQuery({
-    queryKey: [API_BASE, 'usage', cycleId],
+    queryKey: ['/api/usage/billing-cycle', cycleId],
     queryFn: async (): Promise<{
       currentUsage: number;
       wordLimit: number;
       usagePercentage: number;
-      cycleStart: string;
-      cycleEnd: string;
-      daysRemaining: number;
-      recordings: Array<{
-        id: string;
-        date: string;
-        wordCount: number;
-        title?: string;
-      }>;
+      hasExceededLimit: boolean;
+      billingCycle: {
+        startDate: string;
+        endDate: string;
+        daysRemaining: number;
+      };
     }> => {
       const url = cycleId 
-        ? `${API_BASE}/usage?cycleId=${cycleId}`
-        : `${API_BASE}/usage`;
+        ? `${API_URL}/api/usage/billing-cycle?cycleId=${cycleId}`
+        : `${API_URL}/api/usage/billing-cycle`;
         
       const response = await fetch(url, {
         credentials: 'include',
       });
       
+      console.log('Usage API Response:', response.status, response.statusText);
+      const responseText = await response.text();
+      console.log('Usage Response Body:', responseText.substring(0, 200));
+      
       if (!response.ok) {
         throw new Error(`Failed to fetch usage data: ${response.statusText}`);
       }
       
-      return response.json();
+      const data = JSON.parse(responseText);
+      console.log('Usage API Response:', JSON.stringify(data, null, 2));
+      
+      return data;
     },
     enabled: true,
     staleTime: 1000 * 60 * 2, // 2 minutes

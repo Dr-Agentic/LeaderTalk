@@ -115,7 +115,11 @@ export default function SubscriptionScreen() {
   console.log('Is undefined:', currentSubscription === undefined);
 
   // Mobile billing usage
-  const { data: billingUsage } = useMobileBillingUsage();
+  const { data: billingUsage, isLoading: usageLoading, error: usageError } = useMobileBillingUsage();
+  
+  console.log('Server JSON - billingUsage:', billingUsage);
+  console.log('Usage loading:', usageLoading);
+  console.log('Usage error:', usageError);
 
   // RevenueCat purchase mutation
   const purchaseSubscription = useMobilePurchase();
@@ -369,7 +373,7 @@ export default function SubscriptionScreen() {
                 <View style={styles.statItem}>
                   <ThemedText style={[styles.statLabel, dynamicStyles.usageText]}>Word Usage</ThemedText>
                   <ThemedText style={[styles.statValue, dynamicStyles.currentPlanText]}>
-                    {currentSubscription.subscription.formattedUsage}
+                    {billingUsage ? `${billingUsage.currentUsage}/${billingUsage.wordLimit}` : 'Loading...'}
                   </ThemedText>
                 </View>
                 <View style={styles.statItem}>

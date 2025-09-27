@@ -121,7 +121,6 @@ export default function DashboardScreen() {
         
         // Get user details
         const { user } = data.session;
-        console.log('User data:', user);
         
         // Check if it's the demo user
         const isDemo = user.email === 'demo@example.com';
