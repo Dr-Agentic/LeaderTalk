@@ -14,7 +14,7 @@ import { TrainingService } from "../services/trainingService";
 
 function loadChapterData(chapterNumber: number) {
   const projectRoot = process.cwd();
-  const filePath = path.join(projectRoot, 'attached_assets', `chapter${chapterNumber}_expanded.json`);
+  const filePath = path.join(projectRoot, 'server/data/training', `chapter${chapterNumber}_expanded.json`);
   
   if (!fs.existsSync(filePath)) {
     throw new Error(`Chapter ${chapterNumber} file not found`);

@@ -92,7 +92,7 @@ export class TrainingService {
       ];
 
       for (const fileName of chapterFiles) {
-        const filePath = path.join(process.cwd(), 'attached_assets', fileName);
+        const filePath = path.join(process.cwd(), 'server/data/training', fileName);
         
         if (!fs.existsSync(filePath)) {
           continue;
