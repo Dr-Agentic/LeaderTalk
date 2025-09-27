@@ -227,6 +227,13 @@ export function registerAuthRoutes(app: Express) {
           .json({ error: "Failed to create or update user" });
       }
 
+      // Ensure user has a default subscription (background process)
+      // This creates Stripe subscription which will sync to RevenueCat via server-to-server webhooks
+      const { _ensureUserHasDefaultSubscription } = await import("../paymentServiceHandler");
+      _ensureUserHasDefaultSubscription(user).catch(err => 
+        console.error('Background subscription creation failed:', err)
+      );
+
       // Set user ID in session directly (no regeneration to avoid production issues)
       req.session.userId = user.id;
 

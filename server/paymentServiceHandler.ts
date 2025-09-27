@@ -1448,3 +1448,25 @@ export async function cancelUserSubscription(
     };
   }
 }
+
+/**
+ * Internal function to ensure user has a default subscription at login time
+ * Wraps existing ensureUserHasValidSubscription for maximum code reuse
+ */
+export async function _ensureUserHasDefaultSubscription(user: any): Promise<void> {
+  try {
+    console.log(`🔄 Ensuring default subscription for user ${user.id} (${user.email}) at login time`);
+    
+    // Import here to avoid circular dependencies
+    const { ensureUserHasValidSubscription } = await import('./subscriptionController');
+    
+    // Call existing proven subscription logic
+    const subscription = await ensureUserHasValidSubscription(user.id);
+    
+    console.log(`✅ User ${user.id} has valid subscription: ${subscription.plan} (${subscription.id})`);
+  } catch (error) {
+    console.error(`❌ Failed to ensure default subscription for user ${user.id}:`, error);
+    // Don't throw - this is a background process that shouldn't block login
+    // The fallback entitlement system will handle mobile users without subscriptions
+  }
+}
