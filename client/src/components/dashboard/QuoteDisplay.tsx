@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
+import quotesData from '@assets/quotes.json';
 
 interface Quote {
   quote: string;
@@ -10,29 +11,18 @@ export function QuoteDisplay() {
   const [currentQuote, setCurrentQuote] = useState<Quote | null>(null);
 
   useEffect(() => {
-    // Fetch quotes from the JSON file
-    const fetchQuotes = async () => {
-      try {
-        const response = await fetch('/assets/quotes.json');
-        if (!response.ok) {
-          throw new Error('Failed to fetch quotes');
-        }
-        const quotes = await response.json();
-        
-        // Get a random quote
-        const randomIndex = Math.floor(Math.random() * quotes.length);
-        setCurrentQuote(quotes[randomIndex]);
-      } catch (error) {
-        console.error('Error fetching quotes:', error);
-        // Fallback quote in case of error
-        setCurrentQuote({
-          quote: "Leadership is the capacity to translate vision into reality.",
-          author: "Warren Bennis"
-        });
-      }
-    };
-    
-    fetchQuotes();
+    try {
+      // Get a random quote from imported data
+      const randomIndex = Math.floor(Math.random() * quotesData.length);
+      setCurrentQuote(quotesData[randomIndex]);
+    } catch (error) {
+      console.error('Error loading quotes:', error);
+      // Fallback quote in case of error
+      setCurrentQuote({
+        quote: "Leadership is the capacity to translate vision into reality.",
+        author: "Warren Bennis"
+      });
+    }
   }, []);
 
   if (!currentQuote) return null;
