@@ -20,6 +20,9 @@ export function registerMobileBillingRoutes(app: Express) {
   // GET /api/mobile/billing/products - Get available mobile products and offerings
   app.get('/api/mobile/billing/products', requireAuth, getMobileBillingProducts);
 
+  // POST /api/mobile/billing/purchase - Process mobile app purchase (alias for validate-purchase)
+  app.post('/api/mobile/billing/purchase', requireAuth, validateMobilePurchase);
+  
   // POST /api/mobile/billing/validate-purchase - Validate mobile app purchase
   app.post('/api/mobile/billing/validate-purchase', requireAuth, validateMobilePurchase);
 

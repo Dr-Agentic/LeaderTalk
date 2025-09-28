@@ -149,7 +149,8 @@ server/routes/
 |----------|--------|------|---------|---------|
 | `/api/mobile/billing/subscription` | GET | Required | `getMobileUserSubscription` | Current mobile subscription |
 | `/api/mobile/billing/products` | GET | Required | `getMobileBillingProducts` | Available mobile products |
-| `/api/mobile/billing/validate-purchase` | POST | Required | `validateMobilePurchase` | Validate app purchase |
+| `/api/mobile/billing/purchase` | POST | Required | `validateMobilePurchase` | Process mobile app purchase |
+| `/api/mobile/billing/validate-purchase` | POST | Required | `validateMobilePurchase` | Validate app purchase (alias) |
 | `/api/mobile/billing/webhooks/revenuecat` | POST | None | Inline | RevenueCat webhook |
 
 **Dependencies:** `mobileSubscriptionController`, RevenueCat API  
