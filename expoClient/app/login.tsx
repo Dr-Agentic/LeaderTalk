@@ -301,13 +301,14 @@ const styles = StyleSheet.create({
   },
   buttonSection: {
     width: '100%',
+    gap: 12,
     marginBottom: 20,
   },
   googleButton: {
-    marginBottom: 12,
+    marginBottom: 4,
   },
   demoButton: {
-    marginBottom: 0,
+    marginBottom: 4,
   },
   googleLogo: {
     width: 24,
