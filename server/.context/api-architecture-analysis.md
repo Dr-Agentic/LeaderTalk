@@ -22,7 +22,9 @@ server/routes/
 ├── billing.ts         # Web payment processing (Stripe)
 ├── mobile-billing.ts  # Mobile payment processing (RevenueCat)
 ├── usage.ts           # Word usage & billing analytics
-└── subscriptions.ts   # Legacy subscription endpoints (deprecated)
+├── subscriptions.ts   # Legacy subscription endpoints (deprecated)
+├── debug.ts           # Debug & health check endpoints
+└── admin.ts           # Admin management endpoints
 ```
 
 ### Authentication Architecture
@@ -180,6 +182,33 @@ server/routes/
 
 **Status:** Marked for deletion, replaced by `/api/billing/*` endpoints
 
+### 🔍 Debug & Health Check Endpoints
+**File:** `routes/debug.ts`
+
+| Endpoint | Method | Auth | Handler | Purpose |
+|----------|--------|------|---------|---------|
+| `/api/debug/session` | GET | None | Inline | Session debugging info |
+| `/api/debug/env` | GET | None | Inline | Environment information |
+| `/api/debug/headers` | GET | None | Inline | Request headers debug |
+| `/api/health` | GET | None | Inline | Health check endpoint |
+
+**Dependencies:** Session middleware  
+**Security:** Development debugging and monitoring
+
+### ⚙️ Admin Management Endpoints
+**File:** `routes/admin.ts`
+
+| Endpoint | Method | Auth | Handler | Purpose |
+|----------|--------|------|---------|---------|
+| `/api/admin/import-leaders` | POST | None | `importLeadersFromFile` | Import leaders from JSON |
+| `/api/admin/update-leader-images` | POST | None | `updateLeaderImages` | Update leader images |
+| `/api/admin/import-training-data` | POST | None | `importTrainingData` | Import training data |
+| `/api/admin/update-leaders` | POST | None | Inline | Batch update leaders |
+| `/api/admin/stats` | GET | None | Inline | System statistics |
+
+**Dependencies:** `storage`, import utilities  
+**Security:** Admin operations, no authentication (should be added)
+
 ## Data Flow Architecture
 
 ### Request Processing Pipeline
@@ -259,7 +288,7 @@ Dependencies
 - ⚠️ **Development Endpoints:** `force-login` is a security vulnerability
 
 ### Authorization Levels
-- **Public:** Auth parameters, leader data, product listings
+- **Public:** Auth parameters, leader data, product listings, debug endpoints, admin endpoints
 - **Authenticated:** User data, recordings, training, billing
 - **Webhook:** Raw body parsing, no authentication
 
@@ -303,6 +332,8 @@ Dependencies
 2. **Clean up deprecated endpoints** - Remove `_delete` suffixed routes
 3. **Add rate limiting** - Protect against abuse
 4. **Implement request validation** - Consistent input validation
+5. **Secure admin endpoints** - Add authentication to admin routes
+6. **Environment-gate debug endpoints** - Restrict to development only
 
 ### Architecture Improvements
 1. **Extract shared middleware** - Validation, error handling
@@ -318,8 +349,8 @@ Dependencies
 
 ---
 
-**Total Endpoints:** 67  
-**Protected Endpoints:** 45 (67%)  
-**Public Endpoints:** 22 (33%)  
+**Total Endpoints:** 74  
+**Protected Endpoints:** 45 (61%)  
+**Public Endpoints:** 29 (39%)  
 **Webhook Endpoints:** 3  
 **Deprecated Endpoints:** 4

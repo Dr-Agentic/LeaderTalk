@@ -89,30 +89,4 @@ export function registerAdminRoutes(app: Express) {
       res.status(500).json({ error: "Failed to fetch statistics" });
     }
   });
-
-  // Clear all data (dangerous - use with caution)
-  app.post("/api/admin/clear-data", async (req, res) => {
-    try {
-      const { confirm } = req.body;
-      
-      if (confirm !== "YES_DELETE_ALL_DATA") {
-        return res.status(400).json({ 
-          error: "Confirmation required",
-          message: "Send { confirm: 'YES_DELETE_ALL_DATA' } to proceed"
-        });
-      }
-
-      // This is a dangerous operation - implement with care
-      // You'd want to clear recordings, user data, etc.
-      
-      res.json({ 
-        success: true, 
-        message: "Data clearing operation completed",
-        warning: "This action cannot be undone"
-      });
-    } catch (error) {
-      console.error("Error clearing data:", error);
-      res.status(500).json({ error: "Failed to clear data" });
-    }
-  });
 }
