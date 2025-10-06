@@ -3,7 +3,6 @@ import { registerAuthRoutes } from "./auth";
 import { registerUserRoutes } from "./users";
 import { registerLeaderRoutes } from "./leaders";
 import { registerRecordingRoutes } from "./recordings";
-import { registerSubscriptionRoutes } from "./subscriptions";
 import { registerBillingRoutes } from "./billing";
 import { registerTrainingRoutes } from "./training";
 import { registerAdminRoutes } from "./admin";
@@ -26,9 +25,6 @@ export function registerAllRoutes(app: Express) {
   
   // Recording management routes
   registerRecordingRoutes(app);
-  
-  // Subscription and billing routes
-  registerSubscriptionRoutes(app);
   
   // Clean billing API routes
   registerBillingRoutes(app);

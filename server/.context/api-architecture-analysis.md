@@ -22,7 +22,6 @@ server/routes/
 ├── billing.ts         # Web payment processing (Stripe)
 ├── mobile-billing.ts  # Mobile payment processing (RevenueCat)
 ├── usage.ts           # Word usage & billing analytics
-├── subscriptions.ts   # Legacy subscription endpoints (deprecated)
 ├── debug.ts           # Debug & health check endpoints
 └── admin.ts           # Admin management endpoints
 ```
@@ -144,6 +143,29 @@ server/routes/
 **Dependencies:** Stripe SDK, `paymentServiceHandler`, `subscriptionController`  
 **Data Flow:** Route → Stripe API → Database
 
+#### **Detailed Analysis: `/api/billing/products` Endpoint**
+
+**Exact Flow:**
+```
+GET /api/billing/products → spc.getBillingProducts() → subscriptionPlanService.getPlansForPlatform() → JSON file
+```
+
+**Modules & Files Involved:**
+1. **Route Handler:** `/server/routes/billing.ts` - `app.get('/api/billing/products', spc.getBillingProducts)`
+2. **Controller:** `/server/controllers/subscriptionPlansController.ts` - `spc.getBillingProducts(req, res)`
+3. **Service Layer:** `/server/services/subscriptionPlanService.ts` - `subscriptionPlanService.getPlansForPlatform(platform)`
+4. **Data Source:** `/server/config/subscriptionPlans.json` - Raw subscription plan definitions
+
+**Processing Steps:**
+1. **Platform Detection:** Extracts platform from `x-platform` header (defaults to 'web')
+2. **Load Plans:** Reads `/server/config/subscriptionPlans.json`
+3. **Platform Filtering:** Adds platform-specific product IDs (Stripe for web, RevenueCat for mobile)
+4. **Data Transformation:** Converts plans to billing products with monthly/yearly variants, formatted prices, savings calculations
+5. **Sorting:** Orders by `displayOrder` from metadata
+6. **Response:** Returns JSON array of formatted billing products
+
+**Key Dependencies:** subscriptionPlanService (singleton), platform detection, JSON configuration, price formatting utilities
+
 ### 📱 Mobile Billing Endpoints (RevenueCat)
 **File:** `routes/mobile-billing.ts`
 
@@ -169,18 +191,6 @@ server/routes/
 
 **Dependencies:** `subscriptionController`, `paymentServiceHandler`  
 **Data Flow:** Route → Analytics Functions → Database
-
-### 🗑️ Legacy Endpoints (Deprecated)
-**File:** `routes/subscriptions.ts`
-
-| Endpoint | Method | Auth | Handler | Purpose |
-|----------|--------|------|---------|---------|
-| `/api/current-subscription_delete` | GET | Required | Inline | **DEPRECATED** |
-| `/api/subscription-plans_delete` | GET | None | Inline | **DEPRECATED** |
-| `/api/stripe-products_delete` | GET | None | Inline | **DEPRECATED** |
-| `/api/create-stripe-subscription_delete` | POST | Required | Inline | **DEPRECATED** |
-
-**Status:** Marked for deletion, replaced by `/api/billing/*` endpoints
 
 ### 🔍 Debug & Health Check Endpoints
 **File:** `routes/debug.ts`
@@ -349,8 +359,8 @@ Dependencies
 
 ---
 
-**Total Endpoints:** 74  
-**Protected Endpoints:** 45 (61%)  
-**Public Endpoints:** 29 (39%)  
+**Total Endpoints:** 70  
+**Protected Endpoints:** 43 (61%)  
+**Public Endpoints:** 27 (39%)  
 **Webhook Endpoints:** 3  
-**Deprecated Endpoints:** 4
+**Deprecated Endpoints:** 0
