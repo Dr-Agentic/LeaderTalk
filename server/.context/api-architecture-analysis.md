@@ -166,6 +166,30 @@ GET /api/billing/products → spc.getBillingProducts() → subscriptionPlanServi
 
 **Key Dependencies:** subscriptionPlanService (singleton), platform detection, JSON configuration, price formatting utilities
 
+#### **Client Subscription Retrieval Patterns**
+
+**Web Client (React):**
+- **Primary Endpoint:** `/api/billing/subscriptions/current` (Stripe-based)
+- **Implementation:** React Query with `queryKey: ["/api/billing/subscriptions/current"]`
+- **Usage:** SecureSubscription.tsx for main subscription management
+- **Caching:** Single query key, invalidated after mutations (create/update/cancel)
+- **Polling:** Direct fetch calls for payment status verification
+
+**Mobile Client (React Native):**
+- **Primary Endpoint:** `/api/mobile/billing/subscription` (RevenueCat-based)
+- **Hook:** `useMobileSubscription()` with `queryKey: [API_BASE, 'subscription']`
+- **Fallback Usage:** Some components use `/api/billing/subscriptions/current` for compatibility
+- **Components:** SubscriptionTimeline.tsx, BillingCycleHistory.tsx use web endpoint
+- **Caching:** Separate query keys for mobile vs web endpoints
+
+**Authentication Pattern:** Both platforms use `credentials: 'include'` for session-based auth
+
+**Architecture Benefits:**
+- Platform-appropriate billing systems (Stripe vs RevenueCat)
+- Shared component compatibility (mobile can use web endpoints)
+- Unified subscription data model on backend
+- Independent caching strategies per platform
+
 ### 📱 Mobile Billing Endpoints (RevenueCat)
 **File:** `routes/mobile-billing.ts`
 
@@ -179,6 +203,129 @@ GET /api/billing/products → spc.getBillingProducts() → subscriptionPlanServi
 
 **Dependencies:** `mobileSubscriptionController`, RevenueCat API  
 **Data Flow:** Route → RevenueCat API → Database
+
+#### **Mobile Billing Architecture Analysis**
+
+**Dual Endpoint Strategy:**
+- **Mobile-Specific:** `/api/mobile/billing/subscription` - RevenueCat subscription data
+- **Web Compatibility:** Mobile components can fallback to `/api/billing/subscriptions/current`
+
+**Client Integration:**
+- **Primary Hook:** `useMobileSubscription()` for RevenueCat data
+- **Query Key:** `[API_BASE, 'subscription']` with 5-minute stale time
+- **Error Handling:** Custom error logging with detailed response tracking
+- **Cache Invalidation:** After purchase, restore, and cancellation operations
+
+**Cross-Platform Compatibility:**
+- SubscriptionTimeline.tsx and BillingCycleHistory.tsx use web billing endpoint
+- Enables shared components between web and mobile clients
+- Maintains platform-specific billing while allowing component reuse
+
+## Subscription Upgrade Flow Analysis
+
+### **Web Client Upgrade Flow (Stripe-based)**
+
+**Call Flow Map:**
+```
+1. User clicks "Select Plan" → handleSubscribe(plan)
+2. GET /api/billing/subscription/preview → Validate change
+3. setPendingSubscriptionChange() → Store selection
+4. setShowPaymentMethodSelector(true) → Show payment UI
+5. POST /api/billing/subscription/change → Execute change
+6. POST /api/billing/subscriptions/update → Update subscription
+7. Server Response:
+   - requiresPayment: Show Stripe payment setup
+   - success: Immediate subscription update
+8. Cache invalidation → Refresh subscription data
+```
+
+**Key Implementation Details:**
+- **Preview System:** Gets change preview before committing
+- **Payment Method Management:** Handles payment setup if required
+- **Immediate Processing:** Server processes subscription change immediately
+- **Retry Mechanism:** Retries after payment method setup
+- **Complex State Management:** Multiple UI states for different scenarios
+
+### **Mobile Client Upgrade Flow (RevenueCat-based)**
+
+**Call Flow Map:**
+```
+1. User selects plan → RevenueCat SDK purchase flow
+2. revenueCatService.purchasePackage(package)
+3. Purchases.purchasePackage() → Native RevenueCat SDK
+4. App Store/Google Play purchase dialog
+5. Purchase completion callback
+6. useMobilePurchase() → POST /api/mobile/billing/purchase
+7. Server validates purchase with RevenueCat
+8. Cache invalidation → Refresh subscription data
+```
+
+**Key Implementation Details:**
+- **Native Purchase Flow:** Uses platform-native purchase dialogs
+- **Simplified Flow:** RevenueCat handles payment processing
+- **Webhook-Based:** Server gets notified via RevenueCat webhooks
+- **Platform Compliance:** Follows App Store/Google Play guidelines
+- **Limited UI Control:** Platform controls purchase experience
+
+### **Architecture Comparison**
+
+| Aspect | Web Client (Stripe) | Mobile Client (RevenueCat) |
+|--------|-------------------|---------------------------|
+| **Control** | High - Full UI control | Limited - Platform-dependent |
+| **Complexity** | High - Multiple states | Low - SDK handles complexity |
+| **Processing** | Immediate server processing | Webhook-based processing |
+| **Payment** | Requires payment method setup | Platform handles payment |
+| **Preview** | Change preview system | No preview (direct purchase) |
+| **Retry Logic** | Built-in retry mechanisms | Platform handles retries |
+
+## Mobile Workflow Assessment
+
+### **❌ Critical Issues with Current Implementation**
+
+#### **1. Fundamentally Broken Purchase Flow**
+**Current (Incorrect):**
+```
+Client → RevenueCat SDK → App Store → Client calls /api/mobile/billing/purchase
+```
+
+**RevenueCat Best Practice:**
+```
+Client → RevenueCat SDK → App Store → RevenueCat Webhook → Server
+```
+
+#### **2. Missing Server-Side Validation**
+- `validateMobilePurchase()` performs NO actual validation
+- Returns success without verifying purchase with RevenueCat API
+- Violates security best practices
+
+#### **3. Placeholder Webhook Implementation**
+- Webhook only logs events, performs no business logic
+- Missing signature verification
+- No subscription state updates
+
+### **🏗️ Required Fixes for Server-Centric Architecture**
+
+#### **Priority 1: Implement Proper Webhook Processing**
+- Add RevenueCat signature verification
+- Implement actual business logic for subscription events
+- Update user subscription state based on webhook events
+
+#### **Priority 2: Remove Client-Side Purchase Validation**
+- Remove unreliable client-to-server purchase calls
+- Make webhooks the primary source of truth
+- Add receipt validation as backup mechanism
+
+#### **Priority 3: Add Server-Side Receipt Validation**
+- Validate purchases with RevenueCat API
+- Implement purchase recovery mechanisms
+- Add proper error handling and retry logic
+
+### **Alignment with Server-Centric Design Principle**
+
+**Current State:** ❌ Client-heavy, unreliable architecture
+**Target State:** ✅ Server-centric, webhook-driven architecture
+
+**Recommendation:** Complete rewrite of mobile purchase flow to follow RevenueCat best practices and server-side logic principle.
 
 ### 📊 Usage Analytics Endpoints
 **File:** `routes/usage.ts`
