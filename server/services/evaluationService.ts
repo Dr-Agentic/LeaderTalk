@@ -1,11 +1,8 @@
 import OpenAI from 'openai';
-
-if (!process.env.OPENAI_API_KEY) {
-  throw new Error('Missing required OpenAI API key: OPENAI_API_KEY');
-}
+import { config } from '../config/environment';
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: config.openai.apiKey,
 });
 
 export interface ScenarioContext {

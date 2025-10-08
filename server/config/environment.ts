@@ -37,6 +37,7 @@ export const config = {
   stripe: {
     secretKey: getRequiredConfigValue("STRIPE_SECRET_KEY"),
     publicKey: getConfigValue("VITE_STRIPE_PUBLIC_KEY"), // Optional for server-side
+    webhookSecret: getConfigValue("STRIPE_WEBHOOK_SECRET"),
   },
 
   // RevenueCat configuration

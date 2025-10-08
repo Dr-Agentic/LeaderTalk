@@ -319,7 +319,7 @@ class RevenueCatPaymentHandler {
    */
   async getProduct(productId: string): Promise<RevenueCatProduct | null> {
     try {
-      const projectId = process.env.REVENUECAT_PROJECT_ID || "proj209f9e71";
+      const projectId = config.revenueCat.projectId || "proj209f9e71";
       const data = await this.makeRequest(
         `/projects/${projectId}/products/${productId}`,
       );

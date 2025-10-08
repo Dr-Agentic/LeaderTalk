@@ -32,7 +32,7 @@ export function registerBillingRoutes(app: Express) {
   // Stripe webhook endpoint for handling payment events
   app.post('/api/billing/webhooks/stripe', express.raw({type: 'application/json'}), async (req: Request, res: Response) => {
     const sig = req.headers['stripe-signature'];
-    const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    const endpointSecret = config.stripe.webhookSecret;
 
     if (!endpointSecret) {
       console.log('⚠️ Stripe webhook secret not configured');
