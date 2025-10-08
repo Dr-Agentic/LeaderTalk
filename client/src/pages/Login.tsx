@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/card";
 import { signInWithGoogle } from "@/lib/supabaseAuth";
 import { Loader2 } from "lucide-react";
-import googleLogoPath from "@assets/google-logo.png";
+import googleLogoPath from "@/assets/google-logo.png";
 // Debug logging replaced with console methods
 
 export default function Login() {
