@@ -3,23 +3,19 @@ import { router } from 'expo-router';
 
 /**
  * Global error handler for React Query
- * Handles 401 responses by redirecting to login
+ * Handles 401 responses by redirecting to login silently
  */
 export function _handleQueryError(error: unknown) {
-  console.error('React Query error:', error);
-  
-  // Check if error is a fetch response error
+  // Check if error is a 401 response
   if (error instanceof Error && error.message.includes('401')) {
-    console.log('🔐 401 error detected, redirecting to login');
-    router.replace('/login');
+    console.log('🔐 401 error detected - AuthContext will handle redirect');
+    // Don't show alerts or redirect here - let AuthContext handle it
     return;
   }
   
-  // Check for network errors that might indicate auth issues
-  if (error instanceof Error && error.message.includes('Failed to fetch')) {
-    console.warn('🌐 Network error detected:', error.message);
-    // Don't redirect on network errors - could be temporary
-    return;
+  // Log other errors for debugging
+  if (__DEV__) {
+    console.error('React Query error:', error);
   }
 }
 

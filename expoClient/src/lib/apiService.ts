@@ -117,12 +117,11 @@ export async function apiRequest(
     
     console.log(`API Response: ${method} ${endpoint} - Status: ${response.status}`);
 
-    // Handle 401 Unauthorized by clearing session and redirecting
+    // Handle 401 Unauthorized - let AuthContext handle the redirect
     if (response.status === 401) {
-      console.warn('Unauthorized API request, signing out');
+      console.warn('Unauthorized API request');
       await supabase.auth.signOut();
-      // The auth state change will trigger navigation to login
-      throw new Error('Authentication expired. Please log in again.');
+      throw new Error('401');
     }
     
     if (!response.ok) {
@@ -199,11 +198,11 @@ export async function uploadFile(
     
     console.log(`Upload Response: POST ${endpoint} - Status: ${response.status}`);
 
-    // Handle 401 Unauthorized by clearing session
+    // Handle 401 Unauthorized - let AuthContext handle the redirect
     if (response.status === 401) {
-      console.warn('Unauthorized file upload request, signing out');
+      console.warn('Unauthorized file upload request');
       await supabase.auth.signOut();
-      throw new Error('Authentication expired. Please log in again.');
+      throw new Error('401');
     }
     
     if (!response.ok) {
