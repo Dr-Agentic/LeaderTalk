@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { API_URL } from '../lib/api';
+import { useAuth } from '../contexts/AuthContext';
 
 interface Recording {
   id: string;
@@ -17,11 +18,19 @@ interface Recording {
 }
 
 export function useRecordings() {
+  const { isAuthenticated } = useAuth();
   const [recordings, setRecordings] = useState<Recording[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchRecordings = async () => {
+    // Don't fetch if not authenticated
+    if (!isAuthenticated) {
+      setRecordings([]);
+      setIsLoading(false);
+      return;
+    }
+
     try {
       setIsLoading(true);
       setError(null);
@@ -48,6 +57,10 @@ export function useRecordings() {
   };
 
   const uploadRecording = async (uri: string, title?: string) => {
+    if (!isAuthenticated) {
+      throw new Error('Authentication required to upload recordings');
+    }
+
     try {
       const formData = new FormData();
       formData.append('audio', {
@@ -84,7 +97,7 @@ export function useRecordings() {
 
   useEffect(() => {
     fetchRecordings();
-  }, []);
+  }, [isAuthenticated]); // Re-fetch when auth state changes
 
   return {
     recordings,

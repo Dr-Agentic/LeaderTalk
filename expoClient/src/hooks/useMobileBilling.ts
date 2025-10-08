@@ -16,6 +16,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { MobileSubscriptionData, MobileBillingProduct } from '../services/revenueCatService';
 import { API_URL } from '../lib/api';
+import { useAuth } from '../contexts/AuthContext';
 
 // Base API URL for mobile billing - use full server URL
 const API_BASE = `${API_URL}/api/mobile/billing`;
@@ -26,6 +27,8 @@ const API_BASE = `${API_URL}/api/mobile/billing`;
  * @returns Query with subscription data including usage, billing cycle, and status
  */
 export function useMobileSubscription() {
+  const { isAuthenticated } = useAuth();
+  
   return useQuery({
     queryKey: [API_BASE, 'subscription'],
     queryFn: async (): Promise<MobileSubscriptionData> => {
@@ -57,6 +60,7 @@ export function useMobileSubscription() {
       console.log('✅ [useMobileSubscription] SUCCESS - Result:', data);
       return data;
     },
+    enabled: isAuthenticated, // Only run when authenticated
     staleTime: 1000 * 60 * 5, // 5 minutes
     retry: 2,
   });
@@ -68,6 +72,8 @@ export function useMobileSubscription() {
  * @returns Query with array of available products with pricing and features
  */
 export function useMobileProducts() {
+  const { isAuthenticated } = useAuth();
+  
   return useQuery({
     queryKey: [API_BASE, 'products'],
     queryFn: async (): Promise<MobileBillingProduct[]> => {
@@ -97,6 +103,7 @@ export function useMobileProducts() {
       console.log('✅ [useMobileProducts] SUCCESS - Result:', data);
       return data;
     },
+    enabled: isAuthenticated, // Only run when authenticated
     staleTime: 1000 * 60 * 10, // 10 minutes
     retry: 2,
   });
@@ -235,6 +242,8 @@ export function useMobileCancelSubscription() {
  * @returns Query with usage data, word counts, and analytics
  */
 export function useMobileBillingUsage(cycleId?: string) {
+  const { isAuthenticated } = useAuth();
+  
   return useQuery({
     queryKey: ['/api/usage/billing-cycle', cycleId],
     queryFn: async (): Promise<{
@@ -269,7 +278,7 @@ export function useMobileBillingUsage(cycleId?: string) {
       
       return data;
     },
-    enabled: true,
+    enabled: isAuthenticated, // Only run when authenticated
     staleTime: 1000 * 60 * 2, // 2 minutes
   });
 }

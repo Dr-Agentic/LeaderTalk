@@ -2,18 +2,19 @@ import { QueryClient } from '@tanstack/react-query';
 import { Platform } from 'react-native';
 import { getSupabase } from './supabaseAuth';
 import { API_URL } from './api';
+import { configureQueryClient } from './queryErrorHandler';
 
 // IMPORTANT: This is the SINGLE QueryClient instance for the entire app
 // DO NOT create another QueryClient in _layout.tsx or anywhere else
 // All React Query operations must use this instance to avoid cache conflicts
-export const queryClient = new QueryClient({
+export const queryClient = configureQueryClient(new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60 * 5, // 5 minutes
       retry: 1,
     },
   },
-});
+}));
 
 // Check if the user has an active session
 export async function checkSession(): Promise<boolean> {

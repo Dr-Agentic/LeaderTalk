@@ -9,6 +9,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 // IMPORTANT: Import the SINGLE QueryClient instance from apiService
 // DO NOT create a new QueryClient here - it will break React Query cache
 import { queryClient } from '../src/lib/apiService';
+import { AuthProvider } from '../src/contexts/AuthContext';
 import * as Linking from 'expo-linking';
 import { initializeSupabase } from '../src/lib/supabaseAuth';
 import { ActivityIndicator } from 'react-native';
@@ -214,57 +215,59 @@ export default function RootLayout() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Using the SINGLE QueryClient instance from apiService.ts */}
-      <GestureHandlerRootView style={styles.container}>
-        <StatusBar barStyle="light-content" backgroundColor="#8A2BE2" translucent />
-        
-        <Stack
-          screenOptions={{
-            headerStyle: {
-              backgroundColor: 'transparent',
-            },
-            headerTintColor: '#fff',
-            headerTitleStyle: {
-              fontWeight: '600',
-            },
-            contentStyle: {
-              backgroundColor: 'transparent',
-            },
-            headerTransparent: true,
-            headerShown: false, // We'll use our custom header
-            // Add explicit styling for React Native Web
-            cardStyle: {
-              backgroundColor: 'transparent',
-            },
-            presentation: 'card',
-          }}
-        >
-          <Stack.Screen name="index" options={{ headerShown: false }} />
-          <Stack.Screen name="login" options={{ headerShown: false }} />
-          <Stack.Screen name="dashboard" options={{ 
-            title: "LeaderTalk Dashboard",
-            headerShown: false 
-          }} />
-          <Stack.Screen name="recording" options={{ 
-            title: "Record Conversation",
-            headerShown: false 
-          }} />
-          <Stack.Screen name="transcripts" options={{ 
-            title: "All Transcripts",
-            headerShown: false 
-          }} />
-          <Stack.Screen name="transcript/[id]" options={{ 
-            title: "Transcript View",
-            headerShown: false 
-          }} />
-          <Stack.Screen name="progress" options={{ 
-            title: "Your Progress",
-            headerShown: false 
-          }} />
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <AuthProvider>
+        {/* Using the SINGLE QueryClient instance from apiService.ts */}
+        <GestureHandlerRootView style={styles.container}>
+          <StatusBar barStyle="light-content" backgroundColor="#8A2BE2" translucent />
+          
+          <Stack
+            screenOptions={{
+              headerStyle: {
+                backgroundColor: 'transparent',
+              },
+              headerTintColor: '#fff',
+              headerTitleStyle: {
+                fontWeight: '600',
+              },
+              contentStyle: {
+                backgroundColor: 'transparent',
+              },
+              headerTransparent: true,
+              headerShown: false, // We'll use our custom header
+              // Add explicit styling for React Native Web
+              cardStyle: {
+                backgroundColor: 'transparent',
+              },
+              presentation: 'card',
+            }}
+          >
+            <Stack.Screen name="index" options={{ headerShown: false }} />
+            <Stack.Screen name="login" options={{ headerShown: false }} />
+            <Stack.Screen name="dashboard" options={{ 
+              title: "LeaderTalk Dashboard",
+              headerShown: false 
+            }} />
+            <Stack.Screen name="recording" options={{ 
+              title: "Record Conversation",
+              headerShown: false 
+            }} />
+            <Stack.Screen name="transcripts" options={{ 
+              title: "All Transcripts",
+              headerShown: false 
+            }} />
+            <Stack.Screen name="transcript/[id]" options={{ 
+              title: "Transcript View",
+              headerShown: false 
+            }} />
+            <Stack.Screen name="progress" options={{ 
+              title: "Your Progress",
+              headerShown: false 
+            }} />
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
 
-        </Stack>
-      </GestureHandlerRootView>
+          </Stack>
+        </GestureHandlerRootView>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
