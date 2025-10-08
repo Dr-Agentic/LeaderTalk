@@ -202,21 +202,35 @@ export default function SubscriptionScreen() {
   };
 
   const handleSubscribe = async (plan: BillingProduct) => {
+    console.log('🔄 [handleSubscribe] BEGIN - Input:', {
+      plan,
+      productId: plan.pricing?.productId,
+      planName: plan.name
+    });
+
     const productId = plan.pricing?.productId;
     if (!productId) {
+      console.error('❌ [handleSubscribe] Invalid product ID:', { plan });
       Alert.alert("Error", "Invalid plan selected. Please try again.");
       return;
     }
 
     const currentProductId = currentSubscription?.subscription?.productId;
     const isCurrentPlan = currentProductId === productId;
+    console.log('🔄 [handleSubscribe] Plan comparison:', {
+      currentProductId,
+      selectedProductId: productId,
+      isCurrentPlan
+    });
 
     if (isCurrentPlan) {
+      console.log('ℹ️ [handleSubscribe] User selected current plan, exiting');
       return;
     }
 
     // Platform-specific purchase flow
     if (Platform.OS === 'ios' || Platform.OS === 'android') {
+      console.log('🔄 [handleSubscribe] Mobile platform detected:', Platform.OS);
       // Mobile: Use RevenueCat via mobile billing hooks
       Alert.alert(
         "Confirm Purchase",
@@ -226,10 +240,12 @@ export default function SubscriptionScreen() {
           {
             text: "Purchase",
             onPress: () => {
+              console.log('🔄 [handleSubscribe] User confirmed purchase, calling mutation');
               purchaseSubscription.mutate({
                 productId: productId,
               }, {
-                onSuccess: () => {
+                onSuccess: (result) => {
+                  console.log('✅ [handleSubscribe] Purchase successful:', result);
                   Alert.alert(
                     "Purchase Successful!",
                     `You've successfully subscribed to ${plan.name}. Your subscription is now active.`,
@@ -237,6 +253,11 @@ export default function SubscriptionScreen() {
                   );
                 },
                 onError: (error: any) => {
+                  console.error('❌ [handleSubscribe] Purchase failed:', {
+                    error: error.message,
+                    stack: error.stack,
+                    productId
+                  });
                   Alert.alert(
                     "Purchase Failed",
                     error.message || "Unable to complete purchase. Please try again.",

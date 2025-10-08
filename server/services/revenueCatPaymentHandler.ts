@@ -129,6 +129,16 @@ class RevenueCatPaymentHandler {
    * Make authenticated request to RevenueCat API
    */
   private async makeRequest(endpoint: string, options: RequestInit = {}) {
+    console.log('🔄 [RevenueCat.makeRequest] BEGIN - Input:', {
+      endpoint,
+      method: options.method || 'GET',
+      headers: options.headers,
+      body: options.body,
+      baseUrl: this.config.baseUrl,
+      hasSecretKey: !!this.config.secretKey,
+      secretKeyPrefix: this.config.secretKey?.slice(0, 8)
+    });
+
     const url = `${this.config.baseUrl}${endpoint}`;
 
     const response = await fetch(url, {
@@ -140,14 +150,34 @@ class RevenueCatPaymentHandler {
       },
     });
 
+    console.log('🔄 [RevenueCat.makeRequest] Response received:', {
+      url,
+      status: response.status,
+      statusText: response.statusText,
+      headers: Object.fromEntries(response.headers.entries())
+    });
+
     if (!response.ok) {
       const errorText = await response.text();
+      console.error('❌ [RevenueCat.makeRequest] API Error:', {
+        url,
+        status: response.status,
+        statusText: response.statusText,
+        errorText
+      });
       throw new Error(
         `RevenueCat API error: ${response.status} - ${errorText}`,
       );
     }
 
-    return response.json();
+    const responseData = await response.json();
+    console.log('✅ [RevenueCat.makeRequest] SUCCESS - Result:', {
+      url,
+      status: response.status,
+      responseData
+    });
+    
+    return responseData;
   }
 
   /**
@@ -337,23 +367,41 @@ class RevenueCatPaymentHandler {
    * Get customer by app user ID using V2 API
    */
   async getCustomer(appUserId: string): Promise<RevenueCatCustomer | null> {
+    console.log('🔄 [RevenueCat.getCustomer] BEGIN - Input:', {
+      appUserId,
+      projectId: this.config.projectId,
+      hasProjectId: !!this.config.projectId
+    });
+
     try {
       if (!this.config.projectId) {
+        console.error('❌ [RevenueCat.getCustomer] Missing project ID');
         throw new Error(
           "REVENUECAT_PROJECT_ID environment variable is required",
         );
       }
       const validAppUserId = this._emailToAppUserId(appUserId);
+      console.log('🔄 [RevenueCat.getCustomer] Converted app user ID:', {
+        original: appUserId,
+        converted: validAppUserId
+      });
+
       const data = await this.makeRequest(
         `/projects/${this.config.projectId}/customers/${encodeURIComponent(validAppUserId)}`,
       );
-      console.log("RevenueCat Customer: ", JSON.stringify(data, null, 2));
+      
+      console.log('✅ [RevenueCat.getCustomer] SUCCESS - Result:', data);
       return data;
     } catch (error: any) {
       if (error?.message?.includes("404")) {
+        console.log('ℹ️ [RevenueCat.getCustomer] Customer not found (404):', { appUserId });
         return null; // Customer doesn't exist
       }
-      console.error("Error fetching RevenueCat customer:", error);
+      console.error("❌ [RevenueCat.getCustomer] ERROR:", {
+        appUserId,
+        error: error.message,
+        stack: error.stack
+      });
       throw error;
     }
   }
@@ -515,48 +563,89 @@ class RevenueCatPaymentHandler {
   async retrieveUserSubscription(
     email: string,
   ): Promise<MobileSubscriptionData> {
+    console.log('🔄 [RevenueCat.retrieveUserSubscription] BEGIN - Input:', { email });
+
     const appUserId = this._emailToAppUserId(email);
+    console.log('🔄 [RevenueCat.retrieveUserSubscription] Converted email to app user ID:', {
+      email,
+      appUserId
+    });
 
     // Try to get existing customer
     let customer = await this.getCustomer(appUserId);
+    console.log('🔄 [RevenueCat.retrieveUserSubscription] Customer lookup result:', {
+      customerExists: !!customer,
+      customer
+    });
 
     if (!customer) {
       // Create customer if doesn't exist
+      console.log('🔄 [RevenueCat.retrieveUserSubscription] Creating new customer:', { appUserId });
       customer = await this.createCustomer(appUserId);
+      console.log('🔄 [RevenueCat.retrieveUserSubscription] Customer created:', { customer });
     }
 
     // Check if customer has any active entitlements
     if (!customer.active_entitlements?.items || customer.active_entitlements.items.length === 0) {
-      console.warn(`No active entitlements found for user ${email}, creating fallback entitlement`);
-      return this._createFallbackEntitlement(email);
+      console.warn(`🔄 [RevenueCat.retrieveUserSubscription] No active entitlements found for user ${email}, creating fallback entitlement`);
+      const fallback = this._createFallbackEntitlement(email);
+      console.log('✅ [RevenueCat.retrieveUserSubscription] SUCCESS (Fallback) - Result:', fallback);
+      return fallback;
     }
 
+    console.log('🔄 [RevenueCat.retrieveUserSubscription] Getting customer subscriptions:', { appUserId });
     // Get subscriptions and check for active ones
     const subscriptions = await this.getCustomerSubscriptions(appUserId);
+    console.log('🔄 [RevenueCat.retrieveUserSubscription] Subscriptions retrieved:', { subscriptions });
+
     const activeSubscriptions = Object.values(subscriptions).filter((sub) => {
       const expiresDate = new Date(sub.expires_date);
-      return expiresDate > new Date();
+      const isActive = expiresDate > new Date();
+      console.log('🔄 [RevenueCat.retrieveUserSubscription] Checking subscription:', {
+        productId: sub.product_identifier,
+        expiresDate: sub.expires_date,
+        isActive
+      });
+      return isActive;
+    });
+
+    console.log('🔄 [RevenueCat.retrieveUserSubscription] Active subscriptions found:', {
+      count: activeSubscriptions.length,
+      activeSubscriptions
     });
 
     if (activeSubscriptions.length === 0) {
       // No active subscription - create default
+      console.log('🔄 [RevenueCat.retrieveUserSubscription] No active subscriptions, finding default offering');
       const defaultOffering = await this._findDefaultOffering();
+      console.log('🔄 [RevenueCat.retrieveUserSubscription] Default offering result:', { defaultOffering });
+      
       if (defaultOffering) {
-        return await this._createDefaultSubscription(email, defaultOffering);
+        const defaultSub = await this._createDefaultSubscription(email, defaultOffering);
+        console.log('✅ [RevenueCat.retrieveUserSubscription] SUCCESS (Default) - Result:', defaultSub);
+        return defaultSub;
       }
       
       // If no default offering found, also return fallback
-      console.warn(`No default offering found for user ${email}, creating fallback entitlement`);
-      return this._createFallbackEntitlement(email);
+      console.warn(`🔄 [RevenueCat.retrieveUserSubscription] No default offering found for user ${email}, creating fallback entitlement`);
+      const fallback = this._createFallbackEntitlement(email);
+      console.log('✅ [RevenueCat.retrieveUserSubscription] SUCCESS (Fallback 2) - Result:', fallback);
+      return fallback;
     }
 
     // Return existing subscription
+    console.log('🔄 [RevenueCat.retrieveUserSubscription] Getting customer entitlements for mapping');
     const entitlements = await this.getCustomerEntitlements(appUserId);
-    return this._mapToMobileSubscriptionData(
+    console.log('🔄 [RevenueCat.retrieveUserSubscription] Entitlements retrieved:', { entitlements });
+
+    const mappedSubscription = this._mapToMobileSubscriptionData(
       activeSubscriptions[0],
       entitlements,
       email,
     );
+    
+    console.log('✅ [RevenueCat.retrieveUserSubscription] SUCCESS (Existing) - Result:', mappedSubscription);
+    return mappedSubscription;
   }
 
   /**

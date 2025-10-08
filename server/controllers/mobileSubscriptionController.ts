@@ -30,33 +30,58 @@ interface MobileSubscriptionData {
  * Validate user authentication and retrieve user data
  */
 async function validateUserAccess(req: Request): Promise<{ userId: number; user: any }> {
+  console.log('🔄 [validateUserAccess] BEGIN - Input:', {
+    sessionId: (req.session as any)?.id,
+    sessionUserId: (req.session as any)?.userId,
+    sessionData: req.session
+  });
+
   const userId = (req.session as any).userId;
   if (!userId) {
+    console.error('❌ [validateUserAccess] No userId in session');
     throw new Error("Authentication required");
   }
 
+  console.log('🔄 [validateUserAccess] Getting user from storage:', { userId });
   const user = await storage.getUser(userId);
   if (!user) {
+    console.error('❌ [validateUserAccess] User not found in storage:', { userId });
     throw new Error("User not found");
   }
 
-  return { userId, user };
+  const result = { userId, user };
+  console.log('✅ [validateUserAccess] SUCCESS - Result:', result);
+  return result;
 }
 
 /**
  * Ensure user has valid mobile subscription, create default if missing
  */
 async function ensureMobileUserHasValidSubscription(userId: number): Promise<MobileSubscriptionData> {
+  console.log('🔄 [ensureMobileUserHasValidSubscription] BEGIN - Input:', { userId });
+
   const user = await storage.getUser(userId);
   if (!user) {
+    console.error('❌ [ensureMobileUserHasValidSubscription] User not found:', { userId });
     throw new Error(`User not found: ${userId}`);
   }
 
+  console.log('🔄 [ensureMobileUserHasValidSubscription] User retrieved:', { 
+    userId, 
+    userEmail: user.email,
+    userName: user.name 
+  });
+
   if (!user.email) {
+    console.error('❌ [ensureMobileUserHasValidSubscription] User email missing:', { userId, user });
     throw new Error("User email required for mobile subscription");
   }
 
-  return await revenueCatHandler.retrieveUserSubscription(user.email);
+  console.log('🔄 [ensureMobileUserHasValidSubscription] Calling RevenueCat handler:', { email: user.email });
+  const subscription = await revenueCatHandler.retrieveUserSubscription(user.email);
+  
+  console.log('✅ [ensureMobileUserHasValidSubscription] SUCCESS - Result:', { subscription });
+  return subscription;
 }
 
 /**
@@ -122,16 +147,34 @@ function mapRevenueCatSubscriptionToMobileData(
  * Get current mobile subscription for user
  */
 export async function getMobileUserSubscription(req: Request, res: Response): Promise<void> {
+  console.log('🔄 [getMobileUserSubscription] BEGIN - Input:', {
+    sessionId: (req.session as any)?.id,
+    userId: (req.session as any)?.userId,
+    headers: req.headers,
+    query: req.query,
+    body: req.body
+  });
+
   try {
     const { userId } = await validateUserAccess(req);
-    const subscription = await ensureMobileUserHasValidSubscription(userId);
+    console.log('🔄 [getMobileUserSubscription] User validated:', { userId });
     
-    res.json({ 
+    const subscription = await ensureMobileUserHasValidSubscription(userId);
+    console.log('🔄 [getMobileUserSubscription] Subscription retrieved:', { subscription });
+    
+    const result = { 
       hasSubscription: true,
       subscription 
-    });
+    };
+    
+    console.log('✅ [getMobileUserSubscription] SUCCESS - Result:', result);
+    res.json(result);
   } catch (error: any) {
-    console.error("Error getting mobile subscription:", error);
+    console.error("❌ [getMobileUserSubscription] ERROR:", {
+      error: error.message,
+      stack: error.stack,
+      userId: (req.session as any)?.userId
+    });
     res.status(500).json({ error: error.message });
   }
 }
@@ -141,10 +184,23 @@ export async function getMobileUserSubscription(req: Request, res: Response): Pr
  * Uses existing JSON configuration instead of calling RevenueCat directly
  */
 export async function getMobileBillingProducts(req: Request, res: Response): Promise<void> {
+  console.log('🔄 [getMobileBillingProducts] BEGIN - Input:', {
+    sessionId: (req.session as any)?.id,
+    userId: (req.session as any)?.userId,
+    headers: req.headers,
+    query: req.query,
+    body: req.body
+  });
+
   try {
     await validateUserAccess(req);
+    console.log('🔄 [getMobileBillingProducts] User validated');
     
     const platformPlans = subscriptionPlanService.getPlansForPlatform('ios');
+    console.log('🔄 [getMobileBillingProducts] Platform plans retrieved:', { 
+      platformPlans,
+      count: platformPlans.length 
+    });
     
     // Transform SubscriptionPlan data to MobileBillingProduct[] format
     const mobileBillingProducts = platformPlans.map((plan: any) => {
@@ -186,10 +242,17 @@ export async function getMobileBillingProducts(req: Request, res: Response): Pro
       return billingProduct;
     }).filter(Boolean); // Remove null entries
 
-    console.log(`✅ Returning ${mobileBillingProducts.length} mobile billing products from JSON config`);
+    console.log(`✅ [getMobileBillingProducts] SUCCESS - Result:`, {
+      mobileBillingProducts,
+      count: mobileBillingProducts.length
+    });
     res.json(mobileBillingProducts);
   } catch (error: any) {
-    console.error("Error getting mobile products:", error);
+    console.error("❌ [getMobileBillingProducts] ERROR:", {
+      error: error.message,
+      stack: error.stack,
+      userId: (req.session as any)?.userId
+    });
     res.status(500).json({ error: error.message });
   }
 }
@@ -198,25 +261,46 @@ export async function getMobileBillingProducts(req: Request, res: Response): Pro
  * Validate mobile purchase and update subscription
  */
 export async function validateMobilePurchase(req: Request, res: Response): Promise<void> {
+  console.log('🔄 [validateMobilePurchase] BEGIN - Input:', {
+    sessionId: (req.session as any)?.id,
+    userId: (req.session as any)?.userId,
+    headers: req.headers,
+    query: req.query,
+    body: req.body
+  });
+
   try {
     const { userId, user } = await validateUserAccess(req);
+    console.log('🔄 [validateMobilePurchase] User validated:', { userId, userEmail: user.email });
+    
     const { receiptData, productId, transactionId } = req.body;
+    console.log('🔄 [validateMobilePurchase] Purchase data:', { receiptData, productId, transactionId });
 
     if (!user.email) {
+      console.error('❌ [validateMobilePurchase] Missing user email');
       res.status(400).json({ error: "User email required" });
       return;
     }
 
     // Get updated subscription after purchase
     const subscription = await ensureMobileUserHasValidSubscription(userId);
+    console.log('🔄 [validateMobilePurchase] Subscription ensured:', { subscription });
     
-    res.json({ 
+    const result = { 
       success: true,
       subscription,
       message: "Purchase validated successfully"
-    });
+    };
+    
+    console.log('✅ [validateMobilePurchase] SUCCESS - Result:', result);
+    res.json(result);
   } catch (error: any) {
-    console.error("Error validating mobile purchase:", error);
+    console.error("❌ [validateMobilePurchase] ERROR:", {
+      error: error.message,
+      stack: error.stack,
+      userId: (req.session as any)?.userId,
+      body: req.body
+    });
     res.status(500).json({ error: error.message });
   }
 }

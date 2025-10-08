@@ -29,19 +29,33 @@ export function useMobileSubscription() {
   return useQuery({
     queryKey: [API_BASE, 'subscription'],
     queryFn: async (): Promise<MobileSubscriptionData> => {
+      console.log('🔄 [useMobileSubscription] BEGIN - Fetching subscription');
+      
       const response = await fetch(`${API_BASE}/subscription`, {
         credentials: 'include',
       });
       
-      console.log('Subscription API Response:', response.status, response.statusText);
+      console.log('🔄 [useMobileSubscription] Response received:', {
+        status: response.status,
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries())
+      });
+      
       const responseText = await response.text();
-      console.log('Full Subscription Response:', responseText);
+      console.log('🔄 [useMobileSubscription] Response body:', responseText);
       
       if (!response.ok) {
+        console.error('❌ [useMobileSubscription] Request failed:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: responseText
+        });
         throw new Error(`Failed to fetch subscription: ${response.statusText}`);
       }
       
-      return JSON.parse(responseText);
+      const data = JSON.parse(responseText);
+      console.log('✅ [useMobileSubscription] SUCCESS - Result:', data);
+      return data;
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
     retry: 2,
@@ -57,15 +71,31 @@ export function useMobileProducts() {
   return useQuery({
     queryKey: [API_BASE, 'products'],
     queryFn: async (): Promise<MobileBillingProduct[]> => {
+      console.log('🔄 [useMobileProducts] BEGIN - Fetching products');
+      
       const response = await fetch(`${API_URL}/api/mobile/billing/products`, {
         credentials: 'include',
       });
       
+      console.log('🔄 [useMobileProducts] Response received:', {
+        status: response.status,
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries())
+      });
+      
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ [useMobileProducts] Request failed:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: errorText
+        });
         throw new Error(`Failed to fetch products: ${response.statusText}`);
       }
       
-      return response.json();
+      const data = await response.json();
+      console.log('✅ [useMobileProducts] SUCCESS - Result:', data);
+      return data;
     },
     staleTime: 1000 * 60 * 10, // 10 minutes
     retry: 2,
@@ -91,6 +121,8 @@ export function useMobilePurchase() {
       subscription?: MobileSubscriptionData;
       error?: string;
     }> => {
+      console.log('🔄 [useMobilePurchase] BEGIN - Input:', purchaseData);
+      
       const response = await fetch(`${API_URL}/api/mobile/billing/purchase`, {
         method: 'POST',
         headers: {
@@ -100,14 +132,28 @@ export function useMobilePurchase() {
         body: JSON.stringify(purchaseData),
       });
 
+      console.log('🔄 [useMobilePurchase] Response received:', {
+        status: response.status,
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries())
+      });
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => null);
+        console.error('❌ [useMobilePurchase] Request failed:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorData
+        });
         throw new Error(errorData?.error || `Purchase failed: ${response.statusText}`);
       }
 
-      return response.json();
+      const data = await response.json();
+      console.log('✅ [useMobilePurchase] SUCCESS - Result:', data);
+      return data;
     },
     onSuccess: () => {
+      console.log('🔄 [useMobilePurchase] Invalidating queries after successful purchase');
       // Invalidate and refetch subscription data after successful purchase
       queryClient.invalidateQueries({ queryKey: [API_BASE, 'subscription'] });
       queryClient.invalidateQueries({ queryKey: [API_BASE, 'products'] });
