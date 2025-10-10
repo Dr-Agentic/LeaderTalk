@@ -12,7 +12,6 @@ interface TextProps {
 }
 
 export const Text = ({
-  const theme = useTheme();
   children,
   variant = 'body',
   weight = 'normal',
@@ -20,6 +19,7 @@ export const Text = ({
   align = 'auto',
   style,
 }: TextProps) => {
+  const theme = useTheme();
   // Get variant-specific styles
   const getVariantStyle = () => {
     switch (variant) {

@@ -12,16 +12,15 @@ import { router } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import {
-  BarChart,
-  Bar,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts';
+  VictoryChart,
+  VictoryBar,
+  VictoryLine,
+  VictoryArea,
+  VictoryAxis,
+  VictoryTooltip,
+  VictoryContainer,
+  VictoryLabel,
+} from 'victory-native';
 
 import { AppLayout } from '../src/components/navigation/AppLayout';
 import { GlassCard } from '../src/components/ui/GlassCard';
@@ -32,6 +31,7 @@ import { apiRequest } from '../src/lib/apiService';
 import { useTheme } from '../src/hooks/useTheme';
 
 const { width: screenWidth } = Dimensions.get('window');
+const chartWidth = screenWidth - 80; // Account for padding
 
 type TimeBasedView = 'week' | 'month' | 'quarter' | 'year' | 'alltime';
 type RecordingsCount = 10 | 20 | 50;
@@ -175,13 +175,20 @@ export default function ProgressScreen() {
 
   // Chart theme based on current theme
   const chartTheme = useMemo(() => ({
-    grid: { stroke: theme.colors.border },
-    axis: { stroke: theme.colors.disabled },
-    tick: { fill: theme.colors.muted, fontSize: 12 },
-    tooltip: { 
-      backgroundColor: theme.colors.surface,
-      border: `1px solid ${theme.colors.border}`
-    }
+    axis: {
+      style: {
+        axis: { stroke: theme.colors.disabled, strokeWidth: 1 },
+        tickLabels: { 
+          fill: theme.colors.muted, 
+          fontSize: 12,
+          fontFamily: 'Inter'
+        },
+        grid: { stroke: theme.colors.border, strokeWidth: 1 },
+      },
+    },
+    chart: {
+      padding: { left: 60, top: 40, right: 40, bottom: 80 },
+    },
   }), [theme]);
 
   // Score color function using theme
@@ -437,33 +444,44 @@ export default function ProgressScreen() {
 
           <View style={styles.chartContainer}>
             {timeBasedChartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart 
-                  data={timeBasedChartData.map(d => ({ period: d.period, score: d.score }))}
-                  margin={{ left: 60, top: 40, right: 40, bottom: 80 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid.stroke} />
-                  <XAxis 
-                    dataKey="period" 
-                    angle={-45} 
-                    textAnchor="end" 
-                    stroke={chartTheme.axis.stroke}
-                    tick={chartTheme.tick}
-                  />
-                  <YAxis 
-                    domain={[0, 100]} 
-                    stroke={chartTheme.axis.stroke} 
-                    tick={chartTheme.tick} 
-                  />
-                  <Tooltip />
-                  <Bar 
-                    dataKey="score" 
-                    fill={theme.colors.info}
-                    radius={[4, 4, 0, 0]}
-                    animationDuration={2000}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
+              <VictoryChart
+                width={chartWidth}
+                height={300}
+                padding={{ left: 60, top: 40, right: 40, bottom: 80 }}
+                containerComponent={<VictoryContainer responsive={false} />}
+              >
+                <VictoryAxis
+                  dependentAxis
+                  domain={[0, 100]}
+                  tickFormat={(t) => `${t}`}
+                  style={{
+                    axis: { stroke: chartTheme.axis.style.axis.stroke },
+                    tickLabels: { fill: chartTheme.axis.style.tickLabels.fill, fontSize: 12 },
+                    grid: { stroke: chartTheme.axis.style.grid.stroke },
+                  }}
+                />
+                <VictoryAxis
+                  fixLabelOverlap={true}
+                  style={{
+                    axis: { stroke: chartTheme.axis.style.axis.stroke },
+                    tickLabels: { 
+                      fill: chartTheme.axis.style.tickLabels.fill, 
+                      fontSize: 10,
+                      angle: -45,
+                    },
+                  }}
+                />
+                <VictoryBar
+                  data={timeBasedChartData.map(d => ({ x: d.period, y: d.score }))}
+                  style={{
+                    data: {
+                      fill: ({ datum }) => getScoreColor(datum.y),
+                      fillOpacity: 0.8,
+                    },
+                  }}
+                  labelComponent={<VictoryTooltip />}
+                />
+              </VictoryChart>
             ) : (
               <View style={styles.emptyChart}>
                 <Feather name="bar-chart-2" size={48} color={theme.colors.disabled} />
@@ -493,39 +511,53 @@ export default function ProgressScreen() {
 
           <View style={styles.chartContainer}>
             {recordingsChartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart 
+              <VictoryChart
+                width={chartWidth}
+                height={300}
+                padding={{ left: 60, top: 40, right: 40, bottom: 60 }}
+                containerComponent={<VictoryContainer responsive={false} />}
+              >
+                <VictoryAxis
+                  dependentAxis
+                  domain={[0, 100]}
+                  tickFormat={(t) => `${t}`}
+                  style={{
+                    axis: { stroke: chartTheme.axis.style.axis.stroke },
+                    tickLabels: { fill: chartTheme.axis.style.tickLabels.fill, fontSize: 12 },
+                    grid: { stroke: chartTheme.axis.style.grid.stroke },
+                  }}
+                />
+                <VictoryAxis
+                  style={{
+                    axis: { stroke: chartTheme.axis.style.axis.stroke },
+                    tickLabels: { fill: chartTheme.axis.style.tickLabels.fill, fontSize: 12 },
+                  }}
+                />
+                <VictoryLine
                   data={recordingsChartData}
-                  margin={{ left: 60, top: 40, right: 40, bottom: 60 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid.stroke} />
-                  <XAxis 
-                    dataKey="x" 
-                    stroke={chartTheme.axis.stroke} 
-                    tick={chartTheme.tick} 
-                  />
-                  <YAxis 
-                    domain={[0, 100]} 
-                    stroke={chartTheme.axis.stroke} 
-                    tick={chartTheme.tick} 
-                  />
-                  <Tooltip 
-                    formatter={(value, name, props) => [
-                      value, 
-                      `${props.payload.fullTitle} (${props.payload.date})`
-                    ]} 
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="y" 
-                    stroke={theme.colors.info} 
-                    strokeWidth={3} 
-                    dot={false}
-                    activeDot={{ r: 8 }}
-                    animationDuration={1000}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+                  style={{
+                    data: { stroke: theme.colors.info, strokeWidth: 3 },
+                  }}
+                  animate={{
+                    duration: 1000,
+                    onLoad: { duration: 500 }
+                  }}
+                />
+                <VictoryArea
+                  data={recordingsChartData}
+                  style={{
+                    data: { 
+                      fill: theme.colors.info, 
+                      fillOpacity: 0.2,
+                      stroke: 'transparent',
+                    },
+                  }}
+                  animate={{
+                    duration: 1000,
+                    onLoad: { duration: 500 }
+                  }}
+                />
+              </VictoryChart>
             ) : (
               <View style={styles.emptyChart}>
                 <Feather name="trending-up" size={48} color={theme.colors.disabled} />

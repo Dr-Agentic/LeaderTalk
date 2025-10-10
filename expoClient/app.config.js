@@ -1,7 +1,7 @@
 module.exports = {
   expo: {
     name: "LeaderTalk",
-    slug: "leadertalk",
+    slug: "leadertalk-try1",
     version: "1.0.0",
     orientation: "portrait",
     icon: "./assets/icon.png",
@@ -35,7 +35,8 @@ module.exports = {
     extra: {
       apiUrl: process.env.EXPO_PUBLIC_API_URL || "https://app.leadertalk.app",
       eas: {
-        projectId: "your-project-id"
+        projectId: "42550eb6-1161-408a-9809-fe0280a16a9d",
+        owner: "mchei"
       }
     }
   }

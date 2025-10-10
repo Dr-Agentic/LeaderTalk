@@ -19,14 +19,8 @@ import { GlassCard } from "../src/components/ui/GlassCard";
 import { Button } from "../src/components/ui/Button";
 import { ThemedText } from "../src/components/ThemedText";
 import { apiRequest, queryClient } from "../src/lib/apiService";
-import {
-  useMobileSubscription,
-  useMobileProducts,
-  useMobilePurchase,
-  useMobileRestore,
-  useMobileBillingUsage,
-} from "../src/hooks/useMobileBilling";
-import { revenueCatService } from "../src/services/revenueCatService";
+import { useRevenueCat } from "../src/hooks/useRevenueCat";
+import { useMobileBillingUsage } from "../src/hooks/useMobileBilling";
 import { useTheme } from '../src/hooks/useTheme';
 
 const { width } = Dimensions.get("window");
@@ -56,8 +50,8 @@ interface BillingProduct {
   billingType: string;
 }
 
-// Using MobileSubscriptionData directly from RevenueCat service
-import type { MobileSubscriptionData } from "../src/services/revenueCatService";
+// Using MobileSubscriptionData directly from RevenueCat hook
+import type { MobileSubscriptionData } from "../src/hooks/useRevenueCat";
 
 export default function SubscriptionScreen() {
   const theme = useTheme();
@@ -98,34 +92,26 @@ export default function SubscriptionScreen() {
     },
   }), [theme]);
 
-  // Fetch current subscription using RevenueCat
+  // RevenueCat integration
   const {
-    data: currentSubscription,
-    isLoading: subscriptionLoading,
-    refetch: refetchSubscription,
-  } = useMobileSubscription();
+    currentSubscription,
+    products: plans,
+    purchaseProduct,
+    restorePurchases,
+    isLoading: revenueCatLoading,
+    isPurchasing,
+    isRestoring,
+    error: revenueCatError,
+    purchaseSubscription,
+    restorePurchasesMutation,
+  } = useRevenueCat();
 
-  // Fetch available plans using RevenueCat
-  const { data: plans, isLoading: plansLoading } = useMobileProducts();
-
-  // DEBUG: Keep one log for implementation analysis
-  console.log('Server JSON - currentSubscription:', currentSubscription);
-  console.log('Type:', typeof currentSubscription);
-  console.log('Is null:', currentSubscription === null);
-  console.log('Is undefined:', currentSubscription === undefined);
-
-  // Mobile billing usage
+  // Mobile billing usage (keep existing)
   const { data: billingUsage, isLoading: usageLoading, error: usageError } = useMobileBillingUsage();
-  
-  console.log('Server JSON - billingUsage:', billingUsage);
-  console.log('Usage loading:', usageLoading);
-  console.log('Usage error:', usageError);
 
-  // RevenueCat purchase mutation
-  const purchaseSubscription = useMobilePurchase();
-
-  // RevenueCat restore mutation
-  const restorePurchases = useMobileRestore();
+  // Combine loading states
+  const subscriptionLoading = revenueCatLoading;
+  const plansLoading = revenueCatLoading;
 
   // Mock update subscription for compatibility
   const updateSubscription = useMutation({
@@ -231,7 +217,7 @@ export default function SubscriptionScreen() {
     // Platform-specific purchase flow
     if (Platform.OS === 'ios' || Platform.OS === 'android') {
       console.log('🔄 [handleSubscribe] Mobile platform detected:', Platform.OS);
-      // Mobile: Use RevenueCat via mobile billing hooks
+      // Mobile: Use RevenueCat directly
       Alert.alert(
         "Confirm Purchase",
         `Purchase ${plan.name} for ${plan.pricing.formattedPrice}${plan.pricing.interval}?`,
@@ -239,32 +225,28 @@ export default function SubscriptionScreen() {
           { text: "Cancel", style: "cancel" },
           {
             text: "Purchase",
-            onPress: () => {
-              console.log('🔄 [handleSubscribe] User confirmed purchase, calling mutation');
-              purchaseSubscription.mutate({
-                productId: productId,
-              }, {
-                onSuccess: (result) => {
-                  console.log('✅ [handleSubscribe] Purchase successful:', result);
-                  Alert.alert(
-                    "Purchase Successful!",
-                    `You've successfully subscribed to ${plan.name}. Your subscription is now active.`,
-                    [{ text: "OK" }]
-                  );
-                },
-                onError: (error: any) => {
-                  console.error('❌ [handleSubscribe] Purchase failed:', {
-                    error: error.message,
-                    stack: error.stack,
-                    productId
-                  });
-                  Alert.alert(
-                    "Purchase Failed",
-                    error.message || "Unable to complete purchase. Please try again.",
-                    [{ text: "OK" }]
-                  );
-                }
-              });
+            onPress: async () => {
+              try {
+                console.log('🔄 [handleSubscribe] User confirmed purchase, calling RevenueCat');
+                await purchaseProduct({ productId });
+                console.log('✅ [handleSubscribe] Purchase successful');
+                Alert.alert(
+                  "Purchase Successful!",
+                  `You've successfully subscribed to ${plan.name}. Your subscription is now active.`,
+                  [{ text: "OK" }]
+                );
+              } catch (error: any) {
+                console.error('❌ [handleSubscribe] Purchase failed:', {
+                  error: error.message,
+                  stack: error.stack,
+                  productId
+                });
+                Alert.alert(
+                  "Purchase Failed",
+                  error.message || "Unable to complete purchase. Please try again.",
+                  [{ text: "OK" }]
+                );
+              }
             },
           },
         ],
@@ -439,31 +421,29 @@ export default function SubscriptionScreen() {
               {(Platform.OS === 'ios' || Platform.OS === 'android') && (
                 <Button
                   title="Restore Purchases"
-                  onPress={() => {
-                    restorePurchases.mutate(undefined, {
-                      onSuccess: () => {
-                        Alert.alert(
-                          "Restore Complete",
-                          "Your purchases have been restored successfully.",
-                          [{ text: "OK" }]
-                        );
-                      },
-                      onError: (error: any) => {
-                        Alert.alert(
-                          "Restore Failed",
-                          error.message || "Unable to restore purchases. Please try again.",
-                          [{ text: "OK" }]
-                        );
-                      }
-                    });
+                  onPress={async () => {
+                    try {
+                      await restorePurchases();
+                      Alert.alert(
+                        "Restore Complete",
+                        "Your purchases have been restored successfully.",
+                        [{ text: "OK" }]
+                      );
+                    } catch (error: any) {
+                      Alert.alert(
+                        "Restore Failed",
+                        error.message || "Unable to restore purchases. Please try again.",
+                        [{ text: "OK" }]
+                      );
+                    }
                   }}
                   style={[
                     styles.restoreButton,
                     { backgroundColor: `${theme.colors.primary}1A` }, // 10% opacity
                   ]}
                   textStyle={{ color: theme.colors.primary }}
-                  disabled={restorePurchases.isPending}
-                  loading={restorePurchases.isPending}
+                  disabled={isRestoring}
+                  loading={isRestoring}
                 />
               )}
             </GlassCard>
@@ -556,8 +536,8 @@ export default function SubscriptionScreen() {
                 <Button
                   title={isCurrentPlan ? "Current Plan" : "Select Plan"}
                   onPress={() => handleSubscribe(plan)}
-                  disabled={updateSubscription.isPending || isCurrentPlan}
-                  loading={updateSubscription.isPending}
+                  disabled={isPurchasing || isCurrentPlan}
+                  loading={isPurchasing}
                   style={[
                     styles.selectButton,
                     isCurrentPlan && styles.currentPlanButton,
