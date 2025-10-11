@@ -426,4 +426,108 @@ export function registerTrainingRoutes(app: Express) {
       res.status(500).json({ error: "Failed to save progress" });
     }
   });
+
+  // Get next situation recommendation
+  app.get("/api/training/next-situation-direct", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId;
+      
+      // Get all situation IDs from all chapters
+      const allSituationIds: number[] = [];
+      const chapterSituationMap = new Map<number, { chapterId: number, moduleId: number, module: any }>();
+      
+      for (let i = 1; i <= 5; i++) {
+        try {
+          const chapterData = loadChapterData(i);
+          chapterData.modules.forEach((module: any) => {
+            module.scenarios.forEach((scenario: any) => {
+              allSituationIds.push(scenario.id);
+              chapterSituationMap.set(scenario.id, {
+                chapterId: i,
+                moduleId: module.id,
+                module: module
+              });
+            });
+          });
+        } catch (error) {
+          // Chapter doesn't exist, skip
+        }
+      }
+      
+      // Get user's completed situations (passed with score >= 70)
+      const completedAttempts = await db
+        .select()
+        .from(situationAttempts)
+        .where(eq(situationAttempts.userId, userId))
+        .orderBy(desc(situationAttempts.createdAt));
+      
+      // Group by situation ID and get the latest attempt for each
+      const latestAttempts = new Map();
+      completedAttempts.forEach(attempt => {
+        if (!latestAttempts.has(attempt.situationId)) {
+          latestAttempts.set(attempt.situationId, attempt);
+        }
+      });
+      
+      // Find completed situations (score >= 70)
+      const completedSituationIds = Array.from(latestAttempts.entries())
+        .filter(([_, attempt]) => (attempt.evaluation?.overallScore || 0) >= 70)
+        .map(([situationId, _]) => situationId);
+      
+      // Find next incomplete situation
+      const incompleteSituationIds = allSituationIds.filter(id => 
+        !completedSituationIds.includes(id)
+      );
+      
+      if (incompleteSituationIds.length === 0) {
+        return res.json({
+          completed: true,
+          message: "All training situations completed!"
+        });
+      }
+      
+      // Get the first incomplete situation
+      const nextSituationId = incompleteSituationIds[0];
+      const situationInfo = chapterSituationMap.get(nextSituationId);
+      
+      if (!situationInfo) {
+        return res.json({
+          completed: true,
+          message: "No more situations available"
+        });
+      }
+      
+      // Load the actual situation data
+      const chapterData = loadChapterData(situationInfo.chapterId);
+      const module = chapterData.modules.find((m: any) => m.id === situationInfo.moduleId);
+      const situation = module?.scenarios.find((s: any) => s.id === nextSituationId);
+      
+      if (!situation) {
+        return res.json({
+          completed: true,
+          message: "Situation data not found"
+        });
+      }
+      
+      res.json({
+        completed: false,
+        nextSituation: {
+          id: situation.id,
+          description: situation.description,
+          userPrompt: situation.user_prompt,
+          module: {
+            id: module.id,
+            title: module.module_title
+          },
+          chapter: {
+            id: situationInfo.chapterId,
+            title: chapterData.chapter_title
+          }
+        }
+      });
+    } catch (error) {
+      console.error("Error getting next situation:", error);
+      res.status(500).json({ error: "Failed to get next situation" });
+    }
+  });
 }

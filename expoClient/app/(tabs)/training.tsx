@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -10,166 +10,27 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
-import { useQuery } from '@tanstack/react-query';
 
 import { AppLayout } from '../../src/components/navigation/AppLayout';
 import { GlassCard } from '../../src/components/ui/GlassCard';
 import { Button } from '../../src/components/ui/Button';
 import { ProgressBar } from '../../src/components/ui/ProgressBar';
 import { ThemedText } from '../../src/components/ThemedText';
-import { apiRequest } from '../../src/lib/apiService';
 import { useTheme } from '../../src/hooks/useTheme';
-
-interface TrainingModule {
-  id: string;
-  module_title: string;
-  leadership_trait: string;
-  scenarios: any[];
-}
-
-interface TrainingChapter {
-  id: string;
-  chapter_title: string;
-  modules: TrainingModule[];
-}
-
-interface UserProgress {
-  chapterId: string;
-  moduleId: string;
-  scenarioId: string;
-  completed: boolean;
-}
-
-interface NextSituation {
-  chapterId: string;
-  moduleId: string;
-  scenarioId: string;
-  completed: boolean;
-}
-
-// Mock data for demonstration
-const MOCK_CHAPTERS: TrainingChapter[] = [
-  {
-    id: '1',
-    chapter_title: 'Foundation of Leadership',
-    modules: [
-      {
-        id: '1-1',
-        module_title: 'Building Trust and Credibility',
-        leadership_trait: 'Trustworthiness',
-        scenarios: [
-          { id: '1-1-1', title: 'Team Conflict Resolution' },
-          { id: '1-1-2', title: 'Difficult Conversations' },
-          { id: '1-1-3', title: 'Setting Expectations' },
-        ],
-      },
-      {
-        id: '1-2',
-        module_title: 'Effective Communication',
-        leadership_trait: 'Communication',
-        scenarios: [
-          { id: '1-2-1', title: 'Active Listening' },
-          { id: '1-2-2', title: 'Giving Feedback' },
-          { id: '1-2-3', title: 'Public Speaking' },
-          { id: '1-2-4', title: 'Written Communication' },
-        ],
-      },
-    ],
-  },
-  {
-    id: '2',
-    chapter_title: 'Strategic Leadership',
-    modules: [
-      {
-        id: '2-1',
-        module_title: 'Vision and Strategy',
-        leadership_trait: 'Strategic Thinking',
-        scenarios: [
-          { id: '2-1-1', title: 'Creating a Vision' },
-          { id: '2-1-2', title: 'Strategic Planning' },
-          { id: '2-1-3', title: 'Change Management' },
-        ],
-      },
-      {
-        id: '2-2',
-        module_title: 'Decision Making',
-        leadership_trait: 'Decision Making',
-        scenarios: [
-          { id: '2-2-1', title: 'Data-Driven Decisions' },
-          { id: '2-2-2', title: 'Crisis Management' },
-        ],
-      },
-    ],
-  },
-  {
-    id: '3',
-    chapter_title: 'People Leadership',
-    modules: [
-      {
-        id: '3-1',
-        module_title: 'Team Development',
-        leadership_trait: 'Team Building',
-        scenarios: [
-          { id: '3-1-1', title: 'Motivating Teams' },
-          { id: '3-1-2', title: 'Performance Management' },
-          { id: '3-1-3', title: 'Delegation' },
-          { id: '3-1-4', title: 'Coaching and Mentoring' },
-        ],
-      },
-    ],
-  },
-];
-
-const MOCK_USER_PROGRESS: UserProgress[] = [
-  { chapterId: '1', moduleId: '1-1', scenarioId: '1-1-1', completed: true },
-  { chapterId: '1', moduleId: '1-1', scenarioId: '1-1-2', completed: true },
-  { chapterId: '1', moduleId: '1-2', scenarioId: '1-2-1', completed: true },
-  { chapterId: '2', moduleId: '2-1', scenarioId: '2-1-1', completed: true },
-];
-
-const MOCK_NEXT_SITUATION: NextSituation = {
-  chapterId: '1',
-  moduleId: '1-1',
-  scenarioId: '1-1-3',
-  completed: false,
-};
+import { 
+  useTrainingChapters, 
+  useTrainingProgress, 
+  useNextSituation 
+} from '../../src/hooks/useTraining';
 
 export default function TrainingScreen() {
   const theme = useTheme();
   const [refreshing, setRefreshing] = useState(false);
 
-  // Fetch training chapters
-  const { data: chapters, isLoading: chaptersLoading, refetch: refetchChapters } = useQuery<TrainingChapter[]>({
-    queryKey: ['/api/training/chapters'],
-    queryFn: async () => {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return MOCK_CHAPTERS;
-    },
-    refetchOnWindowFocus: false,
-  });
-
-  // Fetch user progress
-  const { data: userProgress, refetch: refetchProgress } = useQuery<UserProgress[]>({
-    queryKey: ['/api/training/progress'],
-    queryFn: async () => {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-      return MOCK_USER_PROGRESS;
-    },
-    refetchOnWindowFocus: false,
-  });
-
-  // Fetch next recommended situation
-  const { data: nextSituation } = useQuery<NextSituation>({
-    queryKey: ['/api/training/next-situation-direct'],
-    queryFn: async () => {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 300));
-      return MOCK_NEXT_SITUATION;
-    },
-    refetchOnWindowFocus: false,
-  });
+  // Fetch training data using real APIs
+  const { data: chapters, isLoading: chaptersLoading, refetch: refetchChapters } = useTrainingChapters();
+  const { data: userProgress, refetch: refetchProgress } = useTrainingProgress();
+  const { data: nextSituation } = useNextSituation();
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -192,12 +53,12 @@ export default function TrainingScreen() {
   const progressPercentage = totalSituations > 0 ? (completedSituations / totalSituations) * 100 : 0;
 
   const handleStartNextExercise = () => {
-    if (nextSituation) {
+    if (nextSituation && !nextSituation.completed) {
       router.push('/training/next-situation');
     }
   };
 
-  const handleModulePress = (chapterId: string, moduleId: string) => {
+  const handleModulePress = (chapterId: number, moduleId: number) => {
     router.push(`/training/chapter/${chapterId}/module/${moduleId}`);
   };
 
