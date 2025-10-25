@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
+import { Platform } from 'react-native';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { revenueCatService } from '../lib/revenueCat';
+import { apiRequest } from '../lib/apiService';
+import { API_URL } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 import type { CustomerInfo, PurchasesOffering, PurchasesPackage } from 'react-native-purchases';
 
@@ -76,43 +79,63 @@ export function useRevenueCat() {
     retry: 2,
   });
 
-  // Get available products
+  // Get available products from server (replaces RevenueCat getOfferings)
   const productsQuery = useQuery({
-    queryKey: ['revenuecat', 'products'],
+    queryKey: ['server', 'products'],
     queryFn: async (): Promise<MobileBillingProduct[]> => {
-      const initialized = await revenueCatService.initialize(user?.email);
-      if (!initialized) {
-        throw new Error('Failed to initialize RevenueCat');
+      const response = await fetch(`${API_URL}/api/mobile/billing/products`, {
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch products: ${response.statusText}`);
       }
-
-      const offerings = await revenueCatService.getOfferings();
-      return transformOfferingsToProducts(offerings);
+      
+      return response.json();
     },
     enabled: isAuthenticated && !!user?.email,
     staleTime: 1000 * 60 * 10, // 10 minutes
     retry: 2,
   });
 
-  // Purchase mutation
+  // Purchase mutation - server-side validation, RevenueCat processing
   const purchaseMutation = useMutation({
     mutationFn: async ({ productId }: { productId: string }) => {
-      const offerings = await revenueCatService.getOfferings();
-      const packageToPurchase = findPackageByProductId(offerings, productId);
-      
-      if (!packageToPurchase) {
-        throw new Error(`Product ${productId} not found in offerings`);
-      }
+      // For mobile platforms, still use RevenueCat for purchase processing
+      if (Platform.OS === 'ios' || Platform.OS === 'android') {
+        // Get offerings for purchase package lookup (kept for mobile compatibility)
+        const offerings = await revenueCatService.getOfferings();
+        const packageToPurchase = findPackageByProductId(offerings, productId);
+        
+        if (!packageToPurchase) {
+          throw new Error(`Product ${productId} not found in offerings`);
+        }
 
-      const customerInfo = await revenueCatService.purchasePackage(packageToPurchase);
-      if (!customerInfo) {
-        throw new Error('Purchase was cancelled');
-      }
+        const customerInfo = await revenueCatService.purchasePackage(packageToPurchase);
+        if (!customerInfo) {
+          throw new Error('Purchase was cancelled');
+        }
 
-      return transformCustomerInfoToSubscription(customerInfo, user?.email || '');
+        return transformCustomerInfoToSubscription(customerInfo, user?.email || '');
+      } else {
+        // Web: Server-side purchase processing
+        const response = await fetch(`${API_URL}/api/mobile/billing/purchase`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ productId }),
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Purchase failed: ${response.statusText}`);
+        }
+        
+        return response.json();
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['revenuecat', 'subscription'] });
-      queryClient.invalidateQueries({ queryKey: ['revenuecat', 'products'] });
+      queryClient.invalidateQueries({ queryKey: ['server', 'products'] });
     },
   });
 
@@ -217,36 +240,8 @@ function transformCustomerInfoToSubscription(customerInfo: CustomerInfo, userId:
   };
 }
 
-// Transform RevenueCat Offerings to MobileBillingProduct format
-function transformOfferingsToProducts(offerings: PurchasesOffering[]): MobileBillingProduct[] {
-  const products: MobileBillingProduct[] = [];
-
-  offerings.forEach((offering) => {
-    offering.availablePackages.forEach((pkg) => {
-      const product = pkg.product;
-      
-      products.push({
-        id: pkg.identifier,
-        code: pkg.identifier,
-        name: product.title,
-        description: product.description,
-        productIcon: null,
-        pricing: {
-          amount: parseFloat(product.price) * 100, // Convert to cents
-          formattedPrice: product.priceString,
-          interval: getIntervalFromPeriod(product.subscriptionPeriod),
-          productId: product.identifier,
-        },
-        features: getFeaturesByPackage(pkg.identifier),
-        isDefault: offering.identifier === 'default',
-        isPopular: pkg.identifier.includes('popular') || pkg.identifier.includes('monthly'),
-        billingType: 'mobile',
-      });
-    });
-  });
-
-  return products;
-}
+// transformOfferingsToProducts() removed - products now come from server
+// This function was replaced by server-side product fetching
 
 // Helper to find package by product ID
 function findPackageByProductId(offerings: PurchasesOffering[], productId: string): PurchasesPackage | null {
