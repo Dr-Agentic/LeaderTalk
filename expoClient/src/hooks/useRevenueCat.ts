@@ -1,11 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Platform } from 'react-native';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { revenueCatService } from '../lib/revenueCat';
-import { apiRequest } from '../lib/apiService';
 import { API_URL } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
-import type { CustomerInfo, PurchasesOffering, PurchasesPackage } from 'react-native-purchases';
 
 // Types matching mobile billing interface
 export interface MobileSubscriptionData {
@@ -62,17 +58,19 @@ export function useRevenueCat() {
   const { isAuthenticated, user } = useAuth();
   const queryClient = useQueryClient();
 
-  // Get current subscription
+  // Get current subscription - server-side
   const subscriptionQuery = useQuery({
-    queryKey: ['revenuecat', 'subscription'],
+    queryKey: ['server', 'subscription'],
     queryFn: async (): Promise<MobileSubscriptionData> => {
-      const initialized = await revenueCatService.initialize(user?.email);
-      if (!initialized) {
-        throw new Error('Failed to initialize RevenueCat');
+      const response = await fetch(`${API_URL}/api/mobile/billing/subscription`, {
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch subscription: ${response.statusText}`);
       }
-
-      const customerInfo = await revenueCatService.getCustomerInfo();
-      return transformCustomerInfoToSubscription(customerInfo, user?.email || '');
+      
+      return response.json();
     },
     enabled: isAuthenticated && !!user?.email,
     staleTime: 1000 * 60 * 5, // 5 minutes
@@ -98,55 +96,46 @@ export function useRevenueCat() {
     retry: 2,
   });
 
-  // Purchase mutation - server-side validation, RevenueCat processing
+  // Purchase mutation - full server-side billing
   const purchaseMutation = useMutation({
     mutationFn: async ({ productId }: { productId: string }) => {
-      // For mobile platforms, still use RevenueCat for purchase processing
-      if (Platform.OS === 'ios' || Platform.OS === 'android') {
-        // Get offerings for purchase package lookup (kept for mobile compatibility)
-        const offerings = await revenueCatService.getOfferings();
-        const packageToPurchase = findPackageByProductId(offerings, productId);
-        
-        if (!packageToPurchase) {
-          throw new Error(`Product ${productId} not found in offerings`);
-        }
-
-        const customerInfo = await revenueCatService.purchasePackage(packageToPurchase);
-        if (!customerInfo) {
-          throw new Error('Purchase was cancelled');
-        }
-
-        return transformCustomerInfoToSubscription(customerInfo, user?.email || '');
-      } else {
-        // Web: Server-side purchase processing
-        const response = await fetch(`${API_URL}/api/mobile/billing/purchase`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ productId }),
-        });
-        
-        if (!response.ok) {
-          throw new Error(`Purchase failed: ${response.statusText}`);
-        }
-        
-        return response.json();
+      // Server-side purchase processing for all platforms
+      const response = await fetch(`${API_URL}/api/mobile/billing/purchase`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ productId }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Purchase failed: ${response.statusText}`);
       }
+      
+      return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['revenuecat', 'subscription'] });
+      queryClient.invalidateQueries({ queryKey: ['server', 'subscription'] });
       queryClient.invalidateQueries({ queryKey: ['server', 'products'] });
     },
   });
 
-  // Restore mutation
+  // Restore mutation - server-side
   const restoreMutation = useMutation({
     mutationFn: async () => {
-      const customerInfo = await revenueCatService.restorePurchases();
-      return transformCustomerInfoToSubscription(customerInfo, user?.email || '');
+      const response = await fetch(`${API_URL}/api/mobile/billing/restore`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Restore failed: ${response.statusText}`);
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['revenuecat', 'subscription'] });
+      queryClient.invalidateQueries({ queryKey: ['server', 'subscription'] });
     },
   });
 
@@ -172,132 +161,4 @@ export function useRevenueCat() {
     restorePurchasesMutation: restoreMutation,
   };
 }
-
-// Transform RevenueCat CustomerInfo to MobileSubscriptionData format
-function transformCustomerInfoToSubscription(customerInfo: CustomerInfo, userId: string): MobileSubscriptionData {
-  const activeEntitlements = customerInfo.entitlements.active;
-  const hasActiveSubscription = Object.keys(activeEntitlements).length > 0;
-
-  if (!hasActiveSubscription) {
-    // Return default free subscription
-    const now = new Date();
-    const oneYearFromNow = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
-
-    return {
-      hasSubscription: true,
-      subscription: {
-        id: 'revenuecat_starter_default',
-        status: 'active',
-        plan: 'LeaderTalk Starter',
-        planId: 'starter',
-        productId: 'starter_free',
-        isFree: true,
-        startDate: now,
-        currentPeriodStart: now,
-        currentPeriodEnd: oneYearFromNow,
-        nextRenewalDate: oneYearFromNow,
-        cancelAtPeriodEnd: false,
-        store: 'revenuecat_default',
-        entitlements: {},
-        customerId: userId,
-        formattedAmount: 'Free',
-        formattedInterval: '',
-        formattedStatus: 'Active (Free)',
-        formattedStartDate: now.toLocaleDateString(),
-        formattedNextRenewal: oneYearFromNow.toLocaleDateString(),
-      },
-    };
-  }
-
-  // Get primary entitlement
-  const primaryEntitlement = Object.values(activeEntitlements)[0];
-  const expirationDate = primaryEntitlement.expirationDate ? new Date(primaryEntitlement.expirationDate) : new Date();
-  const startDate = new Date(); // RevenueCat doesn't provide start date easily
-
-  return {
-    hasSubscription: true,
-    subscription: {
-      id: primaryEntitlement.productIdentifier,
-      status: primaryEntitlement.isActive ? 'active' : 'inactive',
-      plan: primaryEntitlement.identifier,
-      planId: primaryEntitlement.identifier,
-      productId: primaryEntitlement.productIdentifier,
-      isFree: false,
-      startDate,
-      currentPeriodStart: startDate,
-      currentPeriodEnd: expirationDate,
-      nextRenewalDate: expirationDate,
-      cancelAtPeriodEnd: primaryEntitlement.willRenew === false,
-      store: 'app_store',
-      entitlements: activeEntitlements,
-      customerId: userId,
-      formattedAmount: '$9.99', // Would need to get from product info
-      formattedInterval: '/month',
-      formattedStatus: primaryEntitlement.isActive ? 'Active' : 'Inactive',
-      formattedStartDate: startDate.toLocaleDateString(),
-      formattedNextRenewal: expirationDate.toLocaleDateString(),
-    },
-  };
-}
-
-// transformOfferingsToProducts() removed - products now come from server
-// This function was replaced by server-side product fetching
-
-// Helper to find package by product ID
-function findPackageByProductId(offerings: PurchasesOffering[], productId: string): PurchasesPackage | null {
-  for (const offering of offerings) {
-    const pkg = offering.availablePackages.find(p => p.product.identifier === productId);
-    if (pkg) return pkg;
-  }
-  return null;
-}
-
-// Helper to convert subscription period to display interval
-function getIntervalFromPeriod(period?: string): string {
-  switch (period) {
-    case 'P1M':
-      return '/month';
-    case 'P1Y':
-      return '/year';
-    case 'P1W':
-      return '/week';
-    default:
-      return '';
-  }
-}
-
-// Helper to get features based on package identifier
-function getFeaturesByPackage(packageId: string): MobileBillingProduct['features'] {
-  const defaultFeatures = {
-    wordLimit: 500,
-    maxRecordingLength: 300,
-    leaderLibraryAccess: false,
-    advancedAnalytics: false,
-    prioritySupport: false,
-  };
-
-  switch (packageId.toLowerCase()) {
-    case 'premium':
-    case 'monthly':
-    case 'executive':
-      return {
-        ...defaultFeatures,
-        wordLimit: 5000,
-        maxRecordingLength: 1800,
-        leaderLibraryAccess: true,
-        advancedAnalytics: true,
-      };
-    case 'pro':
-    case 'annual':
-      return {
-        ...defaultFeatures,
-        wordLimit: 10000,
-        maxRecordingLength: 3600,
-        leaderLibraryAccess: true,
-        advancedAnalytics: true,
-        prioritySupport: true,
-      };
-    default:
-      return defaultFeatures;
-  }
-}
+  

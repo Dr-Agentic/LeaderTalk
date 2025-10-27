@@ -194,7 +194,7 @@ export default function AllTranscriptsScreen() {
             options={sortOptions}
             selectedValue={sortBy}
             onValueChange={(value) => setSortBy(value as SortOption)}
-            icon="arrow-up-down"
+            icon="arrow-up-circle"
           />
         </View>
 
@@ -253,6 +253,15 @@ function getFilteredAndSortedRecordings(
 
 // Card component for each transcript
 function TranscriptCard({ recording }: { recording: Recording }) {
+  const theme = useTheme();
+  
+  // Dynamic styles based on theme
+  const dynamicStyles = useMemo(() => ({
+    metaText: {
+      color: theme.colors.muted,
+    },
+  }), [theme]);
+  
   // Format recording date
   const formattedDate = formatDistanceToNow(new Date(recording.recordedAt), {
     addSuffix: true,

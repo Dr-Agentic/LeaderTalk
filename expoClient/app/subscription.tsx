@@ -36,7 +36,7 @@ interface BillingProduct {
     formattedPrice: string;
     formattedSavings?: string;
     interval: string;
-    productId: string; // RevenueCat product ID instead of Stripe price ID
+    productId: string; // Server-side product ID
   };
   features: {
     wordLimit: number;
@@ -50,7 +50,7 @@ interface BillingProduct {
   billingType: string;
 }
 
-// Using MobileSubscriptionData directly from RevenueCat hook
+// Using MobileSubscriptionData from server-side billing hook
 import type { MobileSubscriptionData } from "../src/hooks/useRevenueCat";
 
 export default function SubscriptionScreen() {
@@ -92,16 +92,16 @@ export default function SubscriptionScreen() {
     },
   }), [theme]);
 
-  // RevenueCat integration
+  // Server-side billing integration
   const {
     currentSubscription,
     products: plans,
     purchaseProduct,
     restorePurchases,
-    isLoading: revenueCatLoading,
+    isLoading: billingLoading,
     isPurchasing,
     isRestoring,
-    error: revenueCatError,
+    error: billingError,
     purchaseSubscription,
     restorePurchasesMutation,
   } = useRevenueCat();
@@ -110,19 +110,19 @@ export default function SubscriptionScreen() {
   const { data: billingUsage, isLoading: usageLoading, error: usageError } = useMobileBillingUsage();
 
   // Combine loading states
-  const subscriptionLoading = revenueCatLoading;
-  const plansLoading = revenueCatLoading;
+  const subscriptionLoading = billingLoading;
+  const plansLoading = billingLoading;
 
   // Mock update subscription for compatibility
   const updateSubscription = useMutation({
     mutationFn: async (planData: { productId: string }) => {
-      // Trigger RevenueCat purchase flow
+      // Trigger server-side purchase flow
       return purchaseSubscription.mutateAsync({
         productId: planData.productId,
       });
     },
     onSuccess: (data, variables) => {
-      // RevenueCat will handle the actual payment processing
+      // Server will handle the actual payment processing
       // This success handler now just shows confirmation
       showSubscriptionSuccessMessage(data, variables);
       queryClient.invalidateQueries({ queryKey: ["subscription-current"] });
@@ -214,57 +214,40 @@ export default function SubscriptionScreen() {
       return;
     }
 
-    // Platform-specific purchase flow
-    if (Platform.OS === 'ios' || Platform.OS === 'android') {
-      console.log('🔄 [handleSubscribe] Mobile platform detected:', Platform.OS);
-      // Mobile: Use RevenueCat directly
-      Alert.alert(
-        "Confirm Purchase",
-        `Purchase ${plan.name} for ${plan.pricing.formattedPrice}${plan.pricing.interval}?`,
-        [
-          { text: "Cancel", style: "cancel" },
-          {
-            text: "Purchase",
-            onPress: async () => {
-              try {
-                console.log('🔄 [handleSubscribe] User confirmed purchase, calling RevenueCat');
-                await purchaseProduct({ productId });
-                console.log('✅ [handleSubscribe] Purchase successful');
-                Alert.alert(
-                  "Purchase Successful!",
-                  `You've successfully subscribed to ${plan.name}. Your subscription is now active.`,
-                  [{ text: "OK" }]
-                );
-              } catch (error: any) {
-                console.error('❌ [handleSubscribe] Purchase failed:', {
-                  error: error.message,
-                  stack: error.stack,
-                  productId
-                });
-                Alert.alert(
-                  "Purchase Failed",
-                  error.message || "Unable to complete purchase. Please try again.",
-                  [{ text: "OK" }]
-                );
-              }
-            },
+    // Server-side purchase flow for all platforms
+    Alert.alert(
+      "Confirm Purchase",
+      `Purchase ${plan.name} for ${plan.pricing.formattedPrice}${plan.pricing.interval}?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Purchase",
+          onPress: async () => {
+            try {
+              console.log('🔄 [handleSubscribe] User confirmed purchase, calling server API');
+              await purchaseProduct({ productId });
+              console.log('✅ [handleSubscribe] Purchase successful');
+              Alert.alert(
+                "Purchase Successful!",
+                `You've successfully subscribed to ${plan.name}. Your subscription is now active.`,
+                [{ text: "OK" }]
+              );
+            } catch (error: any) {
+              console.error('❌ [handleSubscribe] Purchase failed:', {
+                error: error.message,
+                stack: error.stack,
+                productId
+              });
+              Alert.alert(
+                "Purchase Failed",
+                error.message || "Unable to complete purchase. Please try again.",
+                [{ text: "OK" }]
+              );
+            }
           },
-        ],
-      );
-    } else {
-      // Web: Use existing Stripe flow
-      Alert.alert(
-        "Confirm Subscription Change",
-        `Are you sure you want to change to ${plan.name}?`,
-        [
-          { text: "Cancel", style: "cancel" },
-          {
-            text: "Confirm",
-            onPress: () => updateSubscription.mutate({ productId }),
-          },
-        ],
-      );
-    }
+        },
+      ],
+    );
   };
 
   const handleCancelSubscription = () => {
@@ -417,35 +400,33 @@ export default function SubscriptionScreen() {
                 />
               )}
 
-              {/* Restore Purchases Button for Mobile */}
-              {(Platform.OS === 'ios' || Platform.OS === 'android') && (
-                <Button
-                  title="Restore Purchases"
-                  onPress={async () => {
-                    try {
-                      await restorePurchases();
-                      Alert.alert(
-                        "Restore Complete",
-                        "Your purchases have been restored successfully.",
-                        [{ text: "OK" }]
-                      );
-                    } catch (error: any) {
-                      Alert.alert(
-                        "Restore Failed",
-                        error.message || "Unable to restore purchases. Please try again.",
-                        [{ text: "OK" }]
-                      );
-                    }
-                  }}
-                  style={[
-                    styles.restoreButton,
-                    { backgroundColor: `${theme.colors.primary}1A` }, // 10% opacity
-                  ]}
-                  textStyle={{ color: theme.colors.primary }}
-                  disabled={isRestoring}
-                  loading={isRestoring}
-                />
-              )}
+              {/* Restore Purchases Button */}
+              <Button
+                title="Restore Purchases"
+                onPress={async () => {
+                  try {
+                    await restorePurchases();
+                    Alert.alert(
+                      "Restore Complete",
+                      "Your purchases have been restored successfully.",
+                      [{ text: "OK" }]
+                    );
+                  } catch (error: any) {
+                    Alert.alert(
+                      "Restore Failed",
+                      error.message || "Unable to restore purchases. Please try again.",
+                      [{ text: "OK" }]
+                    );
+                  }
+                }}
+                style={[
+                  styles.restoreButton,
+                  { backgroundColor: `${theme.colors.primary}1A` }, // 10% opacity
+                ]}
+                textStyle={{ color: theme.colors.primary }}
+                disabled={isRestoring}
+                loading={isRestoring}
+              />
             </GlassCard>
           )}
 

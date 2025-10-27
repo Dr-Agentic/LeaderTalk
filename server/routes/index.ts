@@ -9,11 +9,15 @@ import { registerAdminRoutes } from "./admin";
 import { registerDebugRoutes } from "./debug";
 import { registerUsageRoutes } from "./usage";
 import { registerMobileBillingRoutes } from "./mobile-billing";
+import landingRouter from "./landing";
 
 /**
  * Register all route modules with the Express app
  */
 export function registerAllRoutes(app: Express) {
+  // Landing page routes (must be registered first for root path handling)
+  app.use('/', landingRouter);
+  
   // Authentication routes
   registerAuthRoutes(app);
   

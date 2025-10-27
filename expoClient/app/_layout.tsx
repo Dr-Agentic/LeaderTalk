@@ -155,16 +155,6 @@ export default function RootLayout() {
         await initializeSupabase();
         console.log('Supabase initialized successfully');
         
-        // Initialize RevenueCat
-        try {
-          const { revenueCatService } = await import('../src/lib/revenueCat');
-          await revenueCatService.initialize();
-          console.log('RevenueCat initialized successfully');
-        } catch (revenueCatError) {
-          console.warn('RevenueCat initialization failed:', revenueCatError);
-          // Don't throw error - app should still work without RevenueCat
-        }
-        
       } catch (error) {
         console.error('Error initializing auth:', error);
         setInitError((error as Error).message);

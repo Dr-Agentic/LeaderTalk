@@ -14,6 +14,7 @@ import { router } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '../src/hooks/useTheme';
+import { useAuth } from '../src/contexts/AuthContext';
 
 import { AppLayout } from '../src/components/navigation/AppLayout';
 import { GlassCard } from '../src/components/ui/GlassCard';
@@ -37,74 +38,9 @@ interface Leader {
 
 type ViewMode = 'detailed' | 'compact';
 
-// Mock data for demonstration
-const MOCK_LEADERS: Leader[] = [
-  {
-    id: 1,
-    name: 'Steve Jobs',
-    title: 'Co-founder and CEO of Apple Inc.',
-    description: 'Visionary leader who revolutionized technology and design thinking. Known for his perfectionism and ability to inspire teams to create groundbreaking products.',
-    photoUrl: 'https://example.com/steve-jobs.jpg',
-    leadershipStyles: ['Visionary', 'Transformational', 'Demanding'],
-    traits: ['Innovation', 'Perfectionism', 'Vision'],
-    famousPhrases: ['Stay hungry, stay foolish', 'Think different'],
-  },
-  {
-    id: 2,
-    name: 'Brené Brown',
-    title: 'Research Professor and Author',
-    description: 'Leading researcher on vulnerability, courage, and empathy. Transforms how leaders approach authenticity and human connection in the workplace.',
-    photoUrl: 'https://example.com/brene-brown.jpg',
-    leadershipStyles: ['Authentic', 'Empathetic', 'Vulnerable'],
-    traits: ['Vulnerability', 'Courage', 'Empathy'],
-    famousPhrases: ['Vulnerability is not weakness', 'Courage is contagious'],
-  },
-  {
-    id: 3,
-    name: 'Simon Sinek',
-    title: 'Author and Motivational Speaker',
-    description: 'Best known for popularizing the concept of "Start With Why." Focuses on inspiring leadership and creating purpose-driven organizations.',
-    photoUrl: 'https://example.com/simon-sinek.jpg',
-    leadershipStyles: ['Inspirational', 'Purpose-driven', 'Servant'],
-    traits: ['Purpose', 'Inspiration', 'Communication'],
-    famousPhrases: ['Start with why', 'Leaders eat last'],
-  },
-  {
-    id: 4,
-    name: 'Oprah Winfrey',
-    title: 'Media Executive and Philanthropist',
-    description: 'Influential media leader known for her empathetic communication style and ability to connect with diverse audiences on a personal level.',
-    photoUrl: 'https://example.com/oprah-winfrey.jpg',
-    leadershipStyles: ['Empathetic', 'Inspirational', 'Authentic'],
-    traits: ['Empathy', 'Communication', 'Authenticity'],
-    famousPhrases: ['What I know for sure', 'Live your best life'],
-  },
-  {
-    id: 5,
-    name: 'Elon Musk',
-    title: 'CEO of Tesla and SpaceX',
-    description: 'Innovative entrepreneur pushing boundaries in technology and space exploration. Known for ambitious vision and direct communication style.',
-    photoUrl: 'https://example.com/elon-musk.jpg',
-    leadershipStyles: ['Visionary', 'Disruptive', 'Direct'],
-    traits: ['Innovation', 'Ambition', 'Risk-taking'],
-    famousPhrases: ['Make life multiplanetary', 'Failure is an option here'],
-  },
-  {
-    id: 6,
-    name: 'Michelle Obama',
-    title: 'Former First Lady and Author',
-    description: 'Powerful advocate for education, health, and social justice. Known for her authentic leadership style and ability to inspire through storytelling.',
-    photoUrl: 'https://example.com/michelle-obama.jpg',
-    leadershipStyles: ['Authentic', 'Inspirational', 'Advocacy'],
-    traits: ['Authenticity', 'Advocacy', 'Grace'],
-    famousPhrases: ['When they go low, we go high', 'Success is only meaningful if it comes with honor'],
-  },
-];
-
-const MOCK_USER_SELECTIONS = [1, 2, 3]; // Steve Jobs, Brené Brown, Simon Sinek
-
 export default function LeadershipInspirationsScreen() {
   const theme = useTheme();
+  const { isAuthenticated } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('detailed');
   const [selectedSlots, setSelectedSlots] = useState<(number | null)[]>([null, null, null]);
@@ -164,22 +100,14 @@ export default function LeadershipInspirationsScreen() {
   // Fetch leaders data
   const { data: leaders, isLoading: isLoadingLeaders, refetch: refetchLeaders } = useQuery<Leader[]>({
     queryKey: ['/api/leaders'],
-    queryFn: async () => {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return MOCK_LEADERS;
-    },
+    enabled: isAuthenticated,
     refetchOnWindowFocus: false,
   });
 
   // Fetch user data to get current selections
   const { data: userData, refetch: refetchUserData } = useQuery({
     queryKey: ['/api/users/me'],
-    queryFn: async () => {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-      return { selectedLeaders: MOCK_USER_SELECTIONS };
-    },
+    enabled: isAuthenticated,
     refetchOnWindowFocus: false,
   });
 
@@ -249,19 +177,25 @@ export default function LeadershipInspirationsScreen() {
     setIsSaving(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      Alert.alert(
-        'Leaders saved',
-        'Your leadership inspirations have been saved successfully.',
-        [{ text: 'OK' }]
-      );
-      
-      // Refresh data
-      await queryClient.invalidateQueries({
-        queryKey: ['/api/users/me']
+      // Real API call
+      const response = await apiRequest('PATCH', '/api/users/me', {
+        selectedLeaders: selectedLeaderIds
       });
+      
+      if (response.ok) {
+        Alert.alert(
+          'Leaders saved',
+          'Your leadership inspirations have been saved successfully.',
+          [{ text: 'OK' }]
+        );
+        
+        // Refresh data
+        await queryClient.invalidateQueries({
+          queryKey: ['/api/users/me']
+        });
+      } else {
+        throw new Error('Failed to save leaders');
+      }
       
     } catch (error) {
       console.error('Error saving leaders:', error);
