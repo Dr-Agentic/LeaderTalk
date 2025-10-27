@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -32,21 +33,15 @@ router.get('/', (req: Request, res: Response) => {
 });
 
 // Serve landing page assets
-router.use('/landing', (req: Request, res: Response, next) => {
-  const landingAssetsPath = path.join(__dirname, '../landing');
-  
-  // Set appropriate headers for different file types
-  const filePath = req.path;
-  if (filePath.endsWith('.css')) {
-    res.setHeader('Content-Type', 'text/css');
-  } else if (filePath.endsWith('.js')) {
-    res.setHeader('Content-Type', 'application/javascript');
+router.use('/landing', express.static(path.join(__dirname, '../landing'), {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.css')) {
+      res.setHeader('Content-Type', 'text/css');
+    } else if (filePath.endsWith('.js')) {
+      res.setHeader('Content-Type', 'application/javascript');
+    }
   }
-  
-  // Serve static files from landing directory
-  const express = require('express');
-  express.static(landingAssetsPath)(req, res, next);
-});
+}));
 
 // Landing page at /landing path for app.leadertalk.app/landing
 router.get('/landing', (req: Request, res: Response) => {
