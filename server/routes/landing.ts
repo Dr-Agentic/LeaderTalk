@@ -32,8 +32,8 @@ router.get('/', (req: Request, res: Response) => {
   });
 });
 
-// Serve landing page assets
-router.use('/landing', express.static(path.join(__dirname, '../landing'), {
+// Serve landing page assets at /landing-assets/
+router.use('/landing-assets', express.static(path.join(__dirname, '../landing'), {
   setHeaders: (res, filePath) => {
     if (filePath.endsWith('.css')) {
       res.setHeader('Content-Type', 'text/css');
