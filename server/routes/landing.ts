@@ -33,7 +33,7 @@ router.get('/', (req: Request, res: Response) => {
 });
 
 // Serve landing page assets at /landing-assets/
-router.use('/landing-assets', express.static(path.join(__dirname, '../landing'), {
+router.use('/landing-assets', express.static(path.join(process.cwd(), 'server/landing'), {
   setHeaders: (res, filePath) => {
     if (filePath.endsWith('.css')) {
       res.setHeader('Content-Type', 'text/css');
@@ -45,7 +45,7 @@ router.use('/landing-assets', express.static(path.join(__dirname, '../landing'),
 
 // Landing page at /landing path for app.leadertalk.app/landing
 router.get('/landing', (req: Request, res: Response) => {
-  const landingPagePath = path.join(__dirname, '../landing/index.html');
+  const landingPagePath = path.join(process.cwd(), 'server/landing/index.html');
   res.sendFile(landingPagePath, (err) => {
     if (err) {
       console.error('Error serving landing page:', err);
