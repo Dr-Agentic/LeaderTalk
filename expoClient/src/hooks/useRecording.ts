@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { Audio } from 'expo-av';
 import { Alert } from 'react-native';
+import { requestMicrophonePermission, openAppSettings } from './usePermissions';
 
 interface UseRecordingReturn {
   isRecording: boolean;
@@ -21,14 +22,17 @@ export function useRecording(): UseRecordingReturn {
 
   const startRecording = async () => {
     try {
-      console.log('🎤 Requesting recording permissions...');
-      const { status } = await Audio.requestPermissionsAsync();
+      // Validate microphone permissions first
+      const hasPermission = await requestMicrophonePermission();
       
-      if (status !== 'granted') {
+      if (!hasPermission) {
         Alert.alert(
-          'Permission Required',
-          'Please grant microphone permission to record audio.',
-          [{ text: 'OK' }]
+          'Microphone Permission Required',
+          'LeaderTalk needs microphone access to record and analyze your communication for leadership coaching. Please enable microphone access in Settings.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Settings', onPress: () => openAppSettings() }
+          ]
         );
         return;
       }

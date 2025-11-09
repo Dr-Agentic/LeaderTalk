@@ -464,7 +464,7 @@ function TranscriptWithHighlighting({ transcription, analysis }: {
 
 // Analysis instances list component
 function AnalysisInstancesList({
-  instances,
+  instances = [],
   emptyMessage,
   type,
   selectedLeaders = [],
@@ -475,7 +475,7 @@ function AnalysisInstancesList({
   getLeaderAlternative,
   onLeaderButtonPress,
 }: {
-  instances: AnalysisInstance[];
+  instances?: AnalysisInstance[];
   emptyMessage: string;
   type: 'positive' | 'negative' | 'passive';
   selectedLeaders?: Leader[];
